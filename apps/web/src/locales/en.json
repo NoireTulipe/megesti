@@ -1,0 +1,14 @@
+{
+  "app": {
+    "name": "Megesti"
+  },
+  "nav": {},
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "loading": "Loading…",
+    "error": "An error occurred"
+  }
+}

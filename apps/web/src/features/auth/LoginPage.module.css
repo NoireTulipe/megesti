@@ -1,0 +1,99 @@
+.page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cream);
+}
+
+.card {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 32px rgba(28, 58, 94, 0.10);
+  padding: 48px 40px;
+  width: 100%;
+  max-width: 400px;
+}
+
+.title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 2.2rem;
+  color: var(--ink);
+  margin: 0 0 6px;
+  text-align: center;
+}
+
+.subtitle {
+  font-size: 0.875rem;
+  color: var(--text-soft);
+  text-align: center;
+  margin: 0 0 36px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--ink);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.input {
+  height: 44px;
+  padding: 0 14px;
+  border: 1.5px solid var(--cream-dark);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  color: var(--ink);
+  background: var(--cream);
+  outline: none;
+  transition: border-color 0.15s;
+}
+.input:focus {
+  border-color: var(--ink-light);
+  background: #fff;
+}
+
+.error {
+  font-size: 0.85rem;
+  color: #DC2626;
+  margin: 0;
+  padding: 10px 14px;
+  background: #FEE2E2;
+  border-radius: 8px;
+}
+
+.btn {
+  height: 46px;
+  background: var(--terra);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+  margin-top: 4px;
+}
+.btn:hover:not(:disabled) {
+  background: var(--ink);
+}
+.btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

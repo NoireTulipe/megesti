@@ -1,0 +1,90 @@
+.header {
+  padding: 16px 32px;
+  border-bottom: 1.5px solid rgba(28, 58, 94, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(250, 246, 239, 0.9);
+  backdrop-filter: blur(8px);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  flex-shrink: 0;
+}
+
+.companyName {
+  font-family: 'DM Serif Display', serif;
+  font-size: 18px;
+  font-weight: 400;
+  color: var(--ink);
+}
+
+.subtitle {
+  font-size: 12px;
+  color: var(--text-soft);
+  margin-top: 2px;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.notifBtn {
+  position: relative;
+  background: var(--cream-dark);
+  border: none;
+  border-radius: 12px;
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-light);
+  transition: background 0.15s;
+}
+.notifBtn:hover { background: var(--ink-faint); }
+
+.notifDot {
+  position: absolute;
+  top: 8px;
+  right: 9px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--terra);
+  border: 2px solid var(--cream);
+}
+
+.userChip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--cream-dark);
+  border-radius: 12px;
+  padding: 6px 12px 6px 6px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.userChip:hover { background: var(--ink-faint); }
+
+.userAvatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #C9933A, #E8633A);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.userName {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+}

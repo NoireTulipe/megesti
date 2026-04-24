@@ -1,0 +1,39 @@
+# Dépendances
+node_modules/
+.pnpm-store/
+
+# Build
+dist/
+build/
+out/
+.expo/
+.next/
+
+# Environnement
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+pnpm-debug.log*
+
+# Éditeur
+.vscode/settings.json
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Turbo
+.turbo/
+
+# TypeScript
+*.tsbuildinfo
+
+# Tests / couverture
+coverage/
+
+# Exemples de référence pour Claude (non versionnés)
+Exemple-pour-Claude/

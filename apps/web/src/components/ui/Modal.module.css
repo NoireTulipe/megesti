@@ -1,0 +1,51 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(28, 58, 94, 0.25);
+  backdrop-filter: blur(4px);
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dialog {
+  background: var(--cream);
+  border-radius: 24px;
+  padding: 28px 32px;
+  width: 460px;
+  max-width: 90vw;
+  box-shadow: 0 20px 60px rgba(28, 58, 94, 0.2);
+  border: 1.5px solid rgba(28, 58, 94, 0.08);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 22px;
+  font-weight: 400;
+  color: var(--ink);
+}
+
+.closeBtn {
+  border: none;
+  background: var(--cream-dark);
+  border-radius: 8px;
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+  font-size: 18px;
+  color: var(--text-mid);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  transition: background 0.15s;
+}
+.closeBtn:hover { background: var(--ink-faint); }

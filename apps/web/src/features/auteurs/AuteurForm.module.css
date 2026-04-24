@@ -1,0 +1,93 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--ink);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.input,
+.textarea {
+  padding: 10px 13px;
+  border: 1.5px solid var(--cream-dark);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  color: var(--ink);
+  background: var(--cream);
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.15s;
+  resize: vertical;
+}
+.input:focus,
+.textarea:focus {
+  border-color: var(--ink-light);
+  background: #fff;
+}
+
+.error {
+  font-size: 0.75rem;
+  color: #DC2626;
+}
+
+.errorGlobal {
+  font-size: 0.85rem;
+  color: #DC2626;
+  background: #FEE2E2;
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin: 0;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 4px;
+}
+
+.btnPrimary {
+  height: 40px;
+  padding: 0 20px;
+  background: var(--terra);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btnPrimary:hover:not(:disabled) { background: var(--ink); }
+.btnPrimary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.btnSecondary {
+  height: 40px;
+  padding: 0 20px;
+  background: transparent;
+  color: var(--text-mid);
+  border: 1.5px solid var(--cream-dark);
+  border-radius: 8px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.btnSecondary:hover { border-color: var(--ink-light); color: var(--ink); }

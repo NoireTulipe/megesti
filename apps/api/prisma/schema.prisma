@@ -1,0 +1,188 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Tenant ──────────────────────────────────────────────────────────────────
+
+model Tenant {
+  id        String   @id @default(uuid())
+  name      String
+  slug      String   @unique
+  theme     Json?    // ThemeConfig overrides
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users                  User[]
+  thesauri               Thesaurus[]
+  customFieldDefinitions CustomFieldDefinition[]
+  auteurs                Auteur[]
+  livres                 Livre[]
+}
+
+// ─── User ─────────────────────────────────────────────────────────────────────
+
+enum UserRole {
+  ADMIN       // Gérant maison d'édition
+  EDITOR      // Collaborateur interne
+  AUTHOR      // Auteur (accès restreint)
+}
+
+model User {
+  id           String   @id @default(uuid())
+  tenantId     String
+  email        String
+  passwordHash String
+  firstName    String
+  lastName     String
+  role         UserRole @default(EDITOR)
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, email])
+  @@index([tenantId])
+}
+
+// ─── Thésaurus ───────────────────────────────────────────────────────────────
+
+model Thesaurus {
+  id          String  @id @default(uuid())
+  tenantId    String
+  nameFr      String
+  nameEn      String?
+  descFr      String?
+  descEn      String?
+
+  tenant  Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  entries ThesaurusEntry[]
+
+  @@index([tenantId])
+}
+
+model ThesaurusEntry {
+  id          String  @id @default(uuid())
+  thesaurusId String
+  labelFr     String
+  labelEn     String?
+  position    Int     @default(0)
+  parentId    String? // null = root entry
+
+  thesaurus Thesaurus      @relation(fields: [thesaurusId], references: [id], onDelete: Cascade)
+  parent    ThesaurusEntry? @relation("EntryChildren", fields: [parentId], references: [id])
+  children  ThesaurusEntry[] @relation("EntryChildren")
+
+  @@index([thesaurusId])
+  @@index([parentId])
+}
+
+// ─── Champs personnalisés ─────────────────────────────────────────────────────
+
+enum FieldType {
+  text
+  textarea
+  number
+  date
+  boolean
+  select
+  thesaurus
+}
+
+enum EntityType {
+  auteur
+  livre
+  maisonEdition
+  depotLibraire
+  salon
+}
+
+model CustomFieldDefinition {
+  id          String     @id @default(uuid())
+  tenantId    String
+  entityType  EntityType
+  labelFr     String
+  labelEn     String?
+  fieldType   FieldType
+  position    Int        @default(0)
+  required    Boolean    @default(false)
+  thesaurusId String?    // non-null si fieldType = thesaurus
+  options     Json?      // SelectOption[] si fieldType = select
+
+  tenant Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  values CustomFieldValue[]
+
+  @@index([tenantId, entityType])
+}
+
+// ─── Catalogue ───────────────────────────────────────────────────────────────
+
+model Auteur {
+  id         String   @id @default(uuid())
+  tenantId   String
+  prenom     String
+  nom        String
+  pseudonyme String?
+  email      String?
+  bio        String?
+  actif      Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  tenant Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  livres AuteurLivre[]
+
+  @@index([tenantId])
+}
+
+model Livre {
+  id              String    @id @default(uuid())
+  tenantId        String
+  titre           String
+  isbn            String?
+  prix            Decimal   @db.Decimal(10, 2)
+  datePublication DateTime?
+  description     String?
+  couvertureUrl   String?
+  stock           Int       @default(0)
+  actif           Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  tenant  Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  auteurs AuteurLivre[]
+
+  @@index([tenantId])
+  @@unique([tenantId, isbn])
+}
+
+model AuteurLivre {
+  auteurId String
+  livreId  String
+  ordre    Int    @default(0)
+
+  auteur Auteur @relation(fields: [auteurId], references: [id], onDelete: Cascade)
+  livre  Livre  @relation(fields: [livreId],  references: [id], onDelete: Cascade)
+
+  @@id([auteurId, livreId])
+  @@index([livreId])
+}
+
+model CustomFieldValue {
+  id           String  @id @default(uuid())
+  definitionId String
+  entityId     String  // UUID de l'entité cible (auteur, livre, etc.)
+  valueText    String?
+  valueNumber  Float?
+  valueBoolean Boolean?
+
+  definition CustomFieldDefinition @relation(fields: [definitionId], references: [id], onDelete: Cascade)
+
+  @@unique([definitionId, entityId])
+  @@index([entityId])
+}
