@@ -13,23 +13,32 @@ model Tenant {
   id        String   @id @default(uuid())
   name      String
   slug      String   @unique
-  theme     Json?    // ThemeConfig overrides
+  theme     Json?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   users                  User[]
   thesauri               Thesaurus[]
   customFieldDefinitions CustomFieldDefinition[]
-  auteurs                Auteur[]
-  livres                 Livre[]
+  auteurs                  Auteur[]
+  maisonsEdition           MaisonEdition[]
+  depotsLibraires          DepotLibraire[]
+  salons                   Salon[]
+  categoriesPointDeVente   CategoriePointDeVente[]
+  pointsDeVente            PointDeVente[]
+  sessionsCaisse           SessionCaisse[]
+  ventes                   Vente[]
+  rayons                   Rayon[]
+  categories             Categorie[]
+  articles               Article[]
 }
 
 // ─── User ─────────────────────────────────────────────────────────────────────
 
 enum UserRole {
-  ADMIN       // Gérant maison d'édition
-  EDITOR      // Collaborateur interne
-  AUTHOR      // Auteur (accès restreint)
+  ADMIN
+  EDITOR
+  AUTHOR
 }
 
 model User {
@@ -53,14 +62,14 @@ model User {
 // ─── Thésaurus ───────────────────────────────────────────────────────────────
 
 model Thesaurus {
-  id          String  @id @default(uuid())
-  tenantId    String
-  nameFr      String
-  nameEn      String?
-  descFr      String?
-  descEn      String?
+  id      String  @id @default(uuid())
+  tenantId String
+  nameFr  String
+  nameEn  String?
+  descFr  String?
+  descEn  String?
 
-  tenant  Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant  Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   entries ThesaurusEntry[]
 
   @@index([tenantId])
@@ -72,14 +81,278 @@ model ThesaurusEntry {
   labelFr     String
   labelEn     String?
   position    Int     @default(0)
-  parentId    String? // null = root entry
+  parentId    String?
 
-  thesaurus Thesaurus      @relation(fields: [thesaurusId], references: [id], onDelete: Cascade)
+  thesaurus Thesaurus       @relation(fields: [thesaurusId], references: [id], onDelete: Cascade)
   parent    ThesaurusEntry? @relation("EntryChildren", fields: [parentId], references: [id])
   children  ThesaurusEntry[] @relation("EntryChildren")
 
   @@index([thesaurusId])
   @@index([parentId])
+}
+
+// ─── Catalogue ───────────────────────────────────────────────────────────────
+
+// ─── Ventes ───────────────────────────────────────────────────────────────────
+
+model CategoriePointDeVente {
+  id       String @id @default(uuid())
+  tenantId String
+  nom      String
+  ordre    Int    @default(0)
+
+  tenant        Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  pointsDeVente PointDeVente[]
+
+  @@unique([tenantId, nom])
+  @@index([tenantId])
+}
+
+model PointDeVente {
+  id                 String   @id @default(uuid())
+  tenantId           String
+  categorieId        String?
+  nom                String
+  commissionFixe     Decimal? @db.Decimal(10, 2)
+  commissionPourcent Decimal? @db.Decimal(5, 2)
+  encaissementDirect Boolean  @default(true)
+  actif              Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  tenant    Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  categorie CategoriePointDeVente? @relation(fields: [categorieId], references: [id])
+  sessions  SessionCaisse[]
+
+  @@index([tenantId])
+}
+
+enum StatutSession {
+  OUVERTE
+  FERMEE
+}
+
+model SessionCaisse {
+  id             String        @id @default(uuid())
+  tenantId       String
+  pointDeVenteId String
+  nom            String?
+  dateOuverture  DateTime      @default(now())
+  dateFermeture  DateTime?
+  fondOuverture  Decimal       @default(0) @db.Decimal(10, 2)
+  fondFermeture  Decimal?      @db.Decimal(10, 2)
+  debiterStockME Boolean       @default(true)
+  statut         StatutSession @default(OUVERTE)
+  createdAt      DateTime      @default(now())
+
+  tenant       Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  pointDeVente PointDeVente @relation(fields: [pointDeVenteId], references: [id])
+  ventes       Vente[]
+
+  @@index([tenantId])
+  @@index([pointDeVenteId])
+}
+
+enum ModePaiement {
+  CB
+  ESPECES
+  CHEQUE
+  VIREMENT
+}
+
+enum StatutVente {
+  VALIDEE
+  ANNULEE
+}
+
+model Vente {
+  id             String       @id @default(uuid())
+  tenantId       String
+  sessionId      String
+  numero         Int
+  dateVente      DateTime     @default(now())
+  modePaiement   ModePaiement
+  totalHT        Decimal      @db.Decimal(10, 2)
+  totalTVA       Decimal      @db.Decimal(10, 2)
+  totalTTC       Decimal      @db.Decimal(10, 2)
+  statut         StatutVente  @default(VALIDEE)
+  noteAnnulation String?
+  createdAt      DateTime     @default(now())
+
+  tenant  Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  session SessionCaisse @relation(fields: [sessionId], references: [id])
+  lignes  LigneVente[]
+
+  @@unique([tenantId, numero])
+  @@index([tenantId])
+  @@index([sessionId])
+}
+
+model LigneVente {
+  id             String  @id @default(uuid())
+  venteId        String
+  articleId      String
+  quantite       Int
+  prixUnitaireHT Decimal @db.Decimal(10, 2)
+  tauxTVA        Decimal @db.Decimal(5, 2)
+  totalLigneHT   Decimal @db.Decimal(10, 2)
+  totalLigneTTC  Decimal @db.Decimal(10, 2)
+
+  vente   Vente   @relation(fields: [venteId], references: [id], onDelete: Cascade)
+  article Article @relation(fields: [articleId], references: [id])
+
+  @@index([venteId])
+  @@index([articleId])
+}
+
+// ─── Catalogue ───────────────────────────────────────────────────────────────
+
+model Rayon {
+  id          String  @id @default(uuid())
+  tenantId    String
+  nom         String
+  ordre       Int     @default(0)
+  isLibrairie Boolean @default(false)
+  tauxTVA     Decimal @default(20) @db.Decimal(5, 2)
+
+  tenant     Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  categories Categorie[]
+  articles   Article[]
+  customFields CustomFieldDefinition[]
+
+  @@unique([tenantId, nom])
+  @@index([tenantId])
+}
+
+model Categorie {
+  id       String @id @default(uuid())
+  tenantId String
+  rayonId  String
+  nom      String
+  ordre    Int    @default(0)
+
+  tenant   Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  rayon    Rayon     @relation(fields: [rayonId], references: [id], onDelete: Cascade)
+  articles Article[]
+
+  @@unique([rayonId, nom])
+  @@index([tenantId])
+  @@index([rayonId])
+}
+
+model Article {
+  id              String    @id @default(uuid())
+  tenantId        String
+  rayonId         String
+  categorieId     String?
+  nom             String
+  reference       String?
+  description     String?
+  imageUrl        String?
+  prixVenteHT     Decimal   @db.Decimal(10, 2)
+  prixAchatHT     Decimal?  @db.Decimal(10, 2)
+  prixAchatLotHT  Decimal?  @db.Decimal(10, 2)
+  prixAchatLotQte Int?
+  stock           Int       @default(0)
+  stockAlerte     Int       @default(0)
+  stockTension    Int       @default(0)
+  actif           Boolean   @default(true)
+  // Champs librairie — null pour les autres rayons
+  isbn            String?
+  datePublication DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  tenant    Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  rayon     Rayon          @relation(fields: [rayonId], references: [id])
+  categorie Categorie?     @relation(fields: [categorieId], references: [id])
+  auteurs      ArticleAuteur[]
+  lignesVente  LigneVente[]
+
+  @@index([tenantId])
+  @@index([tenantId, rayonId])
+}
+
+model ArticleAuteur {
+  articleId String
+  auteurId  String
+  ordre     Int    @default(0)
+
+  article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  auteur  Auteur  @relation(fields: [auteurId],  references: [id], onDelete: Cascade)
+
+  @@id([articleId, auteurId])
+  @@index([auteurId])
+}
+
+// ─── Auteur ───────────────────────────────────────────────────────────────────
+
+model Auteur {
+  id         String   @id @default(uuid())
+  tenantId   String
+  prenom     String
+  nom        String
+  pseudonyme String?
+  email      String?
+  bio        String?
+  actif      Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  tenant   Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  articles ArticleAuteur[]
+
+  @@index([tenantId])
+}
+
+// ─── Réseau ───────────────────────────────────────────────────────────────────
+
+model MaisonEdition {
+  id         String   @id @default(uuid())
+  tenantId   String
+  nom        String
+  siret      String?
+  email      String?
+  telephone  String?
+  adresse    String?
+  actif      Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+}
+
+model DepotLibraire {
+  id         String   @id @default(uuid())
+  tenantId   String
+  nom        String
+  contact    String?
+  adresse    String?
+  actif      Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+}
+
+model Salon {
+  id         String    @id @default(uuid())
+  tenantId   String
+  nom        String
+  lieu       String?
+  dateDebut  DateTime?
+  dateFin    DateTime?
+  actif      Boolean   @default(true)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
 }
 
 // ─── Champs personnalisés ─────────────────────────────────────────────────────
@@ -96,87 +369,41 @@ enum FieldType {
 
 enum EntityType {
   auteur
-  livre
   maisonEdition
   depotLibraire
   salon
+  pointDeVente
 }
 
 model CustomFieldDefinition {
-  id          String     @id @default(uuid())
+  id          String      @id @default(uuid())
   tenantId    String
-  entityType  EntityType
+  entityType  EntityType? // null si scopé à un rayon
+  rayonId     String?     // null si scopé à un entityType
   labelFr     String
   labelEn     String?
   fieldType   FieldType
-  position    Int        @default(0)
-  required    Boolean    @default(false)
-  thesaurusId String?    // non-null si fieldType = thesaurus
-  options     Json?      // SelectOption[] si fieldType = select
+  position    Int         @default(0)
+  required    Boolean     @default(false)
+  thesaurusId String?
+  options     Json?
+  category    String?
+  halfWidth   Boolean     @default(false)
+  placeholder String?
+  validation  Json?       // { type, pattern?, message }
 
   tenant Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  rayon  Rayon?               @relation(fields: [rayonId], references: [id], onDelete: Cascade)
   values CustomFieldValue[]
 
   @@index([tenantId, entityType])
-}
-
-// ─── Catalogue ───────────────────────────────────────────────────────────────
-
-model Auteur {
-  id         String   @id @default(uuid())
-  tenantId   String
-  prenom     String
-  nom        String
-  pseudonyme String?
-  email      String?
-  bio        String?
-  actif      Boolean  @default(true)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  tenant Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  livres AuteurLivre[]
-
-  @@index([tenantId])
-}
-
-model Livre {
-  id              String    @id @default(uuid())
-  tenantId        String
-  titre           String
-  isbn            String?
-  prix            Decimal   @db.Decimal(10, 2)
-  datePublication DateTime?
-  description     String?
-  couvertureUrl   String?
-  stock           Int       @default(0)
-  actif           Boolean   @default(true)
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-
-  tenant  Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  auteurs AuteurLivre[]
-
-  @@index([tenantId])
-  @@unique([tenantId, isbn])
-}
-
-model AuteurLivre {
-  auteurId String
-  livreId  String
-  ordre    Int    @default(0)
-
-  auteur Auteur @relation(fields: [auteurId], references: [id], onDelete: Cascade)
-  livre  Livre  @relation(fields: [livreId],  references: [id], onDelete: Cascade)
-
-  @@id([auteurId, livreId])
-  @@index([livreId])
+  @@index([tenantId, rayonId])
 }
 
 model CustomFieldValue {
   id           String  @id @default(uuid())
   definitionId String
-  entityId     String  // UUID de l'entité cible (auteur, livre, etc.)
+  entityId     String
   valueText    String?
   valueNumber  Float?
   valueBoolean Boolean?

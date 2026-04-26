@@ -1,0 +1,101 @@
+.page {
+  padding: 32px;
+  width: 100%;
+}
+
+.header {
+  margin-bottom: 28px;
+}
+
+.title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 2rem;
+  color: var(--ink);
+  margin: 0 0 4px;
+}
+
+.subtitle {
+  font-size: 0.875rem;
+  color: var(--text-soft);
+  margin: 0;
+}
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 2px solid var(--cream-dark);
+  margin-bottom: 32px;
+}
+
+.tab {
+  padding: 10px 22px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-soft);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+  border-radius: 8px 8px 0 0;
+}
+.tab:hover { color: var(--ink); }
+.tabActive {
+  color: var(--terra);
+  border-bottom-color: var(--terra);
+}
+
+/* ── Entity sub-tabs ─────────────────────────────────────────────────────── */
+.entityTabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.entityTab {
+  padding: 6px 16px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-soft);
+  background: var(--cream);
+  border: 1.5px solid var(--cream-dark);
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.entityTab:hover { background: var(--ink-faint); color: var(--ink); }
+.entityTabActive {
+  background: var(--ink);
+  color: #fff;
+  border-color: var(--ink);
+}
+
+.entityTabSep {
+  width: 1px;
+  background: var(--cream-dark);
+  align-self: stretch;
+  margin: 0 4px;
+  flex-shrink: 0;
+}
+
+.entityTabRayon { border-style: dashed; }
+
+.entityTabIcon { margin-right: 4px; font-size: 0.75rem; }
+
+.rayonHint {
+  font-size: 0.75rem;
+  color: var(--text-soft);
+  font-style: italic;
+  align-self: center;
+}
+
+.content {
+  animation: fadeUp 0.25s ease both;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}

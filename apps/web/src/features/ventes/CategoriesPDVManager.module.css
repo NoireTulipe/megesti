@@ -1,0 +1,92 @@
+.root { display: flex; flex-direction: column; gap: 12px; }
+
+.loading { font-size: 0.85rem; color: var(--text-soft); margin: 0; }
+.empty   { font-size: 0.85rem; color: var(--text-soft); margin: 0; }
+
+.list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+
+.item { border-radius: 8px; overflow: hidden; }
+
+.readRow {
+  display: flex;
+  align-items: center;
+  padding: 10px 12px;
+  background: var(--cream);
+  border: 1px solid var(--cream-dark);
+  border-radius: 8px;
+  gap: 8px;
+}
+
+.nom { flex: 1; font-size: 0.9rem; color: var(--ink); font-weight: 500; }
+
+.actions { display: flex; gap: 4px; opacity: 0; transition: opacity 0.15s; }
+.readRow:hover .actions { opacity: 1; }
+
+.btnEdit, .btnDelete, .btnSave, .btnCancel {
+  width: 28px; height: 28px;
+  border-radius: 6px;
+  border: 1.5px solid var(--cream-dark);
+  background: #fff;
+  cursor: pointer;
+  font-size: 0.8rem;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+.btnEdit:hover   { background: var(--ink); color: #fff; border-color: var(--ink); }
+.btnDelete:hover { background: #DC2626; color: #fff; border-color: #DC2626; }
+.btnSave:hover   { background: #16A34A; color: #fff; border-color: #16A34A; }
+.btnCancel:hover { background: var(--ink-light); color: #fff; border-color: var(--ink-light); }
+
+.editRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  background: #fff;
+  border: 1.5px solid var(--ink-light);
+  border-radius: 8px;
+}
+
+.input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 0.9rem;
+  color: var(--ink);
+  font-family: inherit;
+  background: transparent;
+}
+
+.addRow {
+  display: flex;
+  gap: 8px;
+  padding-top: 4px;
+  border-top: 1px solid var(--cream-dark);
+}
+
+.addRow .input {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1.5px solid var(--cream-dark);
+  border-radius: 8px;
+  font-size: 0.875rem;
+  background: var(--cream);
+  transition: border-color 0.15s;
+}
+.addRow .input:focus { border-color: var(--ink-light); background: #fff; outline: none; }
+
+.btnAdd {
+  height: 40px;
+  padding: 0 16px;
+  background: var(--terra);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+.btnAdd:hover:not(:disabled) { background: var(--ink); }
+.btnAdd:disabled { opacity: 0.5; cursor: not-allowed; }

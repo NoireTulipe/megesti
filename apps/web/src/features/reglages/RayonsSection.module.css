@@ -1,0 +1,278 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 680px;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.empty {
+  padding: 32px;
+  text-align: center;
+  color: var(--text-soft);
+  font-size: 0.875rem;
+  border: 2px dashed var(--cream-dark);
+  border-radius: 12px;
+}
+
+/* ── Rayon item ──────────────────────────────────────────────── */
+.rayonItem {
+  background: #fff;
+  border: 1.5px solid var(--cream-dark);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: box-shadow 0.15s;
+}
+.rayonItem:hover { box-shadow: 0 2px 12px rgba(28, 58, 94, 0.07); }
+.rayonItem.dragging { box-shadow: 0 12px 32px rgba(28, 58, 94, 0.2); border-color: var(--terra); }
+
+.rayonHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: linear-gradient(90deg, var(--ink-faint) 0%, transparent 100%);
+}
+
+.dragHandle {
+  color: #ccc;
+  cursor: grab;
+  display: flex;
+  align-items: center;
+  padding: 4px 3px;
+  border-radius: 4px;
+  transition: color 0.15s;
+  flex-shrink: 0;
+}
+.dragHandle:hover  { color: var(--ink-light); }
+.dragHandle:active { cursor: grabbing; }
+
+.rayonNom {
+  flex: 1;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--terra);
+  cursor: text;
+  min-width: 0;
+}
+
+.editInput {
+  flex: 1;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--terra);
+  border: none;
+  outline: 2px solid var(--terra);
+  background: rgba(217, 95, 59, 0.06);
+  border-radius: 5px;
+  padding: 2px 7px;
+  font-family: inherit;
+  min-width: 0;
+}
+
+.catCount {
+  font-size: 0.68rem;
+  color: var(--text-soft);
+  white-space: nowrap;
+}
+
+.btnLibrairie {
+  padding: 3px 7px;
+  border-radius: 6px;
+  border: 1.5px solid var(--cream-dark);
+  background: #fff;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  flex-shrink: 0;
+  opacity: 0.5;
+}
+.btnLibrairie:hover      { opacity: 0.8; }
+.btnLibrairieActive      { opacity: 1; background: #fff8f0; border-color: var(--terra); }
+
+.btnExpand {
+  width: 22px; height: 22px;
+  border-radius: 5px;
+  border: none;
+  background: transparent;
+  color: var(--text-soft);
+  font-size: 0.7rem;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: color 0.15s;
+  flex-shrink: 0;
+}
+.btnExpand:hover { color: var(--ink); }
+
+.btnIconSm {
+  width: 22px; height: 22px;
+  border-radius: 5px;
+  border: 1.5px solid var(--cream-dark);
+  background: #fff;
+  color: var(--text-soft);
+  font-size: 0.82rem;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+  flex-shrink: 0;
+  padding: 0;
+}
+.btnIconSm:hover { border-color: var(--ink-light); color: var(--ink); }
+.btnDelete:hover { background: #FEE2E2; color: #DC2626; border-color: #FECACA; }
+
+/* ── Catégories ──────────────────────────────────────────────── */
+.catList {
+  padding: 8px 14px 12px 36px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-top: 1px solid var(--cream-dark);
+  background: var(--ink-faint);
+}
+
+.catEmpty {
+  font-size: 0.75rem;
+  color: var(--text-soft);
+  font-style: italic;
+  padding: 4px 0;
+}
+
+.catItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 7px;
+  background: #fff;
+  border: 1.5px solid var(--cream-dark);
+  transition: box-shadow 0.12s;
+}
+.catItem:hover { box-shadow: 0 1px 6px rgba(28, 58, 94, 0.07); }
+.catItem.dragging { box-shadow: 0 6px 18px rgba(28, 58, 94, 0.15); border-color: var(--terra); }
+
+.catHandle {
+  color: #ccc;
+  cursor: grab;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+.catHandle:hover  { color: var(--ink-light); }
+.catHandle:active { cursor: grabbing; }
+
+.catNom {
+  flex: 1;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--ink);
+  cursor: text;
+}
+
+.catEditInput {
+  flex: 1;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--ink);
+  border: none;
+  outline: 2px solid var(--ink-light);
+  background: rgba(28, 58, 94, 0.04);
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-family: inherit;
+}
+
+.btnIconXs {
+  width: 18px; height: 18px;
+  border-radius: 4px;
+  border: 1.5px solid var(--cream-dark);
+  background: #fff;
+  color: var(--text-soft);
+  font-size: 0.75rem;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+  flex-shrink: 0;
+  padding: 0;
+}
+
+/* ── Formulaire nouveau rayon ────────────────────────────────── */
+.newForm {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 10px 14px;
+  background: var(--ink-faint);
+  border: 1.5px dashed var(--cream-dark);
+  border-radius: 10px;
+  animation: fadeIn 0.18s ease both;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.newInput {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1.5px solid var(--cream-dark);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: var(--ink);
+  background: #fff;
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.15s;
+}
+.newInput:focus { border-color: var(--ink-light); }
+
+.btnConfirm {
+  height: 34px; padding: 0 14px;
+  background: var(--terra); color: #fff;
+  border: none; border-radius: 8px;
+  font-size: 0.82rem; font-weight: 600; cursor: pointer;
+  transition: background 0.15s; white-space: nowrap;
+}
+.btnConfirm:hover:not(:disabled) { background: var(--ink); }
+.btnConfirm:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btnCancel {
+  width: 30px; height: 30px; border-radius: 50%;
+  background: transparent; color: var(--text-soft);
+  border: none; font-size: 0.9rem; cursor: pointer;
+  transition: color 0.15s;
+}
+.btnCancel:hover { color: #DC2626; }
+
+.btnAddRayon {
+  align-self: flex-start;
+  height: 36px; padding: 0 18px;
+  background: transparent;
+  color: var(--ink);
+  border: 1.5px dashed var(--cream-dark);
+  border-radius: 8px;
+  font-size: 0.82rem; font-weight: 600; cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.btnAddRayon:hover { border-color: var(--terra); color: var(--terra); background: rgba(217, 95, 59, 0.04); }
+
+/* ── Drag overlay ────────────────────────────────────────────── */
+.dragGhost {
+  padding: 8px 16px;
+  background: var(--ink);
+  color: #fff;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  box-shadow: 0 8px 24px rgba(28, 58, 94, 0.25);
+  cursor: grabbing;
+}

@@ -5,6 +5,12 @@ import { LoginPage } from '@/features/auth/LoginPage'
 import { DashboardPage } from '@/features/dashboard/DashboardPage'
 import { CataloguePage } from '@/features/catalogue/CataloguePage'
 import { AuteursPage }   from '@/features/auteurs/AuteursPage'
+import { MaisonsEditionPage }  from '@/features/maisonsEdition/MaisonsEditionPage'
+import { DepotsLibrairesPage } from '@/features/depotsLibraires/DepotsLibrairesPage'
+import { SalonsPage }          from '@/features/salons/SalonsPage'
+import { VentesPage }          from '@/features/ventes/VentesPage'
+import { PointsDeVentePage }   from '@/features/ventes/PointsDeVentePage'
+import { ReglagesPage }  from '@/features/reglages/ReglagesPage'
 
 function ComingSoon({ label }: { label: string }) {
   return (
@@ -24,14 +30,17 @@ export default function App() {
         <ProtectedRoute>
           <AppLayout>
             <Routes>
-              <Route path="/"          element={<DashboardPage />} />
-              <Route path="/catalogue" element={<CataloguePage />} />
-              <Route path="/ventes"    element={<ComingSoon label="Ventes" />} />
-              <Route path="/stock"     element={<ComingSoon label="Stock" />} />
-              <Route path="/auteurs"   element={<AuteursPage />} />
-              <Route path="/salons"    element={<ComingSoon label="Salons" />} />
-              <Route path="/rapports"  element={<ComingSoon label="Rapports" />} />
-              <Route path="/reglages"  element={<ComingSoon label="Réglages" />} />
+              <Route path="/"                  element={<DashboardPage />} />
+              <Route path="/catalogue"         element={<CataloguePage />} />
+              <Route path="/ventes"            element={<VentesPage />} />
+              <Route path="/points-de-vente"  element={<PointsDeVentePage />} />
+              <Route path="/stock"             element={<ComingSoon label="Stock" />} />
+              <Route path="/auteurs"           element={<AuteursPage />} />
+              <Route path="/maisons-edition"   element={<MaisonsEditionPage />} />
+              <Route path="/depots-libraires"  element={<DepotsLibrairesPage />} />
+              <Route path="/salons"            element={<SalonsPage />} />
+              <Route path="/rapports"          element={<ComingSoon label="Rapports" />} />
+              <Route path="/reglages"          element={<ReglagesPage />} />
             </Routes>
           </AppLayout>
         </ProtectedRoute>

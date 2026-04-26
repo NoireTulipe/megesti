@@ -1,6 +1,6 @@
 .page {
   padding: 32px;
-  max-width: 1400px;
+  width: 100%;
 }
 
 .header {
@@ -89,3 +89,27 @@
   color: var(--text-soft);
   font-size: 0.95rem;
 }
+
+/* ── Filtres rayons ───────────────────────────────────────────── */
+.rayonNav {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.rayonTab {
+  height: 32px;
+  padding: 0 14px;
+  border: 1.5px solid var(--cream-dark);
+  border-radius: 20px;
+  background: #fff;
+  color: var(--text-soft);
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.rayonTab:hover    { border-color: var(--ink-light); color: var(--ink); }
+.rayonTabActive    { background: var(--ink); color: #fff; border-color: var(--ink); }
+

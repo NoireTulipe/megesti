@@ -1,14 +1,34 @@
 import type { FastifyPluginAsync } from 'fastify'
-import { authRoutes }        from './auth.js'
-import { thesaurusRoutes }   from './thesaurus.js'
-import { customFieldRoutes } from './custom-fields.js'
-import { auteurRoutes }      from './auteurs.js'
-import { livreRoutes }       from './livres.js'
+import { authRoutes }      from './auth.js'
+import { thesaurusRoutes } from './thesaurus.js'
+import { customFieldRoutes }      from './custom-fields.js'
+import { customFieldValueRoutes } from './custom-field-values.js'
+import { auteurRoutes }                   from './auteurs.js'
+import { maisonEditionRoutes }            from './maisons-edition.js'
+import { depotLibraireRoutes }            from './depots-libraires.js'
+import { salonRoutes }                    from './salons.js'
+import { categoriePointDeVenteRoutes }    from './categories-point-de-vente.js'
+import { pointDeVenteRoutes }             from './points-de-vente.js'
+import { sessionCaisseRoutes }            from './sessions-caisse.js'
+import { venteRoutes }                    from './ventes.js'
+import { rayonRoutes }     from './rayons.js'
+import { categorieRoutes } from './categories.js'
+import { articleRoutes }   from './articles.js'
 
 export const routes: FastifyPluginAsync = async (app) => {
   await app.register(authRoutes,        { prefix: '/auth' })
   await app.register(thesaurusRoutes,   { prefix: '/thesauri' })
-  await app.register(customFieldRoutes, { prefix: '/custom-fields' })
-  await app.register(auteurRoutes,      { prefix: '/auteurs' })
-  await app.register(livreRoutes,       { prefix: '/livres' })
+  await app.register(customFieldRoutes,      { prefix: '/custom-fields' })
+  await app.register(customFieldValueRoutes, { prefix: '/custom-field-values' })
+  await app.register(auteurRoutes,                   { prefix: '/auteurs' })
+  await app.register(maisonEditionRoutes,            { prefix: '/maisons-edition' })
+  await app.register(depotLibraireRoutes,            { prefix: '/depots-libraires' })
+  await app.register(salonRoutes,                    { prefix: '/salons' })
+  await app.register(categoriePointDeVenteRoutes,    { prefix: '/categories-point-de-vente' })
+  await app.register(pointDeVenteRoutes,             { prefix: '/points-de-vente' })
+  await app.register(sessionCaisseRoutes,            { prefix: '/sessions-caisse' })
+  await app.register(venteRoutes,                    { prefix: '/ventes' })
+  await app.register(rayonRoutes,       { prefix: '/rayons' })
+  await app.register(categorieRoutes,   { prefix: '/categories' })
+  await app.register(articleRoutes,     { prefix: '/articles' })
 }

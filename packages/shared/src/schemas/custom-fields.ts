@@ -1,6 +1,5 @@
 import { z } from 'zod'
 import { ENTITY_TYPES } from '../constants/entity-types'
-import { FIELD_TYPES } from '../constants/field-types'
 import { LocalizedStringSchema } from './i18n'
 
 const SelectOptionSchema = z.object({
@@ -8,40 +7,28 @@ const SelectOptionSchema = z.object({
   label: LocalizedStringSchema,
 })
 
+const baseFields = {
+  id:          z.string().uuid(),
+  tenantId:    z.string().uuid(),
+  entityType:  z.enum(ENTITY_TYPES).optional().nullable(),
+  rayonId:     z.string().uuid().optional().nullable(),
+  label:       LocalizedStringSchema,
+  position:    z.number().int().nonnegative(),
+  required:    z.boolean(),
+  category:    z.string().nullable().optional(),
+  halfWidth:   z.boolean().optional(),
+  placeholder: z.string().nullable().optional(),
+  validation:  z.object({
+    type:    z.enum(['email', 'phone', 'name', 'regex']),
+    pattern: z.string().optional(),
+    message: z.string().min(1),
+  }).nullable().optional(),
+}
+
 export const CustomFieldDefinitionSchema = z.discriminatedUnion('fieldType', [
-  z.object({
-    id:          z.string().uuid(),
-    tenantId:    z.string().uuid(),
-    entityType:  z.enum(ENTITY_TYPES),
-    label:       LocalizedStringSchema,
-    fieldType:   z.literal('thesaurus'),
-    position:    z.number().int().nonnegative(),
-    required:    z.boolean(),
-    thesaurusId: z.string().uuid(),
-    options:     z.null(),
-  }),
-  z.object({
-    id:          z.string().uuid(),
-    tenantId:    z.string().uuid(),
-    entityType:  z.enum(ENTITY_TYPES),
-    label:       LocalizedStringSchema,
-    fieldType:   z.literal('select'),
-    position:    z.number().int().nonnegative(),
-    required:    z.boolean(),
-    thesaurusId: z.null(),
-    options:     z.array(SelectOptionSchema).min(1),
-  }),
-  z.object({
-    id:          z.string().uuid(),
-    tenantId:    z.string().uuid(),
-    entityType:  z.enum(ENTITY_TYPES),
-    label:       LocalizedStringSchema,
-    fieldType:   z.enum(['text', 'textarea', 'number', 'date', 'boolean'] as const),
-    position:    z.number().int().nonnegative(),
-    required:    z.boolean(),
-    thesaurusId: z.null(),
-    options:     z.null(),
-  }),
+  z.object({ ...baseFields, fieldType: z.literal('thesaurus'), thesaurusId: z.string().uuid(), options: z.null() }),
+  z.object({ ...baseFields, fieldType: z.literal('select'),    thesaurusId: z.null(), options: z.array(SelectOptionSchema).min(1) }),
+  z.object({ ...baseFields, fieldType: z.enum(['text', 'textarea', 'number', 'date', 'boolean'] as const), thesaurusId: z.null(), options: z.null() }),
 ])
 
 export const CustomFieldValueSchema = z.object({

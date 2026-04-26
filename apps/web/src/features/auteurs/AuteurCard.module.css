@@ -8,10 +8,38 @@
   box-shadow: 0 2px 8px rgba(28, 58, 94, 0.07);
   cursor: pointer;
   transition: transform 0.18s ease, box-shadow 0.18s ease;
+  position: relative;
 }
 .card:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(28, 58, 94, 0.12);
+}
+
+.editBtn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1.5px solid var(--cream-dark);
+  background: var(--cream);
+  color: var(--text-mid);
+  font-size: 0.9rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.15s, background 0.15s, color 0.15s;
+}
+.card:hover .editBtn {
+  opacity: 1;
+}
+.editBtn:hover {
+  background: var(--ink);
+  color: #fff;
+  border-color: var(--ink);
 }
 
 .avatar {

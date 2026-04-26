@@ -1,9 +1,9 @@
 export const ENTITY_TYPES = [
   'auteur',
-  'livre',
   'maisonEdition',
   'depotLibraire',
   'salon',
+  'pointDeVente',
 ] as const
 
 export type EntityType = (typeof ENTITY_TYPES)[number]

@@ -40,6 +40,15 @@ export function useCreateAuteur() {
   })
 }
 
+export function useUpdateAuteur() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, ...data }: Partial<CreateAuteurPayload> & { id: string }) =>
+      api.patch<Auteur>(`/auteurs/${id}`, data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: KEYS.all() }),
+  })
+}
+
 export function useDeleteAuteur() {
   const qc = useQueryClient()
   return useMutation({

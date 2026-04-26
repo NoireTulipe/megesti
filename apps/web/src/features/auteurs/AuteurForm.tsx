@@ -1,8 +1,17 @@
-import { useForm } from 'react-hook-form'
+import { useEffect } from 'react'
+import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { useCreateAuteur } from './hooks/useAuteurs'
+import { useCreateAuteur, useUpdateAuteur } from './hooks/useAuteurs'
+import type { Auteur } from './hooks/useAuteurs'
+import { CustomFieldsRenderer } from '@/components/CustomFieldsRenderer'
+import { useCustomFields } from '@/features/reglages/hooks/useCustomFields'
+import { useCustomFieldValues, useSaveCustomFieldValues } from '@/features/reglages/hooks/useCustomFieldValues'
+import { validateCustomFields } from '@/lib/customFieldValidation'
+import { FIXED_SECTIONS } from '@/lib/fixedSections'
 import styles from './AuteurForm.module.css'
+
+const FIXED_CATEGORIES = FIXED_SECTIONS.auteur.map((s) => s.label)
 
 const schema = z.object({
   prenom:     z.string().min(1, 'Requis'),
@@ -15,67 +24,161 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>
 
 interface Props {
-  onClose: () => void
+  onClose:  () => void
+  auteur?:  Auteur
 }
 
-export function AuteurForm({ onClose }: Props) {
-  const createAuteur = useCreateAuteur()
+export function AuteurForm({ onClose, auteur }: Props) {
+  const isEdit             = Boolean(auteur)
+  const createAuteur       = useCreateAuteur()
+  const updateAuteur       = useUpdateAuteur()
+  const saveCustomValues   = useSaveCustomFieldValues()
+  const { data: allChamps = [] }    = useCustomFields('auteur')
+  const { data: customValues = {} } = useCustomFieldValues(auteur?.id, { enabled: !!auteur?.id })
 
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormValues>({
-    resolver: zodResolver(schema),
-  })
+  const { register, handleSubmit, control, setValue, getValues, setError, clearErrors,
+          formState: { errors, isSubmitting } } =
+    useForm<FormValues>({
+      resolver: zodResolver(schema),
+      defaultValues: auteur ? {
+        prenom:     auteur.prenom,
+        nom:        auteur.nom,
+        pseudonyme: auteur.pseudonyme ?? '',
+        email:      auteur.email      ?? '',
+        bio:        auteur.bio        ?? '',
+      } : {},
+    })
+
+  // Remplir les champs custom quand les valeurs chargent (mode édition)
+  useEffect(() => {
+    if (isEdit && Object.keys(customValues).length > 0) {
+      Object.entries(customValues).forEach(([defId, val]) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        setValue(`custom_${defId}` as any, val ?? '')
+      })
+    }
+  }, [customValues, isEdit, setValue])
+
+  const prenom = useWatch({ control, name: 'prenom',     defaultValue: auteur?.prenom     ?? '' })
+  const nom    = useWatch({ control, name: 'nom',        defaultValue: auteur?.nom        ?? '' })
+  const pseudo = useWatch({ control, name: 'pseudonyme', defaultValue: auteur?.pseudonyme ?? '' })
+
+  const initiales  = `${prenom?.[0] ?? ''}${nom?.[0] ?? ''}`.toUpperCase() || '?'
+  const nomAffiche = pseudo || [prenom, nom].filter(Boolean).join(' ') || 'Nouvel auteur'
+  const isError    = isEdit ? updateAuteur.isError : createAuteur.isError
 
   async function onSubmit(values: FormValues) {
-    await createAuteur.mutateAsync({
-      id:         crypto.randomUUID(),
-      prenom:     values.prenom,
-      nom:        values.nom,
-      pseudonyme: values.pseudonyme || undefined,
-      email:      values.email     || undefined,
-      bio:        values.bio       || undefined,
-    })
+    const allValues = getValues() as Record<string, unknown>
+
+    // zodResolver ignore les règles field-level → validation manuelle des champs custom
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const hasErrors = validateCustomFields(allChamps, allValues, setError as any, clearErrors as any)
+    if (hasErrors) return
+
+    const customPayload = Object.entries(allValues)
+      .filter(([key]) => key.startsWith('custom_'))
+      .map(([key, value]) => ({
+        definitionId: key.replace('custom_', ''),
+        value:        value != null && value !== '' ? String(value) : null,
+      }))
+
+    const entityId = isEdit ? auteur!.id : crypto.randomUUID()
+
+    if (isEdit) {
+      await updateAuteur.mutateAsync({
+        id:         entityId,
+        prenom:     values.prenom,
+        nom:        values.nom,
+        pseudonyme: values.pseudonyme || undefined,
+        email:      values.email      || undefined,
+        bio:        values.bio        || undefined,
+      })
+    } else {
+      await createAuteur.mutateAsync({
+        id:         entityId,
+        prenom:     values.prenom,
+        nom:        values.nom,
+        pseudonyme: values.pseudonyme || undefined,
+        email:      values.email      || undefined,
+        bio:        values.bio        || undefined,
+      })
+    }
+
+    if (customPayload.length > 0) {
+      await saveCustomValues.mutateAsync({ entityId, values: customPayload })
+    }
+
     onClose()
   }
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className={styles.form}>
-      <div className={styles.row}>
-        <div className={styles.field}>
-          <label className={styles.label}>Prénom *</label>
-          <input className={styles.input} {...register('prenom')} />
-          {errors.prenom && <span className={styles.error}>{errors.prenom.message}</span>}
-        </div>
-        <div className={styles.field}>
-          <label className={styles.label}>Nom *</label>
-          <input className={styles.input} {...register('nom')} />
-          {errors.nom && <span className={styles.error}>{errors.nom.message}</span>}
+
+      <div className={styles.preview}>
+        <div className={styles.avatarLarge}>{initiales}</div>
+        <div className={styles.previewText}>
+          <span className={styles.previewNom}>{nomAffiche}</span>
+          <span className={styles.previewHint}>{isEdit ? 'Modification de la fiche' : 'Aperçu de la fiche auteur'}</span>
         </div>
       </div>
 
-      <div className={styles.field}>
-        <label className={styles.label}>Pseudonyme</label>
-        <input className={styles.input} {...register('pseudonyme')} placeholder="Optionnel" />
+      {/* ── Identité ──────────────────────────────────────────── */}
+      <div className={styles.section}>
+        <p className={styles.sectionLabel}>Identité</p>
+        <div className={styles.row2}>
+          <div className={styles.field}>
+            <label className={styles.label} htmlFor="prenom">Prénom <span className={styles.req}>*</span></label>
+            <input id="prenom" className={`${styles.input} ${errors.prenom ? styles.inputError : ''}`} {...register('prenom')} autoFocus />
+            {errors.prenom && <span className={styles.error}>{errors.prenom.message}</span>}
+          </div>
+          <div className={styles.field}>
+            <label className={styles.label} htmlFor="nom">Nom <span className={styles.req}>*</span></label>
+            <input id="nom" className={`${styles.input} ${errors.nom ? styles.inputError : ''}`} {...register('nom')} />
+            {errors.nom && <span className={styles.error}>{errors.nom.message}</span>}
+          </div>
+        </div>
+        <div className={styles.field}>
+          <label className={styles.label} htmlFor="pseudonyme">Pseudonyme</label>
+          <input id="pseudonyme" className={styles.input} {...register('pseudonyme')} placeholder="Remplace le nom civil dans l'affichage" />
+        </div>
+        <CustomFieldsRenderer entityType="auteur" onlyCategory="Identité" register={register} errors={errors} />
       </div>
 
-      <div className={styles.field}>
-        <label className={styles.label}>Email</label>
-        <input className={styles.input} type="email" {...register('email')} placeholder="Optionnel" />
-        {errors.email && <span className={styles.error}>{errors.email.message}</span>}
+      {/* ── Contact ───────────────────────────────────────────── */}
+      <div className={styles.section}>
+        <p className={styles.sectionLabel}>Contact</p>
+        <div className={styles.field}>
+          <label className={styles.label} htmlFor="email">Adresse email</label>
+          <input id="email" type="email" className={`${styles.input} ${errors.email ? styles.inputError : ''}`} {...register('email')} placeholder="Optionnel" />
+          {errors.email && <span className={styles.error}>{errors.email.message}</span>}
+        </div>
+        <CustomFieldsRenderer entityType="auteur" onlyCategory="Contact" register={register} errors={errors} />
       </div>
 
-      <div className={styles.field}>
-        <label className={styles.label}>Biographie</label>
-        <textarea className={styles.textarea} rows={4} {...register('bio')} placeholder="Quelques mots sur l'auteur·ice…" />
+      {/* ── Biographie ────────────────────────────────────────── */}
+      <div className={styles.section}>
+        <p className={styles.sectionLabel}>Biographie</p>
+        <div className={styles.field}>
+          <textarea id="bio" className={styles.textarea} rows={5} {...register('bio')}
+            placeholder="Quelques mots sur l'auteur, son parcours, ses thèmes de prédilection…" />
+        </div>
+        <CustomFieldsRenderer entityType="auteur" onlyCategory="Biographie" register={register} errors={errors} />
       </div>
 
-      {createAuteur.isError && (
-        <p className={styles.errorGlobal}>Erreur lors de la création. Réessayez.</p>
-      )}
+      {/* ── Autres sections custom ────────────────────────────── */}
+      <CustomFieldsRenderer
+        entityType="auteur"
+        excludeCategories={FIXED_CATEGORIES}
+        register={register}
+        errors={errors}
+      />
+
+      {isError && <p className={styles.errorGlobal}>Une erreur est survenue. Veuillez réessayer.</p>}
 
       <div className={styles.actions}>
         <button type="button" className={styles.btnSecondary} onClick={onClose}>Annuler</button>
         <button type="submit" className={styles.btnPrimary} disabled={isSubmitting}>
-          {isSubmitting ? 'Enregistrement…' : 'Créer l\'auteur·ice'}
+          {isSubmitting ? 'Enregistrement…' : isEdit ? 'Enregistrer les modifications' : 'Créer la fiche auteur'}
         </button>
       </div>
     </form>

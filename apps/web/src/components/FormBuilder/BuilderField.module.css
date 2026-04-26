@@ -1,0 +1,201 @@
+.wrap {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 8px 6px;
+  border-radius: 8px;
+  transition: background 0.1s;
+  min-width: 0;
+  position: relative;
+}
+.wrap:hover { background: rgba(28, 58, 94, 0.04); }
+.dragging   { opacity: 0.35 !important; }
+
+/* Drag handle */
+.handle {
+  flex-shrink: 0;
+  padding: 3px 2px;
+  margin-top: 24px;
+  color: #ccc;
+  cursor: grab;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  opacity: 0;
+  transition: opacity 0.15s, color 0.12s;
+}
+.wrap:hover .handle { opacity: 1; }
+.handle:hover  { color: var(--ink-light); }
+.handle:active { cursor: grabbing; }
+
+/* Body */
+.body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.labelRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--ink);
+  cursor: text;
+  line-height: 1.3;
+}
+
+.required {
+  color: var(--terra);
+  font-weight: 700;
+  font-size: 0.82rem;
+}
+
+.phHint {
+  font-size: 0.68rem;
+  color: var(--text-soft);
+  font-style: italic;
+}
+
+/* Panel d'édition inline (label + placeholder) */
+.editPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: #fff;
+  border: 1.5px solid var(--ink-light);
+  border-radius: 8px;
+  padding: 10px 12px;
+  box-shadow: 0 4px 16px rgba(28, 58, 94, 0.1);
+}
+
+.editRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.editLabel {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-soft);
+  white-space: nowrap;
+  width: 72px;
+  flex-shrink: 0;
+}
+
+.editInput {
+  flex: 1;
+  padding: 6px 10px;
+  border: 1.5px solid var(--cream-dark);
+  border-radius: 6px;
+  font-size: 0.83rem;
+  color: var(--ink);
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s;
+  min-width: 0;
+}
+.editInput:focus { border-color: var(--terra); }
+
+.editSep {
+  height: 1px;
+  background: var(--cream-dark);
+  margin: 2px 0;
+}
+
+.editSubLabel {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-soft);
+  margin: 2px 0 0;
+}
+
+.editSelect {
+  flex: 1;
+  padding: 5px 8px;
+  border: 1.5px solid var(--cream-dark);
+  border-radius: 6px;
+  font-size: 0.83rem;
+  color: var(--ink);
+  font-family: inherit;
+  background: #fff;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.editSelect:focus { border-color: var(--terra); }
+
+.validationBadge {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: rgba(28, 58, 94, 0.08);
+  color: var(--ink-light);
+  margin-left: 4px;
+}
+
+.editActions {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.btnSave {
+  height: 28px; padding: 0 12px;
+  background: var(--terra); color: #fff;
+  border: none; border-radius: 6px;
+  font-size: 0.78rem; font-weight: 600; cursor: pointer;
+  transition: background 0.15s;
+}
+.btnSave:hover { background: var(--ink); }
+
+.btnAbort {
+  height: 28px; padding: 0 10px;
+  background: transparent; color: var(--text-soft);
+  border: 1.5px solid var(--cream-dark); border-radius: 6px;
+  font-size: 0.78rem; cursor: pointer;
+  transition: color 0.15s;
+}
+.btnAbort:hover { color: var(--ink); }
+
+/* Action buttons */
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-top: 22px;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.wrap:hover .actions { opacity: 1; }
+
+.btn {
+  width: 22px; height: 22px;
+  border-radius: 5px;
+  border: 1.5px solid var(--cream-dark);
+  background: #fff;
+  color: var(--text-soft);
+  font-size: 0.78rem;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+  padding: 0;
+}
+.btn:hover       { border-color: var(--ink-light); color: var(--ink); background: var(--cream); }
+.btnActive       { color: var(--terra); border-color: var(--terra); background: rgba(217, 95, 59, 0.06); }
+.btnEdit:hover   { color: var(--ink); border-color: var(--ink-light); }
+.btnDelete:hover { background: #FEE2E2; color: #DC2626; border-color: #FECACA; }
+.btn:disabled    { opacity: 0.4; cursor: not-allowed; }

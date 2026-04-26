@@ -1,51 +1,109 @@
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(28, 58, 94, 0.25);
-  backdrop-filter: blur(4px);
+  background: rgba(16, 30, 50, 0.45);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   z-index: 500;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 20px;
+  animation: overlayIn 0.22s ease both;
+}
+
+@keyframes overlayIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
 .dialog {
-  background: var(--cream);
+  position: relative;
+  background: #fff;
   border-radius: 24px;
-  padding: 28px 32px;
-  width: 460px;
-  max-width: 90vw;
-  box-shadow: 0 20px 60px rgba(28, 58, 94, 0.2);
-  border: 1.5px solid rgba(28, 58, 94, 0.08);
+  box-shadow:
+    0 0 0 1px rgba(28, 58, 94, 0.06),
+    0 24px 80px rgba(16, 30, 50, 0.22),
+    0 8px 24px rgba(16, 30, 50, 0.10);
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+  width: 100%;
+  overflow: hidden;
+  animation: dialogIn 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes dialogIn {
+  from { opacity: 0; transform: scale(0.96) translateY(12px); }
+  to   { opacity: 1; transform: scale(1)    translateY(0); }
+}
+
+/* Tailles */
+.md { max-width: 520px; }
+.lg { max-width: 780px; }
+.xl { max-width: min(92vw, 1040px); }
+
+/* Bandeau coloré en haut */
+.accent {
+  height: 4px;
+  background: linear-gradient(90deg, var(--terra) 0%, var(--gold) 60%, var(--sage) 100%);
+  flex-shrink: 0;
 }
 
 .header {
   display: flex;
+  align-items: flex-start;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
+  gap: 20px;
+  padding: 28px 36px 20px;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--cream-dark);
 }
 
 .title {
   font-family: 'DM Serif Display', serif;
-  font-size: 22px;
+  font-size: 1.6rem;
   font-weight: 400;
   color: var(--ink);
+  margin: 0 0 4px;
+  line-height: 1.2;
+}
+
+.subtitle {
+  font-size: 0.85rem;
+  color: var(--text-soft);
+  margin: 0;
 }
 
 .closeBtn {
-  border: none;
-  background: var(--cream-dark);
-  border-radius: 8px;
-  width: 30px;
-  height: 30px;
-  cursor: pointer;
-  font-size: 18px;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1.5px solid var(--cream-dark);
+  background: var(--cream);
   color: var(--text-mid);
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  line-height: 1;
-  transition: background 0.15s;
+  transition: background 0.15s, color 0.15s, border-color 0.15s, transform 0.15s;
+  margin-top: 2px;
 }
-.closeBtn:hover { background: var(--ink-faint); }
+.closeBtn:hover {
+  background: var(--ink);
+  color: #fff;
+  border-color: var(--ink);
+  transform: rotate(90deg);
+}
+
+.body {
+  padding: 28px 36px 36px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* Scrollbar discrète */
+.body::-webkit-scrollbar { width: 4px; }
+.body::-webkit-scrollbar-track { background: transparent; }
+.body::-webkit-scrollbar-thumb { background: var(--cream-dark); border-radius: 2px; }

@@ -40,12 +40,6 @@ export const auteurRoutes: FastifyPluginAsync = async (app) => {
 
     const auteur = await app.db.auteur.findFirst({
       where: { id, tenantId },
-      include: {
-        livres: {
-          include: { livre: { select: { id: true, titre: true, isbn: true, prix: true, couvertureUrl: true } } },
-          orderBy: { ordre: 'asc' },
-        },
-      },
     })
     if (!auteur) return reply.notFound()
     return auteur

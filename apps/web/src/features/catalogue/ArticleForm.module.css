@@ -1,0 +1,195 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ── Sections ──────────────────────────────────────────────────── */
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.sectionLabel {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--terra);
+  margin: 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--cream-dark);
+}
+
+/* ── Grilles ───────────────────────────────────────────────────── */
+.row2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.row3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+}
+
+/* ── Champs ────────────────────────────────────────────────────── */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.req { color: var(--terra); }
+
+.input,
+.select,
+.textarea {
+  padding: 11px 14px;
+  border: 1.5px solid var(--cream-dark);
+  border-radius: 10px;
+  font-size: 0.9rem;
+  color: var(--ink);
+  background: var(--cream);
+  outline: none;
+  font-family: inherit;
+  width: 100%;
+  box-sizing: border-box;
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+  resize: vertical;
+}
+.input:focus,
+.select:focus,
+.textarea:focus {
+  border-color: var(--ink-light);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(28, 58, 94, 0.07);
+}
+.inputError {
+  border-color: #EF4444;
+  background: #FFF5F5;
+}
+
+.inputWithUnit {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.inputWithUnit .input {
+  padding-right: 32px;
+}
+.unit {
+  position: absolute;
+  right: 12px;
+  font-size: 0.85rem;
+  color: var(--text-soft);
+  pointer-events: none;
+}
+
+/* ── Auteurs picker ─────────────────────────────────────────────── */
+.auteurSearch {
+  padding: 9px 12px;
+  border: 1.5px solid var(--cream-dark);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: var(--ink);
+  background: var(--cream);
+  outline: none;
+  font-family: inherit;
+  width: 100%;
+  box-sizing: border-box;
+  transition: border-color 0.15s;
+}
+.auteurSearch:focus { border-color: var(--ink-light); background: #fff; }
+
+.auteurList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1.5px solid var(--cream-dark);
+  border-radius: 8px;
+  padding: 6px;
+  background: #fff;
+}
+
+.auteurRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: var(--ink);
+  transition: background 0.12s;
+}
+.auteurRow:hover       { background: var(--cream); }
+.auteurRowSelected     { background: rgba(28, 58, 94, 0.06); font-weight: 600; }
+
+.auteurCheck  { width: 16px; height: 16px; accent-color: var(--terra); cursor: pointer; flex-shrink: 0; }
+.auteurEmpty  { font-size: 0.8rem; color: var(--text-soft); font-style: italic; padding: 8px; margin: 0; }
+
+/* ── Feedback ───────────────────────────────────────────────────── */
+.error {
+  font-size: 0.78rem;
+  color: #DC2626;
+}
+.error::before { content: '⚠ '; }
+
+.errorGlobal {
+  font-size: 0.875rem;
+  color: #DC2626;
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  padding: 12px 16px;
+  border-radius: 10px;
+  margin: 0;
+}
+
+/* ── Actions ────────────────────────────────────────────────────── */
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-top: 4px;
+}
+
+.btnPrimary {
+  height: 44px;
+  padding: 0 28px;
+  background: var(--terra);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+  box-shadow: 0 4px 14px rgba(217, 95, 59, 0.3);
+}
+.btnPrimary:hover:not(:disabled) { background: var(--ink); box-shadow: 0 4px 14px rgba(28, 58, 94, 0.25); }
+.btnPrimary:active:not(:disabled) { transform: scale(0.97); }
+.btnPrimary:disabled { opacity: 0.55; cursor: not-allowed; box-shadow: none; }
+
+.btnSecondary {
+  height: 44px;
+  padding: 0 22px;
+  background: transparent;
+  color: var(--text-mid);
+  border: 1.5px solid var(--cream-dark);
+  border-radius: 10px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+.btnSecondary:hover { border-color: var(--ink-light); color: var(--ink); }

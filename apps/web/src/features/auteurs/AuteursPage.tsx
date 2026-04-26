@@ -1,14 +1,17 @@
 import { useState, useEffect, useRef } from 'react'
 import { useAuteurs } from './hooks/useAuteurs'
+import type { Auteur } from './hooks/useAuteurs'
 import { AuteurCard } from './AuteurCard'
 import { AuteurForm } from './AuteurForm'
 import { Modal } from '@/components/ui/Modal'
+import { getFormWidth } from '@/lib/formWidth'
 import styles from './AuteursPage.module.css'
 
 export function AuteursPage() {
-  const [search, setSearch]               = useState('')
-  const [debouncedSearch, setDebounced]   = useState('')
-  const [showModal, setShowModal]         = useState(false)
+  const [search, setSearch]             = useState('')
+  const [debouncedSearch, setDebounced] = useState('')
+  const [showCreate, setShowCreate]     = useState(false)
+  const [editAuteur, setEditAuteur]     = useState<Auteur | null>(null)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const { data: auteurs, isLoading, isError } = useAuteurs(debouncedSearch || undefined)
@@ -23,7 +26,7 @@ export function AuteursPage() {
     <div className={styles.page}>
       <header className={styles.header}>
         <div>
-          <h1 className={styles.title}>Auteur·ices</h1>
+          <h1 className={styles.title}>Auteurs</h1>
           <p className={styles.subtitle}>{auteurs?.length ?? '—'} auteur{(auteurs?.length ?? 0) > 1 ? 's' : ''}</p>
         </div>
         <div className={styles.actions}>
@@ -34,8 +37,8 @@ export function AuteursPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
-          <button className={styles.btnPrimary} onClick={() => setShowModal(true)}>
-            + Nouvel auteur·ice
+          <button className={styles.btnPrimary} onClick={() => setShowCreate(true)}>
+            + Nouvel auteur
           </button>
         </div>
       </header>
@@ -46,9 +49,7 @@ export function AuteursPage() {
         </div>
       )}
 
-      {isError && (
-        <div className={styles.empty}><p>Impossible de charger les auteurs.</p></div>
-      )}
+      {isError && <div className={styles.empty}><p>Impossible de charger les auteurs.</p></div>}
 
       {!isLoading && !isError && auteurs?.length === 0 && (
         <div className={styles.empty}>
@@ -59,17 +60,29 @@ export function AuteursPage() {
       {!isLoading && !isError && auteurs && auteurs.length > 0 && (
         <div className={styles.grid}>
           {auteurs.map((auteur) => (
-            <AuteurCard key={auteur.id} auteur={auteur} />
+            <AuteurCard
+              key={auteur.id}
+              auteur={auteur}
+              onEdit={() => setEditAuteur(auteur)}
+            />
           ))}
         </div>
       )}
 
+      <Modal isOpen={showCreate} onClose={() => setShowCreate(false)} title="Nouvel auteur" width={getFormWidth('auteur')}>
+        <AuteurForm onClose={() => setShowCreate(false)} />
+      </Modal>
+
       <Modal
-        isOpen={showModal}
-        onClose={() => setShowModal(false)}
-        title="Nouvel auteur·ice"
+        isOpen={Boolean(editAuteur)}
+        onClose={() => setEditAuteur(null)}
+        title="Modifier l'auteur"
+        subtitle={editAuteur ? `${editAuteur.prenom} ${editAuteur.nom}` : ''}
+        width={getFormWidth('auteur')}
       >
-        <AuteurForm onClose={() => setShowModal(false)} />
+        {editAuteur && (
+          <AuteurForm auteur={editAuteur} onClose={() => setEditAuteur(null)} />
+        )}
       </Modal>
     </div>
   )
