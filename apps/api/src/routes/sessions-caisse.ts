@@ -58,7 +58,13 @@ export const sessionCaisseRoutes: FastifyPluginAsync = async (app) => {
     if (!pdv) return reply.notFound('Point de vente introuvable')
     return reply.status(201).send(
       await app.db.sessionCaisse.create({
-        data: { ...body, tenantId },
+        data: {
+          ...body,
+          tenantId,
+          // Si le PDV est le miroir d'un salon, lier automatiquement la session au salon
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          ...((pdv as any).salonId ? { salonId: (pdv as any).salonId } : {}),
+        },
         include: { pointDeVente: { include: { categorie: true } } },
       })
     )

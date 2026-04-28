@@ -4,13 +4,15 @@ import { evaluateDA, calculateRoyalties } from '@megesti/business'
 import type { FormuleDA, ContexteVente } from '@megesti/business'
 
 const CreateSchema = z.object({
-  id:        z.string().uuid(),
-  auteurId:  z.string().uuid(),
-  typeDAId:  z.string().uuid(),
-  articleId: z.string().uuid().optional(),
-  avance:    z.number().nonnegative().optional(),
-  dateDebut: z.string().datetime().optional(),
-  dateFin:   z.string().datetime().optional(),
+  id:               z.string().uuid(),
+  auteurId:         z.string().uuid(),
+  typeDAId:         z.string().uuid(),
+  articleId:        z.string().uuid().optional(),
+  avance:           z.number().nonnegative().optional(),
+  dateSignature:    z.string().datetime().optional(),
+  datePriseEffet:   z.string().datetime().optional(),
+  dureeAns:         z.number().int().positive().optional(),
+  reconduiteTacite: z.boolean().default(true),
 })
 
 const PatchSchema = CreateSchema.omit({ id: true }).partial()
@@ -46,7 +48,7 @@ export const contratAuteurRoutes: FastifyPluginAsync = async (app) => {
 
   app.post('/', authEditor, async (request, reply) => {
     const { tenantId } = request.tenant
-    const { avance, dateDebut, dateFin, ...rest } = CreateSchema.parse(request.body)
+    const { avance, dateSignature, datePriseEffet, ...rest } = CreateSchema.parse(request.body)
 
     const [auteur, typeDA] = await Promise.all([
       app.db.auteur.findFirst({ where: { id: rest.auteurId, tenantId } }),
@@ -55,15 +57,16 @@ export const contratAuteurRoutes: FastifyPluginAsync = async (app) => {
     if (!auteur) return reply.notFound('Auteur introuvable')
     if (!typeDA) return reply.notFound('Barème DA introuvable')
 
+    const sigDate = dateSignature ? new Date(dateSignature) : null
     return reply.status(201).send(
       await app.db.contratAuteur.create({
         data: {
           ...rest,
           tenantId,
-          avance:    avance ?? null,
-          avanceDue: 0,
-          dateDebut: dateDebut ? new Date(dateDebut) : null,
-          dateFin:   dateFin   ? new Date(dateFin)   : null,
+          avance:          avance ?? null,
+          avanceDue:       0,
+          dateSignature:   sigDate,
+          datePriseEffet:  datePriseEffet ? new Date(datePriseEffet) : sigDate,
         },
         include: { typeDA: true },
       })
@@ -73,16 +76,16 @@ export const contratAuteurRoutes: FastifyPluginAsync = async (app) => {
   app.patch('/:id', authEditor, async (request, reply) => {
     const { tenantId } = request.tenant
     const { id } = request.params as { id: string }
-    const { avance, dateDebut, dateFin, ...rest } = PatchSchema.parse(request.body)
+    const { avance, dateSignature, datePriseEffet, ...rest } = PatchSchema.parse(request.body)
     const existing = await app.db.contratAuteur.findFirst({ where: { id, tenantId } })
     if (!existing) return reply.notFound()
     return app.db.contratAuteur.update({
       where: { id },
       data: {
         ...rest,
-        ...(avance    !== undefined ? { avance:    avance ?? null }     : {}),
-        ...(dateDebut !== undefined ? { dateDebut: dateDebut ? new Date(dateDebut) : null } : {}),
-        ...(dateFin   !== undefined ? { dateFin:   dateFin   ? new Date(dateFin)   : null } : {}),
+        ...(avance         !== undefined ? { avance:         avance ?? null }                                 : {}),
+        ...(dateSignature  !== undefined ? { dateSignature:  dateSignature  ? new Date(dateSignature)  : null } : {}),
+        ...(datePriseEffet !== undefined ? { datePriseEffet: datePriseEffet ? new Date(datePriseEffet) : null } : {}),
       },
       include: { typeDA: true },
     })

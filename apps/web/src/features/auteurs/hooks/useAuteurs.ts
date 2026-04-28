@@ -9,6 +9,7 @@ export interface Auteur {
   email:      string | null
   bio:        string | null
   actif:      boolean
+  _count:     { contrats: number }
 }
 
 export interface CreateAuteurPayload {
@@ -20,15 +21,27 @@ export interface CreateAuteurPayload {
   bio?:        string
 }
 
-const KEYS = {
-  all:  () => ['auteurs'] as const,
-  list: (q?: string) => ['auteurs', 'list', q ?? ''] as const,
+interface UseAuteursOptions {
+  q?:           string
+  avecContrat?: boolean  // true = ME seulement, false = réseau seulement, undefined = tous
 }
 
-export function useAuteurs(q?: string) {
+const KEYS = {
+  all:  () => ['auteurs'] as const,
+  list: (opts: UseAuteursOptions) =>
+    ['auteurs', 'list', opts.q ?? '', String(opts.avecContrat ?? '')] as const,
+}
+
+export function useAuteurs(opts: UseAuteursOptions = {}) {
   return useQuery({
-    queryKey: KEYS.list(q),
-    queryFn:  () => api.get<Auteur[]>(`/auteurs${q ? `?q=${encodeURIComponent(q)}` : ''}`),
+    queryKey: KEYS.list(opts),
+    queryFn: () => {
+      const params = new URLSearchParams()
+      if (opts.q)                          params.set('q', opts.q)
+      if (opts.avecContrat !== undefined)  params.set('avecContrat', String(opts.avecContrat))
+      const qs = params.toString()
+      return api.get<Auteur[]>(`/auteurs${qs ? `?${qs}` : ''}`)
+    },
   })
 }
 

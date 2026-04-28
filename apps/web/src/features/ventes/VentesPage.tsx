@@ -511,7 +511,7 @@ export function VentesPage() {
 interface ModalOuvrirProps {
   isOpen: boolean
   onClose: () => void
-  pdvList: { id: string; nom: string }[]
+  pdvList: import('./hooks/usePointsDeVente').PointDeVente[]
   openPDVId: string;    setOpenPDVId: (v: string) => void
   sessionNom: string;   setSessionNom: (v: string) => void
   fondOuverture: number; setFondOuverture: (v: number) => void
@@ -528,18 +528,30 @@ function ModalOuvrirSession({
   debiterStockME, setDebiterStockME,
   onSubmit, isPending,
 }: ModalOuvrirProps) {
+  const salons   = pdvList.filter((p) => p.salonId !== null)
+  const fixes    = pdvList.filter((p) => p.salonId === null)
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Ouvrir une session de caisse" width={480}>
       <div className={styles.modalForm}>
         <div>
-          <label className={styles.modalLabel}>Point de vente <span style={{ color: '#DC2626' }}>*</span></label>
+          <label className={styles.modalLabel}>Lieu de vente <span style={{ color: '#DC2626' }}>*</span></label>
           <select
             value={openPDVId}
             onChange={(e) => setOpenPDVId(e.target.value)}
             className={styles.modalSelect}
           >
             <option value="">— Sélectionner —</option>
-            {pdvList.map((p) => <option key={p.id} value={p.id}>{p.nom}</option>)}
+            {salons.length > 0 && (
+              <optgroup label="Salons &amp; événements">
+                {salons.map((p) => <option key={p.id} value={p.id}>🎪 {p.nom}</option>)}
+              </optgroup>
+            )}
+            {fixes.length > 0 && (
+              <optgroup label="Lieux fixes">
+                {fixes.map((p) => <option key={p.id} value={p.id}>{p.nom}</option>)}
+              </optgroup>
+            )}
           </select>
         </div>
         <div>

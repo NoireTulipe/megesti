@@ -1,21 +1,73 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/lib/api'
 
-export interface Salon {
+export interface ContactSalon {
   id:        string
   nom:       string
-  lieu:      string | null
-  dateDebut: string | null
-  dateFin:   string | null
-  actif:     boolean
+  prenom:    string | null
+  email:     string | null
+  telephone: string | null
+}
+
+export interface TypeSalon {
+  id:      string
+  libelle: string
+}
+
+export interface SalonSession {
+  id:     string
+  statut: string
+  ventes: Array<{ totalTTC: string; statut: string }>
+}
+
+export interface Salon {
+  id:                string
+  nom:               string
+  typeSalonId:       string | null
+  typeSalon:         TypeSalon | null
+  lieu:              string | null
+  adresse:           string | null
+  ville:             string | null
+  pays:              string | null
+  dateDebut:         string | null
+  dateFin:           string | null
+  dureeJours:        number | null
+  periodeHabituelle: string | null
+  prixPrevuFixe:     string | null
+  prixPrevuPct:      string | null
+  note:              number | null
+  commentaires:      string | null
+  actif:             boolean
+  contacts:          ContactSalon[]
+  sessions:          SalonSession[]
+  pointDeVente:      { id: string; actif: boolean } | null
 }
 
 export interface CreateSalonPayload {
-  id:         string
-  nom:        string
-  lieu?:      string
-  dateDebut?: string
-  dateFin?:   string
+  id:                  string
+  nom:                 string
+  typeSalonId?:        string
+  lieu?:               string
+  adresse?:            string
+  ville?:              string
+  pays?:               string
+  dateDebut?:          string
+  dateFin?:            string
+  dureeJours?:         number
+  periodeHabituelle?:  string
+  prixPrevuFixe?:      number
+  prixPrevuPct?:       number
+  note?:               number
+  commentaires?:       string
+  contacts?:           Array<{ id: string; nom: string; prenom?: string; email?: string; telephone?: string }>
+  creerPointDeVente?:  boolean
+}
+
+export function salonCA(salon: Salon): number {
+  return salon.sessions
+    .flatMap((s) => s.ventes)
+    .filter((v) => v.statut === 'VALIDEE')
+    .reduce((sum, v) => sum + Number(v.totalTTC), 0)
 }
 
 const KEYS = {
@@ -26,7 +78,10 @@ const KEYS = {
 export function useSalons(q?: string) {
   return useQuery({
     queryKey: KEYS.list(q),
-    queryFn:  () => api.get<Salon[]>(`/salons${q ? `?q=${encodeURIComponent(q)}` : ''}`),
+    queryFn:  () => {
+      const qs = q ? `?q=${encodeURIComponent(q)}` : ''
+      return api.get<Salon[]>(`/salons${qs}`)
+    },
   })
 }
 

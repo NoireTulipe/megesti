@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { useArticles } from './hooks/useArticles'
+import { useArticles, useSetArticleActif } from './hooks/useArticles'
 import { useRayons }   from './hooks/useRayons'
 import { ArticleCard } from './ArticleCard'
 import { ArticleForm } from './ArticleForm'
@@ -7,16 +7,20 @@ import { Modal }       from '@/components/ui/Modal'
 import type { Article } from './types'
 import styles from './CataloguePage.module.css'
 
+type CatalogueTab = 'actifs' | 'retires'
+
 export function CataloguePage() {
   const [search, setSearch]             = useState('')
   const [debouncedSearch, setDebounced] = useState('')
   const [activeRayon, setActiveRayon]   = useState<string | undefined>(undefined)
+  const [tab, setTab]                   = useState<CatalogueTab>('actifs')
   const [showCreate, setShowCreate]     = useState(false)
   const [editArticle, setEditArticle]   = useState<Article | null>(null)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const { data: rayons = [] }                       = useRayons()
-  const { data: articles = [], isLoading, isError } = useArticles(activeRayon, debouncedSearch || undefined)
+  const { data: articles = [], isLoading, isError } = useArticles(activeRayon, debouncedSearch || undefined, tab === 'actifs')
+  const setActif = useSetArticleActif()
 
   useEffect(() => {
     if (timerRef.current) clearTimeout(timerRef.current)
@@ -39,16 +43,34 @@ export function CataloguePage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
-          <button
-            className={styles.btnPrimary}
-            onClick={() => setShowCreate(true)}
-            disabled={rayons.length === 0}
-            title={rayons.length === 0 ? 'Créez d\'abord des rayons dans les Réglages' : undefined}
-          >
-            + Nouvel article
-          </button>
+          {tab === 'actifs' && (
+            <button
+              className={styles.btnPrimary}
+              onClick={() => setShowCreate(true)}
+              disabled={rayons.length === 0}
+              title={rayons.length === 0 ? "Créez d'abord des rayons dans les Réglages" : undefined}
+            >
+              + Nouvel article
+            </button>
+          )}
         </div>
       </header>
+
+      {/* Onglets En catalogue / Retirés */}
+      <div className={styles.tabBar}>
+        <button
+          className={`${styles.tab} ${tab === 'actifs' ? styles.tabActive : ''}`}
+          onClick={() => setTab('actifs')}
+        >
+          En catalogue
+        </button>
+        <button
+          className={`${styles.tab} ${tab === 'retires' ? styles.tabActive : ''}`}
+          onClick={() => setTab('retires')}
+        >
+          Retirés
+        </button>
+      </div>
 
       {/* Filtres rayons */}
       {rayons.length > 0 && (
@@ -97,7 +119,8 @@ export function CataloguePage() {
             <ArticleCard
               key={article.id}
               article={article}
-              onEdit={() => setEditArticle(article)}
+              onEdit={tab === 'actifs' ? () => setEditArticle(article) : undefined}
+              onToggle={(actif) => setActif.mutate({ id: article.id, actif })}
             />
           ))}
         </div>

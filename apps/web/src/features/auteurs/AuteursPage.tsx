@@ -7,14 +7,21 @@ import { Modal } from '@/components/ui/Modal'
 import { getFormWidth } from '@/lib/formWidth'
 import styles from './AuteursPage.module.css'
 
+type AuteurTab = 'me' | 'reseau'
+
 export function AuteursPage() {
   const [search, setSearch]             = useState('')
   const [debouncedSearch, setDebounced] = useState('')
+  const [tab, setTab]                   = useState<AuteurTab>('me')
   const [showCreate, setShowCreate]     = useState(false)
   const [editAuteur, setEditAuteur]     = useState<Auteur | null>(null)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const { data: auteurs, isLoading, isError } = useAuteurs(debouncedSearch || undefined)
+  const avecContrat = tab === 'me' ? true : false
+  const { data: auteurs, isLoading, isError } = useAuteurs({
+    q: debouncedSearch || undefined,
+    avecContrat,
+  })
 
   useEffect(() => {
     if (timerRef.current) clearTimeout(timerRef.current)
@@ -43,6 +50,21 @@ export function AuteursPage() {
         </div>
       </header>
 
+      <div className={styles.tabBar}>
+        <button
+          className={`${styles.tab} ${tab === 'me' ? styles.tabActive : ''}`}
+          onClick={() => setTab('me')}
+        >
+          Auteurs ME
+        </button>
+        <button
+          className={`${styles.tab} ${tab === 'reseau' ? styles.tabActive : ''}`}
+          onClick={() => setTab('reseau')}
+        >
+          Réseau
+        </button>
+      </div>
+
       {isLoading && (
         <div className={styles.grid}>
           {Array.from({ length: 6 }).map((_, i) => <div key={i} className={styles.skeleton} />)}
@@ -53,7 +75,11 @@ export function AuteursPage() {
 
       {!isLoading && !isError && auteurs?.length === 0 && (
         <div className={styles.empty}>
-          <p>Aucun auteur{debouncedSearch ? ` pour « ${debouncedSearch} »` : ''}.</p>
+          <p>
+            {tab === 'me'
+              ? `Aucun auteur ME${debouncedSearch ? ` pour « ${debouncedSearch} »` : ''} — créez des contrats depuis la fiche auteur.`
+              : `Aucun auteur réseau${debouncedSearch ? ` pour « ${debouncedSearch} »` : ''}.`}
+          </p>
         </div>
       )}
 

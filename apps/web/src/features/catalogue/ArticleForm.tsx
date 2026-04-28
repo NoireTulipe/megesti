@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { useCreateArticle, useUpdateArticle } from './hooks/useArticles'
+import { useCreateArticle, useUpdateArticle, useSetArticleActif } from './hooks/useArticles'
 import { useRayons } from './hooks/useRayons'
 import { useAuteurs } from '../auteurs/hooks/useAuteurs'
 import { useCustomFieldsByRayon } from '@/features/reglages/hooks/useCustomFields'
@@ -51,9 +51,10 @@ export function ArticleForm({ onClose, article }: Props) {
   const isEdit          = Boolean(article)
   const createArticle   = useCreateArticle()
   const updateArticle   = useUpdateArticle()
+  const setActif        = useSetArticleActif()
   const saveCustomValues = useSaveCustomFieldValues()
   const { data: rayons = [] }     = useRayons()
-  const { data: allAuteurs = [] } = useAuteurs()
+  const { data: allAuteurs = [] } = useAuteurs({ avecContrat: true })
   const { data: customValues = {} } = useCustomFieldValues(article?.id, { enabled: !!article?.id })
 
   const [auteurIds, setAuteurIds]     = useState<string[]>(
@@ -347,6 +348,46 @@ export function ArticleForm({ onClose, article }: Props) {
       )}
 
       {isError && <p className={styles.errorGlobal}>Une erreur est survenue. Veuillez réessayer.</p>}
+
+      {/* ── Statut catalogue (mode édition uniquement) ─────────── */}
+      {isEdit && article && (
+        <div style={{
+          padding: '12px 16px',
+          borderRadius: 10,
+          background: article.actif ? 'var(--ink-faint)' : 'rgba(220,38,38,0.06)',
+          border: `1.5px solid ${article.actif ? 'var(--cream-dark)' : 'rgba(220,38,38,0.2)'}`,
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
+        }}>
+          <div>
+            <span style={{ fontSize: '0.82rem', fontWeight: 600, color: article.actif ? 'var(--ink)' : '#DC2626' }}>
+              {article.actif ? 'Article en catalogue' : 'Article retiré du catalogue'}
+            </span>
+            <p style={{ fontSize: '0.72rem', color: 'var(--text-soft)', margin: '2px 0 0' }}>
+              {article.actif
+                ? 'Visible dans les ventes et le catalogue.'
+                : 'Conservé en base pour l\'historique. Non disponible à la vente.'}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={async () => {
+              await setActif.mutateAsync({ id: article.id, actif: !article.actif })
+              onClose()
+            }}
+            disabled={setActif.isPending}
+            style={{
+              padding: '7px 14px', borderRadius: 8, fontSize: '0.78rem', fontWeight: 600,
+              cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0,
+              border: article.actif ? '1.5px solid rgba(220,38,38,0.3)' : '1.5px solid rgba(5,150,105,0.3)',
+              background: article.actif ? 'rgba(220,38,38,0.06)' : 'rgba(5,150,105,0.06)',
+              color: article.actif ? '#DC2626' : '#059669',
+              transition: 'background 0.15s',
+            }}
+          >
+            {setActif.isPending ? '…' : article.actif ? 'Retirer du catalogue' : 'Remettre au catalogue'}
+          </button>
+        </div>
+      )}
 
       <div className={styles.actions}>
         <button type="button" className={styles.btnSecondary} onClick={onClose}>Annuler</button>

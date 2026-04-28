@@ -28,44 +28,72 @@ export function LoginPage() {
 
   return (
     <div className={styles.page}>
-      <div className={styles.card}>
-        <h1 className={styles.title}>Megesti</h1>
-        <p className={styles.subtitle}>Connectez-vous à votre espace</p>
 
-        <form onSubmit={handleSubmit} className={styles.form}>
-          <div className={styles.field}>
-            <label className={styles.label} htmlFor="email">Email</label>
-            <input
-              id="email"
-              type="email"
-              className={styles.input}
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              autoComplete="email"
-              autoFocus
-            />
+      {/* ── Panneau visuel gauche ── */}
+      <div className={styles.visual}>
+        <div className={styles.visualLogo}>
+          <span style={{ color: 'white', fontSize: 22, fontFamily: 'DM Serif Display', fontStyle: 'italic' }}>é</span>
+        </div>
+        <h2 className={styles.visualTitle}>
+          L'atelier<br />de l'éditeur·ice
+        </h2>
+        <p className={styles.visualSub}>
+          Gérez votre catalogue, vos auteurs,<br />
+          vos ventes et vos droits en un seul endroit.
+        </p>
+      </div>
+
+      {/* ── Panneau formulaire droit ── */}
+      <div className={styles.panel}>
+        <div className={styles.card}>
+
+          <div className={styles.brandSmall}>
+            <div className={styles.brandIcon}>
+              <span style={{ color: 'white', fontSize: 14, fontFamily: 'DM Serif Display', fontStyle: 'italic' }}>é</span>
+            </div>
+            <span className={styles.brandName}>Megesti</span>
           </div>
 
-          <div className={styles.field}>
-            <label className={styles.label} htmlFor="password">Mot de passe</label>
-            <input
-              id="password"
-              type="password"
-              className={styles.input}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              autoComplete="current-password"
-            />
-          </div>
+          <h1 className={styles.title}>Bon retour.</h1>
+          <p className={styles.subtitle}>Connectez-vous à votre espace éditorial</p>
 
-          {error && <p className={styles.error}>{error}</p>}
+          <form onSubmit={handleSubmit} className={styles.form}>
+            <div className={styles.field}>
+              <label className={styles.label} htmlFor="email">Adresse email</label>
+              <input
+                id="email"
+                type="email"
+                className={styles.input}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="vous@maisondedition.fr"
+                required
+                autoComplete="email"
+                autoFocus
+              />
+            </div>
 
-          <button type="submit" className={styles.btn} disabled={loading}>
-            {loading ? 'Connexion…' : 'Se connecter'}
-          </button>
-        </form>
+            <div className={styles.field}>
+              <label className={styles.label} htmlFor="password">Mot de passe</label>
+              <input
+                id="password"
+                type="password"
+                className={styles.input}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                required
+                autoComplete="current-password"
+              />
+            </div>
+
+            {error && <p className={styles.error}>{error}</p>}
+
+            <button type="submit" className={styles.btn} disabled={loading}>
+              {loading ? 'Connexion…' : 'Accéder à mon espace →'}
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   )

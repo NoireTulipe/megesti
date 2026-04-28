@@ -19,12 +19,18 @@ export const auteurRoutes: FastifyPluginAsync = async (app) => {
 
   app.get('/', auth, async (request) => {
     const { tenantId } = request.tenant
-    const { q } = request.query as { q?: string }
+    const { q, avecContrat } = request.query as { q?: string; avecContrat?: string }
+
+    const contratFilter =
+      avecContrat === 'true'  ? { contrats: { some: { actif: true, tenantId } } } :
+      avecContrat === 'false' ? { NOT: { contrats: { some: { actif: true, tenantId } } } } :
+      {}
 
     return app.db.auteur.findMany({
       where: {
         tenantId,
         actif: true,
+        ...contratFilter,
         ...(q && {
           OR: [
             { nom:    { contains: q, mode: 'insensitive' } },
@@ -32,6 +38,7 @@ export const auteurRoutes: FastifyPluginAsync = async (app) => {
           ],
         }),
       },
+      include: { _count: { select: { contrats: true } } },
       orderBy: [{ nom: 'asc' }, { prenom: 'asc' }],
     })
   })

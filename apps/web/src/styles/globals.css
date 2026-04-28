@@ -3,76 +3,319 @@
 @tailwind utilities;
 
 @import './animations.css';
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
 
-/* ── Palette Megesti ──────────────────────────────────────── */
+/* ════════════════════════════════════════════════════════════════
+   MEGESTI — Design System
+   Palette éditoriale chaleureuse · Formes rondes · Mouvement doux
+   ════════════════════════════════════════════════════════════════ */
+
 :root {
-  --cream:       #FAF6EF;
-  --cream-dark:  #F2EAE0;
-  --ink:         #1C3A5E;
-  --ink-light:   #3A5A7E;
-  --ink-faint:   #E8EEF5;
-  --terra:       #D95F3B;
-  --terra-light: #FDEEE9;
-  --terra-mid:   #F2B49E;
-  --sage:        #5C8F6A;
-  --sage-light:  #E8F3EB;
-  --gold:        #C9933A;
-  --gold-light:  #FBF3E4;
-  --text:        #2A1F14;
-  --text-mid:    #6B5D52;
-  --text-soft:   #9C8E85;
-  --white:       #FFFFFF;
+  /* ── Fond & surfaces ──────────────────────────────────────── */
+  --cream:         #FAF7F2;
+  --cream-dark:    #EDE7DC;
+  --cream-mid:     #F3EDE4;
+  --white:         #FFFFFF;
 
-  --shadow-card:  0 2px 16px rgba(28,58,94,0.08), 0 1px 3px rgba(28,58,94,0.05);
-  --shadow-hover: 0 8px 32px rgba(28,58,94,0.14), 0 2px 8px rgba(28,58,94,0.08);
-  --radius-card:  20px;
-  --radius-pill:  100px;
+  /* ── Texte ────────────────────────────────────────────────── */
+  --text:          #2C2118;
+  --text-mid:      #6B5748;
+  --text-soft:     #A8978C;
 
-  /* shadcn/ui — mappés sur la palette */
-  --background:        var(--cream);
-  --foreground:        var(--text);
-  --card:              var(--white);
-  --card-foreground:   var(--text);
-  --primary:           var(--ink);
-  --primary-foreground: var(--white);
-  --secondary:         var(--cream-dark);
+  /* ── Encre — bleu nuit chaud (principal) ─────────────────── */
+  --ink:           #243347;
+  --ink-light:     #3D5470;
+  --ink-faint:     #EDF1F7;
+  --ink-deep:      #141F30;
+
+  /* ── Rose poudré — accent féminin ────────────────────────── */
+  --rose:          #C4907C;
+  --rose-dark:     #A87060;
+  --rose-light:    #F9EDE8;
+  --rose-mid:      #E4B8AC;
+  --rose-glow:     rgba(196, 144, 124, 0.18);
+
+  /* ── Terra — action, alerte ───────────────────────────────── */
+  --terra:         #C85D3A;
+  --terra-light:   #FCF0EC;
+  --terra-mid:     #EDAB98;
+
+  /* ── Sage vert ────────────────────────────────────────────── */
+  --sage:          #6B8F71;
+  --sage-light:    #EDF4EE;
+
+  /* ── Or ───────────────────────────────────────────────────── */
+  --gold:          #C9933A;
+  --gold-light:    #FBF5E6;
+
+  /* ── Mauve — tags, badges ─────────────────────────────────── */
+  --mauve:         #8B7BAB;
+  --mauve-light:   #F3F0F9;
+
+  /* ── Ombres chaudes (pas froides) ────────────────────────── */
+  --shadow-xs:     0 1px 2px rgba(44,33,24,0.06);
+  --shadow-card:   0 1px 4px rgba(44,33,24,0.05), 0 6px 20px rgba(44,33,24,0.07);
+  --shadow-hover:  0 4px 16px rgba(44,33,24,0.10), 0 16px 40px rgba(44,33,24,0.10);
+  --shadow-float:  0 8px 32px rgba(44,33,24,0.14), 0 32px 64px rgba(44,33,24,0.10);
+  --shadow-rose:   0 4px 20px rgba(196, 144, 124, 0.25);
+  --shadow-ink:    0 4px 20px rgba(36, 51, 71, 0.25);
+
+  /* ── Rayons ───────────────────────────────────────────────── */
+  --radius-sm:     8px;
+  --radius-md:     14px;
+  --radius-card:   22px;
+  --radius-input:  12px;
+  --radius-btn:    12px;
+  --radius-pill:   100px;
+
+  /* ── Transitions ──────────────────────────────────────────── */
+  --ease-out:      cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring:   cubic-bezier(0.34, 1.56, 0.64, 1);
+  --t-fast:        0.15s;
+  --t-med:         0.25s;
+  --t-slow:        0.4s;
+
+  /* ── Mapping shadcn/ui ────────────────────────────────────── */
+  --background:          var(--cream);
+  --foreground:          var(--text);
+  --card:                var(--white);
+  --card-foreground:     var(--text);
+  --primary:             var(--ink);
+  --primary-foreground:  var(--white);
+  --secondary:           var(--cream-dark);
   --secondary-foreground: var(--ink);
-  --muted:             var(--cream-dark);
-  --muted-foreground:  var(--text-soft);
-  --accent:            var(--ink-faint);
-  --accent-foreground: var(--ink);
-  --destructive:       var(--terra);
+  --muted:               var(--cream-dark);
+  --muted-foreground:    var(--text-soft);
+  --accent:              var(--rose-light);
+  --accent-foreground:   var(--rose-dark);
+  --destructive:         var(--terra);
   --destructive-foreground: var(--white);
-  --border:            rgba(28,58,94,0.1);
-  --input:             rgba(28,58,94,0.1);
-  --ring:              var(--ink);
-  --radius:            0.75rem;
+  --border:              var(--cream-dark);
+  --input:               var(--cream-dark);
+  --ring:                var(--rose);
+  --radius:              0.75rem;
 }
 
-/* ── Base ─────────────────────────────────────────────────── */
+/* ════════════════════════════════════════════════════════════════
+   BASE
+   ════════════════════════════════════════════════════════════════ */
+
 @layer base {
   *, *::before, *::after { box-sizing: border-box; }
 
   html, body {
     height: 100%;
-    background: var(--cream);
-    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
     color: var(--text);
     -webkit-font-smoothing: antialiased;
+    background: var(--cream);
   }
 
-  /* Grain texture subtil sur tout le fond */
+  /* Fond doux avec halo rose très subtil en haut */
+  body {
+    background:
+      radial-gradient(ellipse 100% 60% at 60% -10%, rgba(196,144,124,0.06) 0%, transparent 70%),
+      radial-gradient(ellipse 60% 40% at 0% 100%, rgba(107,143,113,0.04) 0%, transparent 60%),
+      var(--cream);
+  }
+
+  /* Grain texture papier fin */
   body::before {
     content: '';
     position: fixed;
     inset: 0;
     pointer-events: none;
-    z-index: 999;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
-    opacity: 0.35;
+    z-index: 1;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    opacity: 0.4;
   }
 
   #root { height: 100%; display: flex; flex-direction: column; }
+}
 
-  * { border-color: var(--border); }
+/* ════════════════════════════════════════════════════════════════
+   TYPOGRAPHIE GLOBALE
+   ════════════════════════════════════════════════════════════════ */
+
+h1, h2, h3 {
+  font-family: 'DM Serif Display', Georgia, serif;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  color: var(--ink-deep);
+}
+
+/* ════════════════════════════════════════════════════════════════
+   INPUTS — beau focus, transitions douces
+   ════════════════════════════════════════════════════════════════ */
+
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+textarea,
+select {
+  border: 1.5px solid var(--cream-dark);
+  border-radius: var(--radius-input);
+  padding: 10px 14px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.875rem;
+  color: var(--text);
+  background: var(--white);
+  outline: none;
+  transition:
+    border-color var(--t-fast) ease,
+    box-shadow   var(--t-fast) ease,
+    background   var(--t-fast) ease;
+  width: 100%;
+}
+
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):focus,
+textarea:focus,
+select:focus {
+  border-color: var(--rose);
+  box-shadow: 0 0 0 3.5px var(--rose-glow);
+  background: #FFFDFB;
+}
+
+input::placeholder, textarea::placeholder {
+  color: var(--text-soft);
+  font-style: italic;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  opacity: 0.5;
+  cursor: pointer;
+}
+
+/* ── Checkbox personnalisée ───────────────────────────────────── */
+input[type="checkbox"] {
+  accent-color: var(--rose);
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
+}
+
+/* ── Select arrow ─────────────────────────────────────────────── */
+select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23A8978C' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 34px;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   BOUTONS GLOBAUX
+   ════════════════════════════════════════════════════════════════ */
+
+button {
+  cursor: pointer;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  transition:
+    background  var(--t-fast) ease,
+    box-shadow  var(--t-fast) ease,
+    transform   var(--t-fast) var(--ease-spring),
+    border-color var(--t-fast) ease,
+    color        var(--t-fast) ease,
+    opacity      var(--t-fast) ease;
+}
+
+button:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* ── Classe utilitaire : bouton primaire rose ─────────────────── */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  height: 40px;
+  padding: 0 20px;
+  border: none;
+  border-radius: var(--radius-btn);
+  background: linear-gradient(135deg, var(--rose) 0%, #B87A66 100%);
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(196,144,124,0.3);
+  white-space: nowrap;
+}
+.btn-primary:hover:not(:disabled) {
+  box-shadow: 0 6px 20px rgba(196,144,124,0.4);
+  transform: translateY(-1px);
+}
+
+/* ── Classe utilitaire : bouton secondaire ────────────────────── */
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 40px;
+  padding: 0 18px;
+  border: 1.5px solid var(--cream-dark);
+  border-radius: var(--radius-btn);
+  background: var(--white);
+  color: var(--text-mid);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+.btn-secondary:hover:not(:disabled) {
+  border-color: var(--rose-mid);
+  color: var(--rose-dark);
+  background: var(--rose-light);
+}
+
+/* ════════════════════════════════════════════════════════════════
+   CARDS GLOBALES
+   ════════════════════════════════════════════════════════════════ */
+
+.card-base {
+  background: var(--white);
+  border: 1.5px solid var(--cream-dark);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  transition:
+    box-shadow  var(--t-med) var(--ease-out),
+    transform   var(--t-med) var(--ease-out),
+    border-color var(--t-med) ease;
+}
+.card-base:hover {
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-2px);
+  border-color: rgba(196, 144, 124, 0.2);
+}
+
+/* ════════════════════════════════════════════════════════════════
+   LABELS DE SECTION
+   ════════════════════════════════════════════════════════════════ */
+
+.section-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--rose);
+  margin-bottom: 12px;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   SCROLLBAR ÉLÉGANTE
+   ════════════════════════════════════════════════════════════════ */
+
+::-webkit-scrollbar        { width: 6px; height: 6px; }
+::-webkit-scrollbar-track  { background: transparent; }
+::-webkit-scrollbar-thumb  { background: var(--cream-dark); border-radius: 100px; }
+::-webkit-scrollbar-thumb:hover { background: var(--rose-mid); }
+
+/* ════════════════════════════════════════════════════════════════
+   ZONE ANIMATE — entrées de page
+   ════════════════════════════════════════════════════════════════ */
+
+.zone-animate {
+  animation: fadeUp 0.5s var(--ease-out) both;
 }

@@ -1,54 +1,74 @@
 .card {
-  border-radius: 12px;
+  border-radius: 22px;
   border: 1.5px solid var(--cream-dark);
-  background: #fff;
+  background: var(--white);
   overflow: hidden;
-  transition: box-shadow 0.15s, transform 0.15s;
-  position: relative;
   cursor: default;
+  position: relative;
+  box-shadow: var(--shadow-card);
+  transition:
+    box-shadow  0.3s var(--ease-out),
+    transform   0.3s var(--ease-out),
+    border-color 0.3s ease;
 }
-.card:hover { box-shadow: 0 4px 16px rgba(28, 58, 94, 0.1); transform: translateY(-1px); }
+.card:hover {
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-4px);
+  border-color: rgba(196,144,124,0.25);
+}
 
+/* ── Image ────────────────────────────────────────────────────── */
 .img {
   width: 100%;
   aspect-ratio: 2 / 3;
   object-fit: cover;
   display: block;
+  transition: transform 0.5s ease;
 }
+.card:hover .img { transform: scale(1.03); }
 
 .imgPlaceholder {
   width: 100%;
   aspect-ratio: 2 / 3;
-  background: linear-gradient(135deg, var(--cream) 0%, var(--cream-dark) 100%);
+  background: linear-gradient(
+    145deg,
+    #F3EDE4 0%,
+    #EDE7DC 40%,
+    #F9F4EE 100%
+  );
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: 'DM Serif Display', serif;
-  font-size: 2.5rem;
-  color: rgba(28, 58, 94, 0.18);
+  font-size: 3rem;
+  font-style: italic;
+  color: rgba(196,144,124,0.3);
   user-select: none;
+  transition: color 0.3s ease;
 }
+.card:hover .imgPlaceholder { color: rgba(196,144,124,0.5); }
 
-.body  { padding: 12px; }
+/* ── Corps ────────────────────────────────────────────────────── */
+.body { padding: 14px 16px 16px; }
 
 .rayon {
-  font-size: 0.68rem;
+  font-size: 0.65rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--terra);
-  margin: 0 0 4px;
+  letter-spacing: 0.1em;
+  color: var(--rose);
+  margin: 0 0 6px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .nom {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--ink);
-  margin: 0 0 4px;
-  line-height: 1.3;
+  font-family: 'DM Serif Display', serif;
+  font-size: 0.95rem;
+  color: var(--ink-deep);
+  margin: 0 0 8px;
+  line-height: 1.35;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -56,33 +76,104 @@
 }
 
 .isbn {
-  font-size: 0.68rem;
+  font-size: 0.65rem;
   color: var(--text-soft);
-  margin: 0 0 4px;
+  margin: 0 0 6px;
   font-family: monospace;
+  letter-spacing: 0.02em;
 }
 
-.prix  { font-size: 0.82rem; font-weight: 600; color: var(--ink); margin: 0 0 2px; }
-.stock { font-size: 0.72rem; color: var(--text-soft); margin: 0; }
+.prix {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0 0 2px;
+}
 
+.stock {
+  font-size: 0.7rem;
+  color: var(--text-soft);
+  margin: 0;
+  font-style: italic;
+}
+
+/* ── Bouton édition ───────────────────────────────────────────── */
 .editBtn {
   position: absolute;
-  top: 8px;
-  right: 8px;
-  width: 28px;
-  height: 28px;
+  top: 10px;
+  right: 10px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
-  border: 1.5px solid var(--cream-dark);
-  background: rgba(255, 255, 255, 0.9);
+  border: 1.5px solid rgba(255,255,255,0.8);
+  background: rgba(255,255,255,0.85);
   color: var(--text-mid);
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   opacity: 0;
-  transition: opacity 0.15s, background 0.15s, color 0.15s;
-  backdrop-filter: blur(4px);
+  transition:
+    opacity    0.2s ease,
+    background 0.2s ease,
+    transform  0.2s cubic-bezier(0.34,1.56,0.64,1);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.12);
 }
 .card:hover .editBtn { opacity: 1; }
-.editBtn:hover { background: var(--ink); color: #fff; border-color: var(--ink); }
+.editBtn:hover {
+  background: var(--ink-deep);
+  color: #fff;
+  border-color: var(--ink-deep);
+  transform: scale(1.1);
+}
+
+/* ── Badge retiré ─────────────────────────────────────────────── */
+.cardRetire {
+  opacity: 0.5;
+  filter: grayscale(0.5);
+}
+
+.badgeRetire {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: rgba(44,33,24,0.72);
+  color: #fff;
+  font-size: 0.58rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  padding: 3px 9px;
+  border-radius: var(--radius-pill);
+  backdrop-filter: blur(4px);
+}
+
+/* ── Bouton retrait ───────────────────────────────────────────── */
+.retireBtn {
+  position: absolute;
+  top: 10px;
+  right: 48px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255,255,255,0.8);
+  background: rgba(255,255,255,0.85);
+  color: var(--text-soft);
+  font-size: 0.8rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition:
+    opacity    0.2s ease,
+    background 0.2s ease,
+    transform  0.2s cubic-bezier(0.34,1.56,0.64,1);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+}
+.card:hover .retireBtn { opacity: 1; }
+.retireBtn:hover { background: #FEE2E2; color: #DC2626; border-color: #FECACA; transform: scale(1.1); }
+.retireBtnRestore:hover { background: #D1FAE5; color: #059669; border-color: #A7F3D0; transform: scale(1.1); }

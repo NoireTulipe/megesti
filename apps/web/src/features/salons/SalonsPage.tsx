@@ -1,25 +1,23 @@
 import { useState, useEffect, useRef } from 'react'
 import { useSalons } from './hooks/useSalons'
 import type { Salon } from './hooks/useSalons'
-import { SalonForm } from './SalonForm'
-import { SimpleEntityCard } from '@/components/SimpleEntityCard'
-import { Modal } from '@/components/ui/Modal'
-import { getFormWidth } from '@/lib/formWidth'
-import styles from '@/features/auteurs/AuteursPage.module.css'
+import { SalonCard }   from './SalonCard'
+import { SalonDetail } from './SalonDetail'
+import styles from './SalonsPage.module.css'
 
-function formatDate(iso: string | null): string {
-  if (!iso) return ''
-  return new Date(iso).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })
-}
+type PanelState =
+  | { mode: 'none' }
+  | { mode: 'view'; salon: Salon }
+  | { mode: 'edit'; salon: Salon }
+  | { mode: 'create' }
 
 export function SalonsPage() {
-  const [search, setSearch]       = useState('')
+  const [search, setSearch]   = useState('')
   const [debounced, setDebounced] = useState('')
-  const [showCreate, setShowCreate] = useState(false)
-  const [editItem, setEditItem]   = useState<Salon | null>(null)
+  const [panel, setPanel]     = useState<PanelState>({ mode: 'none' })
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const { data: items, isLoading, isError } = useSalons(debounced || undefined)
+  const { data: salons = [], isLoading } = useSalons(debounced || undefined)
 
   useEffect(() => {
     if (timerRef.current) clearTimeout(timerRef.current)
@@ -27,51 +25,107 @@ export function SalonsPage() {
     return () => { if (timerRef.current) clearTimeout(timerRef.current) }
   }, [search])
 
+  // Sync panel après mutation (refresh des données)
+  useEffect(() => {
+    if (panel.mode === 'view' || panel.mode === 'edit') {
+      const fresh = salons.find((s) => s.id === panel.salon.id)
+      if (fresh) setPanel((p) => ({ ...p, salon: fresh }))
+    }
+  }, [salons])
+
+  function handleSelect(salon: Salon) {
+    setPanel({ mode: 'view', salon })
+  }
+
+  function handleEdit(salon: Salon, e: React.MouseEvent) {
+    e.stopPropagation()
+    setPanel({ mode: 'edit', salon })
+  }
+
+  function handleDone() {
+    setPanel({ mode: 'none' })
+  }
+
+  const activeId = (panel.mode === 'view' || panel.mode === 'edit') ? panel.salon.id : null
+
   return (
     <div className={styles.page}>
-      <header className={styles.header}>
-        <div>
-          <h1 className={styles.title}>Salons</h1>
-          <p className={styles.subtitle}>{items?.length ?? '—'} salon{(items?.length ?? 0) > 1 ? 's' : ''}</p>
+      {/* ── Colonne liste ── */}
+      <div className={styles.listCol}>
+        <div className={styles.listHeader}>
+          <h1 className={styles.listTitle}>Salons & événements</h1>
+          <div className={styles.listToolbar}>
+            <input
+              className={styles.search}
+              type="search"
+              placeholder="Rechercher…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+            <button
+              className={styles.btnNew}
+              onClick={() => setPanel({ mode: 'create' })}
+            >
+              + Nouveau
+            </button>
+          </div>
         </div>
-        <div className={styles.actions}>
-          <input className={styles.search} type="search" placeholder="Rechercher…" value={search} onChange={(e) => setSearch(e.target.value)} />
-          <button className={styles.btnPrimary} onClick={() => setShowCreate(true)}>+ Nouveau salon</button>
-        </div>
-      </header>
 
-      {isLoading && (
-        <div className={styles.grid}>
-          {Array.from({ length: 4 }).map((_, i) => <div key={i} className={styles.skeleton} />)}
-        </div>
-      )}
-      {isError && <div className={styles.empty}><p>Impossible de charger les salons.</p></div>}
-      {!isLoading && !isError && items?.length === 0 && (
-        <div className={styles.empty}><p>Aucun salon{debounced ? ` pour « ${debounced} »` : ''}.</p></div>
-      )}
-      {!isLoading && !isError && items && items.length > 0 && (
-        <div className={styles.grid}>
-          {items.map((item) => {
-            const dates = [formatDate(item.dateDebut), formatDate(item.dateFin)].filter(Boolean).join(' → ')
-            return (
-              <SimpleEntityCard
-                key={item.id}
-                nom={item.nom}
-                icon="🎪"
-                lines={[item.lieu ?? '', dates].filter(Boolean)}
-                onEdit={() => setEditItem(item)}
-              />
-            )
-          })}
-        </div>
-      )}
+        <div className={styles.listBody}>
+          {isLoading && Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className={styles.skeleton} />
+          ))}
 
-      <Modal isOpen={showCreate} onClose={() => setShowCreate(false)} title="Nouveau salon" width={getFormWidth('salon')}>
-        <SalonForm onClose={() => setShowCreate(false)} />
-      </Modal>
-      <Modal isOpen={Boolean(editItem)} onClose={() => setEditItem(null)} title="Modifier le salon" subtitle={editItem?.nom} width={getFormWidth('salon')}>
-        {editItem && <SalonForm salon={editItem} onClose={() => setEditItem(null)} />}
-      </Modal>
+          {!isLoading && salons.length === 0 && (
+            <div className={styles.listEmpty}>
+              {debounced ? `Aucun résultat pour « ${debounced} »` : 'Aucun salon — créez-en un !'}
+            </div>
+          )}
+
+          {!isLoading && salons.map((salon) => (
+            <SalonCard
+              key={salon.id}
+              salon={salon}
+              active={salon.id === activeId}
+              onSelect={() => handleSelect(salon)}
+              onEdit={(e) => handleEdit(salon, e)}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* ── Panneau détail / éditeur ── */}
+      <div className={styles.detailCol}>
+        {panel.mode === 'none' && (
+          <div className={styles.detailEmpty}>
+            <span className={styles.detailEmptyIcon}>🎪</span>
+            <span className={styles.detailEmptyText}>Sélectionnez un salon pour voir le détail</span>
+          </div>
+        )}
+
+        {panel.mode === 'view' && (
+          <SalonDetail
+            salon={panel.salon}
+            onDone={handleDone}
+            onCancel={handleDone}
+          />
+        )}
+
+        {panel.mode === 'edit' && (
+          <SalonDetail
+            salon={panel.salon}
+            onDone={handleDone}
+            onCancel={() => setPanel({ mode: 'view', salon: panel.salon })}
+          />
+        )}
+
+        {panel.mode === 'create' && (
+          <SalonDetail
+            onDone={handleDone}
+            onCancel={handleDone}
+          />
+        )}
+      </div>
     </div>
   )
 }

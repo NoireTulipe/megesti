@@ -22,7 +22,9 @@ const CreateArticleSchema = z.object({
   auteurIds:       z.array(z.string().uuid()).default([]),
 })
 
-const PatchArticleSchema = CreateArticleSchema.omit({ id: true }).partial()
+const PatchArticleSchema = CreateArticleSchema.omit({ id: true }).partial().extend({
+  actif: z.boolean().optional(),
+})
 
 const ListQuerySchema = z.object({
   q:          z.string().optional(),

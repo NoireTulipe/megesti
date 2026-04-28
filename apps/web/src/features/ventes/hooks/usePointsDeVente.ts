@@ -5,12 +5,14 @@ import type { CategoriePointDeVente } from './useCategoriesPointDeVente'
 export interface PointDeVente {
   id:                 string
   nom:                string
+  salonId:            string | null
   categorieId:        string | null
   commissionFixe:     string | null
   commissionPourcent: string | null
   encaissementDirect: boolean
   actif:              boolean
   categorie:          CategoriePointDeVente | null
+  salon:              { id: string; nom: string } | null
 }
 
 export interface CreatePointDeVentePayload {

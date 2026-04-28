@@ -1,9 +1,12 @@
-import { useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useCreateAuteur, useUpdateAuteur } from './hooks/useAuteurs'
 import type { Auteur } from './hooks/useAuteurs'
+import { ContratsAuteurSection } from './ContratsAuteurSection'
+import { useCreateContratAuteur } from './hooks/useContratsAuteur'
+import { useTypesDA } from '@/features/reglages/hooks/useTypesDA'
 import { CustomFieldsRenderer } from '@/components/CustomFieldsRenderer'
 import { useCustomFields } from '@/features/reglages/hooks/useCustomFields'
 import { useCustomFieldValues, useSaveCustomFieldValues } from '@/features/reglages/hooks/useCustomFieldValues'
@@ -32,7 +35,15 @@ export function AuteurForm({ onClose, auteur }: Props) {
   const isEdit             = Boolean(auteur)
   const createAuteur       = useCreateAuteur()
   const updateAuteur       = useUpdateAuteur()
+  const createContrat      = useCreateContratAuteur()
+  const { data: typesDA = [] } = useTypesDA()
   const saveCustomValues   = useSaveCustomFieldValues()
+
+  const [avecContrat,        setAvecContrat]       = useState(false)
+  const [contratTypeDAId,    setContratTypeDAId]   = useState('')
+  const [contratDateSig,     setContratDateSig]    = useState(new Date().toISOString().slice(0, 10))
+  const [contratDureeAns,    setContratDureeAns]   = useState('')
+  const [contratReconduite,  setContratReconduite] = useState(true)
   const { data: allChamps = [] }    = useCustomFields('auteur')
   const { data: customValues = {} } = useCustomFieldValues(auteur?.id, { enabled: !!auteur?.id })
 
@@ -102,6 +113,19 @@ export function AuteurForm({ onClose, auteur }: Props) {
         email:      values.email      || undefined,
         bio:        values.bio        || undefined,
       })
+      // Contrat inline à la création
+      if (avecContrat && contratTypeDAId) {
+        const sigDate = contratDateSig ? `${contratDateSig}T00:00:00.000Z` : undefined
+        await createContrat.mutateAsync({
+          id:               crypto.randomUUID(),
+          auteurId:         entityId,
+          typeDAId:         contratTypeDAId,
+          dateSignature:    sigDate,
+          datePriseEffet:   sigDate,
+          dureeAns:         contratDureeAns ? Number(contratDureeAns) : undefined,
+          reconduiteTacite: contratReconduite,
+        })
+      }
     }
 
     if (customPayload.length > 0) {
@@ -172,6 +196,64 @@ export function AuteurForm({ onClose, auteur }: Props) {
         register={register}
         errors={errors}
       />
+
+      {/* ── Contrats & barèmes DA ─────────────────────────────── */}
+      {isEdit && auteur && <ContratsAuteurSection auteur={auteur} />}
+
+      {/* ── Contrat ME à la création ──────────────────────────── */}
+      {!isEdit && (
+        <div className={styles.section}>
+          <p className={styles.sectionLabel}>Contrat ME</p>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', userSelect: 'none' }}>
+            <input
+              type="checkbox"
+              checked={avecContrat}
+              onChange={(e) => setAvecContrat(e.target.checked)}
+              style={{ width: 16, height: 16, accentColor: 'var(--ink)', cursor: 'pointer' }}
+            />
+            <span style={{ fontSize: '0.85rem', color: 'var(--ink)', fontWeight: 500 }}>
+              Cet auteur est sous contrat avec la maison d'édition
+            </span>
+          </label>
+
+          {avecContrat && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 4, padding: '12px 14px', background: 'var(--ink-faint)', borderRadius: 10, border: '1px solid var(--cream-dark)' }}>
+              <div className={styles.row2}>
+                <div className={styles.field}>
+                  <label className={styles.label}>Barème DA *</label>
+                  <select className={styles.input} value={contratTypeDAId} onChange={(e) => setContratTypeDAId(e.target.value)}>
+                    <option value="">— Choisir —</option>
+                    {typesDA.map((t) => <option key={t.id} value={t.id}>{t.nom}</option>)}
+                  </select>
+                </div>
+                <div className={styles.field}>
+                  <label className={styles.label}>Date de signature</label>
+                  <input type="date" className={styles.input} value={contratDateSig} onChange={(e) => setContratDateSig(e.target.value)} />
+                </div>
+              </div>
+              <div className={styles.row2}>
+                <div className={styles.field}>
+                  <label className={styles.label}>Durée (années)</label>
+                  <input type="number" min={1} className={styles.input} value={contratDureeAns} onChange={(e) => setContratDureeAns(e.target.value)} placeholder="Indéterminée si vide" />
+                </div>
+                {contratDureeAns && (
+                  <div className={styles.field} style={{ justifyContent: 'flex-end', paddingBottom: 4 }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: '0.82rem' }}>
+                      <input type="checkbox" checked={contratReconduite} onChange={(e) => setContratReconduite(e.target.checked)} style={{ accentColor: 'var(--ink)' }} />
+                      Reconduite tacite
+                    </label>
+                  </div>
+                )}
+              </div>
+              {!contratTypeDAId && (
+                <p style={{ fontSize: '0.72rem', color: 'var(--terra)', margin: 0 }}>
+                  Sélectionne un barème pour activer le contrat. Si aucun barème n'existe, crée-en un dans Réglages → Barèmes DA.
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {isError && <p className={styles.errorGlobal}>Une erreur est survenue. Veuillez réessayer.</p>}
 

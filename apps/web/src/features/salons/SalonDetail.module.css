@@ -1,0 +1,291 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  height: 100%;
+}
+
+/* ── Header panel ────────────────────────────────────────────── */
+.panelHeader {
+  padding: 28px 32px 20px;
+  border-bottom: 1.5px solid var(--cream-dark);
+  background: linear-gradient(135deg, #FAFAFA 0%, #F5F0EB 100%);
+  flex-shrink: 0;
+}
+
+.panelNom {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.6rem;
+  color: var(--ink);
+  margin: 0 0 6px;
+  font-weight: 400;
+}
+
+.panelMeta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.badge {
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.badgeType   { background: var(--ink-faint); color: var(--ink-light); }
+.badgePeriode { background: rgba(201,147,58,0.12); color: var(--gold); }
+
+.panelStars { display: flex; gap: 3px; }
+.panelStar  { font-size: 1rem; color: var(--gold); cursor: pointer; transition: transform 0.1s; }
+.panelStar:hover { transform: scale(1.2); }
+.panelStarEmpty { color: var(--cream-dark); }
+
+/* ── CA banner ───────────────────────────────────────────────── */
+.caBanner {
+  padding: 14px 32px;
+  background: linear-gradient(90deg, rgba(16,185,129,0.08) 0%, transparent 100%);
+  border-bottom: 1px solid rgba(16,185,129,0.15);
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-shrink: 0;
+}
+
+.caMain {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.5rem;
+  color: #065F46;
+}
+
+.caSub {
+  font-size: 0.78rem;
+  color: var(--text-soft);
+}
+
+/* ── Scrollable body ─────────────────────────────────────────── */
+.body {
+  overflow-y: auto;
+  flex: 1;
+  padding: 24px 32px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+/* ── Sections ────────────────────────────────────────────────── */
+.section { display: flex; flex-direction: column; gap: 14px; }
+
+.sectionTitle {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-soft);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sectionTitle::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--cream-dark);
+}
+
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+
+/* ── Champs ──────────────────────────────────────────────────── */
+.field { display: flex; flex-direction: column; gap: 5px; }
+
+.label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-soft);
+}
+
+.input, .textarea, .select {
+  padding: 9px 12px;
+  border: 1.5px solid var(--cream-dark);
+  border-radius: 9px;
+  font-size: 0.85rem;
+  color: var(--ink);
+  font-family: inherit;
+  background: #fff;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  width: 100%;
+  box-sizing: border-box;
+}
+.input:focus, .textarea:focus, .select:focus {
+  border-color: var(--ink-light);
+  box-shadow: 0 0 0 3px rgba(28,58,94,0.06);
+}
+
+.textarea { resize: vertical; min-height: 80px; }
+
+/* ── Type selector ───────────────────────────────────────────── */
+.typeRow { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+.typeChip {
+  padding: 5px 12px;
+  border-radius: 20px;
+  border: 1.5px solid var(--cream-dark);
+  background: #fff;
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+  color: var(--text-soft);
+}
+.typeChip:hover    { border-color: var(--ink-light); color: var(--ink); }
+.typeChipActive    { background: var(--ink); color: #fff; border-color: var(--ink); }
+
+.typeNewInput {
+  height: 32px; padding: 0 10px;
+  border: 1.5px dashed var(--cream-dark);
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-family: inherit;
+  color: var(--ink);
+  background: #fff;
+  outline: none;
+  width: 130px;
+  transition: border-color 0.15s;
+}
+.typeNewInput:focus { border-color: var(--ink-light); border-style: solid; }
+
+.typeAddBtn {
+  height: 32px; padding: 0 12px;
+  background: var(--ink); color: #fff;
+  border: none; border-radius: 20px;
+  font-size: 0.75rem; font-weight: 600;
+  cursor: pointer; transition: background 0.15s;
+}
+.typeAddBtn:hover { background: var(--terra); }
+
+/* ── Star rating interactive ─────────────────────────────────── */
+.starsEdit { display: flex; gap: 6px; align-items: center; }
+
+.starBtn {
+  background: none; border: none; padding: 0;
+  font-size: 1.4rem; cursor: pointer;
+  color: var(--cream-dark);
+  transition: color 0.12s, transform 0.12s;
+  line-height: 1;
+}
+.starBtn:hover, .starBtnActive { color: var(--gold); }
+.starBtn:hover { transform: scale(1.15); }
+
+.starClear {
+  background: none; border: none; padding: 0 4px;
+  font-size: 0.75rem; color: var(--text-soft);
+  cursor: pointer; transition: color 0.15s;
+}
+.starClear:hover { color: #DC2626; }
+
+/* ── Contacts ────────────────────────────────────────────────── */
+.contactList { display: flex; flex-direction: column; gap: 8px; }
+
+.contactRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr auto;
+  gap: 8px;
+  align-items: center;
+  padding: 10px 12px;
+  background: var(--ink-faint);
+  border-radius: 10px;
+  border: 1px solid var(--cream-dark);
+}
+
+.contactInput {
+  padding: 6px 9px;
+  border: 1.5px solid transparent;
+  border-radius: 7px;
+  font-size: 0.82rem;
+  font-family: inherit;
+  color: var(--ink);
+  background: #fff;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+  transition: border-color 0.15s;
+}
+.contactInput:focus { border-color: var(--ink-light); }
+
+.btnRemoveContact {
+  width: 26px; height: 26px;
+  border: 1.5px solid transparent;
+  border-radius: 6px;
+  background: transparent; color: #ccc;
+  cursor: pointer; font-size: 0.85rem;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+  flex-shrink: 0; padding: 0;
+}
+.btnRemoveContact:hover { background: #FEE2E2; color: #DC2626; border-color: #FECACA; }
+
+.btnAddContact {
+  align-self: flex-start;
+  height: 30px; padding: 0 12px;
+  background: transparent; color: var(--text-soft);
+  border: 1.5px dashed var(--cream-dark);
+  border-radius: 7px; font-size: 0.78rem; font-weight: 600;
+  cursor: pointer; transition: border-color 0.15s, color 0.15s;
+}
+.btnAddContact:hover { border-color: var(--ink-light); color: var(--ink); }
+
+/* ── Pied du panel ───────────────────────────────────────────── */
+.footer {
+  padding: 16px 32px;
+  border-top: 1.5px solid var(--cream-dark);
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  background: #fff;
+  flex-shrink: 0;
+}
+
+.btnCancel {
+  height: 38px; padding: 0 18px;
+  background: transparent; color: var(--text-soft);
+  border: 1.5px solid var(--cream-dark);
+  border-radius: 9px; font-size: 0.85rem; font-weight: 600;
+  cursor: pointer; transition: border-color 0.15s, color 0.15s;
+}
+.btnCancel:hover { border-color: var(--ink-light); color: var(--ink); }
+
+.btnSave {
+  height: 38px; padding: 0 22px;
+  background: var(--ink); color: #fff;
+  border: none; border-radius: 9px;
+  font-size: 0.85rem; font-weight: 600;
+  cursor: pointer; transition: background 0.15s;
+}
+.btnSave:hover:not(:disabled) { background: var(--terra); }
+.btnSave:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── Historique CA ───────────────────────────────────────────── */
+.sessionList { display: flex; flex-direction: column; gap: 6px; }
+
+.sessionRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 12px;
+  background: #fff;
+  border: 1px solid var(--cream-dark);
+  border-radius: 9px;
+  font-size: 0.82rem;
+}
+
+.sessionNom   { color: var(--ink); font-weight: 500; }
+.sessionDate  { color: var(--text-soft); font-size: 0.75rem; }
+.sessionCA    { font-weight: 700; color: #065F46; }
+.sessionEmpty { color: var(--text-soft); font-size: 0.82rem; font-style: italic; text-align: center; padding: 16px 0; }

@@ -4,18 +4,19 @@ import type { Article, CreateArticlePayload } from '../types'
 
 const KEYS = {
   all:  () => ['articles'] as const,
-  list: (rayonId?: string, q?: string) => ['articles', 'list', rayonId ?? '', q ?? ''] as const,
+  list: (rayonId?: string, q?: string, actif?: boolean) =>
+    ['articles', 'list', rayonId ?? '', q ?? '', String(actif ?? true)] as const,
 }
 
-export function useArticles(rayonId?: string, q?: string) {
+export function useArticles(rayonId?: string, q?: string, actif = true) {
   return useQuery({
-    queryKey: KEYS.list(rayonId, q),
+    queryKey: KEYS.list(rayonId, q, actif),
     queryFn:  () => {
       const params = new URLSearchParams()
       if (rayonId) params.set('rayonId', rayonId)
       if (q)       params.set('q', q)
-      const qs = params.toString()
-      return api.get<Article[]>(`/articles${qs ? `?${qs}` : ''}`)
+      params.set('actif', String(actif))
+      return api.get<Article[]>(`/articles?${params.toString()}`)
     },
   })
 }
@@ -33,6 +34,15 @@ export function useUpdateArticle() {
   return useMutation({
     mutationFn: ({ id, ...body }: Partial<CreateArticlePayload> & { id: string }) =>
       api.patch<Article>(`/articles/${id}`, body),
+    onSuccess: () => qc.invalidateQueries({ queryKey: KEYS.all() }),
+  })
+}
+
+export function useSetArticleActif() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, actif }: { id: string; actif: boolean }) =>
+      api.patch<Article>(`/articles/${id}`, { actif }),
     onSuccess: () => qc.invalidateQueries({ queryKey: KEYS.all() }),
   })
 }
