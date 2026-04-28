@@ -3,7 +3,8 @@ import { z } from 'zod'
 import { LocalizedStringSchema, CreateThesaurusSchema, CreateThesaurusEntrySchema } from '@megesti/shared'
 
 export const thesaurusRoutes: FastifyPluginAsync = async (app) => {
-  const auth = { preHandler: app.authenticate }
+  const auth      = { preHandler: app.authenticate }
+  const authAdmin = { preHandler: [app.authenticate, app.requireRole('ADMIN')] }
 
   // Liste tous les thésaurus du tenant
   app.get('/', auth, async (request) => {
@@ -16,7 +17,7 @@ export const thesaurusRoutes: FastifyPluginAsync = async (app) => {
   })
 
   // Crée un thésaurus
-  app.post('/', auth, async (request, reply) => {
+  app.post('/', authAdmin, async (request, reply) => {
     const { tenantId } = request.tenant
     const body = CreateThesaurusSchema.parse(request.body)
 
@@ -34,7 +35,7 @@ export const thesaurusRoutes: FastifyPluginAsync = async (app) => {
   })
 
   // Ajoute une entrée
-  app.post('/:thesaurusId/entries', auth, async (request, reply) => {
+  app.post('/:thesaurusId/entries', authAdmin, async (request, reply) => {
     const { tenantId } = request.tenant
     const { thesaurusId } = request.params as { thesaurusId: string }
 
@@ -56,7 +57,7 @@ export const thesaurusRoutes: FastifyPluginAsync = async (app) => {
   })
 
   // Supprime un thésaurus
-  app.delete('/:id', auth, async (request, reply) => {
+  app.delete('/:id', authAdmin, async (request, reply) => {
     const { tenantId } = request.tenant
     const { id } = request.params as { id: string }
     await app.db.thesaurus.deleteMany({ where: { id, tenantId } })

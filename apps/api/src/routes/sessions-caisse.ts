@@ -14,7 +14,8 @@ const CloseSchema = z.object({
 })
 
 export const sessionCaisseRoutes: FastifyPluginAsync = async (app) => {
-  const auth = { preHandler: app.authenticate }
+  const auth       = { preHandler: app.authenticate }
+  const authEditor = { preHandler: [app.authenticate, app.requireRole('ADMIN', 'EDITOR')] }
 
   app.get('/', auth, async (request) => {
     const { tenantId } = request.tenant
@@ -50,7 +51,7 @@ export const sessionCaisseRoutes: FastifyPluginAsync = async (app) => {
     return rec
   })
 
-  app.post('/', auth, async (request, reply) => {
+  app.post('/', authEditor, async (request, reply) => {
     const { tenantId } = request.tenant
     const body = OpenSchema.parse(request.body)
     const pdv = await app.db.pointDeVente.findFirst({ where: { id: body.pointDeVenteId, tenantId } })
@@ -63,7 +64,7 @@ export const sessionCaisseRoutes: FastifyPluginAsync = async (app) => {
     )
   })
 
-  app.patch('/:id/fermer', auth, async (request, reply) => {
+  app.patch('/:id/fermer', authEditor, async (request, reply) => {
     const { tenantId } = request.tenant
     const { id } = request.params as { id: string }
     const body = CloseSchema.parse(request.body)

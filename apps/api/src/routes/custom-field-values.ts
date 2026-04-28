@@ -10,7 +10,8 @@ const SaveSchema = z.object({
 })
 
 export const customFieldValueRoutes: FastifyPluginAsync = async (app) => {
-  const auth = { preHandler: app.authenticate }
+  const auth       = { preHandler: app.authenticate }
+  const authEditor = { preHandler: [app.authenticate, app.requireRole('ADMIN', 'EDITOR')] }
 
   // GET /custom-field-values?entityId=xxx
   app.get('/', auth, async (request) => {
@@ -30,7 +31,7 @@ export const customFieldValueRoutes: FastifyPluginAsync = async (app) => {
   })
 
   // PUT /custom-field-values — upsert batch pour une entité
-  app.put('/', auth, async (request, reply) => {
+  app.put('/', authEditor, async (request, reply) => {
     const { tenantId } = request.tenant
     const { entityId, values } = SaveSchema.parse(request.body)
 

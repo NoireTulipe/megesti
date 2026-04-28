@@ -8,7 +8,8 @@ const CreateSchema = z.object({
 })
 
 export const categoriePointDeVenteRoutes: FastifyPluginAsync = async (app) => {
-  const auth = { preHandler: app.authenticate }
+  const auth      = { preHandler: app.authenticate }
+  const authAdmin = { preHandler: [app.authenticate, app.requireRole('ADMIN')] }
 
   app.get('/', auth, async (request) => {
     const { tenantId } = request.tenant
@@ -18,7 +19,7 @@ export const categoriePointDeVenteRoutes: FastifyPluginAsync = async (app) => {
     })
   })
 
-  app.post('/', auth, async (request, reply) => {
+  app.post('/', authAdmin, async (request, reply) => {
     const { tenantId } = request.tenant
     const body = CreateSchema.parse(request.body)
     return reply.status(201).send(
@@ -26,7 +27,7 @@ export const categoriePointDeVenteRoutes: FastifyPluginAsync = async (app) => {
     )
   })
 
-  app.patch('/:id', auth, async (request, reply) => {
+  app.patch('/:id', authAdmin, async (request, reply) => {
     const { tenantId } = request.tenant
     const { id } = request.params as { id: string }
     const body = CreateSchema.omit({ id: true }).partial().parse(request.body)
@@ -35,7 +36,7 @@ export const categoriePointDeVenteRoutes: FastifyPluginAsync = async (app) => {
     return app.db.categoriePointDeVente.update({ where: { id }, data: body })
   })
 
-  app.delete('/:id', auth, async (request, reply) => {
+  app.delete('/:id', authAdmin, async (request, reply) => {
     const { tenantId } = request.tenant
     const { id } = request.params as { id: string }
     const existing = await app.db.categoriePointDeVente.findFirst({ where: { id, tenantId } })

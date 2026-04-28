@@ -1,4 +1,5 @@
 import type { FastifyPluginAsync } from 'fastify'
+import { Prisma } from '@prisma/client'
 import { z } from 'zod'
 import { CreateCustomFieldDefinitionSchema, ENTITY_TYPES } from '@megesti/shared'
 
@@ -22,7 +23,8 @@ const UpdateSchema = z.object({
 })
 
 export const customFieldRoutes: FastifyPluginAsync = async (app) => {
-  const auth = { preHandler: app.authenticate }
+  const auth      = { preHandler: app.authenticate }
+  const authAdmin = { preHandler: [app.authenticate, app.requireRole('ADMIN')] }
 
   app.get('/', auth, async (request, reply) => {
     const { tenantId } = request.tenant
@@ -34,7 +36,7 @@ export const customFieldRoutes: FastifyPluginAsync = async (app) => {
     })
   })
 
-  app.post('/', auth, async (request, reply) => {
+  app.post('/', authAdmin, async (request, reply) => {
     const { tenantId } = request.tenant
     const body = CreateCustomFieldDefinitionSchema.parse(request.body)
     const definition = await app.db.customFieldDefinition.create({
@@ -49,26 +51,31 @@ export const customFieldRoutes: FastifyPluginAsync = async (app) => {
         position:    body.position,
         required:    body.required,
         thesaurusId: body.fieldType === 'thesaurus' ? body.thesaurusId : null,
-        options:     body.fieldType === 'select'    ? body.options      : null,
+        options:     body.fieldType === 'select'    ? body.options      : Prisma.DbNull,
         category:    body.category   ?? null,
         halfWidth:   body.halfWidth  ?? false,
         placeholder: body.placeholder ?? null,
-        validation:  body.validation  ?? null,
+        validation:  body.validation  ?? Prisma.DbNull,
       },
     })
     return reply.status(201).send(definition)
   })
 
-  app.patch('/:id', auth, async (request, reply) => {
+  app.patch('/:id', authAdmin, async (request, reply) => {
     const { tenantId } = request.tenant
     const { id } = request.params as { id: string }
     const body = UpdateSchema.parse(request.body)
     const existing = await app.db.customFieldDefinition.findFirst({ where: { id, tenantId } })
     if (!existing) return reply.notFound()
-    return app.db.customFieldDefinition.update({ where: { id }, data: body })
+    const { validation, ...rest } = body
+    const data = {
+      ...rest,
+      ...(validation !== undefined ? { validation: validation ?? Prisma.DbNull } : {}),
+    }
+    return app.db.customFieldDefinition.update({ where: { id }, data })
   })
 
-  app.delete('/:id', auth, async (request, reply) => {
+  app.delete('/:id', authAdmin, async (request, reply) => {
     const { tenantId } = request.tenant
     const { id } = request.params as { id: string }
     const existing = await app.db.customFieldDefinition.findFirst({ where: { id, tenantId } })

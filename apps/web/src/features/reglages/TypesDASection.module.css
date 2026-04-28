@@ -1,0 +1,219 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 780px;
+}
+
+/* ── Liste des barèmes ───────────────────────────────────────── */
+.list { display: flex; flex-direction: column; gap: 8px; }
+
+.empty {
+  padding: 32px;
+  text-align: center;
+  color: var(--text-soft);
+  font-size: 0.875rem;
+  border: 2px dashed var(--cream-dark);
+  border-radius: 12px;
+}
+
+.card {
+  background: #fff;
+  border: 1.5px solid var(--cream-dark);
+  border-radius: 12px;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: box-shadow 0.15s;
+}
+.card:hover { box-shadow: 0 2px 12px rgba(28, 58, 94, 0.07); }
+
+.cardInfo { flex: 1; min-width: 0; }
+.cardNom  { font-size: 0.9rem; font-weight: 700; color: var(--ink); }
+.cardMeta { font-size: 0.75rem; color: var(--text-soft); margin-top: 2px; }
+
+.cardActions { display: flex; gap: 6px; flex-shrink: 0; }
+
+.btnEdit {
+  height: 30px; padding: 0 12px;
+  border: 1.5px solid var(--cream-dark);
+  border-radius: 7px; background: #fff;
+  font-size: 0.78rem; font-weight: 600; color: var(--ink);
+  cursor: pointer; transition: border-color 0.15s, background 0.15s;
+}
+.btnEdit:hover { border-color: var(--ink-light); background: var(--ink-faint); }
+
+.btnDelete {
+  width: 30px; height: 30px;
+  border: 1.5px solid var(--cream-dark);
+  border-radius: 7px; background: #fff;
+  font-size: 0.82rem; color: var(--text-soft);
+  cursor: pointer; transition: background 0.12s, color 0.12s, border-color 0.12s;
+  display: flex; align-items: center; justify-content: center;
+}
+.btnDelete:hover { background: #FEE2E2; color: #DC2626; border-color: #FECACA; }
+
+.btnAdd {
+  align-self: flex-start;
+  height: 36px; padding: 0 18px;
+  background: transparent; color: var(--ink);
+  border: 1.5px dashed var(--cream-dark);
+  border-radius: 8px;
+  font-size: 0.82rem; font-weight: 600; cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.btnAdd:hover { border-color: var(--terra); color: var(--terra); background: rgba(217, 95, 59, 0.04); }
+
+/* ── Éditeur ─────────────────────────────────────────────────── */
+.editor {
+  background: #fff;
+  border: 1.5px solid var(--ink-light);
+  border-radius: 14px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: fadeIn 0.18s ease both;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.editorTitle {
+  font-size: 0.75rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.1em;
+  color: var(--text-soft);
+}
+
+.nomInput {
+  width: 100%; padding: 9px 13px;
+  border: 1.5px solid var(--cream-dark);
+  border-radius: 8px; font-size: 0.88rem;
+  color: var(--ink); font-family: inherit;
+  outline: none; transition: border-color 0.15s;
+  box-sizing: border-box;
+}
+.nomInput:focus { border-color: var(--ink-light); }
+
+/* ── Table de règles ─────────────────────────────────────────── */
+.tableWrap { overflow-x: auto; }
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.table th {
+  text-align: left;
+  padding: 6px 8px;
+  font-size: 0.7rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--text-soft);
+  border-bottom: 1.5px solid var(--cream-dark);
+  white-space: nowrap;
+}
+
+.table td { padding: 5px 6px; vertical-align: middle; }
+
+.table tr:not(:last-child) td { border-bottom: 1px solid var(--cream-dark); }
+
+.table tr.fallbackRow td { background: rgba(201, 147, 58, 0.05); }
+
+.condSelect, .baseSelect {
+  padding: 5px 8px;
+  border: 1.5px solid var(--cream-dark);
+  border-radius: 6px; font-size: 0.8rem;
+  color: var(--ink); background: #fff;
+  font-family: inherit; cursor: pointer;
+  outline: none; transition: border-color 0.15s;
+  width: 100%;
+}
+.condSelect:focus, .baseSelect:focus { border-color: var(--ink-light); }
+.condSelect.any { color: var(--text-soft); }
+
+.tauxInput {
+  width: 64px; padding: 5px 8px;
+  border: 1.5px solid var(--cream-dark);
+  border-radius: 6px; font-size: 0.82rem;
+  color: var(--ink); font-family: inherit;
+  outline: none; text-align: right;
+  transition: border-color 0.15s;
+}
+.tauxInput:focus { border-color: var(--ink-light); }
+
+.orderBtns { display: flex; flex-direction: column; gap: 2px; }
+
+.btnOrder {
+  width: 20px; height: 16px;
+  border: 1px solid var(--cream-dark);
+  border-radius: 3px; background: #fff;
+  font-size: 0.6rem; cursor: pointer; color: var(--text-soft);
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.1s, color 0.1s;
+  padding: 0;
+}
+.btnOrder:hover:not(:disabled) { background: var(--ink-faint); color: var(--ink); }
+.btnOrder:disabled { opacity: 0.3; cursor: not-allowed; }
+
+.btnRemoveRow {
+  width: 22px; height: 22px;
+  border: 1.5px solid transparent;
+  border-radius: 5px; background: transparent;
+  font-size: 0.8rem; color: #ccc;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+  padding: 0;
+}
+.btnRemoveRow:hover { background: #FEE2E2; color: #DC2626; border-color: #FECACA; }
+
+.fallbackBadge {
+  font-size: 0.68rem; color: var(--gold);
+  font-weight: 700; white-space: nowrap;
+}
+
+.btnAddRule {
+  align-self: flex-start;
+  height: 30px; padding: 0 12px;
+  background: transparent; color: var(--text-soft);
+  border: 1.5px dashed var(--cream-dark);
+  border-radius: 7px; font-size: 0.78rem;
+  font-weight: 600; cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+.btnAddRule:hover { border-color: var(--ink-light); color: var(--ink); }
+
+.editorFooter {
+  display: flex; gap: 8px; justify-content: flex-end;
+  border-top: 1px solid var(--cream-dark);
+  padding-top: 14px;
+}
+
+.btnCancel {
+  height: 34px; padding: 0 16px;
+  background: transparent; color: var(--text-soft);
+  border: 1.5px solid var(--cream-dark);
+  border-radius: 8px; font-size: 0.82rem;
+  font-weight: 600; cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+.btnCancel:hover { border-color: var(--ink-light); color: var(--ink); }
+
+.btnSave {
+  height: 34px; padding: 0 18px;
+  background: var(--ink); color: #fff;
+  border: none; border-radius: 8px;
+  font-size: 0.82rem; font-weight: 600;
+  cursor: pointer; transition: background 0.15s;
+}
+.btnSave:hover:not(:disabled) { background: var(--terra); }
+.btnSave:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.hint {
+  font-size: 0.72rem; color: var(--text-soft);
+  background: var(--ink-faint);
+  border-radius: 7px; padding: 8px 12px;
+}

@@ -32,7 +32,9 @@ const ListQuerySchema = z.object({
 })
 
 export const articleRoutes: FastifyPluginAsync = async (app) => {
-  const auth = { preHandler: app.authenticate }
+  const auth       = { preHandler: app.authenticate }
+  const authEditor = { preHandler: [app.authenticate, app.requireRole('ADMIN', 'EDITOR')] }
+  const authAdmin  = { preHandler: [app.authenticate, app.requireRole('ADMIN')] }
 
   app.get('/', auth, async (request) => {
     const { tenantId } = request.tenant
@@ -72,7 +74,7 @@ export const articleRoutes: FastifyPluginAsync = async (app) => {
     return article
   })
 
-  app.post('/', auth, async (request, reply) => {
+  app.post('/', authEditor, async (request, reply) => {
     const { tenantId } = request.tenant
     const { auteurIds, ...rest } = CreateArticleSchema.parse(request.body)
     const article = await app.db.article.create({
@@ -89,7 +91,7 @@ export const articleRoutes: FastifyPluginAsync = async (app) => {
     return reply.status(201).send(article)
   })
 
-  app.patch('/:id', auth, async (request, reply) => {
+  app.patch('/:id', authEditor, async (request, reply) => {
     const { tenantId } = request.tenant
     const { id } = request.params as { id: string }
     const { auteurIds, ...rest } = PatchArticleSchema.parse(request.body)
@@ -116,7 +118,7 @@ export const articleRoutes: FastifyPluginAsync = async (app) => {
     })
   })
 
-  app.delete('/:id', auth, async (request, reply) => {
+  app.delete('/:id', authAdmin, async (request, reply) => {
     const { tenantId } = request.tenant
     const { id } = request.params as { id: string }
     const existing = await app.db.article.findFirst({ where: { id, tenantId } })

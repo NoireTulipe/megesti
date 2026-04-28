@@ -1,10 +1,10 @@
-.page { display: flex; flex-direction: column; height: 100%; }
+.page { display: flex; flex-direction: column; height: 100%; overflow: hidden; }
 
-/* ── Header ─────────────────────────────────────────────────────────────────── */
+/* ── Header (écran sélection) ──────────────────────────────────────────────── */
 .header {
   display: flex;
   align-items: center;
-  gap: 12px;
+  justify-content: space-between;
   padding: 16px 24px;
   border-bottom: 1px solid var(--cream-dark);
   background: #fff;
@@ -16,48 +16,255 @@
   font-size: 1.3rem;
   color: var(--ink);
   margin: 0;
-  flex: 1;
 }
 
-.sessionBadge {
+.btnOuvrirHeader {
+  height: 40px;
+  padding: 0 20px;
+  background: var(--terra);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btnOuvrirHeader:hover { background: var(--ink); }
+
+/* ── Écran sélection session ───────────────────────────────────────────────── */
+.sessionSelectPage {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 48px 24px;
+}
+
+.sessionEmptyIllust {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.sessionEmoji { font-size: 3rem; opacity: 0.4; }
+
+.sessionEmptyTitle {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.5rem;
+  color: var(--ink);
+  opacity: 0.5;
+  margin: 0;
+}
+
+.sessionEmptyText { font-size: 0.9rem; color: var(--text-soft); margin: 0; }
+
+.sessionSelectLabel {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--terra);
+  margin: 0;
+}
+
+.sessionCards {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  max-width: 500px;
+}
+
+.sessionCard {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 14px;
-  border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: 600;
+  gap: 14px;
+  padding: 16px 20px;
+  background: #fff;
+  border: 2px solid var(--cream-dark);
+  border-radius: 14px;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
-.sessionOpen   { background: #DCFCE7; color: #166534; }
-.sessionClosed { background: var(--cream); color: var(--text-soft); border: 1px solid var(--cream-dark); }
+.sessionCard:hover {
+  border-color: var(--terra);
+  box-shadow: 0 2px 16px rgba(217,95,59,0.12);
+}
 
-.dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+.sessionCardDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #22C55E;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 3px rgba(34,197,94,0.2);
+}
 
-/* ── Layout ─────────────────────────────────────────────────────────────────── */
-.body {
+.sessionCardBody {
+  flex: 1;
   display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sessionCardPDV   { font-size: 1rem; font-weight: 700; color: var(--ink); }
+.sessionCardNom   { font-size: 0.82rem; color: var(--terra); }
+.sessionCardMeta  { font-size: 0.78rem; color: var(--text-soft); }
+.sessionCardArrow { font-size: 1.1rem; color: var(--text-soft); flex-shrink: 0; }
+
+.sessionSelectOr {
+  font-size: 0.8rem;
+  color: var(--text-soft);
+  margin: 0;
+}
+
+.btnOuvrirBig {
+  height: 52px;
+  padding: 0 40px;
+  background: var(--terra);
+  color: #fff;
+  border: none;
+  border-radius: 14px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+  box-shadow: 0 4px 20px rgba(217,95,59,0.30);
+}
+.btnOuvrirBig:hover  { background: var(--ink); }
+.btnOuvrirBig:active { transform: scale(0.98); }
+
+/* ── Barre session active ──────────────────────────────────────────────────── */
+.sessionBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 20px;
+  background: #F0FDF4;
+  border-bottom: 1px solid #BBF7D0;
+  flex-shrink: 0;
+  gap: 16px;
+}
+
+.sessionBarLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   flex: 1;
   overflow: hidden;
 }
 
-/* ── Panel gauche : sélection articles ─────────────────────────────────────── */
+.sessionBarDot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #22C55E;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 3px rgba(34,197,94,0.25);
+}
+
+.sessionBarPDV  { font-size: 0.9rem; font-weight: 700; color: #166534; }
+.sessionBarNom  { font-size: 0.85rem; color: #15803D; }
+.sessionBarTime { font-size: 0.78rem; color: #4ADE80; }
+
+.sessionBarRight { display: flex; gap: 10px; flex-shrink: 0; }
+
+.btnChanger {
+  height: 34px;
+  padding: 0 14px;
+  background: transparent;
+  border: 1.5px solid #BBF7D0;
+  color: #166534;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.btnChanger:hover { background: #DCFCE7; }
+
+.btnFermer {
+  height: 34px;
+  padding: 0 14px;
+  background: #FEF2F2;
+  border: 1.5px solid #FECACA;
+  color: #B91C1C;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.btnFermer:hover { background: #FEE2E2; }
+
+/* ── Layout POS ────────────────────────────────────────────────────────────── */
+.body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* ── Panel gauche ──────────────────────────────────────────────────────────── */
 .leftPanel {
-  width: 55%;
+  width: 58%;
   display: flex;
   flex-direction: column;
   border-right: 1px solid var(--cream-dark);
   overflow: hidden;
 }
 
+/* ── Tabs rayons ───────────────────────────────────────────────────────────── */
+.rayonTabs {
+  display: flex;
+  gap: 4px;
+  padding: 10px 14px 0;
+  border-bottom: 1px solid var(--cream-dark);
+  overflow-x: auto;
+  flex-shrink: 0;
+  scrollbar-width: none;
+}
+.rayonTabs::-webkit-scrollbar { display: none; }
+
+.rayonTab {
+  padding: 7px 14px;
+  border-radius: 8px 8px 0 0;
+  border: 1.5px solid transparent;
+  border-bottom: none;
+  background: transparent;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--text-soft);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.12s, color 0.12s;
+  position: relative;
+  bottom: -1px;
+}
+.rayonTab:hover { background: var(--cream); color: var(--ink); }
+.rayonTabActive {
+  background: #fff;
+  color: var(--terra);
+  font-weight: 700;
+  border-color: var(--cream-dark);
+  border-bottom-color: #fff;
+}
+
+/* ── Recherche ─────────────────────────────────────────────────────────────── */
 .searchBar {
-  padding: 12px 16px;
+  padding: 10px 14px;
   border-bottom: 1px solid var(--cream-dark);
   flex-shrink: 0;
 }
 
 .searchInput {
   width: 100%;
-  padding: 10px 14px;
+  padding: 9px 14px;
   border: 1.5px solid var(--cream-dark);
   border-radius: 10px;
   font-size: 0.9rem;
@@ -70,12 +277,13 @@
 }
 .searchInput:focus { border-color: var(--ink-light); background: #fff; }
 
+/* ── Grille articles ───────────────────────────────────────────────────────── */
 .articleGrid {
   flex: 1;
   overflow-y: auto;
-  padding: 12px 16px;
+  padding: 12px 14px;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   gap: 10px;
   align-content: start;
 }
@@ -92,42 +300,47 @@
   gap: 4px;
   text-align: left;
 }
-.articleTile:hover { border-color: var(--terra); box-shadow: 0 2px 10px rgba(217,95,59,0.15); }
+.articleTile:hover  { border-color: var(--terra); box-shadow: 0 2px 10px rgba(217,95,59,0.15); }
 .articleTile:active { transform: scale(0.97); }
 
 .tileNom {
-  font-size: 0.85rem;
+  font-size: 0.83rem;
   font-weight: 600;
   color: var(--ink);
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  line-height: 1.3;
 }
 
-.tilePrix {
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: var(--terra);
-}
+.tilePrix { font-size: 0.95rem; font-weight: 700; color: var(--terra); }
 
-.tileStock {
-  font-size: 0.72rem;
+.tileStock      { font-size: 0.72rem; color: var(--text-soft); }
+.tileStockWarn  { font-size: 0.72rem; color: #D97706; font-weight: 600; }
+.tileStockAlert { font-size: 0.72rem; color: #DC2626; font-weight: 600; }
+
+.noArticles {
+  grid-column: 1 / -1;
+  font-size: 0.85rem;
   color: var(--text-soft);
+  padding: 8px;
 }
-.tileStockWarn  { color: #D97706; }
-.tileStockAlert { color: #DC2626; }
 
-/* ── Panel droit : panier + paiement ───────────────────────────────────────── */
+/* ── Panel droit : panier ──────────────────────────────────────────────────── */
 .rightPanel {
-  width: 45%;
+  width: 42%;
   display: flex;
   flex-direction: column;
   background: var(--cream);
+  overflow: hidden;
 }
 
 .cartHeader {
-  padding: 14px 16px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px 10px;
   border-bottom: 1px solid var(--cream-dark);
   flex-shrink: 0;
 }
@@ -141,10 +354,21 @@
   margin: 0;
 }
 
+.btnViderCart {
+  font-size: 0.72rem;
+  color: var(--text-soft);
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 2px 6px;
+}
+.btnViderCart:hover { color: #DC2626; }
+
 .cartLines {
   flex: 1;
   overflow-y: auto;
-  padding: 8px 16px;
+  padding: 6px 14px;
+  min-height: 0;
 }
 
 .emptyCart {
@@ -154,19 +378,27 @@
   height: 100%;
   color: var(--text-soft);
   font-size: 0.85rem;
+  text-align: center;
 }
 
+/* ── Ligne panier ─────────────────────────────────────────────────────────── */
 .cartLine {
-  display: grid;
-  grid-template-columns: 1fr auto auto;
-  align-items: center;
-  gap: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
   padding: 8px 0;
   border-bottom: 1px solid var(--cream-dark);
 }
 .cartLine:last-child { border-bottom: none; }
 
+.cartLineTop {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .cartLineNom {
+  flex: 1;
   font-size: 0.85rem;
   font-weight: 500;
   color: var(--ink);
@@ -175,18 +407,15 @@
   text-overflow: ellipsis;
 }
 
-.cartLineSubtotal {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--ink);
-  white-space: nowrap;
-}
-
-.qtyControl {
+.cartLineMeta {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 8px;
+  padding-left: 0;
 }
+
+/* ── Contrôle quantité ─────────────────────────────────────────────────────── */
+.qtyControl { display: flex; align-items: center; gap: 4px; }
 
 .qtyBtn {
   width: 24px;
@@ -204,7 +433,7 @@
   line-height: 1;
   padding: 0;
 }
-.qtyBtn:hover { background: var(--ink); color: #fff; border-color: var(--ink); }
+.qtyBtn:hover      { background: var(--ink); color: #fff; border-color: var(--ink); }
 .qtyBtnDanger:hover { background: #DC2626; color: #fff; border-color: #DC2626; }
 
 .qtyValue {
@@ -214,6 +443,63 @@
   text-align: center;
   color: var(--ink);
 }
+
+/* ── Edit prix ─────────────────────────────────────────────────────────────── */
+.btnEditPrix {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: none;
+  border: 1.5px dashed transparent;
+  border-radius: 6px;
+  padding: 2px 6px;
+  cursor: pointer;
+  transition: border-color 0.12s;
+}
+.btnEditPrix:hover { border-color: var(--cream-dark); }
+
+.prixOriginal { font-size: 0.75rem; color: var(--text-soft); text-decoration: line-through; }
+.prixNormal   { font-size: 0.85rem; font-weight: 600; color: var(--ink); }
+.prixRemise   { font-size: 0.85rem; font-weight: 600; color: #DC2626; }
+.editPrixIcon { font-size: 0.7rem; color: var(--text-soft); }
+
+.cartLineSubtotal {
+  margin-left: auto;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+.prixEditRow {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.prixEditInput {
+  width: 80px;
+  padding: 4px 8px;
+  border: 1.5px solid var(--ink-light);
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-family: inherit;
+  outline: none;
+}
+
+.prixEditSave, .prixEditCancel {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.prixEditSave   { background: #DCFCE7; color: #166534; }
+.prixEditCancel { background: #FEF2F2; color: #B91C1C; }
 
 /* ── Totaux ─────────────────────────────────────────────────────────────────── */
 .totals {
@@ -234,7 +520,7 @@
 .totalRowBig {
   display: flex;
   justify-content: space-between;
-  font-size: 1.1rem;
+  font-size: 1.15rem;
   font-weight: 700;
   color: var(--ink);
   margin-top: 6px;
@@ -278,8 +564,8 @@
   transition: all 0.15s;
   text-align: center;
 }
-.modeBtn:hover   { border-color: var(--ink-light); color: var(--ink); }
-.modeBtnActive   { border-color: var(--terra); background: var(--terra); color: #fff; }
+.modeBtn:hover  { border-color: var(--ink-light); color: var(--ink); }
+.modeBtnActive  { border-color: var(--terra); background: var(--terra); color: #fff; }
 
 .btnValider {
   width: 100%;
@@ -294,74 +580,204 @@
   transition: background 0.15s, transform 0.1s;
   box-shadow: 0 4px 16px rgba(217,95,59,0.35);
 }
-.btnValider:hover:not(:disabled) { background: var(--ink); box-shadow: 0 4px 16px rgba(28,58,94,0.30); }
+.btnValider:hover:not(:disabled)  { background: var(--ink); box-shadow: 0 4px 16px rgba(28,58,94,0.30); }
 .btnValider:active:not(:disabled) { transform: scale(0.98); }
 .btnValider:disabled { opacity: 0.45; cursor: not-allowed; box-shadow: none; }
 
-/* ── Session vide ───────────────────────────────────────────────────────────── */
-.noSession {
-  flex: 1;
+/* ── Ventes récentes ────────────────────────────────────────────────────────── */
+.ventesRecentes {
+  flex-shrink: 0;
+  border-top: 1px solid var(--cream-dark);
+  background: #fff;
+  padding: 10px 16px 0;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-  padding: 40px;
-  text-align: center;
-}
-
-.noSessionTitle {
-  font-family: 'DM Serif Display', serif;
-  font-size: 1.4rem;
-  color: var(--ink);
-  opacity: 0.5;
-}
-
-.btnOuvrir {
-  height: 48px;
-  padding: 0 32px;
-  background: var(--terra);
-  color: #fff;
-  border: none;
-  border-radius: 12px;
-  font-size: 0.95rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.15s;
-}
-.btnOuvrir:hover { background: var(--ink); }
-
-/* ── Ventes récentes ─────────────────────────────────────────────────────────── */
-.ventesRecentes {
-  padding: 0 24px 24px;
-  flex-shrink: 0;
+  max-height: 230px;
 }
 
 .ventesTitle {
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.1em;
   color: var(--terra);
-  margin: 16px 0 8px;
+  margin: 0 0 8px;
+  flex-shrink: 0;
+}
+
+.ventesScroll {
+  overflow-y: auto;
+  flex: 1;
+  padding-bottom: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .venteRow {
+  border: 1px solid var(--cream-dark);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.venteAnnulee { opacity: 0.55; }
+
+.venteRowHeader {
+  width: 100%;
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 8px 12px;
-  background: #fff;
-  border: 1px solid var(--cream-dark);
-  border-radius: 8px;
-  margin-bottom: 4px;
+  padding: 7px 12px;
+  background: var(--cream);
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  transition: background 0.12s;
 }
+.venteRowHeader:hover { background: #E9E4DD; }
 
-.venteNum   { font-size: 0.8rem; font-weight: 600; color: var(--ink); min-width: 40px; }
-.venteMontant { font-size: 0.85rem; font-weight: 700; color: var(--terra); }
-.venteMode  { font-size: 0.75rem; color: var(--text-soft); flex: 1; }
-.venteStatut { font-size: 0.72rem; padding: 2px 8px; border-radius: 20px; font-weight: 600; }
+.venteNum    { font-size: 0.78rem; font-weight: 700; color: var(--ink); min-width: 32px; }
+.venteTime   { font-size: 0.75rem; color: var(--text-soft); min-width: 38px; }
+.venteSummaryText {
+  flex: 1;
+  font-size: 0.75rem;
+  color: var(--text-soft);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: left;
+}
+.venteMontant { font-size: 0.82rem; font-weight: 700; color: var(--terra); white-space: nowrap; }
+.venteMode    { font-size: 0.72rem; color: var(--text-soft); min-width: 52px; text-align: right; }
+.venteStatut  { font-size: 0.68rem; padding: 2px 8px; border-radius: 20px; font-weight: 600; white-space: nowrap; }
 .statutValidee { background: #DCFCE7; color: #166534; }
 .statutAnnulee { background: #FEF2F2; color: #B91C1C; }
-.btnAnnuler { font-size: 0.72rem; color: #DC2626; border: none; background: none; cursor: pointer; padding: 2px 6px; }
-.btnAnnuler:hover { text-decoration: underline; }
+.venteChevron  { font-size: 0.65rem; color: var(--text-soft); margin-left: 4px; }
+
+.venteDetail {
+  padding: 10px 14px;
+  background: #fff;
+  border-top: 1px solid var(--cream-dark);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.venteDetailLigne {
+  display: flex;
+  gap: 12px;
+  font-size: 0.8rem;
+  color: var(--ink);
+}
+.venteDetailLigne span:first-child { flex: 1; }
+.venteDetailLigne span:nth-child(2) { color: var(--text-soft); }
+.venteDetailLigne span:last-child   { font-weight: 600; min-width: 80px; text-align: right; }
+
+.btnAnnulerVente {
+  align-self: flex-end;
+  font-size: 0.75rem;
+  color: #DC2626;
+  border: 1px solid #FECACA;
+  background: #FEF2F2;
+  padding: 4px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-top: 4px;
+  transition: background 0.12s;
+}
+.btnAnnulerVente:hover { background: #FEE2E2; }
+
+/* ── Formulaires modals ─────────────────────────────────────────────────────── */
+.modalForm {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.modalLabel {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+
+.modalInput, .modalSelect {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1.5px solid var(--cream-dark);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  background: #fff;
+  color: var(--ink);
+  box-sizing: border-box;
+  transition: border-color 0.15s;
+  outline: none;
+}
+.modalInput:focus, .modalSelect:focus { border-color: var(--ink-light); }
+
+.modalCheckLabel {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  color: var(--ink);
+}
+.modalCheckbox { width: 16px; height: 16px; margin-top: 2px; flex-shrink: 0; cursor: pointer; }
+.modalHint { display: block; font-size: 0.75rem; color: var(--text-soft); margin-top: 2px; }
+
+.modalText {
+  font-size: 0.875rem;
+  color: var(--text-soft);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 4px;
+}
+
+.btnModalCancel {
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: 1.5px solid var(--cream-dark);
+  background: transparent;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.btnModalCancel:hover { background: var(--cream); }
+
+.btnModalPrimary {
+  padding: 10px 24px;
+  border-radius: 8px;
+  background: var(--terra);
+  color: #fff;
+  border: none;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btnModalPrimary:hover:not(:disabled) { background: var(--ink); }
+.btnModalPrimary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btnModalDanger {
+  padding: 10px 24px;
+  border-radius: 8px;
+  background: #DC2626;
+  color: #fff;
+  border: none;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btnModalDanger:hover:not(:disabled) { background: #B91C1C; }
+.btnModalDanger:disabled { opacity: 0.5; cursor: not-allowed; }

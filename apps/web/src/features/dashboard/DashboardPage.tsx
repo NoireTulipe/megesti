@@ -6,10 +6,9 @@ import { MetricCard } from './MetricCard'
 import { AlertItem } from './AlertItem'
 import { ActivityItem } from './ActivityItem'
 import { QuickBtn } from './QuickBtn'
-import {
-  METRIC_CA, METRIC_COMMANDES, METRIC_DROITS,
-  ALERTS, ACTIVITY, QUICK_ACTIONS, IN_PREP,
-} from './data'
+import { useDashboardStats } from './hooks/useDashboardStats'
+import type { AlertData, ActivityData } from './data'
+import { METRIC_CA, METRIC_COMMANDES, METRIC_DROITS, QUICK_ACTIONS, IN_PREP } from './data'
 
 // ── Form styles partagés dans la page ──────────────────────
 const inputCss: React.CSSProperties = {
@@ -87,6 +86,28 @@ export function DashboardPage() {
   const [saleSubmitted, setSaleSubmitted] = useState(false)
   const [toasts, setToasts] = useState<Array<{ id: number; msg: string }>>([])
 
+  const { data: stats } = useDashboardStats()
+
+  const alertes: AlertData[] = stats?.alertesStock.length
+    ? stats.alertesStock.map((a) => ({
+        id: a.id,
+        iconName: 'book' as const,
+        text: `Stock faible : ${a.nom}`,
+        sub: `${a.stock} ex. restant${a.stock > 1 ? 's' : ''} (alerte à ${a.stockAlerte})`,
+      }))
+    : []
+
+  const activite: ActivityData[] = stats?.activiteRecente.length
+    ? stats.activiteRecente.map((v, i) => ({
+        id: v.id,
+        initials: `#${v.numero}`,
+        color: 'linear-gradient(135deg,#1C3A5E,#2A5F8A)',
+        text: `Vente · <strong>${v.modePaiement}</strong>${v.premierArticle ? ` — <em>${v.premierArticle}</em>` : ''} — ${Number(v.totalTTC).toFixed(2)} €`,
+        time: new Date(v.dateVente).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }),
+        isLast: i === stats.activiteRecente.length - 1,
+      }))
+    : []
+
   const addToast = (msg: string) => {
     const id = Date.now()
     setToasts(t => [...t, { id, msg }])
@@ -117,9 +138,9 @@ export function DashboardPage() {
 
       {/* ── Métriques ── */}
       <div className="zone-animate" style={{ display: 'flex', gap: 16, animationDelay: '80ms', alignItems: 'stretch' }}>
-        <MetricCard {...METRIC_CA} large delay={0} />
+        <MetricCard {...METRIC_CA} rawValue={stats?.caMois.totalTTC ?? METRIC_CA.rawValue} large delay={0} />
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <MetricCard {...METRIC_COMMANDES} delay={120} />
+          <MetricCard {...METRIC_COMMANDES} rawValue={stats?.caMois.nombreVentes ?? METRIC_COMMANDES.rawValue} delay={120} />
           <MetricCard {...METRIC_DROITS} delay={200} />
         </div>
         <InPrepCard />
@@ -146,10 +167,13 @@ export function DashboardPage() {
               Alertes &amp; rappels
             </span>
             <span style={{ marginLeft: 'auto', background: 'var(--terra)', color: 'white', fontSize: 10, fontWeight: 700, borderRadius: 100, padding: '2px 8px' }}>
-              {ALERTS.length}
+              {alertes.length}
             </span>
           </div>
-          {ALERTS.map((a, i) => <AlertItem key={a.id} {...a} index={i} />)}
+          {alertes.length > 0
+            ? alertes.map((a, i) => <AlertItem key={a.id} {...a} index={i} />)
+            : <p style={{ fontSize: 12, color: 'var(--text-soft)', textAlign: 'center', padding: '12px 0' }}>Aucune alerte</p>
+          }
         </div>
 
         {/* Actions rapides */}
@@ -178,7 +202,10 @@ export function DashboardPage() {
               Tout voir →
             </button>
           </div>
-          {ACTIVITY.map((item, i) => <ActivityItem key={item.id} {...item} index={i} />)}
+          {activite.length > 0
+            ? activite.map((item, i) => <ActivityItem key={item.id} {...item} index={i} />)
+            : <p style={{ fontSize: 12, color: 'var(--text-soft)', textAlign: 'center', padding: '12px 0' }}>Aucune vente ce mois-ci</p>
+          }
         </div>
       </div>
 
@@ -223,7 +250,7 @@ export function DashboardPage() {
           <form onSubmit={e => { e.preventDefault(); setModal(null); addToast('Titre ajouté au catalogue') }}>
             <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-soft)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Titre</label>
             <input placeholder="Titre du livre" style={{ ...inputCss, marginTop: 4 }} />
-            <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-soft)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Auteur·ice</label>
+            <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-soft)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Auteur</label>
             <input placeholder="Nom, prénom" style={{ ...inputCss, marginTop: 4 }} />
             <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-soft)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Date de parution prévue</label>
             <input type="date" style={{ ...inputCss, marginTop: 4 }} />

@@ -14,7 +14,8 @@ const PatchCategorieSchema = z.object({
 })
 
 export const categorieRoutes: FastifyPluginAsync = async (app) => {
-  const auth = { preHandler: app.authenticate }
+  const auth      = { preHandler: app.authenticate }
+  const authAdmin = { preHandler: [app.authenticate, app.requireRole('ADMIN')] }
 
   app.get('/', auth, async (request) => {
     const { tenantId } = request.tenant
@@ -25,7 +26,7 @@ export const categorieRoutes: FastifyPluginAsync = async (app) => {
     })
   })
 
-  app.post('/', auth, async (request, reply) => {
+  app.post('/', authAdmin, async (request, reply) => {
     const { tenantId } = request.tenant
     const body = CreateCategorieSchema.parse(request.body)
     const rayon = await app.db.rayon.findFirst({ where: { id: body.rayonId, tenantId } })
@@ -34,7 +35,7 @@ export const categorieRoutes: FastifyPluginAsync = async (app) => {
     return reply.status(201).send(categorie)
   })
 
-  app.patch('/:id', auth, async (request, reply) => {
+  app.patch('/:id', authAdmin, async (request, reply) => {
     const { tenantId } = request.tenant
     const { id } = request.params as { id: string }
     const body = PatchCategorieSchema.parse(request.body)
@@ -43,7 +44,7 @@ export const categorieRoutes: FastifyPluginAsync = async (app) => {
     return app.db.categorie.update({ where: { id }, data: body })
   })
 
-  app.delete('/:id', auth, async (request, reply) => {
+  app.delete('/:id', authAdmin, async (request, reply) => {
     const { tenantId } = request.tenant
     const { id } = request.params as { id: string }
     const existing = await app.db.categorie.findFirst({ where: { id, tenantId } })

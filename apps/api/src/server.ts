@@ -4,6 +4,8 @@ import jwt from '@fastify/jwt'
 import sensible from '@fastify/sensible'
 
 import { prismaPlugin } from './plugins/prisma.js'
+import { redisPlugin }  from './plugins/redis.js'
+import { queuePlugin }  from './plugins/queue.js'
 import { tenantPlugin } from './plugins/tenant.js'
 import { routes } from './routes/index.js'
 
@@ -25,6 +27,8 @@ export async function buildServer() {
 
   await app.register(sensible)
   await app.register(prismaPlugin)
+  await app.register(redisPlugin)
+  await app.register(queuePlugin)
   await app.register(tenantPlugin)
   await app.register(routes, { prefix: '/api' })
 

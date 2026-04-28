@@ -14,6 +14,9 @@ import { venteRoutes }                    from './ventes.js'
 import { rayonRoutes }     from './rayons.js'
 import { categorieRoutes } from './categories.js'
 import { articleRoutes }   from './articles.js'
+import { dashboardRoutes }     from './dashboard.js'
+import { typeDARoutes }         from './types-da.js'
+import { contratAuteurRoutes }  from './contrats-auteur.js'
 
 export const routes: FastifyPluginAsync = async (app) => {
   await app.register(authRoutes,        { prefix: '/auth' })
@@ -31,4 +34,7 @@ export const routes: FastifyPluginAsync = async (app) => {
   await app.register(rayonRoutes,       { prefix: '/rayons' })
   await app.register(categorieRoutes,   { prefix: '/categories' })
   await app.register(articleRoutes,     { prefix: '/articles' })
+  await app.register(dashboardRoutes,    { prefix: '/dashboard' })
+  await app.register(typeDARoutes,       { prefix: '/types-da' })
+  await app.register(contratAuteurRoutes, { prefix: '/contrats-auteur' })
 }

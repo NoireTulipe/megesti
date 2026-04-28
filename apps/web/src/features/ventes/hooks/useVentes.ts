@@ -31,7 +31,8 @@ export interface Vente {
 export interface CartLigne {
   articleId:      string
   nom:            string
-  prixUnitaireHT: number
+  prixUnitaireHT: number   // prix catalogue
+  prixEffectif?:  number   // prix après remise (undefined = prix catalogue)
   tauxTVA:        number
   quantite:       number
 }
@@ -52,7 +53,7 @@ export function useVentes(sessionId?: string) {
 export function useCreateVente() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (p: { id: string; sessionId: string; modePaiement: ModePaiement; lignes: { articleId: string; quantite: number }[] }) =>
+    mutationFn: (p: { id: string; sessionId: string; modePaiement: ModePaiement; lignes: { articleId: string; quantite: number; prixUnitaireHT?: number }[] }) =>
       api.post<Vente>('/ventes', p),
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: KEYS.session(vars.sessionId) })

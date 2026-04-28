@@ -13,7 +13,9 @@ const CreateAuteurSchema = z.object({
 const PatchAuteurSchema = CreateAuteurSchema.omit({ id: true }).partial()
 
 export const auteurRoutes: FastifyPluginAsync = async (app) => {
-  const auth = { preHandler: app.authenticate }
+  const auth       = { preHandler: app.authenticate }
+  const authEditor = { preHandler: [app.authenticate, app.requireRole('ADMIN', 'EDITOR')] }
+  const authAdmin  = { preHandler: [app.authenticate, app.requireRole('ADMIN')] }
 
   app.get('/', auth, async (request) => {
     const { tenantId } = request.tenant
@@ -45,7 +47,7 @@ export const auteurRoutes: FastifyPluginAsync = async (app) => {
     return auteur
   })
 
-  app.post('/', auth, async (request, reply) => {
+  app.post('/', authEditor, async (request, reply) => {
     const { tenantId } = request.tenant
     const body = CreateAuteurSchema.parse(request.body)
 
@@ -55,7 +57,7 @@ export const auteurRoutes: FastifyPluginAsync = async (app) => {
     return reply.status(201).send(auteur)
   })
 
-  app.patch('/:id', auth, async (request, reply) => {
+  app.patch('/:id', authEditor, async (request, reply) => {
     const { tenantId } = request.tenant
     const { id } = request.params as { id: string }
     const body = PatchAuteurSchema.parse(request.body)
@@ -66,7 +68,7 @@ export const auteurRoutes: FastifyPluginAsync = async (app) => {
     return app.db.auteur.update({ where: { id }, data: body })
   })
 
-  app.delete('/:id', auth, async (request, reply) => {
+  app.delete('/:id', authAdmin, async (request, reply) => {
     const { tenantId } = request.tenant
     const { id } = request.params as { id: string }
     await app.db.auteur.updateMany({ where: { id, tenantId }, data: { actif: false } })

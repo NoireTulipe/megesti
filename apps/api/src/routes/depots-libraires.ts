@@ -11,7 +11,9 @@ const CreateSchema = z.object({
 const PatchSchema = CreateSchema.omit({ id: true }).partial()
 
 export const depotLibraireRoutes: FastifyPluginAsync = async (app) => {
-  const auth = { preHandler: app.authenticate }
+  const auth       = { preHandler: app.authenticate }
+  const authEditor = { preHandler: [app.authenticate, app.requireRole('ADMIN', 'EDITOR')] }
+  const authAdmin  = { preHandler: [app.authenticate, app.requireRole('ADMIN')] }
 
   app.get('/', auth, async (request) => {
     const { tenantId } = request.tenant
@@ -34,14 +36,14 @@ export const depotLibraireRoutes: FastifyPluginAsync = async (app) => {
     return rec
   })
 
-  app.post('/', auth, async (request, reply) => {
+  app.post('/', authEditor, async (request, reply) => {
     const { tenantId } = request.tenant
     const body = CreateSchema.parse(request.body)
     const rec = await app.db.depotLibraire.create({ data: { ...body, tenantId } })
     return reply.status(201).send(rec)
   })
 
-  app.patch('/:id', auth, async (request, reply) => {
+  app.patch('/:id', authEditor, async (request, reply) => {
     const { tenantId } = request.tenant
     const { id } = request.params as { id: string }
     const body = PatchSchema.parse(request.body)
@@ -50,7 +52,7 @@ export const depotLibraireRoutes: FastifyPluginAsync = async (app) => {
     return app.db.depotLibraire.update({ where: { id }, data: body })
   })
 
-  app.delete('/:id', auth, async (request, reply) => {
+  app.delete('/:id', authAdmin, async (request, reply) => {
     const { tenantId } = request.tenant
     const { id } = request.params as { id: string }
     await app.db.depotLibraire.updateMany({ where: { id, tenantId }, data: { actif: false } })

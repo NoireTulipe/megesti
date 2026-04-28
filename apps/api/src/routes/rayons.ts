@@ -17,7 +17,8 @@ const PatchRayonSchema = z.object({
 })
 
 export const rayonRoutes: FastifyPluginAsync = async (app) => {
-  const auth = { preHandler: app.authenticate }
+  const auth      = { preHandler: app.authenticate }
+  const authAdmin = { preHandler: [app.authenticate, app.requireRole('ADMIN')] }
 
   app.get('/', auth, async (request) => {
     const { tenantId } = request.tenant
@@ -28,14 +29,14 @@ export const rayonRoutes: FastifyPluginAsync = async (app) => {
     })
   })
 
-  app.post('/', auth, async (request, reply) => {
+  app.post('/', authAdmin, async (request, reply) => {
     const { tenantId } = request.tenant
     const body = CreateRayonSchema.parse(request.body)
     const rayon = await app.db.rayon.create({ data: { ...body, tenantId } })
     return reply.status(201).send(rayon)
   })
 
-  app.patch('/:id', auth, async (request, reply) => {
+  app.patch('/:id', authAdmin, async (request, reply) => {
     const { tenantId } = request.tenant
     const { id } = request.params as { id: string }
     const body = PatchRayonSchema.parse(request.body)
@@ -44,7 +45,7 @@ export const rayonRoutes: FastifyPluginAsync = async (app) => {
     return app.db.rayon.update({ where: { id }, data: body })
   })
 
-  app.delete('/:id', auth, async (request, reply) => {
+  app.delete('/:id', authAdmin, async (request, reply) => {
     const { tenantId } = request.tenant
     const { id } = request.params as { id: string }
     const existing = await app.db.rayon.findFirst({ where: { id, tenantId } })

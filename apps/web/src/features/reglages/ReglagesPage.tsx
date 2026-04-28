@@ -2,16 +2,18 @@ import { useState } from 'react'
 import { FormBuilder }      from '@/components/FormBuilder'
 import { ThesaurusSection } from './ThesaurusSection'
 import { RayonsSection }    from './RayonsSection'
+import { TypesDASection }   from './TypesDASection'
 import { useRayons }        from '../catalogue/hooks/useRayons'
 import styles from './ReglagesPage.module.css'
 import type { EntityType } from '@megesti/shared'
 
-type Tab = 'champs' | 'rayons' | 'thesaurus'
+type Tab = 'champs' | 'rayons' | 'thesaurus' | 'droits'
 
 const TABS: { key: Tab; label: string }[] = [
   { key: 'champs',    label: 'Champs personnalisés' },
   { key: 'rayons',    label: 'Rayons & Catégories' },
   { key: 'thesaurus', label: 'Thésaurus' },
+  { key: 'droits',    label: 'Barèmes DA' },
 ]
 
 const ENTITY_TABS: { key: EntityType; label: string }[] = [
@@ -105,6 +107,9 @@ export function ReglagesPage() {
 
         {/* ── Thésaurus ────────────────────────────────────────── */}
         {tab === 'thesaurus' && <ThesaurusSection />}
+
+        {/* ── Barèmes DA ───────────────────────────────────────── */}
+        {tab === 'droits' && <TypesDASection />}
       </div>
     </div>
   )
