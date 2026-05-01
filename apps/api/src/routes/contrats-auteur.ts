@@ -104,9 +104,9 @@ export const contratAuteurRoutes: FastifyPluginAsync = async (app) => {
     const parsed = PatchSchema.parse(request.body)
     const { avance, dateSignature, datePriseEffet, periodicite, datesFixesJSON, prochainVersement, ...rest } = parsed
 
-    // Auto-calcul de prochainVersement quand la périodicité est définie mais la date non fournie
-    const periodeEffective  = periodicite ?? existing.periodicite
-    const datesEffectives   = datesFixesJSON ?? existing.datesFixesJSON
+    // ?? ne suffit pas : null doit écraser, undefined doit conserver
+    const periodeEffective = periodicite  !== undefined ? periodicite  : existing.periodicite
+    const datesEffectives  = datesFixesJSON !== undefined ? datesFixesJSON : existing.datesFixesJSON
     const pvManuel          = prochainVersement !== undefined ? prochainVersement : null
     const pvCalcule = (!pvManuel && periodeEffective)
       ? prochaineDateVersement(periodeEffective, datesEffectives)

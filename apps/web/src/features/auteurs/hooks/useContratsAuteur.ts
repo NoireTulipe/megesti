@@ -110,15 +110,9 @@ export function useUpdateContratAuteur() {
   return useMutation({
     mutationFn: ({ id, ...data }: UpdateContratPayload & { id: string }) =>
       api.patch<ContratAuteur>(`/contrats-auteur/${id}`, data),
-    onSuccess: (updated) => {
-      // Mise à jour immédiate de toutes les listes en cache
-      qc.setQueriesData<ContratAuteur[]>(
-        { queryKey: KEY, exact: false },
-        (old) => old?.map((c) => c.id === updated.id ? updated : c),
-      )
-      // Puis invalider pour forcer un refetch propre en arrière-plan
-      qc.invalidateQueries({ queryKey: KEY })
-      qc.invalidateQueries({ queryKey: DA_KEY })
+    onSuccess: async () => {
+      await qc.invalidateQueries({ queryKey: KEY })
+      await qc.invalidateQueries({ queryKey: DA_KEY })
     },
   })
 }

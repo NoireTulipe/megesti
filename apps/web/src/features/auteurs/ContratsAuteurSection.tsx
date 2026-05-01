@@ -183,7 +183,7 @@ function ContratCard({ c, typesDA, articles, onDelete, onUpdate, onAppliquer, up
         reconduiteTacite:  f.reconduiteTacite,
         periodicite:       (f.periodicite as PeriodiciteDA) || null,
         datesFixesJSON:    f.periodicite === 'DATES_FIXES' ? f.datesFixesJSON : null,
-        prochainVersement: f.prochainVersement ? `${f.prochainVersement}T00:00:00.000Z` : null,
+        prochainVersement: (f.periodicite !== 'DATES_FIXES' && f.prochainVersement) ? `${f.prochainVersement}T00:00:00.000Z` : null,
       })
       setEditing(false)
     } catch (err: unknown) {
@@ -416,7 +416,7 @@ function FormulaireContrat({ auteurId, articles, typesDA, onCreated, onCancel, i
       reconduiteTacite:  f.reconduiteTacite,
       periodicite:       (f.periodicite as PeriodiciteDA) || null,
       datesFixesJSON:    f.periodicite === 'DATES_FIXES' ? f.datesFixesJSON : null,
-      prochainVersement: f.prochainVersement ? `${f.prochainVersement}T00:00:00.000Z` : undefined,
+      prochainVersement: (f.periodicite !== 'DATES_FIXES' && f.prochainVersement) ? `${f.prochainVersement}T00:00:00.000Z` : undefined,
     })
   }
 
