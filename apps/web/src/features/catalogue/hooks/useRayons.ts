@@ -26,7 +26,7 @@ export function useCreateRayon() {
 export function useUpdateRayon() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, ...body }: { id: string; nom?: string; ordre?: number; isLibrairie?: boolean }) =>
+    mutationFn: ({ id, ...body }: { id: string; nom?: string; ordre?: number; isLibrairie?: boolean; tauxTVA?: number }) =>
       api.patch<Rayon>(`/rayons/${id}`, body),
     onSuccess: () => qc.invalidateQueries({ queryKey: KEYS.all() }),
   })

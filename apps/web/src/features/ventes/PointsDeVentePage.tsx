@@ -63,6 +63,7 @@ export function PointsDeVentePage() {
                 icon="🏪"
                 lines={commLines}
                 onEdit={() => setEditItem(item)}
+                centered
               />
             )
           })}

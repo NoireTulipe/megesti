@@ -80,9 +80,8 @@ export function SalonCard({ salon, active, onSelect, onEdit }: Props) {
         <button
           className={styles.editBtn}
           onClick={onEdit}
-          title="Modifier"
         >
-          ✎
+          ✎ Modifier
         </button>
       </div>
     </div>

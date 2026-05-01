@@ -1,0 +1,193 @@
+.card {
+  background: var(--white);
+  border: 1.5px solid var(--cream-dark);
+  border-radius: var(--radius-card);
+  padding: 28px 24px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-shadow: var(--shadow-card);
+  transition:
+    border-color var(--t-med) ease,
+    box-shadow   var(--t-med) var(--ease-out),
+    transform    var(--t-med) var(--ease-out);
+  overflow: hidden;
+  position: relative;
+}
+.card::after {
+  content: '';
+  position: absolute;
+  top: -30px;
+  right: -30px;
+  width: 100px;
+  height: 100px;
+  background: radial-gradient(circle, rgba(196,144,124,0.07) 0%, transparent 70%);
+  pointer-events: none;
+  transition: transform var(--t-slow) ease;
+}
+.card:hover {
+  border-color: rgba(196, 144, 124, 0.4);
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-4px);
+}
+.card:hover::after { transform: scale(2); }
+
+/* ── En-tête centré ── */
+.hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+}
+.iconWrap {
+  width: 52px;
+  height: 52px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, var(--cream-mid) 0%, var(--cream-dark) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1.5px solid rgba(196,144,124,0.15);
+  box-shadow: 0 4px 14px rgba(44,33,24,0.12);
+  transition: transform var(--t-med) var(--ease-spring);
+}
+.card:hover .iconWrap { transform: scale(1.08) rotate(-4deg); }
+
+.nom {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.25rem;
+  font-weight: 400;
+  color: var(--ink-deep);
+  margin: 0;
+  line-height: 1.3;
+  word-break: break-word;
+  hyphens: auto;
+}
+
+.lien {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  color: var(--rose-dark);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color var(--t-fast) ease;
+}
+.lien:hover { color: var(--rose); }
+
+/* ── Points forts / faibles côte à côte ── */
+.points {
+  display: flex;
+  gap: 12px;
+  border-top: 1px solid var(--cream-dark);
+  padding-top: 14px;
+}
+.pointCol {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.pointLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-soft);
+}
+.pointList  { display: flex; flex-wrap: wrap; gap: 5px; }
+.pointIconGreen { color: #22c55e; }
+.pointIconRed   { color: #ef4444; }
+.pointTagGreen {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: #166534;
+  background: #dcfce7;
+  border: 1px solid rgba(34,197,94,0.2);
+  border-radius: var(--radius-pill);
+  padding: 2px 9px;
+}
+.pointTagRed {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: #991b1b;
+  background: #fee2e2;
+  border: 1px solid rgba(239,68,68,0.2);
+  border-radius: var(--radius-pill);
+  padding: 2px 9px;
+}
+
+/* ── Note ── */
+.note {
+  font-size: 0.78rem;
+  color: var(--text-soft);
+  line-height: 1.55;
+  margin: 0;
+  padding: 8px 12px;
+  background: var(--cream);
+  border-radius: 10px;
+  border-left: 3px solid var(--cream-dark);
+  font-style: italic;
+}
+
+/* ── Contacts ── */
+.contacts {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-top: 1px solid var(--cream-dark);
+  padding-top: 12px;
+}
+.contact {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.contactName {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+.contactLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.72rem;
+  color: var(--text-soft);
+  text-decoration: none;
+  transition: color var(--t-fast) ease;
+}
+.contactLink:hover { color: var(--rose-dark); }
+
+/* ── Bouton modifier ── */
+.editBtn {
+  opacity: 0;
+  align-self: center;
+  height: 28px;
+  padding: 0 16px;
+  border-radius: var(--radius-pill);
+  border: 1.5px solid var(--rose-mid);
+  background: var(--rose-light);
+  color: var(--rose-dark);
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    opacity    var(--t-fast) ease,
+    background var(--t-fast) ease,
+    color      var(--t-fast) ease;
+}
+.card:hover .editBtn { opacity: 1; }
+.editBtn:hover {
+  background: var(--rose);
+  color: white;
+  border-color: var(--rose);
+}

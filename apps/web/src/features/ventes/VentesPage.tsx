@@ -3,10 +3,19 @@ import { usePointsDeVente } from './hooks/usePointsDeVente'
 import { useSessionsCaisse, useOpenSessionCaisse, useCloseSessionCaisse } from './hooks/useSessionsCaisse'
 import { useVentes, useCreateVente, useAnnulerVente } from './hooks/useVentes'
 import type { ModePaiement, CartLigne, Vente } from './hooks/useVentes'
+import { useFraisSession, useCreateFrais, useDeleteFrais, TYPE_FRAIS_LABELS, TYPE_FRAIS_EMOJI, type TypeFrais } from './hooks/useFrais'
+import { BilanSession } from './BilanSession'
+import { VenteHorsSessionModal } from './VenteHorsSessionModal'
+import { HistoriqueSessions } from './HistoriqueSessions'
+import { HistoriqueHorsSession } from './HistoriqueHorsSession'
 import { useArticles } from '@/features/catalogue/hooks/useArticles'
+import { useFranchiseTVA } from '@/hooks/useFranchiseTVA'
 import { useRayons } from '@/features/catalogue/hooks/useRayons'
 import { Modal } from '@/components/ui/Modal'
 import styles from './VentesPage.module.css'
+
+type MainTab = 'caisse' | 'historique'
+type HistoriqueTab = 'sessions' | 'hors-session'
 
 const MODES: { key: ModePaiement; label: string }[] = [
   { key: 'CB',       label: 'CB' },
@@ -23,11 +32,13 @@ function fmtDate(d: string) {
   return new Date(d).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
 }
 
-function venteSummary(lignes: Vente['lignes']) {
-  return lignes.map((l) => `${l.article.nom}${l.quantite > 1 ? ` ×${l.quantite}` : ''}`).join(' · ')
-}
 
 export function VentesPage() {
+  // ── Navigation ────────────────────────────────────────────────────────
+  const [mainTab,       setMainTab]       = useState<MainTab>('caisse')
+  const [historiqueTab, setHistoriqueTab] = useState<HistoriqueTab>('sessions')
+  const [showHorsSession, setShowHorsSession] = useState(false)
+
   // ── Session ──────────────────────────────────────────────────────────
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null)
   const [showOpenModal,   setShowOpenModal]   = useState(false)
@@ -48,8 +59,14 @@ export function VentesPage() {
   const [editPrixId,   setEditPrixId]   = useState<string | null>(null)
   const [editPrixVal,  setEditPrixVal]  = useState('')
 
-  // ── Ventes récentes ──────────────────────────────────────────────────
-  const [expandedId, setExpandedId] = useState<string | null>(null)
+  // ── Bilan ─────────────────────────────────────────────────────────────
+  const [showBilan, setShowBilan] = useState(false)
+
+  // ── Frais ─────────────────────────────────────────────────────────────
+  const [showFraisForm, setShowFraisForm] = useState(false)
+  const [fraisType,     setFraisType]     = useState<TypeFrais>('DEPLACEMENT')
+  const [fraisMotif,    setFraisMotif]    = useState('')
+  const [fraisMontant,  setFraisMontant]  = useState('')
 
   // ── Data ─────────────────────────────────────────────────────────────
   const { data: pdvList   = [] } = usePointsDeVente()
@@ -58,12 +75,47 @@ export function VentesPage() {
   const { data: articles  = [] } = useArticles()
   const { data: ventes    = [] } = useVentes(activeSessionId ?? undefined)
 
+  const franchiseTVA = useFranchiseTVA()
   const openSession  = useOpenSessionCaisse()
   const closeSession = useCloseSessionCaisse()
   const createVente  = useCreateVente()
   const annulerVente = useAnnulerVente()
+  const createFrais  = useCreateFrais()
+  const deleteFrais  = useDeleteFrais()
+
+  const { data: fraisSession = [] } = useFraisSession(activeSessionId)
 
   const activeSession = sessions.find((s) => s.id === activeSessionId) ?? null
+
+  // ── Métriques en temps réel de la session active ──────────────────
+  const sessionStats = useMemo(() => {
+    const validees = ventes.filter(v => v.statut === 'VALIDEE')
+    const caTTC    = validees.reduce((s, v) => s + parseFloat(v.totalTTC), 0)
+    const caHT     = validees.reduce((s, v) => s + parseFloat(v.totalHT),  0)
+    const totalFrais = fraisSession.reduce((s, f) => s + (f.montantHT ? parseFloat(f.montantHT) : 0), 0)
+
+    // Quantités vendues par article
+    const qteMap = new Map<string, number>()
+    validees.forEach(v => v.lignes.forEach(l =>
+      qteMap.set(l.articleId, (qteMap.get(l.articleId) ?? 0) + l.quantite)
+    ))
+
+    let coutDesVentes = 0; let hasCout = false
+    qteMap.forEach((qte, articleId) => {
+      const art = articles.find(a => a.id === articleId)
+      if (!art) return
+      const u = art.prixAchatLotHT && art.prixAchatLotQte
+        ? parseFloat(art.prixAchatLotHT) / art.prixAchatLotQte
+        : art.prixAchatHT ? parseFloat(art.prixAchatHT) : null
+      if (u !== null) { coutDesVentes += u * qte; hasCout = true }
+    })
+
+    return {
+      caTTC,
+      nbVentes: validees.length,
+      benefice: hasCout ? caHT - coutDesVentes - totalFrais : null,
+    }
+  }, [ventes, fraisSession, articles])
 
   const filteredArticles = useMemo(() => {
     let list = articles.filter((a) => a.actif)
@@ -114,13 +166,15 @@ export function VentesPage() {
     for (const l of cart) {
       const p       = l.prixEffectif ?? l.prixUnitaireHT
       const ligneHT = p * l.quantite
-      const ligneTTC = ligneHT * (1 + l.tauxTVA / 100)
+      // Franchise TVA : taux = 0 → TTC = HT
+      const taux    = franchiseTVA ? 0 : l.tauxTVA / 100
+      const ligneTTC = ligneHT * (1 + taux)
       ht  += ligneHT
       tva += ligneTTC - ligneHT
       ttc += ligneTTC
     }
     return { ht: ht.toFixed(2), tva: tva.toFixed(2), ttc: ttc.toFixed(2) }
-  }, [cart])
+  }, [cart, franchiseTVA])
 
   // ── Handlers ─────────────────────────────────────────────────────────
   async function handleOuvrirSession() {
@@ -143,12 +197,16 @@ export function VentesPage() {
     setFondFermeture(0)
   }
 
+  // Si le PDV encaisse lui-même, le mode est toujours PDV
+  const pdvEncaisse = activeSession ? !activeSession.pointDeVente.encaissementDirect : false
+  const modeEffectif: typeof modePaiement = pdvEncaisse ? 'PDV' : modePaiement
+
   async function handleValider() {
     if (!activeSessionId || cart.length === 0) return
     await createVente.mutateAsync({
       id:          crypto.randomUUID(),
       sessionId:   activeSessionId,
-      modePaiement,
+      modePaiement: modeEffectif,
       lignes: cart.map((l) => ({
         articleId:      l.articleId,
         quantite:       l.quantite,
@@ -165,55 +223,81 @@ export function VentesPage() {
   }
 
   // ═══════════════════════════════════════════════════════════════════════
-  // ÉCRAN DE SÉLECTION DE SESSION
+  // ÉCRAN DE SÉLECTION DE SESSION (+ historique)
   // ═══════════════════════════════════════════════════════════════════════
   if (!activeSession) {
     return (
       <div className={styles.page}>
         <div className={styles.header}>
           <h1 className={styles.headerTitle}>Caisse</h1>
-          <button className={styles.btnOuvrirHeader} onClick={() => setShowOpenModal(true)}>
-            + Ouvrir une session
-          </button>
+          <div className={styles.headerActions}>
+            <button className={styles.btnHorsSession} onClick={() => setShowHorsSession(true)}>
+              📦 Vente hors session
+            </button>
+            {mainTab === 'caisse' && (
+              <button className={styles.btnOuvrirHeader} onClick={() => setShowOpenModal(true)}>
+                + Ouvrir une session
+              </button>
+            )}
+          </div>
         </div>
 
-        <div className={styles.sessionSelectPage}>
-          {sessions.length > 0 ? (
-            <>
-              <p className={styles.sessionSelectLabel}>Sessions en cours</p>
-              <div className={styles.sessionCards}>
-                {sessions.map((s) => (
-                  <button
-                    key={s.id}
-                    className={styles.sessionCard}
-                    onClick={() => setActiveSessionId(s.id)}
-                  >
-                    <div className={styles.sessionCardDot} />
-                    <div className={styles.sessionCardBody}>
-                      <span className={styles.sessionCardPDV}>{s.pointDeVente.nom}</span>
-                      {s.nom && <span className={styles.sessionCardNom}>{s.nom}</span>}
-                      <span className={styles.sessionCardMeta}>
-                        Ouverte le {fmtDate(s.dateOuverture)} à {fmtTime(s.dateOuverture)}
-                        {s._count ? ` · ${s._count.ventes} vente${s._count.ventes > 1 ? 's' : ''}` : ''}
-                      </span>
-                    </div>
-                    <span className={styles.sessionCardArrow}>→</span>
-                  </button>
-                ))}
-              </div>
-              <p className={styles.sessionSelectOr}>— ou —</p>
-            </>
-          ) : (
-            <div className={styles.sessionEmptyIllust}>
-              <span className={styles.sessionEmoji}>🏪</span>
-              <p className={styles.sessionEmptyTitle}>Aucune session active</p>
-              <p className={styles.sessionEmptyText}>Ouvrez une session pour commencer à vendre.</p>
-            </div>
-          )}
-          <button className={styles.btnOuvrirBig} onClick={() => setShowOpenModal(true)}>
-            + Ouvrir une nouvelle session
-          </button>
+        {/* Onglets principaux */}
+        <div className={styles.mainTabBar}>
+          <button className={`${styles.mainTab} ${mainTab === 'caisse' ? styles.mainTabActive : ''}`}
+            onClick={() => setMainTab('caisse')}>🏪 Caisse</button>
+          <button className={`${styles.mainTab} ${mainTab === 'historique' ? styles.mainTabActive : ''}`}
+            onClick={() => setMainTab('historique')}>📋 Historique</button>
         </div>
+
+        {mainTab === 'caisse' && (
+          <div className={styles.sessionSelectPage}>
+            {sessions.length > 0 ? (
+              <>
+                <p className={styles.sessionSelectLabel}>Sessions en cours</p>
+                <div className={styles.sessionCards}>
+                  {sessions.map((s) => (
+                    <button key={s.id} className={styles.sessionCard} onClick={() => setActiveSessionId(s.id)}>
+                      <div className={styles.sessionCardDot} />
+                      <div className={styles.sessionCardBody}>
+                        <span className={styles.sessionCardPDV}>{s.pointDeVente.nom}</span>
+                        {s.nom && <span className={styles.sessionCardNom}>{s.nom}</span>}
+                        <span className={styles.sessionCardMeta}>
+                          Ouverte le {fmtDate(s.dateOuverture)} à {fmtTime(s.dateOuverture)}
+                          {s._count ? ` · ${s._count.ventes} vente${s._count.ventes > 1 ? 's' : ''}` : ''}
+                        </span>
+                      </div>
+                      <span className={styles.sessionCardArrow}>→</span>
+                    </button>
+                  ))}
+                </div>
+                <p className={styles.sessionSelectOr}>— ou —</p>
+              </>
+            ) : (
+              <div className={styles.sessionEmptyIllust}>
+                <span className={styles.sessionEmoji}>🏪</span>
+                <p className={styles.sessionEmptyTitle}>Aucune session active</p>
+                <p className={styles.sessionEmptyText}>Ouvrez une session pour commencer à vendre.</p>
+              </div>
+            )}
+            <button className={styles.btnOuvrirBig} onClick={() => setShowOpenModal(true)}>
+              + Ouvrir une nouvelle session
+            </button>
+          </div>
+        )}
+
+        {mainTab === 'historique' && (
+          <div className={styles.historiqueContainer}>
+            <div className={styles.historiqueTabBar}>
+              <button className={`${styles.historiqueTab} ${historiqueTab === 'sessions' ? styles.historiqueTabActive : ''}`}
+                onClick={() => setHistoriqueTab('sessions')}>Sessions fermées</button>
+              <button className={`${styles.historiqueTab} ${historiqueTab === 'hors-session' ? styles.historiqueTabActive : ''}`}
+                onClick={() => setHistoriqueTab('hors-session')}>Ventes hors session</button>
+            </div>
+            {historiqueTab === 'sessions'     && <HistoriqueSessions />}
+            {historiqueTab === 'hors-session' && <HistoriqueHorsSession />}
+          </div>
+        )}
 
         {/* Modal ouverture */}
         <ModalOuvrirSession
@@ -227,6 +311,8 @@ export function VentesPage() {
           onSubmit={handleOuvrirSession}
           isPending={openSession.isPending}
         />
+
+        <VenteHorsSessionModal isOpen={showHorsSession} onClose={() => setShowHorsSession(false)} />
       </div>
     )
   }
@@ -245,7 +331,42 @@ export function VentesPage() {
           {activeSession.nom && <span className={styles.sessionBarNom}>— {activeSession.nom}</span>}
           <span className={styles.sessionBarTime}>depuis {fmtTime(activeSession.dateOuverture)}</span>
         </div>
+
+        {/* Métriques live */}
+        {sessionStats.nbVentes > 0 && (
+          <div className={styles.sessionMetrics}>
+            <div className={styles.sessionMetric}>
+              <span className={styles.sessionMetricLabel}>CA TTC</span>
+              <span className={styles.sessionMetricVal}>
+                {sessionStats.caTTC.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
+              </span>
+            </div>
+            {sessionStats.benefice !== null && (
+              <>
+                <span className={styles.sessionMetricSep} />
+                <div className={styles.sessionMetric}>
+                  <span className={styles.sessionMetricLabel}>Bénéfice HT</span>
+                  <span className={styles.sessionMetricVal}
+                    style={{ color: sessionStats.benefice >= 0 ? '#166534' : '#991b1b', fontWeight: 800 }}>
+                    {sessionStats.benefice >= 0 ? '+' : ''}
+                    {sessionStats.benefice.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
+                  </span>
+                </div>
+              </>
+            )}
+            <span className={styles.sessionMetricCount}>
+              {sessionStats.nbVentes} vente{sessionStats.nbVentes > 1 ? 's' : ''}
+            </span>
+          </div>
+        )}
+
         <div className={styles.sessionBarRight}>
+          <button className={styles.btnHorsSessionSm} onClick={() => setShowHorsSession(true)}>
+            📦 Hors session
+          </button>
+          <button className={styles.btnBilan} onClick={() => setShowBilan(true)}>
+            📊 Bilan
+          </button>
           <button
             className={styles.btnChanger}
             onClick={() => { setActiveSessionId(null); setCart([]) }}
@@ -385,24 +506,47 @@ export function VentesPage() {
           </div>
 
           <div className={styles.totals}>
-            <div className={styles.totalRow}><span>Total HT</span><span>{totals.ht} €</span></div>
-            <div className={styles.totalRow}><span>TVA</span><span>{totals.tva} €</span></div>
-            <div className={styles.totalRowBig}><span>Total TTC</span><span>{totals.ttc} €</span></div>
+            {franchiseTVA ? (
+              <>
+                <div className={styles.totalRow} style={{ color: 'var(--text-soft)', fontSize: '0.72rem' }}>
+                  <span>TVA non applicable — art. 293 B CGI</span>
+                </div>
+                <div className={styles.totalRowBig}><span>Total</span><span>{totals.ttc} €</span></div>
+              </>
+            ) : (
+              <>
+                <div className={styles.totalRow}><span>Total HT</span><span>{totals.ht} €</span></div>
+                <div className={styles.totalRow}><span>TVA</span><span>{totals.tva} €</span></div>
+                <div className={styles.totalRowBig}><span>Total TTC</span><span>{totals.ttc} €</span></div>
+              </>
+            )}
           </div>
 
           <div className={styles.payment}>
-            <p className={styles.payLabel}>Mode de paiement</p>
-            <div className={styles.modeGrid}>
-              {MODES.map((m) => (
-                <button
-                  key={m.key}
-                  className={`${styles.modeBtn} ${modePaiement === m.key ? styles.modeBtnActive : ''}`}
-                  onClick={() => setModePaiement(m.key)}
-                >
-                  {m.label}
-                </button>
-              ))}
-            </div>
+            {pdvEncaisse ? (
+              <div className={styles.pdvEncaisseBadge}>
+                <span>🏬</span>
+                <div>
+                  <p className={styles.pdvEncaisseTitle}>Encaissé par le point de vente</p>
+                  <p className={styles.pdvEncaisseSub}>Le paiement sera reversé ultérieurement.</p>
+                </div>
+              </div>
+            ) : (
+              <>
+                <p className={styles.payLabel}>Mode de paiement</p>
+                <div className={styles.modeGrid}>
+                  {MODES.map((m) => (
+                    <button
+                      key={m.key}
+                      className={`${styles.modeBtn} ${modePaiement === m.key ? styles.modeBtnActive : ''}`}
+                      onClick={() => setModePaiement(m.key)}
+                    >
+                      {m.label}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
             <button
               className={styles.btnValider}
               disabled={cart.length === 0 || createVente.isPending}
@@ -414,52 +558,120 @@ export function VentesPage() {
         </div>
       </div>
 
-      {/* ── Ventes récentes ──────────────────────────────────────────── */}
-      {ventes.length > 0 && (
-        <div className={styles.ventesRecentes}>
-          <p className={styles.ventesTitle}>Ventes de la session ({ventes.length})</p>
-          <div className={styles.ventesScroll}>
-            {ventes.map((v) => (
-              <div key={v.id} className={`${styles.venteRow} ${v.statut === 'ANNULEE' ? styles.venteAnnulee : ''}`}>
-                <button
-                  className={styles.venteRowHeader}
-                  onClick={() => setExpandedId(expandedId === v.id ? null : v.id)}
-                >
-                  <span className={styles.venteNum}>#{v.numero}</span>
-                  <span className={styles.venteTime}>{fmtTime(v.dateVente)}</span>
-                  <span className={styles.venteSummaryText}>{venteSummary(v.lignes)}</span>
-                  <span className={styles.venteMontant}>{Number(v.totalTTC).toFixed(2)} €</span>
-                  <span className={styles.venteMode}>{v.modePaiement}</span>
-                  <span className={`${styles.venteStatut} ${v.statut === 'VALIDEE' ? styles.statutValidee : styles.statutAnnulee}`}>
-                    {v.statut === 'VALIDEE' ? 'Validée' : 'Annulée'}
-                  </span>
-                  <span className={styles.venteChevron}>{expandedId === v.id ? '▲' : '▼'}</span>
-                </button>
+      {/* ── Frais de session ─────────────────────────────────────────── */}
+      <div className={styles.fraisSection}>
+        <div className={styles.fraisHeader}>
+          <p className={styles.fraisTitle}>💸 Frais de la session</p>
+          <button className={styles.btnAddFrais} onClick={() => setShowFraisForm(v => !v)}>
+            {showFraisForm ? '✕ Annuler' : '+ Enregistrer un frais'}
+          </button>
+        </div>
 
-                {expandedId === v.id && (
-                  <div className={styles.venteDetail}>
-                    {v.lignes.map((l) => (
-                      <div key={l.id} className={styles.venteDetailLigne}>
-                        <span>{l.article.nom}</span>
-                        <span>×{l.quantite}</span>
-                        <span>{Number(l.totalLigneTTC).toFixed(2)} € TTC</span>
-                      </div>
-                    ))}
-                    {v.statut === 'VALIDEE' && (
-                      <button
-                        className={styles.btnAnnulerVente}
-                        onClick={() => annulerVente.mutate({ id: v.id })}
-                      >
-                        Annuler cette vente
-                      </button>
-                    )}
-                  </div>
-                )}
+        {showFraisForm && (
+          <div className={styles.fraisForm}>
+            {/* Type */}
+            <div className={styles.fraisTypeGrid}>
+              {(Object.keys(TYPE_FRAIS_LABELS) as TypeFrais[]).filter(t => t !== 'DON' && t !== 'PERTE_STOCK').map(t => (
+                <button
+                  key={t}
+                  className={`${styles.fraisTypeBtn} ${fraisType === t ? styles.fraisTypeBtnActive : ''}`}
+                  onClick={() => setFraisType(t)}
+                >
+                  <span>{TYPE_FRAIS_EMOJI[t]}</span>
+                  <span>{TYPE_FRAIS_LABELS[t]}</span>
+                </button>
+              ))}
+            </div>
+            {/* Motif + montant */}
+            <div className={styles.fraisInputRow}>
+              <input
+                className={styles.fraisMotifInput}
+                placeholder="Motif (ex : A7 → salle, péage retour)"
+                value={fraisMotif}
+                onChange={e => setFraisMotif(e.target.value)}
+              />
+              <div className={styles.fraisMontantWrap}>
+                <input
+                  className={styles.fraisMontantInput}
+                  type="text"
+                  inputMode="decimal"
+                  placeholder="0.00"
+                  value={fraisMontant}
+                  onChange={e => setFraisMontant(e.target.value)}
+                />
+                <span className={styles.fraisMontantUnit}>€ HT</span>
+              </div>
+              <button
+                className={styles.btnFraisValider}
+                disabled={!fraisMotif.trim() || createFrais.isPending}
+                onClick={async () => {
+                  if (!fraisMotif.trim() || !activeSessionId) return
+                  await createFrais.mutateAsync({
+                    id: crypto.randomUUID(),
+                    sessionId: activeSessionId,
+                    type: fraisType,
+                    motif: fraisMotif,
+                    montantHT: fraisMontant ? parseFloat(fraisMontant.replace(',', '.')) : undefined,
+                  })
+                  setFraisMotif('')
+                  setFraisMontant('')
+                  setShowFraisForm(false)
+                }}
+              >
+                {createFrais.isPending ? '…' : 'Ajouter'}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {fraisSession.length > 0 && (
+          <div className={styles.fraisList}>
+            {fraisSession.map(f => (
+              <div key={f.id} className={styles.fraisRow}>
+                <span className={styles.fraisEmoji}>{TYPE_FRAIS_EMOJI[f.type]}</span>
+                <span className={styles.fraisMotif}>{f.motif}</span>
+                <span className={styles.fraisType}>{TYPE_FRAIS_LABELS[f.type]}</span>
+                <span className={styles.fraisMontant}>
+                  {f.montantHT ? `${parseFloat(f.montantHT).toFixed(2)} € HT` : '—'}
+                </span>
+                <button
+                  className={styles.btnDeleteFrais}
+                  onClick={() => deleteFrais.mutate(f.id)}
+                  title="Supprimer"
+                >✕</button>
               </div>
             ))}
+            <div className={styles.fraisTotal}>
+              Total frais :&nbsp;
+              <strong>
+                {fraisSession.reduce((s, f) => s + (f.montantHT ? parseFloat(f.montantHT) : 0), 0).toFixed(2)} € HT
+              </strong>
+            </div>
+          </div>
+        )}
+
+        {fraisSession.length === 0 && !showFraisForm && (
+          <p className={styles.fraisEmpty}>Aucun frais enregistré pour cette session.</p>
+        )}
+      </div>
+
+      {/* ── Modale bilan ─────────────────────────────────────────────── */}
+      {showBilan && (
+        <div className={styles.bilanOverlay}>
+          <div className={styles.bilanPanel}>
+            <BilanSession
+              sessionId={activeSessionId!}
+              ventes={ventes}
+              frais={fraisSession}
+              articles={articles}
+              sessionNom={activeSession.nom ?? activeSession.pointDeVente.nom}
+              onClose={() => setShowBilan(false)}
+            />
           </div>
         </div>
       )}
+
+      <VenteHorsSessionModal isOpen={showHorsSession} onClose={() => setShowHorsSession(false)} />
 
       {/* ── Modals ───────────────────────────────────────────────────── */}
       <ModalOuvrirSession

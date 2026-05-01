@@ -19,6 +19,7 @@ export interface SessionCaisse {
 const KEYS = {
   all:  () => ['sessionsCaisse'] as const,
   list: (pdvId?: string, statut?: string) => ['sessionsCaisse', 'list', pdvId ?? '', statut ?? ''] as const,
+  historique: (from: string, to: string) => ['sessionsCaisse', 'historique', from, to] as const,
 }
 
 export function useSessionsCaisse(opts?: { pointDeVenteId?: string; statut?: string }) {
@@ -29,6 +30,18 @@ export function useSessionsCaisse(opts?: { pointDeVenteId?: string; statut?: str
   return useQuery({
     queryKey: KEYS.list(opts?.pointDeVenteId, opts?.statut),
     queryFn:  () => api.get<SessionCaisse[]>(`/sessions-caisse${qs ? `?${qs}` : ''}`),
+  })
+}
+
+export function useHistoriqueSessions(from: string, to: string) {
+  return useQuery({
+    queryKey: KEYS.historique(from, to),
+    queryFn:  () => api.get<SessionCaisse[]>(`/sessions-caisse?statut=FERMEE`),
+    select:   (data) => data.filter(s => {
+      const fermeture = s.dateFermeture ? new Date(s.dateFermeture) : null
+      if (!fermeture) return false
+      return fermeture >= new Date(from) && fermeture <= new Date(to + 'T23:59:59')
+    }),
   })
 }
 

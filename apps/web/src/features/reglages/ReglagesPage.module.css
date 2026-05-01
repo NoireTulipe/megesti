@@ -3,8 +3,171 @@
   width: 100%;
 }
 
+/* ════════════════════════════════════════════════════════════════
+   PARAMÈTRES FISCAUX
+   ════════════════════════════════════════════════════════════════ */
+.fiscalWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 680px;
+}
+
+.fiscalCard {
+  background: var(--white);
+  border: 1.5px solid var(--cream-dark);
+  border-radius: var(--radius-card);
+  padding: 22px 24px;
+  box-shadow: var(--shadow-card);
+}
+
+.fiscalCardHeader {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+.fiscalEmoji { font-size: 1.6rem; flex-shrink: 0; margin-top: 2px; }
+.fiscalTitle {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.1rem;
+  color: var(--ink-deep);
+  margin: 0 0 4px;
+}
+.fiscalSub { font-size: 0.8rem; color: var(--text-soft); margin: 0; }
+
+.fiscalOptions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.fiscalOption {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 14px 16px;
+  border: 2px solid var(--cream-dark);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: border-color var(--t-fast) ease, background var(--t-fast) ease;
+}
+.fiscalOption:hover { border-color: var(--rose-mid); }
+.fiscalOptionActive { border-color: var(--rose); background: var(--rose-light); }
+
+.fiscalRadio { flex-shrink: 0; margin-top: 3px; accent-color: var(--rose); width: 16px; height: 16px; cursor: pointer; }
+.fiscalOptionTitle {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0 0 4px;
+}
+.fiscalOptionActive .fiscalOptionTitle { color: var(--rose-dark); }
+.fiscalOptionDesc {
+  font-size: 0.78rem;
+  color: var(--text-soft);
+  margin: 0;
+  line-height: 1.5;
+}
+.fiscalMention {
+  font-size: 0.72rem;
+  color: var(--rose-dark);
+  margin: 8px 0 0;
+  padding: 6px 10px;
+  background: rgba(196,144,124,0.1);
+  border-radius: 6px;
+  font-style: italic;
+}
+
+.fiscalInfo {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  background: var(--cream);
+  border: 1px solid var(--cream-dark);
+  border-radius: 14px;
+  padding: 14px 16px;
+}
+.fiscalInfoTitle { font-size: 0.82rem; font-weight: 700; color: var(--ink); margin: 0 0 3px; }
+.fiscalInfoDesc  { font-size: 0.78rem; color: var(--text-soft); margin: 0; line-height: 1.5; }
+
 .header {
+  margin-bottom: 24px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+/* ── Switch Classique / Avancé ── */
+.niveauSwitch {
+  display: flex;
+  gap: 4px;
+  background: var(--cream-dark);
+  border-radius: 12px;
+  padding: 4px;
+}
+.niveauBtn {
+  height: 34px;
+  padding: 0 18px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-soft);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--t-fast) ease, color var(--t-fast) ease;
+  white-space: nowrap;
+}
+.niveauBtn:hover { color: var(--ink); }
+.niveauBtnActive {
+  background: var(--white);
+  color: var(--ink-deep);
+  box-shadow: 0 1px 4px rgba(44,33,24,0.1);
+}
+
+/* ── Cartes de navigation ── */
+.tabCards {
+  display: flex;
+  gap: 12px;
   margin-bottom: 28px;
+  flex-wrap: wrap;
+}
+.tabCard {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  padding: 16px 20px;
+  background: var(--white);
+  border: 1.5px solid var(--cream-dark);
+  border-radius: 16px;
+  cursor: pointer;
+  min-width: 180px;
+  text-align: left;
+  transition: border-color var(--t-fast) ease, box-shadow var(--t-fast) ease, transform var(--t-fast) ease;
+}
+.tabCard:hover {
+  border-color: var(--rose-mid);
+  box-shadow: 0 4px 16px rgba(196,144,124,0.12);
+  transform: translateY(-2px);
+}
+.tabCardActive {
+  border-color: var(--rose);
+  background: var(--rose-light);
+  box-shadow: 0 4px 16px rgba(196,144,124,0.18);
+}
+.tabCardEmoji { font-size: 1.3rem; margin-bottom: 4px; }
+.tabCardLabel {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+.tabCardActive .tabCardLabel { color: var(--rose-dark); }
+.tabCardDesc {
+  font-size: 0.72rem;
+  color: var(--text-soft);
 }
 
 .title {

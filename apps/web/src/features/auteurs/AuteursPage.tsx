@@ -3,24 +3,25 @@ import { useAuteurs } from './hooks/useAuteurs'
 import type { Auteur } from './hooks/useAuteurs'
 import { AuteurCard } from './AuteurCard'
 import { AuteurForm } from './AuteurForm'
-import { Modal } from '@/components/ui/Modal'
-import { getFormWidth } from '@/lib/formWidth'
+import { AuteurDetail } from './AuteurDetail'
+import { SlideOver } from '@/components/ui/SlideOver'
+import { EmptyState } from '@/components/ui/EmptyState'
 import styles from './AuteursPage.module.css'
 
 type AuteurTab = 'me' | 'reseau'
 
 export function AuteursPage() {
-  const [search, setSearch]             = useState('')
-  const [debouncedSearch, setDebounced] = useState('')
-  const [tab, setTab]                   = useState<AuteurTab>('me')
-  const [showCreate, setShowCreate]     = useState(false)
-  const [editAuteur, setEditAuteur]     = useState<Auteur | null>(null)
+  const [search, setSearch]               = useState('')
+  const [debouncedSearch, setDebounced]   = useState('')
+  const [tab, setTab]                     = useState<AuteurTab>('me')
+  const [showCreate, setShowCreate]       = useState(false)
+  const [detailAuteur, setDetailAuteur]   = useState<Auteur | null>(null)
+  const [editAuteur, setEditAuteur]       = useState<Auteur | null>(null)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const avecContrat = tab === 'me' ? true : false
-  const { data: auteurs, isLoading, isError } = useAuteurs({
+  const { data: auteurs = [], isLoading, isError } = useAuteurs({
     q: debouncedSearch || undefined,
-    avecContrat,
+    avecContrat: tab === 'me',
   })
 
   useEffect(() => {
@@ -34,34 +35,20 @@ export function AuteursPage() {
       <header className={styles.header}>
         <div>
           <h1 className={styles.title}>Auteurs</h1>
-          <p className={styles.subtitle}>{auteurs?.length ?? '—'} auteur{(auteurs?.length ?? 0) > 1 ? 's' : ''}</p>
+          <p className={styles.subtitle}>{auteurs.length} auteur{auteurs.length > 1 ? 's' : ''}</p>
         </div>
         <div className={styles.actions}>
-          <input
-            className={styles.search}
-            type="search"
-            placeholder="Rechercher…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-          <button className={styles.btnPrimary} onClick={() => setShowCreate(true)}>
-            + Nouvel auteur
-          </button>
+          <input className={styles.search} type="search" placeholder="Rechercher…" value={search} onChange={e => setSearch(e.target.value)} />
+          <button className={styles.btnPrimary} onClick={() => setShowCreate(true)}>+ Nouvel auteur</button>
         </div>
       </header>
 
       <div className={styles.tabBar}>
-        <button
-          className={`${styles.tab} ${tab === 'me' ? styles.tabActive : ''}`}
-          onClick={() => setTab('me')}
-        >
-          Auteurs ME
+        <button className={`${styles.tab} ${tab === 'me' ? styles.tabActive : ''}`} onClick={() => setTab('me')}>
+          ✍️ Auteurs ME
         </button>
-        <button
-          className={`${styles.tab} ${tab === 'reseau' ? styles.tabActive : ''}`}
-          onClick={() => setTab('reseau')}
-        >
-          Réseau
+        <button className={`${styles.tab} ${tab === 'reseau' ? styles.tabActive : ''}`} onClick={() => setTab('reseau')}>
+          🌐 Réseau
         </button>
       </div>
 
@@ -73,43 +60,60 @@ export function AuteursPage() {
 
       {isError && <div className={styles.empty}><p>Impossible de charger les auteurs.</p></div>}
 
-      {!isLoading && !isError && auteurs?.length === 0 && (
-        <div className={styles.empty}>
-          <p>
-            {tab === 'me'
-              ? `Aucun auteur ME${debouncedSearch ? ` pour « ${debouncedSearch} »` : ''} — créez des contrats depuis la fiche auteur.`
-              : `Aucun auteur réseau${debouncedSearch ? ` pour « ${debouncedSearch} »` : ''}.`}
-          </p>
-        </div>
+      {!isLoading && !isError && auteurs.length === 0 && (
+        <EmptyState
+          emoji="✍️"
+          title={
+            debouncedSearch
+              ? `Aucun résultat pour « ${debouncedSearch} »`
+              : tab === 'me'
+                ? 'Aucun auteur sous contrat'
+                : 'Aucun auteur dans le réseau'
+          }
+          description={
+            debouncedSearch ? undefined : tab === 'me'
+              ? 'Créez un auteur puis ajoutez-lui un contrat depuis sa fiche.'
+              : 'Référencez ici les auteurs avec qui vous avez travaillé ou souhaitez collaborer.'
+          }
+          action={debouncedSearch ? undefined : { label: '+ Nouvel auteur', onClick: () => setShowCreate(true) }}
+        />
       )}
 
-      {!isLoading && !isError && auteurs && auteurs.length > 0 && (
+      {!isLoading && !isError && auteurs.length > 0 && (
         <div className={styles.grid}>
-          {auteurs.map((auteur) => (
+          {auteurs.map(auteur => (
             <AuteurCard
               key={auteur.id}
               auteur={auteur}
+              onClick={() => setDetailAuteur(auteur)}
               onEdit={() => setEditAuteur(auteur)}
             />
           ))}
         </div>
       )}
 
-      <Modal isOpen={showCreate} onClose={() => setShowCreate(false)} title="Nouvel auteur" width={getFormWidth('auteur')}>
-        <AuteurForm onClose={() => setShowCreate(false)} />
-      </Modal>
+      {detailAuteur && (
+        <AuteurDetail
+          auteur={detailAuteur}
+          isOpen={Boolean(detailAuteur)}
+          onClose={() => setDetailAuteur(null)}
+          onEdit={() => { setEditAuteur(detailAuteur); setDetailAuteur(null) }}
+        />
+      )}
 
-      <Modal
+      <SlideOver isOpen={showCreate} onClose={() => setShowCreate(false)} title="Nouvel auteur" emoji="✍️">
+        <AuteurForm onClose={() => { setShowCreate(false); setTab('reseau') }} />
+      </SlideOver>
+
+      <SlideOver
         isOpen={Boolean(editAuteur)}
         onClose={() => setEditAuteur(null)}
         title="Modifier l'auteur"
         subtitle={editAuteur ? `${editAuteur.prenom} ${editAuteur.nom}` : ''}
-        width={getFormWidth('auteur')}
+        emoji="✍️"
       >
-        {editAuteur && (
-          <AuteurForm auteur={editAuteur} onClose={() => setEditAuteur(null)} />
-        )}
-      </Modal>
+        {editAuteur && <AuteurForm auteur={editAuteur} onClose={() => setEditAuteur(null)} />}
+      </SlideOver>
     </div>
   )
 }

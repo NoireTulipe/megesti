@@ -2,6 +2,17 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/lib/api'
 import type { CategoriePointDeVente } from './useCategoriesPointDeVente'
 
+export type TypePaiementRemise = 'VIREMENT' | 'CHEQUE'
+
+export interface ContactPointDeVente {
+  id?:           string
+  nom:           string
+  prenom?:       string | null
+  email?:        string | null
+  telephone?:    string | null
+  typePaiement?: TypePaiementRemise | null
+}
+
 export interface PointDeVente {
   id:                 string
   nom:                string
@@ -13,6 +24,7 @@ export interface PointDeVente {
   actif:              boolean
   categorie:          CategoriePointDeVente | null
   salon:              { id: string; nom: string } | null
+  contacts:           ContactPointDeVente[]
 }
 
 export interface CreatePointDeVentePayload {
@@ -22,6 +34,7 @@ export interface CreatePointDeVentePayload {
   commissionFixe?:     number | null
   commissionPourcent?: number | null
   encaissementDirect?: boolean
+  contacts?:           Omit<ContactPointDeVente, 'id'>[]
 }
 
 const KEYS = { all: () => ['pointsDeVente'] as const, list: (q?: string) => ['pointsDeVente', 'list', q ?? ''] as const }

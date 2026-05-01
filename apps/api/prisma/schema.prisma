@@ -18,6 +18,7 @@ model Tenant {
   stripeCustomerId     String?
   stripeSubscriptionId String?
   stripePriceId        String?
+  franchiseBaseVA      Boolean  @default(false) // art. 293 B CGI — non assujetti TVA
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
 
@@ -39,6 +40,13 @@ model Tenant {
   typesDA                TypeDA[]
   contratsAuteur         ContratAuteur[]
   archivesJournalieres   ArchiveJournaliere[]
+  imprimeurs             Imprimeur[]
+  mouvementsStock        MouvementStock[]
+  frais                  Frais[]
+  reversements           Reversement[]
+  paiementsDA            PaiementDA[]
+  charges                Charge[]
+  motifsVente            MotifVente[]
 }
 
 // ─── User ─────────────────────────────────────────────────────────────────────
@@ -122,6 +130,20 @@ model CategoriePointDeVente {
   @@index([tenantId])
 }
 
+model ContactPointDeVente {
+  id             String              @id @default(uuid())
+  pointDeVenteId String
+  nom            String
+  prenom         String?
+  email          String?
+  telephone      String?
+  typePaiement   TypePaiementRemise?
+
+  pointDeVente PointDeVente @relation(fields: [pointDeVenteId], references: [id], onDelete: Cascade)
+
+  @@index([pointDeVenteId])
+}
+
 model PointDeVente {
   id                 String   @id @default(uuid())
   tenantId           String
@@ -138,7 +160,9 @@ model PointDeVente {
   tenant    Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   categorie CategoriePointDeVente? @relation(fields: [categorieId], references: [id])
   salon     Salon?                 @relation(fields: [salonId],    references: [id])
-  sessions  SessionCaisse[]
+  sessions      SessionCaisse[]
+  contacts      ContactPointDeVente[]
+  reversements  Reversement[]
 
   @@index([tenantId])
   @@index([salonId])
@@ -166,7 +190,9 @@ model SessionCaisse {
   tenant       Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   pointDeVente PointDeVente @relation(fields: [pointDeVenteId], references: [id])
   salon        Salon?       @relation(fields: [salonId], references: [id])
-  ventes       Vente[]
+  ventes        Vente[]
+  frais         Frais[]
+  reversement   Reversement?
 
   @@index([tenantId])
   @@index([pointDeVenteId])
@@ -179,6 +205,12 @@ enum ModePaiement {
   CHEQUE
   VIREMENT
   SUMUP
+  PDV           // Encaissé par le point de vente (reverse ultérieur)
+}
+
+enum TypePaiementRemise {
+  VIREMENT
+  CHEQUE
 }
 
 enum StatutVente {
@@ -186,10 +218,25 @@ enum StatutVente {
   ANNULEE
 }
 
+model MotifVente {
+  id        String   @id @default(uuid())
+  tenantId  String
+  libelle   String
+  ordre     Int      @default(0)
+  actif     Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  tenant Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  ventes Vente[]
+
+  @@index([tenantId])
+}
+
 model Vente {
   id             String       @id @default(uuid())
   tenantId       String
-  sessionId      String
+  sessionId      String?      // null = vente hors session
+  motifVenteId   String?
   numero         Int
   dateVente      DateTime     @default(now())
   modePaiement   ModePaiement
@@ -202,13 +249,15 @@ model Vente {
   hash           String?      @db.VarChar(64)
   createdAt      DateTime     @default(now())
 
-  tenant  Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  session SessionCaisse @relation(fields: [sessionId], references: [id])
-  lignes  LigneVente[]
+  tenant      Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  session     SessionCaisse? @relation(fields: [sessionId],    references: [id])
+  motifVente  MotifVente?    @relation(fields: [motifVenteId], references: [id])
+  lignes      LigneVente[]
 
   @@unique([tenantId, numero])
   @@index([tenantId])
   @@index([sessionId])
+  @@index([motifVenteId])
 }
 
 model LigneVente {
@@ -280,6 +329,7 @@ model Article {
   stockAlerte     Int       @default(0)
   stockTension    Int       @default(0)
   actif           Boolean   @default(true)
+  imprimeurId     String?
   // Champs librairie — null pour les autres rayons
   isbn            String?
   datePublication DateTime?
@@ -289,9 +339,11 @@ model Article {
   tenant    Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   rayon     Rayon          @relation(fields: [rayonId], references: [id])
   categorie Categorie?     @relation(fields: [categorieId], references: [id])
+  imprimeur Imprimeur?     @relation(fields: [imprimeurId], references: [id])
   auteurs      ArticleAuteur[]
   lignesVente  LigneVente[]
   contrats     ContratAuteur[]
+  mouvements   MouvementStock[]
 
   @@index([tenantId])
   @@index([tenantId, rayonId])
@@ -323,14 +375,47 @@ model Auteur {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
-  tenant   Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  articles ArticleAuteur[]
-  contrats ContratAuteur[]
+  tenant     Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  articles   ArticleAuteur[]
+  contrats   ContratAuteur[]
+  paiements  PaiementDA[]
 
   @@index([tenantId])
 }
 
 // ─── Réseau ───────────────────────────────────────────────────────────────────
+
+model Imprimeur {
+  id            String   @id @default(uuid())
+  tenantId      String
+  nom           String
+  lienCommande  String?
+  pointsForts   Json?    // String[]
+  pointsFaibles Json?    // String[]
+  noteLibre     String?
+  actif         Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  tenant   Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  contacts ContactImprimeur[]
+  articles Article[]
+
+  @@index([tenantId])
+}
+
+model ContactImprimeur {
+  id          String  @id @default(uuid())
+  imprimeurId String
+  nom         String
+  prenom      String?
+  email       String?
+  telephone   String?
+
+  imprimeur Imprimeur @relation(fields: [imprimeurId], references: [id], onDelete: Cascade)
+
+  @@index([imprimeurId])
+}
 
 model MaisonEdition {
   id         String   @id @default(uuid())
@@ -480,6 +565,21 @@ model CustomFieldValue {
 
 // ─── Droits d'auteur ─────────────────────────────────────────────────────────
 
+enum PeriodiciteDA {
+  MENSUEL
+  TRIMESTRIEL
+  TOUS_LES_4_MOIS
+  SEMESTRIEL
+  ANNUEL
+  DATES_FIXES
+}
+
+enum StatutPaiementDA {
+  PREVU
+  PAYE
+  ANNULE
+}
+
 model TypeDA {
   id       String @id @default(uuid())
   tenantId String
@@ -498,24 +598,147 @@ model ContratAuteur {
   auteurId         String
   typeDAId         String
   articleId        String?   // null = tous les articles de cet auteur
-  avance           Decimal?  @db.Decimal(10, 2)
-  avanceDue        Decimal   @default(0) @db.Decimal(10, 2)
-  dateSignature    DateTime?
-  datePriseEffet   DateTime? // date d'effet (= signature si null)
-  dureeAns         Int?      // null = durée indéterminée
-  reconduiteTacite Boolean   @default(true)
-  actif            Boolean   @default(true)
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
+  avance            Decimal?       @db.Decimal(10, 2)
+  avanceDue         Decimal        @default(0) @db.Decimal(10, 2)
+  dateSignature     DateTime?
+  datePriseEffet    DateTime?      // date d'effet (= signature si null)
+  dureeAns          Int?           // null = durée indéterminée
+  reconduiteTacite  Boolean        @default(true)
+  periodicite       PeriodiciteDA?
+  datesFixesJSON    Json?          // [{"mois":4,"jour":1},...] si DATES_FIXES
+  prochainVersement DateTime?      // calculé à chaque paiement
+  actif             Boolean        @default(true)
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
 
-  tenant  Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  auteur  Auteur   @relation(fields: [auteurId],  references: [id])
-  typeDA  TypeDA   @relation(fields: [typeDAId],   references: [id])
-  article Article? @relation(fields: [articleId], references: [id])
+  tenant    Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  auteur    Auteur       @relation(fields: [auteurId],  references: [id])
+  typeDA    TypeDA       @relation(fields: [typeDAId],   references: [id])
+  article   Article?     @relation(fields: [articleId], references: [id])
+  paiements PaiementDA[]
 
   @@index([tenantId])
   @@index([auteurId])
   @@index([typeDAId])
+}
+
+model PaiementDA {
+  id               String            @id @default(uuid())
+  tenantId         String
+  contratId        String
+  auteurId         String
+  montant          Decimal           @db.Decimal(10, 2)
+  dateVersement    DateTime
+  dateDebutPeriode DateTime
+  dateFinPeriode   DateTime
+  statut           StatutPaiementDA  @default(PREVU)
+  modePaiement     TypePaiementRemise?
+  reference        String?
+  notes            String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  tenant  Tenant        @relation(fields: [tenantId],  references: [id], onDelete: Cascade)
+  contrat ContratAuteur @relation(fields: [contratId], references: [id], onDelete: Cascade)
+  auteur  Auteur        @relation(fields: [auteurId],  references: [id])
+
+  @@index([tenantId])
+  @@index([tenantId, statut])
+  @@index([contratId])
+  @@index([auteurId])
+}
+
+// ─── Reversements PDV ────────────────────────────────────────────────────────
+
+enum StatutReversement {
+  EN_ATTENTE
+  ENCAISSE
+  ANNULE
+}
+
+model Reversement {
+  id              String             @id @default(uuid())
+  tenantId        String
+  pointDeVenteId  String
+  sessionId       String             @unique
+  montantTTC      Decimal            @db.Decimal(10, 2)
+  nbVentes        Int
+  statut          StatutReversement  @default(EN_ATTENTE)
+  dateCloture     DateTime
+  dateEncaissement DateTime?
+  modePaiement    TypePaiementRemise?
+  reference       String?
+  notes           String?
+  montantAjuste   Decimal?           @db.Decimal(10, 2) // null = montantTTC - commission
+  noteAjustement  String?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  tenant       Tenant         @relation(fields: [tenantId],       references: [id], onDelete: Cascade)
+  pointDeVente PointDeVente   @relation(fields: [pointDeVenteId], references: [id])
+  session      SessionCaisse  @relation(fields: [sessionId],      references: [id])
+
+  @@index([tenantId])
+  @@index([tenantId, statut])
+}
+
+// ─── Mouvements de stock ──────────────────────────────────────────────────────
+
+enum TypeMouvement {
+  ENTREE
+  SORTIE_DON
+  SORTIE_PERTE
+  SORTIE_VOL
+  SORTIE_DEGRADATION
+  AJUSTEMENT
+}
+
+model MouvementStock {
+  id         String        @id @default(uuid())
+  tenantId   String
+  articleId  String
+  type       TypeMouvement
+  delta      Int           // positif = entrée, négatif = sortie
+  stockAvant Int
+  stockApres Int
+  motif      String?
+  createdAt  DateTime      @default(now())
+
+  tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  article Article @relation(fields: [articleId], references: [id])
+
+  @@index([tenantId])
+  @@index([articleId])
+}
+
+// ─── Frais ───────────────────────────────────────────────────────────────────
+
+enum TypeFrais {
+  DON
+  PERTE_STOCK
+  DEPLACEMENT
+  REPAS
+  HEBERGEMENT
+  STAND
+  AUTRE
+}
+
+model Frais {
+  id         String    @id @default(uuid())
+  tenantId   String
+  sessionId  String?
+  articleId  String?
+  type       TypeFrais
+  motif      String
+  montantHT  Decimal?  @db.Decimal(10, 2)
+  date       DateTime  @default(now())
+  createdAt  DateTime  @default(now())
+
+  tenant  Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  session SessionCaisse? @relation(fields: [sessionId], references: [id])
+
+  @@index([tenantId])
+  @@index([sessionId])
 }
 
 // ─── Archivage journalier (loi anti-fraude TVA 2018) ─────────────────────────
@@ -534,4 +757,57 @@ model ArchiveJournaliere {
 
   @@unique([tenantId, dateArchive])
   @@index([tenantId])
+}
+
+// ─── Charges & abonnements ──────────────────────────────────────────────────
+
+enum TypeCharge {
+  DEPENSE
+  ABONNEMENT
+  PERTE
+}
+
+enum StatutCharge {
+  PREVU
+  PAYE
+}
+
+enum PeriodiciteAbonnement {
+  MENSUELLE
+  TRIMESTRIELLE
+  SEMESTRIELLE
+  ANNUELLE
+}
+
+// PCG-aligné : compte 60 / 61-62 / 63 / 65 / 67
+enum CategorieCharge {
+  ACHATS           // 60x — Impression, achat livres, matières
+  SERVICES         // 61x-62x — SaaS, loyer, honoraires, assurance, télécom
+  IMPOTS_TAXES     // 63x — CFE, taxes professionnelles, TVA non récupérable
+  AUTRES_CHARGES   // 65x — Autres charges de gestion courante
+  CHARGES_EXCEPT   // 67x — Pertes, sinistres, charges exceptionnelles
+}
+
+model Charge {
+  id                String                 @id @default(uuid())
+  tenantId          String
+  libelle           String
+  montantHT         Decimal                @db.Decimal(10, 2)
+  tauxTVA           Decimal                @default(0) @db.Decimal(5, 2)
+  type              TypeCharge
+  categorie         CategorieCharge        @default(SERVICES)
+  statut            StatutCharge           @default(PREVU)
+  dateEffet         DateTime
+  datePaiement      DateTime?
+  periodicite       PeriodiciteAbonnement?
+  prochaineEcheance DateTime?
+  actif             Boolean                @default(true)
+  notes             String?
+  createdAt         DateTime               @default(now())
+  updatedAt         DateTime               @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([tenantId, statut])
 }

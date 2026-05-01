@@ -10,12 +10,25 @@ const LigneSchema = z.object({
   prixUnitaireHT: z.number().positive().optional(),
 })
 
-const CreateVenteSchema = z.object({
+// Vente en session (sessionId requis)
+const CreateVenteSessionSchema = z.object({
   id:           z.string().uuid(),
   sessionId:    z.string().uuid(),
-  modePaiement: z.enum(['CB', 'ESPECES', 'CHEQUE', 'VIREMENT']),
+  motifVenteId: z.undefined().optional(),
+  modePaiement: z.enum(['CB', 'ESPECES', 'CHEQUE', 'VIREMENT', 'SUMUP', 'PDV']),
   lignes:       z.array(LigneSchema).min(1),
 })
+
+// Vente hors session (motifVenteId requis, pas de sessionId)
+const CreateVenteHorsSessionSchema = z.object({
+  id:           z.string().uuid(),
+  sessionId:    z.null().optional(),
+  motifVenteId: z.string().uuid(),
+  modePaiement: z.enum(['CB', 'ESPECES', 'CHEQUE', 'VIREMENT', 'SUMUP']),
+  lignes:       z.array(LigneSchema).min(1),
+})
+
+const CreateVenteSchema = z.union([CreateVenteSessionSchema, CreateVenteHorsSessionSchema])
 
 const AnnulerSchema = z.object({
   noteAnnulation: z.string().optional(),
@@ -27,13 +40,16 @@ export const venteRoutes: FastifyPluginAsync = async (app) => {
 
   app.get('/', auth, async (request) => {
     const { tenantId } = request.tenant
-    const { sessionId } = request.query as { sessionId?: string }
+    const { sessionId, horsSession } = request.query as { sessionId?: string; horsSession?: string }
     return app.db.vente.findMany({
-      where: { tenantId, ...(sessionId && { sessionId }) },
+      where: {
+        tenantId,
+        ...(sessionId   && { sessionId }),
+        ...(horsSession === 'true' && { sessionId: null }),
+      },
       include: {
-        lignes: {
-          include: { article: { select: { id: true, nom: true, reference: true } } },
-        },
+        lignes:      { include: { article: { select: { id: true, nom: true, reference: true } } } },
+        motifVente:  { select: { id: true, libelle: true } },
       },
       orderBy: { dateVente: 'desc' },
     })
@@ -43,10 +59,20 @@ export const venteRoutes: FastifyPluginAsync = async (app) => {
     const { tenantId } = request.tenant
     const body = CreateVenteSchema.parse(request.body)
 
-    const session = await app.db.sessionCaisse.findFirst({
-      where: { id: body.sessionId, tenantId, statut: 'OUVERTE' },
-    })
-    if (!session) return reply.notFound('Session de caisse introuvable ou fermée')
+    // Résolution session ou motif
+    let debiterStockME = true
+    if (body.sessionId) {
+      const session = await app.db.sessionCaisse.findFirst({
+        where: { id: body.sessionId, tenantId, statut: 'OUVERTE' },
+      })
+      if (!session) return reply.notFound('Session de caisse introuvable ou fermée')
+      debiterStockME = session.debiterStockME
+    } else {
+      const motif = await app.db.motifVente.findFirst({
+        where: { id: body.motifVenteId, tenantId, actif: true },
+      })
+      if (!motif) return reply.notFound('Motif de vente introuvable')
+    }
 
     const articleIds = body.lignes.map((l) => l.articleId)
     const articles = await app.db.article.findMany({
@@ -55,13 +81,16 @@ export const venteRoutes: FastifyPluginAsync = async (app) => {
     })
     if (articles.length !== articleIds.length) return reply.notFound('Un ou plusieurs articles introuvables')
 
+    const tenant = await app.db.tenant.findUnique({ where: { id: tenantId }, select: { franchiseBaseVA: true } })
+    const tauxFactor = tenant?.franchiseBaseVA ? 0 : 1
+
     const articleMap = new Map(articles.map((a) => [a.id, a]))
 
     let totalHT = 0, totalTVA = 0, totalTTC = 0
     const lignesData = body.lignes.map((l) => {
       const article = articleMap.get(l.articleId)!
       const prixHT  = l.prixUnitaireHT ?? Number(article.prixVenteHT)
-      const taux    = Number(article.rayon.tauxTVA) / 100
+      const taux    = Number(article.rayon.tauxTVA) / 100 * tauxFactor
       const ligneHT  = prixHT * l.quantite
       const ligneTTC = ligneHT * (1 + taux)
       totalHT  += ligneHT
@@ -95,23 +124,28 @@ export const venteRoutes: FastifyPluginAsync = async (app) => {
 
       const dateVente = new Date()
       const hash = computeVenteHash(previousHash, {
-        id: body.id, numero, tenantId, sessionId: body.sessionId,
+        id: body.id, numero, tenantId, sessionId: body.sessionId ?? null,
         dateVente, modePaiement: body.modePaiement,
         totalHT: totalHTr, totalTVA: totalTVAr, totalTTC: totalTTCr,
       }, secret)
 
       const created = await tx.vente.create({
         data: {
-          id: body.id, tenantId, sessionId: body.sessionId,
+          id: body.id, tenantId,
+          sessionId:    body.sessionId    ?? null,
+          motifVenteId: body.motifVenteId ?? null,
           numero, dateVente, modePaiement: body.modePaiement,
           totalHT: totalHTr, totalTVA: totalTVAr, totalTTC: totalTTCr,
           previousHash, hash,
           lignes: { create: lignesData },
         },
-        include: { lignes: { include: { article: { select: { id: true, nom: true } } } } },
+        include: {
+          lignes:     { include: { article: { select: { id: true, nom: true } } } },
+          motifVente: { select: { id: true, libelle: true } },
+        },
       })
 
-      if (session.debiterStockME) {
+      if (debiterStockME) {
         for (const l of body.lignes) {
           await tx.article.update({ where: { id: l.articleId }, data: { stock: { decrement: l.quantite } } })
         }
@@ -141,7 +175,8 @@ export const venteRoutes: FastifyPluginAsync = async (app) => {
         data:  { statut: 'ANNULEE', noteAnnulation: noteAnnulation ?? null },
         include: { lignes: { include: { article: { select: { id: true, nom: true } } } } },
       })
-      if (existing.session.debiterStockME) {
+      // Restorer le stock uniquement si la vente était en session avec debiterStockME
+      if (existing.session?.debiterStockME) {
         for (const l of existing.lignes) {
           await tx.article.update({ where: { id: l.articleId }, data: { stock: { increment: l.quantite } } })
         }

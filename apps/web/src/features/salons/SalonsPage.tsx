@@ -78,7 +78,8 @@ export function SalonsPage() {
 
           {!isLoading && salons.length === 0 && (
             <div className={styles.listEmpty}>
-              {debounced ? `Aucun résultat pour « ${debounced} »` : 'Aucun salon — créez-en un !'}
+              <div style={{ fontSize: 32, marginBottom: 8 }}>🎪</div>
+              {debounced ? `Aucun résultat pour « ${debounced} »` : 'Votre calendrier est vide — ajoutez votre premier salon !'}
             </div>
           )}
 
@@ -98,8 +99,9 @@ export function SalonsPage() {
       <div className={styles.detailCol}>
         {panel.mode === 'none' && (
           <div className={styles.detailEmpty}>
-            <span className={styles.detailEmptyIcon}>🎪</span>
-            <span className={styles.detailEmptyText}>Sélectionnez un salon pour voir le détail</span>
+            <div className={styles.detailEmptyBlob} />
+            <span className={styles.detailEmptyIcon}>🗓️</span>
+            <span className={styles.detailEmptyText}>Sélectionnez un salon pour voir son détail</span>
           </div>
         )}
 

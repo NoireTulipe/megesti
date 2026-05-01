@@ -20,10 +20,30 @@ const CreateArticleSchema = z.object({
   isbn:            z.string().optional().nullable(),
   datePublication: z.string().optional().nullable().transform((v) => v ? new Date(v) : null),
   auteurIds:       z.array(z.string().uuid()).default([]),
+  imprimeurId:     z.string().uuid().optional().nullable(),
 })
 
-const PatchArticleSchema = CreateArticleSchema.omit({ id: true }).partial().extend({
-  actif: z.boolean().optional(),
+// PatchArticleSchema construit sans .partial() sur CreateArticleSchema pour éviter
+// que les .default() héritent et écrasent les champs non envoyés.
+const PatchArticleSchema = z.object({
+  rayonId:         z.string().uuid().optional(),
+  categorieId:     z.string().uuid().optional().nullable(),
+  nom:             z.string().min(1).optional(),
+  reference:       z.string().optional().nullable(),
+  description:     z.string().optional().nullable(),
+  imageUrl:        z.string().url().optional().nullable().or(z.literal('')).transform((v) => v === undefined ? undefined : v || null),
+  prixVenteHT:     z.number().nonnegative().optional(),
+  prixAchatHT:     z.number().nonnegative().optional().nullable(),
+  prixAchatLotHT:  z.number().nonnegative().optional().nullable(),
+  prixAchatLotQte: z.number().int().positive().optional().nullable(),
+  stock:           z.number().int().nonnegative().optional(),
+  stockAlerte:     z.number().int().nonnegative().optional(),
+  stockTension:    z.number().int().nonnegative().optional(),
+  isbn:            z.string().optional().nullable(),
+  datePublication: z.string().optional().nullable().transform((v) => v === undefined ? undefined : v ? new Date(v) : null),
+  auteurIds:       z.array(z.string().uuid()).optional(),  // pas de .default([]) !
+  imprimeurId:     z.string().uuid().optional().nullable(),
+  actif:           z.boolean().optional(),
 })
 
 const ListQuerySchema = z.object({
@@ -53,6 +73,7 @@ export const articleRoutes: FastifyPluginAsync = async (app) => {
       include: {
         rayon:     true,
         categorie: true,
+        imprimeur: { select: { id: true, nom: true, lienCommande: true } },
         auteurs: {
           include: { auteur: { select: { id: true, prenom: true, nom: true, pseudonyme: true } } },
           orderBy: { ordre: 'asc' },
@@ -69,6 +90,7 @@ export const articleRoutes: FastifyPluginAsync = async (app) => {
       where:   { id, tenantId },
       include: {
         rayon: true, categorie: true,
+        imprimeur: { select: { id: true, nom: true, lienCommande: true } },
         auteurs: { include: { auteur: true }, orderBy: { ordre: 'asc' } },
       },
     })
@@ -87,6 +109,7 @@ export const articleRoutes: FastifyPluginAsync = async (app) => {
       },
       include: {
         rayon: true, categorie: true,
+        imprimeur: { select: { id: true, nom: true, lienCommande: true } },
         auteurs: { include: { auteur: true }, orderBy: { ordre: 'asc' } },
       },
     })
@@ -114,6 +137,7 @@ export const articleRoutes: FastifyPluginAsync = async (app) => {
         data:  rest,
         include: {
           rayon: true, categorie: true,
+          imprimeur: { select: { id: true, nom: true, lienCommande: true } },
           auteurs: { include: { auteur: true }, orderBy: { ordre: 'asc' } },
         },
       })

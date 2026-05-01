@@ -35,7 +35,7 @@ export function LoginPage() {
           <span style={{ color: 'white', fontSize: 22, fontFamily: 'DM Serif Display', fontStyle: 'italic' }}>é</span>
         </div>
         <h2 className={styles.visualTitle}>
-          L'atelier<br />de l'éditeur·ice
+          L'atelier<br />de l'éditeur
         </h2>
         <p className={styles.visualSub}>
           Gérez votre catalogue, vos auteurs,<br />

@@ -1,6 +1,14 @@
 import type { FastifyPluginAsync } from 'fastify'
 import { z } from 'zod'
 
+const ContactSchema = z.object({
+  nom:          z.string().min(1),
+  prenom:       z.string().optional().nullable(),
+  email:        z.string().email().optional().nullable().or(z.literal('')).transform(v => v || null),
+  telephone:    z.string().optional().nullable(),
+  typePaiement: z.enum(['VIREMENT', 'CHEQUE']).optional().nullable(),
+})
+
 const CreateSchema = z.object({
   id:                 z.string().uuid(),
   nom:                z.string().min(1),
@@ -8,9 +16,19 @@ const CreateSchema = z.object({
   commissionFixe:     z.number().nonnegative().optional().nullable(),
   commissionPourcent: z.number().min(0).max(100).optional().nullable(),
   encaissementDirect: z.boolean().default(true),
+  contacts:           z.array(ContactSchema).default([]),
 })
 
-const PatchSchema = CreateSchema.omit({ id: true }).partial()
+const PatchSchema = z.object({
+  nom:                z.string().min(1).optional(),
+  categorieId:        z.string().uuid().optional().nullable(),
+  commissionFixe:     z.number().nonnegative().optional().nullable(),
+  commissionPourcent: z.number().min(0).max(100).optional().nullable(),
+  encaissementDirect: z.boolean().optional(),
+  contacts:           z.array(ContactSchema).optional(),
+})
+
+const INCLUDE = { categorie: true, contacts: true }
 
 export const pointDeVenteRoutes: FastifyPluginAsync = async (app) => {
   const auth      = { preHandler: app.authenticate }
@@ -24,7 +42,7 @@ export const pointDeVenteRoutes: FastifyPluginAsync = async (app) => {
         tenantId, actif: true,
         ...(q && { nom: { contains: q, mode: 'insensitive' } }),
       },
-      include: { categorie: true },
+      include: INCLUDE,
       orderBy: { nom: 'asc' },
     })
   })
@@ -32,21 +50,21 @@ export const pointDeVenteRoutes: FastifyPluginAsync = async (app) => {
   app.get('/:id', auth, async (request, reply) => {
     const { tenantId } = request.tenant
     const { id } = request.params as { id: string }
-    const rec = await app.db.pointDeVente.findFirst({
-      where: { id, tenantId },
-      include: { categorie: true },
-    })
+    const rec = await app.db.pointDeVente.findFirst({ where: { id, tenantId }, include: INCLUDE })
     if (!rec) return reply.notFound()
     return rec
   })
 
   app.post('/', authAdmin, async (request, reply) => {
     const { tenantId } = request.tenant
-    const body = CreateSchema.parse(request.body)
+    const { contacts, ...body } = CreateSchema.parse(request.body)
     return reply.status(201).send(
       await app.db.pointDeVente.create({
-        data: { ...body, tenantId },
-        include: { categorie: true },
+        data: {
+          ...body, tenantId,
+          contacts: contacts.length ? { create: contacts } : undefined,
+        },
+        include: INCLUDE,
       })
     )
   })
@@ -54,13 +72,24 @@ export const pointDeVenteRoutes: FastifyPluginAsync = async (app) => {
   app.patch('/:id', authAdmin, async (request, reply) => {
     const { tenantId } = request.tenant
     const { id } = request.params as { id: string }
-    const body = PatchSchema.parse(request.body)
     const existing = await app.db.pointDeVente.findFirst({ where: { id, tenantId } })
     if (!existing) return reply.notFound()
-    return app.db.pointDeVente.update({
-      where: { id }, data: body,
-      include: { categorie: true },
+    const { contacts, ...body } = PatchSchema.parse(request.body)
+
+    const rec = await app.db.$transaction(async (tx) => {
+      if (contacts !== undefined) {
+        await tx.contactPointDeVente.deleteMany({ where: { pointDeVenteId: id } })
+      }
+      return tx.pointDeVente.update({
+        where: { id },
+        data: {
+          ...body,
+          ...(contacts?.length ? { contacts: { create: contacts } } : {}),
+        },
+        include: INCLUDE,
+      })
     })
+    return rec
   })
 
   app.delete('/:id', authAdmin, async (request, reply) => {

@@ -1,0 +1,149 @@
+.urlField {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.urlField input { flex: 1; padding-right: 32px; }
+.urlIcon {
+  position: absolute;
+  right: 10px;
+  color: var(--text-soft);
+  pointer-events: none;
+}
+
+/* Points forts/faibles */
+.pointsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+@media (max-width: 540px) { .pointsGrid { grid-template-columns: 1fr; } }
+
+.pointList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.pointListHeader {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 4px;
+}
+.pointDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.pointRow {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.pointInput {
+  flex: 1;
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 13px;
+  color: var(--ink);
+  outline: none;
+  transition: border-color 0.15s;
+}
+.pointInput:focus { border-color: var(--accent); }
+.removeBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: none;
+  color: var(--text-soft);
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background 0.15s;
+}
+.removeBtn:hover { background: #fee2e2; color: #ef4444; }
+.addSmallBtn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--text-soft);
+  background: none;
+  border: 1px dashed var(--border);
+  border-radius: 6px;
+  padding: 5px 10px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+.addSmallBtn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* Contacts */
+.contactCard {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  background: var(--surface);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+}
+.contactGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  flex: 1;
+}
+.contactInput {
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 13px;
+  color: var(--ink);
+  background: white;
+  outline: none;
+  transition: border-color 0.15s;
+  width: 100%;
+}
+.contactInput:focus { border-color: var(--accent); }
+.removeContactBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: none;
+  color: var(--text-soft);
+  cursor: pointer;
+  border-radius: 6px;
+  flex-shrink: 0;
+  margin-top: 2px;
+  transition: background 0.15s;
+}
+.removeContactBtn:hover { background: #fee2e2; color: #ef4444; }
+
+.addBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text-soft);
+  background: none;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  padding: 8px 14px;
+  cursor: pointer;
+  width: 100%;
+  transition: border-color 0.15s, color 0.15s;
+}
+.addBtn:hover { border-color: var(--accent); color: var(--accent); }

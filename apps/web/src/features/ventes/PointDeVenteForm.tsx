@@ -1,9 +1,10 @@
-import { useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { Plus, X } from 'lucide-react'
 import { useCreatePointDeVente, useUpdatePointDeVente } from './hooks/usePointsDeVente'
-import type { PointDeVente } from './hooks/usePointsDeVente'
+import type { PointDeVente, ContactPointDeVente, TypePaiementRemise } from './hooks/usePointsDeVente'
 import { useCategoriesPointDeVente } from './hooks/useCategoriesPointDeVente'
 import { CustomFieldsRenderer } from '@/components/CustomFieldsRenderer'
 import { useCustomFields } from '@/features/reglages/hooks/useCustomFields'
@@ -11,6 +12,7 @@ import { useCustomFieldValues, useSaveCustomFieldValues } from '@/features/regla
 import { validateCustomFields } from '@/lib/customFieldValidation'
 import { FIXED_SECTIONS } from '@/lib/fixedSections'
 import styles from '@/styles/entityForm.module.css'
+import fStyles from './PointDeVenteForm.module.css'
 
 const FIXED_CATEGORIES = FIXED_SECTIONS.pointDeVente.map((s) => s.label)
 
@@ -29,8 +31,13 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>
 
+interface ContactRow {
+  nom: string; prenom: string; email: string; telephone: string
+  typePaiement: TypePaiementRemise | ''
+}
+
 interface Props {
-  onClose:      () => void
+  onClose:       () => void
   pointDeVente?: PointDeVente
 }
 
@@ -39,11 +46,18 @@ export function PointDeVenteForm({ onClose, pointDeVente }: Props) {
   const create           = useCreatePointDeVente()
   const update           = useUpdatePointDeVente()
   const saveCustomValues = useSaveCustomFieldValues()
-  const { data: categories = [] }  = useCategoriesPointDeVente()
-  const { data: allChamps = [] }   = useCustomFields('pointDeVente')
+  const { data: categories = [] }   = useCategoriesPointDeVente()
+  const { data: allChamps = [] }    = useCustomFields('pointDeVente')
   const { data: customValues = {} } = useCustomFieldValues(pointDeVente?.id, { enabled: !!pointDeVente?.id })
 
-  const { register, handleSubmit, setValue, getValues, setError, clearErrors,
+  const [contacts, setContacts] = useState<ContactRow[]>(
+    pointDeVente?.contacts.map(c => ({
+      nom: c.nom, prenom: c.prenom ?? '', email: c.email ?? '',
+      telephone: c.telephone ?? '', typePaiement: c.typePaiement ?? '',
+    })) ?? []
+  )
+
+  const { register, handleSubmit, watch, setValue, getValues, setError, clearErrors,
           formState: { errors, isSubmitting } } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: pointDeVente ? {
@@ -54,6 +68,8 @@ export function PointDeVenteForm({ onClose, pointDeVente }: Props) {
       encaissementDirect: pointDeVente.encaissementDirect,
     } : { encaissementDirect: true },
   })
+
+  const encaissementDirect = watch('encaissementDirect')
 
   useEffect(() => {
     if (isEdit && Object.keys(customValues).length > 0) {
@@ -78,6 +94,15 @@ export function PointDeVenteForm({ onClose, pointDeVente }: Props) {
       commissionFixe:     values.commissionFixe     ?? null,
       commissionPourcent: values.commissionPourcent ?? null,
       encaissementDirect: values.encaissementDirect,
+      contacts: contacts
+        .filter(c => c.nom.trim())
+        .map(c => ({
+          nom:          c.nom,
+          prenom:       c.prenom       || null,
+          email:        c.email        || null,
+          telephone:    c.telephone    || null,
+          typePaiement: (c.typePaiement as TypePaiementRemise) || null,
+        })),
     }
 
     const entityId = isEdit ? pointDeVente!.id : crypto.randomUUID()
@@ -95,9 +120,20 @@ export function PointDeVenteForm({ onClose, pointDeVente }: Props) {
     onClose()
   }
 
+  function addContact() {
+    setContacts(prev => [...prev, { nom: '', prenom: '', email: '', telephone: '', typePaiement: '' }])
+  }
+  function removeContact(i: number) {
+    setContacts(prev => prev.filter((_, j) => j !== i))
+  }
+  function updateContact(i: number, key: keyof ContactRow, val: string) {
+    setContacts(prev => prev.map((c, j) => j === i ? { ...c, [key]: val } : c))
+  }
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className={styles.form}>
 
+      {/* ── Informations ── */}
       <div className={styles.section}>
         <p className={styles.sectionLabel}>Informations</p>
         <div className={styles.field}>
@@ -109,7 +145,7 @@ export function PointDeVenteForm({ onClose, pointDeVente }: Props) {
           <label className={styles.label} htmlFor="categorieId">Catégorie</label>
           <select id="categorieId" className={styles.input} {...register('categorieId')}>
             <option value="">— Aucune —</option>
-            {categories.map((c) => <option key={c.id} value={c.id}>{c.nom}</option>)}
+            {categories.map(c => <option key={c.id} value={c.id}>{c.nom}</option>)}
           </select>
         </div>
         <div className={styles.row2}>
@@ -125,18 +161,61 @@ export function PointDeVenteForm({ onClose, pointDeVente }: Props) {
         <CustomFieldsRenderer entityType="pointDeVente" onlyCategory="Informations" register={register} errors={errors} />
       </div>
 
+      {/* ── Encaissement ── */}
       <div className={styles.section}>
         <p className={styles.sectionLabel}>Encaissement</p>
-        <div className={styles.field}>
-          <label className={styles.label} style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
-            <input type="checkbox" {...register('encaissementDirect')} style={{ width: 16, height: 16 }} />
-            Encaissement direct par la ME
-          </label>
-          <p style={{ fontSize: '0.78rem', color: 'var(--text-soft)', margin: 0 }}>
-            Si décoché, le point de vente encaisse et reverse ensuite à la ME.
-          </p>
+        <div className={fStyles.encaissRow}>
+          <button
+            type="button"
+            className={`${fStyles.encaissBtn} ${encaissementDirect ? fStyles.encaissBtnActive : ''}`}
+            onClick={() => setValue('encaissementDirect', true)}
+          >
+            <span className={fStyles.encaissEmoji}>🏪</span>
+            <span className={fStyles.encaissLabel}>Direct par la ME</span>
+            <span className={fStyles.encaissDesc}>CB, espèces, chèque…</span>
+          </button>
+          <button
+            type="button"
+            className={`${fStyles.encaissBtn} ${!encaissementDirect ? fStyles.encaissBtnActive : ''}`}
+            onClick={() => setValue('encaissementDirect', false)}
+          >
+            <span className={fStyles.encaissEmoji}>🏬</span>
+            <span className={fStyles.encaissLabel}>Par le point de vente</span>
+            <span className={fStyles.encaissDesc}>Le PDV encaisse, reverse ensuite</span>
+          </button>
         </div>
+        <input type="hidden" {...register('encaissementDirect')} />
         <CustomFieldsRenderer entityType="pointDeVente" onlyCategory="Encaissement" register={register} errors={errors} />
+      </div>
+
+      {/* ── Contacts ── */}
+      <div className={styles.section}>
+        <p className={styles.sectionLabel}>Contacts</p>
+        {contacts.map((c, i) => (
+          <div key={i} className={fStyles.contactCard}>
+            <div className={fStyles.contactGrid}>
+              <input className={fStyles.cInput} placeholder="Nom *" value={c.nom} onChange={e => updateContact(i, 'nom', e.target.value)} />
+              <input className={fStyles.cInput} placeholder="Prénom" value={c.prenom} onChange={e => updateContact(i, 'prenom', e.target.value)} />
+              <input className={fStyles.cInput} placeholder="Email" type="email" value={c.email} onChange={e => updateContact(i, 'email', e.target.value)} />
+              <input className={fStyles.cInput} placeholder="Téléphone" value={c.telephone} onChange={e => updateContact(i, 'telephone', e.target.value)} />
+              <select
+                className={fStyles.cSelect}
+                value={c.typePaiement}
+                onChange={e => updateContact(i, 'typePaiement', e.target.value)}
+              >
+                <option value="">— Mode de remise —</option>
+                <option value="VIREMENT">💳 Virement bancaire</option>
+                <option value="CHEQUE">📋 Chèque</option>
+              </select>
+            </div>
+            <button type="button" className={fStyles.removeBtn} onClick={() => removeContact(i)}>
+              <X size={13} />
+            </button>
+          </div>
+        ))}
+        <button type="button" className={fStyles.addBtn} onClick={addContact}>
+          <Plus size={13} /> Ajouter un contact
+        </button>
       </div>
 
       <CustomFieldsRenderer entityType="pointDeVente" excludeCategories={FIXED_CATEGORIES} register={register} errors={errors} />

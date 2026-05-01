@@ -113,7 +113,7 @@ export function SalonForm({ onClose, salon }: Props) {
       </div>
 
       <div className={styles.section}>
-        <p className={styles.sectionLabel}>Dates</p>
+        <p className={styles.sectionLabel}>Dates du prochain salon</p>
         <div className={styles.row2}>
           <div className={styles.field}>
             <label className={styles.label} htmlFor="dateDebut">Date de début</label>

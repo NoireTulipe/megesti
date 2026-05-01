@@ -1,32 +1,58 @@
 .form {
   display: flex;
   flex-direction: column;
-  gap: 28px;
+  gap: 24px;
 }
 
+/* ── Section ── */
 .section {
   display: flex;
   flex-direction: column;
   gap: 14px;
+  padding: 18px 20px;
+  background: var(--cream);
+  border-radius: 16px;
+  border: 1px solid var(--cream-dark);
+  position: relative;
 }
 
 .sectionLabel {
-  font-size: 0.7rem;
+  font-size: 0.63rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--terra);
-  margin: 0;
-  padding-bottom: 8px;
-  border-bottom: 1px solid var(--cream-dark);
+  letter-spacing: 0.14em;
+  color: var(--rose-dark);
+  margin: 0 0 2px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.sectionLabel::before {
+  content: '';
+  display: inline-block;
+  width: 16px;
+  height: 2px;
+  background: linear-gradient(90deg, var(--rose) 0%, var(--rose-mid) 100%);
+  border-radius: 100px;
+  flex-shrink: 0;
 }
 
+/* ── Grilles ── */
 .row2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16px;
+  gap: 14px;
+}
+.row3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 14px;
+}
+@media (max-width: 520px) {
+  .row2, .row3 { grid-template-columns: 1fr; }
 }
 
+/* ── Champ ── */
 .field {
   display: flex;
   flex-direction: column;
@@ -34,50 +60,61 @@
 }
 
 .label {
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   font-weight: 600;
   color: var(--ink);
   letter-spacing: 0.01em;
 }
+.req { color: var(--rose); margin-left: 2px; }
 
-.req { color: var(--terra); }
-
+/* ── Inputs — héritent des styles globaux de globals.css ── */
 .input,
-.textarea {
-  padding: 12px 16px;
+.textarea,
+.select {
+  padding: 11px 14px;
   border: 1.5px solid var(--cream-dark);
-  border-radius: 10px;
-  font-size: 0.95rem;
+  border-radius: var(--radius-input);
+  font-size: 0.875rem;
   color: var(--ink);
-  background: var(--cream);
+  background: var(--white);
   outline: none;
   font-family: inherit;
-  transition: border-color 0.18s, background 0.18s, box-shadow 0.18s;
+  transition: border-color var(--t-fast) ease, box-shadow var(--t-fast) ease;
   resize: vertical;
   width: 100%;
-  box-sizing: border-box;
 }
 .input:focus,
-.textarea:focus {
-  border-color: var(--ink-light);
-  background: #fff;
-  box-shadow: 0 0 0 3px rgba(28, 58, 94, 0.08);
-}
-.inputError {
-  border-color: #EF4444;
-  background: #FFF5F5;
-}
-.inputError:focus {
-  border-color: #EF4444;
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.10);
+.textarea:focus,
+.select:focus {
+  border-color: var(--rose);
+  box-shadow: 0 0 0 3.5px var(--rose-glow);
 }
 
+.inputError { border-color: #EF4444 !important; background: #FFF5F5; }
+.inputError:focus { box-shadow: 0 0 0 3.5px rgba(239, 68, 68, 0.12) !important; }
+
+.inputWithUnit {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.inputWithUnit .input { padding-right: 36px; }
+.unit {
+  position: absolute;
+  right: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-soft);
+  pointer-events: none;
+}
+
+/* ── Erreurs ── */
 .error {
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   color: #DC2626;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
 }
 .error::before { content: '⚠'; font-size: 0.7rem; }
 
@@ -91,39 +128,94 @@
   margin: 0;
 }
 
+/* ── Actions ── */
 .actions {
   display: flex;
   justify-content: flex-end;
-  gap: 12px;
+  gap: 10px;
   padding-top: 4px;
 }
 
 .btnPrimary {
-  height: 46px;
+  height: 44px;
   padding: 0 28px;
-  background: var(--terra);
-  color: #fff;
   border: none;
-  border-radius: 10px;
-  font-size: 0.9rem;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(135deg, var(--rose) 0%, #B87A66 100%);
+  color: white;
+  font-size: 0.875rem;
   font-weight: 600;
-  cursor: pointer;
-  transition: background 0.18s, transform 0.12s, box-shadow 0.18s;
-  box-shadow: 0 4px 14px rgba(217, 95, 59, 0.35);
+  box-shadow: 0 4px 16px rgba(196, 144, 124, 0.35);
+  transition: box-shadow var(--t-med) ease, transform var(--t-med) var(--ease-spring);
 }
-.btnPrimary:hover:not(:disabled) { background: var(--ink); box-shadow: 0 4px 14px rgba(28, 58, 94, 0.30); }
-.btnPrimary:active:not(:disabled) { transform: scale(0.97); }
-.btnPrimary:disabled { opacity: 0.55; cursor: not-allowed; box-shadow: none; }
+.btnPrimary:hover:not(:disabled) {
+  box-shadow: 0 8px 28px rgba(196, 144, 124, 0.45);
+  transform: translateY(-1px);
+}
+.btnPrimary:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
 
 .btnSecondary {
-  height: 46px;
-  padding: 0 24px;
-  background: transparent;
-  color: var(--text-mid);
+  height: 44px;
+  padding: 0 22px;
   border: 1.5px solid var(--cream-dark);
-  border-radius: 10px;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: border-color 0.15s, color 0.15s;
+  border-radius: var(--radius-pill);
+  background: var(--white);
+  color: var(--text-mid);
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: border-color var(--t-fast) ease, color var(--t-fast) ease;
 }
-.btnSecondary:hover { border-color: var(--ink-light); color: var(--ink); }
+.btnSecondary:hover {
+  border-color: var(--rose-mid);
+  color: var(--rose-dark);
+  background: var(--rose-light);
+}
+
+/* ── Auteur search (ArticleForm) ── */
+.auteurSearch {
+  height: 38px;
+  width: 100%;
+  padding: 0 14px;
+  border: 1.5px solid var(--cream-dark);
+  border-radius: var(--radius-input);
+  font-size: 0.875rem;
+  outline: none;
+  font-family: inherit;
+  color: var(--ink);
+  background: var(--white);
+  transition: border-color var(--t-fast) ease;
+  margin-bottom: 2px;
+}
+.auteurSearch:focus { border-color: var(--rose); box-shadow: 0 0 0 3.5px var(--rose-glow); }
+
+.auteurList {
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1.5px solid var(--cream-dark);
+  border-radius: 12px;
+  background: var(--white);
+}
+.auteurEmpty {
+  padding: 16px;
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--text-soft);
+  font-style: italic;
+  margin: 0;
+}
+.auteurRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: var(--ink);
+  border-bottom: 1px solid var(--cream-dark);
+  transition: background var(--t-fast) ease;
+}
+.auteurRow:last-child { border-bottom: none; }
+.auteurRow:hover { background: var(--cream); }
+.auteurRowSelected { background: var(--rose-light); color: var(--rose-dark); font-weight: 500; }
+.auteurRowSelected:hover { background: var(--rose-light); }
+.auteurCheck { flex-shrink: 0; }

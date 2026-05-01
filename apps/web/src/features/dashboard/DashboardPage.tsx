@@ -7,6 +7,11 @@ import { AlertItem } from './AlertItem'
 import { ActivityItem } from './ActivityItem'
 import { QuickBtn } from './QuickBtn'
 import { useDashboardStats } from './hooks/useDashboardStats'
+import { useTotauxReversements } from '@/features/reversements/hooks/useReversements'
+import { useAlertesDA } from '@/features/droitsAuteur/hooks/useDroitsAuteur'
+// Note: totaux côté API calculent déjà le net basé sur montantAjuste ou montantTTC brut
+// Les totaux affinés (après commission) sont calculés côté page Reversements
+import { useNavigate } from 'react-router-dom'
 import type { AlertData, ActivityData } from './data'
 import { METRIC_CA, METRIC_COMMANDES, METRIC_DROITS, QUICK_ACTIONS, IN_PREP } from './data'
 
@@ -86,16 +91,38 @@ export function DashboardPage() {
   const [saleSubmitted, setSaleSubmitted] = useState(false)
   const [toasts, setToasts] = useState<Array<{ id: number; msg: string }>>([])
 
-  const { data: stats } = useDashboardStats()
+  const { data: stats }     = useDashboardStats()
+  const { data: totauxRev } = useTotauxReversements()
+  const { data: alertesDA } = useAlertesDA()
+  const navigate = useNavigate()
 
-  const alertes: AlertData[] = stats?.alertesStock.length
-    ? stats.alertesStock.map((a) => ({
-        id: a.id,
-        iconName: 'book' as const,
-        text: `Stock faible : ${a.nom}`,
-        sub: `${a.stock} ex. restant${a.stock > 1 ? 's' : ''} (alerte à ${a.stockAlerte})`,
-      }))
-    : []
+  const fmtDateCourt = (s: string) =>
+    new Date(s).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
+
+  const alertesDA_items: AlertData[] = [
+    ...(alertesDA?.retard ?? []).map((c) => ({
+      id:       `da-retard-${c.id}`,
+      iconName: 'coins' as const,
+      text:     `Droits d'auteur en retard — ${c.auteur.prenom} ${c.auteur.nom}`,
+      sub:      `Échéance dépassée du ${fmtDateCourt(c.prochainVersement)}${c.article ? ` · ${c.article.nom}` : ''}`,
+    })),
+    ...(alertesDA?.bientot ?? []).map((c) => ({
+      id:       `da-bientot-${c.id}`,
+      iconName: 'coins' as const,
+      text:     `Droits d'auteur à verser — ${c.auteur.prenom} ${c.auteur.nom}`,
+      sub:      `Échéance le ${fmtDateCourt(c.prochainVersement)}${c.article ? ` · ${c.article.nom}` : ''}`,
+    })),
+  ]
+
+  const alertes: AlertData[] = [
+    ...alertesDA_items,
+    ...(stats?.alertesStock ?? []).map((a) => ({
+      id:       a.id,
+      iconName: 'book' as const,
+      text:     `Stock faible : ${a.nom}`,
+      sub:      `${a.stock} ex. restant${a.stock > 1 ? 's' : ''} (alerte à ${a.stockAlerte})`,
+    })),
+  ]
 
   const activite: ActivityData[] = stats?.activiteRecente.length
     ? stats.activiteRecente.map((v, i) => ({
@@ -116,6 +143,32 @@ export function DashboardPage() {
 
   return (
     <div style={{ padding: '28px 32px 40px', display: 'flex', flexDirection: 'column', gap: 22 }}>
+
+      {/* ── Widget reversements en attente ── */}
+      {totauxRev && totauxRev.enAttente.nb > 0 && (
+        <button
+          onClick={() => navigate('/reversements')}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 14,
+            background: 'linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%)',
+            border: '1.5px solid rgba(201,147,58,0.4)',
+            borderRadius: 16, padding: '14px 20px',
+            cursor: 'pointer', textAlign: 'left', width: '100%',
+            animation: 'fadeUp 0.4s ease both',
+          }}
+        >
+          <span style={{ fontSize: '1.6rem', flexShrink: 0 }}>💰</span>
+          <div style={{ flex: 1 }}>
+            <p style={{ fontSize: 13, fontWeight: 700, color: '#92400E', margin: '0 0 2px' }}>
+              {totauxRev.enAttente.nb} reversement{totauxRev.enAttente.nb > 1 ? 's' : ''} en attente
+            </p>
+            <p style={{ fontSize: 12, color: '#B45309', margin: 0 }}>
+              {Number(totauxRev.enAttente.montant).toLocaleString('fr-FR', { minimumFractionDigits: 2 })} € à recevoir de vos points de vente partenaires
+            </p>
+          </div>
+          <span style={{ fontSize: 13, color: '#92400E', fontWeight: 600, flexShrink: 0 }}>Voir →</span>
+        </button>
+      )}
 
       {/* ── Titre ── */}
       <div className="zone-animate" style={{ animationDelay: '0ms' }}>

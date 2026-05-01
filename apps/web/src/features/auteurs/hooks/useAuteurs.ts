@@ -12,6 +12,16 @@ export interface Auteur {
   _count:     { contrats: number }
 }
 
+export interface ArticleForAuteur {
+  articleId: string
+  ordre:     number
+  article:   { id: string; nom: string; isbn: string | null; stock: number; prixVenteHT: string }
+}
+
+export interface AuteurDetail extends Auteur {
+  articles: ArticleForAuteur[]
+}
+
 export interface CreateAuteurPayload {
   id:          string
   prenom:      string
@@ -42,6 +52,14 @@ export function useAuteurs(opts: UseAuteursOptions = {}) {
       const qs = params.toString()
       return api.get<Auteur[]>(`/auteurs${qs ? `?${qs}` : ''}`)
     },
+  })
+}
+
+export function useAuteurDetail(id?: string) {
+  return useQuery({
+    queryKey: [...KEYS.all(), 'detail', id ?? ''],
+    queryFn:  () => api.get<AuteurDetail>(`/auteurs/${id}`),
+    enabled:  !!id,
   })
 }
 

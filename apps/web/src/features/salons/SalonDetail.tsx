@@ -273,7 +273,7 @@ export function SalonDetail({ salon, onDone, onCancel }: Props) {
 
         {/* Dates */}
         <section className={styles.section}>
-          <h3 className={styles.sectionTitle}>Dates</h3>
+          <h3 className={styles.sectionTitle}>Dates du prochain salon</h3>
           <div className={styles.grid2}>
             <div className={styles.field}>
               <label className={styles.label}>Date de début</label>

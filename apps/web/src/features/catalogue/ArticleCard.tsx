@@ -7,46 +7,66 @@ interface Props {
   onToggle?:  (actif: boolean) => void
 }
 
+function StockPill({ article }: { article: Article }) {
+  const { stock, stockAlerte, stockTension } = article
+  let cls = styles.stockOk
+  let label = `${stock} en stock`
+
+  if (stock <= stockAlerte)  { cls = styles.stockAlerte;  label = `⚠ ${stock} — alerte` }
+  else if (stock <= stockTension) { cls = styles.stockTension; label = `${stock} — attention` }
+
+  return <span className={`${styles.stockPill} ${cls}`}>{label}</span>
+}
+
 export function ArticleCard({ article, onEdit, onToggle }: Props) {
   const retire = !article.actif
 
   return (
     <article className={`${styles.card}${retire ? ` ${styles.cardRetire}` : ''}`}>
-      {article.imageUrl
-        ? <img src={article.imageUrl} alt={article.nom} className={styles.img} />
-        : <div className={styles.imgPlaceholder}>{article.nom[0]?.toUpperCase()}</div>
-      }
+      {/* Zone image */}
+      <div className={styles.imgWrap}>
+        {article.imageUrl
+          ? <img src={article.imageUrl} alt={article.nom} className={styles.img} />
+          : (
+            <div className={styles.imgPlaceholder}>
+              <span className={styles.placeholderLetter}>{article.nom[0]?.toUpperCase()}</span>
+              <div className={styles.placeholderDecor} aria-hidden="true" />
+            </div>
+          )
+        }
+        {retire && <span className={styles.badgeRetire}>Retiré</span>}
+        {onToggle && (
+          <button
+            className={`${styles.retireBtn}${retire ? ` ${styles.retireBtnRestore}` : ''}`}
+            onClick={(e) => { e.stopPropagation(); onToggle(retire) }}
+            title={retire ? 'Remettre au catalogue' : 'Retirer'}
+          >
+            {retire ? '↩' : '✕'}
+          </button>
+        )}
+        {onEdit && (
+          <button className={styles.editBtn} onClick={(e) => { e.stopPropagation(); onEdit() }} aria-label="Modifier">
+            ✎
+          </button>
+        )}
+      </div>
 
-      {retire && <span className={styles.badgeRetire}>Retiré</span>}
-
+      {/* Corps */}
       <div className={styles.body}>
         <p className={styles.rayon}>{article.rayon.nom}{article.categorie ? ` · ${article.categorie.nom}` : ''}</p>
         <p className={styles.nom}>{article.nom}</p>
         {article.isbn && <p className={styles.isbn}>{article.isbn}</p>}
-        <p className={styles.prix}>{Number(article.prixVenteHT).toFixed(2)} € HT</p>
-        <p className={styles.stock}>{article.stock} en stock</p>
+
+        <div className={styles.footer}>
+          <span className={styles.prix}>{Number(article.prixVenteHT).toFixed(2)} €</span>
+          <StockPill article={article} />
+        </div>
+
+        {/* Badge imprimeur si lié */}
+        {article.imprimeur && (
+          <p className={styles.imprimeurBadge}>🖨 {article.imprimeur.nom}</p>
+        )}
       </div>
-
-      {onToggle && (
-        <button
-          className={`${styles.retireBtn}${retire ? ` ${styles.retireBtnRestore}` : ''}`}
-          onClick={(e) => { e.stopPropagation(); onToggle(!retire) }}
-          title={retire ? 'Remettre au catalogue' : 'Retirer du catalogue'}
-          aria-label={retire ? 'Remettre au catalogue' : 'Retirer du catalogue'}
-        >
-          {retire ? '↩' : '✕'}
-        </button>
-      )}
-
-      {onEdit && (
-        <button
-          className={styles.editBtn}
-          onClick={(e) => { e.stopPropagation(); onEdit() }}
-          aria-label="Modifier"
-        >
-          ✎
-        </button>
-      )}
     </article>
   )
 }

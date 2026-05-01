@@ -18,6 +18,15 @@ import { dashboardRoutes }     from './dashboard.js'
 import { typeSalonRoutes }      from './types-salon.js'
 import { typeDARoutes }         from './types-da.js'
 import { contratAuteurRoutes }  from './contrats-auteur.js'
+import { imprimeurRoutes }       from './imprimeurs.js'
+import { rapportRoutes }         from './rapports.js'
+import { mouvementStockRoutes }  from './mouvements-stock.js'
+import { fraisRoutes }           from './frais.js'
+import { reversementRoutes }     from './reversements.js'
+import { monTenantRoutes }       from './mon-tenant.js'
+import { chargeRoutes }          from './charges.js'
+import { motifVenteRoutes }      from './motifs-vente.js'
+import { droitsAuteurRoutes }    from './droits-auteur.js'
 
 export const routes: FastifyPluginAsync = async (app) => {
   await app.register(authRoutes,        { prefix: '/auth' })
@@ -39,4 +48,13 @@ export const routes: FastifyPluginAsync = async (app) => {
   await app.register(typeSalonRoutes,    { prefix: '/types-salon' })
   await app.register(typeDARoutes,       { prefix: '/types-da' })
   await app.register(contratAuteurRoutes, { prefix: '/contrats-auteur' })
+  await app.register(imprimeurRoutes,     { prefix: '/imprimeurs' })
+  await app.register(rapportRoutes,       { prefix: '/rapports' })
+  await app.register(mouvementStockRoutes, { prefix: '/mouvements-stock' })
+  await app.register(fraisRoutes,          { prefix: '/frais' })
+  await app.register(reversementRoutes,    { prefix: '/reversements' })
+  await app.register(monTenantRoutes,      { prefix: '/mon-tenant' })
+  await app.register(chargeRoutes,         { prefix: '/charges' })
+  await app.register(motifVenteRoutes,     { prefix: '/motifs-vente' })
+  await app.register(droitsAuteurRoutes,   { prefix: '/droits-auteur' })
 }

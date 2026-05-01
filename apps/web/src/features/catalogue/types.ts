@@ -19,10 +19,17 @@ export interface ArticleAuteur {
   auteur: { id: string; prenom: string; nom: string; pseudonyme: string | null }
 }
 
+export interface ArticleImprimeur {
+  id:           string
+  nom:          string
+  lienCommande: string | null
+}
+
 export interface Article {
   id:              string
   rayonId:         string
   categorieId:     string | null
+  imprimeurId:     string | null
   nom:             string
   reference:       string | null
   description:     string | null
@@ -39,6 +46,7 @@ export interface Article {
   datePublication: string | null
   rayon:           Rayon
   categorie:       Categorie | null
+  imprimeur:       ArticleImprimeur | null
   auteurs:         ArticleAuteur[]
 }
 
@@ -60,4 +68,5 @@ export interface CreateArticlePayload {
   isbn?:            string | null
   datePublication?: string | null
   auteurIds:        string[]
+  imprimeurId?:     string | null
 }

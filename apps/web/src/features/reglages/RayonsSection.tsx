@@ -93,6 +93,11 @@ export function RayonsSection() {
     await updateRayon.mutateAsync({ id, isLibrairie: !current })
   }
 
+  async function handleUpdateTVA(id: string, taux: number) {
+    setRayons((prev) => prev.map((r) => r.id === id ? { ...r, tauxTVA: String(taux) } : r))
+    await updateRayon.mutateAsync({ id, tauxTVA: taux })
+  }
+
   async function handleDeleteRayon(id: string, nom: string) {
     if (!confirm(`Supprimer le rayon « ${nom} » et toutes ses catégories ?`)) return
     try {
@@ -158,6 +163,7 @@ export function RayonsSection() {
                 }
                 onRename={handleRenameRayon}
                 onToggleLibrairie={handleToggleLibrairie}
+                onUpdateTVA={handleUpdateTVA}
                 onDelete={handleDeleteRayon}
                 onAddCategorie={handleAddCategorie}
                 onRenameCategorie={handleRenameCategorie}
@@ -226,6 +232,7 @@ interface SortableRayonProps {
   onToggleExpand:    () => void
   onRename:          (id: string, nom: string) => Promise<void>
   onToggleLibrairie: (id: string, current: boolean) => Promise<void>
+  onUpdateTVA:       (id: string, taux: number) => Promise<void>
   onDelete:          (id: string, nom: string) => Promise<void>
   onAddCategorie:    (rayonId: string) => Promise<void>
   onRenameCategorie: (id: string, rayonId: string, nom: string) => Promise<void>
@@ -233,11 +240,13 @@ interface SortableRayonProps {
 }
 
 function SortableRayon({
-  rayon, isExpanded, onToggleExpand, onRename, onToggleLibrairie,
+  rayon, isExpanded, onToggleExpand, onRename, onToggleLibrairie, onUpdateTVA,
   onDelete, onAddCategorie, onRenameCategorie, onDeleteCategorie,
 }: SortableRayonProps) {
-  const [editing, setEditing] = useState(false)
-  const [draft, setDraft]     = useState(rayon.nom)
+  const [editing,     setEditing]     = useState(false)
+  const [draft,       setDraft]       = useState(rayon.nom)
+  const [editingTVA,  setEditingTVA]  = useState(false)
+  const [draftTVA,    setDraftTVA]    = useState(String(Number(rayon.tauxTVA)))
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id:   `rayon::${rayon.id}`,
@@ -254,6 +263,12 @@ function SortableRayon({
     const nom = draft.trim()
     if (nom && nom !== rayon.nom) await onRename(rayon.id, nom)
     setEditing(false)
+  }
+
+  async function commitTVA() {
+    const taux = parseFloat(draftTVA.replace(',', '.'))
+    if (!isNaN(taux) && taux >= 0 && taux <= 100) await onUpdateTVA(rayon.id, taux)
+    setEditingTVA(false)
   }
 
   const catIds = rayon.categories.map((c) => `cat::${rayon.id}::${c.id}`)
@@ -291,6 +306,30 @@ function SortableRayon({
         <span className={styles.catCount}>
           {rayon.categories.length} catégorie{rayon.categories.length !== 1 ? 's' : ''}
         </span>
+
+        {/* Taux TVA éditable */}
+        {editingTVA ? (
+          <span className={styles.tvaBadgeEdit}>
+            <input
+              className={styles.tvaInput}
+              value={draftTVA}
+              onChange={e => setDraftTVA(e.target.value)}
+              onBlur={commitTVA}
+              onKeyDown={e => { if (e.key === 'Enter') commitTVA(); if (e.key === 'Escape') { setDraftTVA(String(Number(rayon.tauxTVA))); setEditingTVA(false) } }}
+              autoFocus
+              inputMode="decimal"
+            />
+            <span className={styles.tvaUnit}>%</span>
+          </span>
+        ) : (
+          <button
+            className={styles.tvaBadge}
+            onClick={() => { setDraftTVA(String(Number(rayon.tauxTVA))); setEditingTVA(true) }}
+            title="Cliquer pour modifier le taux TVA"
+          >
+            TVA {Number(rayon.tauxTVA)} %
+          </button>
+        )}
 
         <button
           className={`${styles.btnLibrairie} ${rayon.isLibrairie ? styles.btnLibrairieActive : ''}`}

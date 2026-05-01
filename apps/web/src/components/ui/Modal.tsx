@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode, type MouseEvent } from 'react'
+import { useEffect, type ReactNode } from 'react'
 import styles from './Modal.module.css'
 
 interface ModalProps {
@@ -29,14 +29,10 @@ export function Modal({ isOpen, title, subtitle, onClose, children, size = 'lg',
 
   if (!isOpen) return null
 
-  const handleOverlay = (e: MouseEvent<HTMLDivElement>) => {
-    if (e.target === e.currentTarget) onClose()
-  }
-
   const inlineStyle = width ? { width, maxWidth: '95vw' } : undefined
 
   return (
-    <div className={styles.overlay} onClick={handleOverlay}>
+    <div className={styles.overlay}>
       <div
         className={`${styles.dialog} ${styles[size]}`}
         style={inlineStyle}

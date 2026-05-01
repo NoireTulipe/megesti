@@ -1,0 +1,387 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  animation: fadeUp 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes fadeUp { from { opacity: 0; transform: translateY(10px) } to { opacity: 1; transform: none } }
+
+/* ════════════════════════════════════════════════════════════════
+   HERO
+   ════════════════════════════════════════════════════════════════ */
+.hero {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--ink-deep) 0%, #1E2F50 60%, #2A1F3D 100%);
+  padding: 36px 40px 32px;
+  flex-shrink: 0;
+}
+
+.heroBlob {
+  position: absolute;
+  top: -80px;
+  right: -80px;
+  width: 320px;
+  height: 320px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(196, 144, 124, 0.2) 0%, rgba(139, 123, 171, 0.1) 50%, transparent 70%);
+  pointer-events: none;
+  animation: blobPulse 6s ease-in-out infinite;
+}
+@keyframes blobPulse {
+  0%, 100% { transform: scale(1); opacity: 0.8; }
+  50%       { transform: scale(1.1); opacity: 1; }
+}
+
+.heroContent {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.heroText {}
+.heroTitle {
+  font-family: 'DM Serif Display', serif;
+  font-size: 2rem;
+  font-weight: 400;
+  color: white;
+  margin: 0 0 4px;
+  letter-spacing: -0.01em;
+}
+.heroSub {
+  font-size: 0.82rem;
+  color: rgba(255,255,255,0.5);
+  margin: 0;
+  font-style: italic;
+}
+
+/* Sélecteur de période */
+.periodSelector {
+  display: flex;
+  gap: 4px;
+  background: rgba(255,255,255,0.07);
+  border-radius: 14px;
+  padding: 4px;
+}
+.periodBtn {
+  height: 32px;
+  padding: 0 16px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: rgba(255,255,255,0.55);
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background var(--t-fast) ease, color var(--t-fast) ease;
+  white-space: nowrap;
+}
+.periodBtn:hover { color: rgba(255,255,255,0.85); background: rgba(255,255,255,0.08); }
+.periodBtnActive {
+  background: rgba(196, 144, 124, 0.3);
+  color: #F9EDE8;
+  font-weight: 700;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   CONTENU
+   ════════════════════════════════════════════════════════════════ */
+.content {
+  padding: 28px 40px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ── Cartes de synthèse ── */
+.statsRow {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+@media (max-width: 900px) { .statsRow { grid-template-columns: repeat(2, 1fr); } }
+
+.statCard {
+  background: white;
+  border: 1.5px solid var(--cream-dark);
+  border-radius: var(--radius-card);
+  padding: 20px 22px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: var(--shadow-card);
+  transition: transform var(--t-med) var(--ease-out), box-shadow var(--t-med) var(--ease-out);
+  position: relative;
+  overflow: hidden;
+}
+.statCard::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--accent, var(--rose));
+  border-radius: 22px 22px 0 0;
+}
+.statCard:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-hover);
+}
+
+.statEmoji {
+  font-size: 1.8rem;
+  flex-shrink: 0;
+}
+
+.statBody { flex: 1; min-width: 0; }
+.statLabel {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-soft);
+  margin: 0 0 4px;
+}
+.statValue {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.5rem;
+  color: var(--ink-deep);
+  margin: 0 0 2px;
+  line-height: 1.1;
+}
+.statSub {
+  font-size: 0.72rem;
+  color: var(--text-soft);
+  margin: 0;
+}
+
+/* ── Grille 2 colonnes ── */
+.grid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+@media (max-width: 900px) { .grid2 { grid-template-columns: 1fr; } }
+
+/* ── Sections chart ── */
+.section {
+  background: white;
+  border: 1.5px solid var(--cream-dark);
+  border-radius: var(--radius-card);
+  padding: 22px 24px;
+  box-shadow: var(--shadow-card);
+}
+.sectionFull {
+  grid-column: 1 / -1;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+.sectionEmoji { font-size: 1.2rem; }
+.sectionTitle {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1rem;
+  font-weight: 400;
+  color: var(--ink-deep);
+  margin: 0;
+}
+
+.noData {
+  text-align: center;
+  color: var(--text-soft);
+  font-size: 0.85rem;
+  padding: 32px 0;
+  font-style: italic;
+  margin: 0;
+}
+
+/* ── Tooltip recharts ── */
+.tooltip {
+  background: var(--ink-deep);
+  border-radius: 10px;
+  padding: 10px 14px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  min-width: 140px;
+}
+.tooltipLabel {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: rgba(255,255,255,0.55);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 0 0 6px;
+}
+.tooltipRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.82rem;
+  margin: 0 0 2px;
+}
+.tooltipVal { font-weight: 700; }
+
+/* ── Donut + légende ── */
+.donutWrap {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+.legend {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.legendRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.78rem;
+}
+.legendDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.legendName {
+  flex: 1;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.legendVal {
+  color: var(--text-soft);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* ── Tableau PDV ── */
+.pdvTable {
+  margin-top: 16px;
+  border-top: 1px solid var(--cream-dark);
+  padding-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.pdvRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  transition: background var(--t-fast) ease;
+}
+.pdvRow:hover { background: var(--cream); }
+.pdvRank {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--cream-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-mid);
+  flex-shrink: 0;
+}
+.pdvRow:first-child .pdvRank { background: var(--rose); color: white; }
+.pdvNom { flex: 1; font-size: 0.85rem; font-weight: 500; color: var(--ink); }
+.pdvVentes { font-size: 0.78rem; color: var(--text-soft); }
+.pdvCA { font-family: 'DM Serif Display', serif; font-size: 1rem; color: var(--ink); min-width: 80px; text-align: right; }
+
+/* ── Associations panier ── */
+.assocSub {
+  font-size: 0.82rem;
+  color: var(--text-soft);
+  font-style: italic;
+  margin: -8px 0 16px;
+}
+.assocGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+}
+.assocCard {
+  background: var(--cream);
+  border: 1px solid var(--cream-dark);
+  border-radius: 14px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.assocProducts {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.assocProd {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--ink);
+  background: white;
+  border: 1px solid var(--cream-dark);
+  border-radius: 8px;
+  padding: 4px 10px;
+}
+.assocPlus {
+  font-size: 1rem;
+  color: var(--rose);
+  font-weight: 700;
+}
+.assocCount {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+}
+.assocNb {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.2rem;
+  color: var(--rose);
+}
+.assocLabel {
+  font-size: 0.72rem;
+  color: var(--text-soft);
+}
+.assocBar {
+  height: 4px;
+  background: var(--cream-dark);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.assocBarFill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--rose) 0%, var(--gold) 100%);
+  border-radius: 2px;
+  transition: width 0.6s var(--ease-out);
+}
+
+/* ════════════════════════════════════════════════════════════════
+   SKELETON LOADING
+   ════════════════════════════════════════════════════════════════ */
+.skeletonBlock {
+  background: linear-gradient(90deg, var(--cream-dark) 25%, var(--cream-mid) 50%, var(--cream-dark) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+  border-radius: 16px;
+}
+@keyframes shimmer {
+  0%   { background-position: 200% 0 }
+  100% { background-position: -200% 0 }
+}
+.skH1    { height: 36px; width: 280px; border-radius: 8px; }
+.skSub   { height: 16px; width: 180px; margin-top: 8px; border-radius: 6px; }
+.skStat  { height: 96px; }
+.skChart { height: 280px; }
+.skChartSm { height: 200px; }

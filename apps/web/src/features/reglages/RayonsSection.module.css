@@ -85,6 +85,47 @@
   white-space: nowrap;
 }
 
+/* ── Badge TVA ── */
+.tvaBadge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #1E40AF;
+  background: #EFF6FF;
+  border: 1.5px solid #BFDBFE;
+  border-radius: var(--radius-pill);
+  padding: 3px 10px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--t-fast) ease, border-color var(--t-fast) ease;
+}
+.tvaBadge:hover { background: #DBEAFE; border-color: #93C5FD; }
+
+.tvaBadgeEdit {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  border: 1.5px solid #3B82F6;
+  border-radius: var(--radius-pill);
+  padding: 2px 8px;
+  background: white;
+}
+.tvaInput {
+  width: 40px;
+  text-align: right;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #1E40AF;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: inherit;
+}
+.tvaUnit {
+  font-size: 0.72rem;
+  color: #3B82F6;
+  font-weight: 600;
+}
+
 .btnLibrairie {
   padding: 3px 7px;
   border-radius: 6px;

@@ -1,32 +1,44 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/lib/api'
 
+export type PeriodiciteDA =
+  | 'MENSUEL' | 'TRIMESTRIEL' | 'TOUS_LES_4_MOIS'
+  | 'SEMESTRIEL' | 'ANNUEL' | 'DATES_FIXES'
+
+export interface DateFixe { mois: number; jour: number }
+
 export interface ContratAuteur {
-  id:               string
-  auteurId:         string
-  typeDAId:         string
-  articleId:        string | null
-  avance:           string | null
-  avanceDue:        string
-  dateSignature:    string | null
-  datePriseEffet:   string | null
-  dureeAns:         number | null
-  reconduiteTacite: boolean
-  actif:            boolean
-  typeDA:           { id: string; nom: string }
-  article:          { id: string; nom: string } | null
+  id:                string
+  auteurId:          string
+  typeDAId:          string
+  articleId:         string | null
+  avance:            string | null
+  avanceDue:         string
+  dateSignature:     string | null
+  datePriseEffet:    string | null
+  dureeAns:          number | null
+  reconduiteTacite:  boolean
+  periodicite:       PeriodiciteDA | null
+  datesFixesJSON:    DateFixe[] | null
+  prochainVersement: string | null
+  actif:             boolean
+  typeDA:            { id: string; nom: string }
+  article:           { id: string; nom: string } | null
 }
 
 export interface CreateContratPayload {
-  id:               string
-  auteurId:         string
-  typeDAId:         string
-  articleId?:       string
-  avance?:          number
-  dateSignature?:   string   // ISO datetime
-  datePriseEffet?:  string
-  dureeAns?:        number
+  id:                string
+  auteurId:          string
+  typeDAId:          string
+  articleId?:        string
+  avance?:           number
+  dateSignature?:    string   // ISO datetime
+  datePriseEffet?:   string
+  dureeAns?:         number
   reconduiteTacite?: boolean
+  periodicite?:      PeriodiciteDA | null
+  datesFixesJSON?:   DateFixe[] | null
+  prochainVersement?: string
 }
 
 /** Date de fin du contrat (null = indéterminée) */
@@ -55,7 +67,21 @@ export function prochaineEcheance(c: ContratAuteur): Date | null {
   return echeance
 }
 
-const KEY = ['contrats-auteur'] as const
+export interface UpdateContratPayload {
+  typeDAId?:         string
+  articleId?:        string | null
+  avance?:           number | null
+  dateSignature?:    string
+  datePriseEffet?:   string
+  dureeAns?:         number | null
+  reconduiteTacite?: boolean
+  periodicite?:      PeriodiciteDA | null
+  datesFixesJSON?:   DateFixe[] | null
+  prochainVersement?: string | null
+}
+
+const KEY        = ['contrats-auteur'] as const
+const AUTEUR_KEY = ['auteurs'] as const
 
 export function useContratsAuteur(auteurId?: string) {
   return useQuery({
@@ -65,11 +91,35 @@ export function useContratsAuteur(auteurId?: string) {
   })
 }
 
+const DA_KEY = ['droits-auteur'] as const
+
 export function useCreateContratAuteur() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (p: CreateContratPayload) => api.post<ContratAuteur>('/contrats-auteur', p),
-    onSuccess:  () => qc.invalidateQueries({ queryKey: KEY }),
+    onSuccess:  () => {
+      qc.invalidateQueries({ queryKey: KEY })
+      qc.invalidateQueries({ queryKey: AUTEUR_KEY })
+      qc.invalidateQueries({ queryKey: DA_KEY })
+    },
+  })
+}
+
+export function useUpdateContratAuteur() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, ...data }: UpdateContratPayload & { id: string }) =>
+      api.patch<ContratAuteur>(`/contrats-auteur/${id}`, data),
+    onSuccess: (updated) => {
+      // Mise à jour immédiate de toutes les listes en cache
+      qc.setQueriesData<ContratAuteur[]>(
+        { queryKey: KEY, exact: false },
+        (old) => old?.map((c) => c.id === updated.id ? updated : c),
+      )
+      // Puis invalider pour forcer un refetch propre en arrière-plan
+      qc.invalidateQueries({ queryKey: KEY })
+      qc.invalidateQueries({ queryKey: DA_KEY })
+    },
   })
 }
 
@@ -77,6 +127,21 @@ export function useDeleteContratAuteur() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (id: string) => api.delete(`/contrats-auteur/${id}`),
-    onSuccess:  () => qc.invalidateQueries({ queryKey: KEY }),
+    onSuccess:  () => {
+      qc.invalidateQueries({ queryKey: KEY })
+      qc.invalidateQueries({ queryKey: AUTEUR_KEY })
+    },
+  })
+}
+
+export function useAppliquerPeriodicite() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (contratId: string) =>
+      api.post<{ updated: number }>(`/droits-auteur/contrats/${contratId}/appliquer-periodicite`, {}),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: KEY })
+      qc.invalidateQueries({ queryKey: DA_KEY })
+    },
   })
 }

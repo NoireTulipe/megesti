@@ -1,15 +1,17 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useCreateArticle, useUpdateArticle, useSetArticleActif } from './hooks/useArticles'
 import { useRayons } from './hooks/useRayons'
 import { useAuteurs } from '../auteurs/hooks/useAuteurs'
+import { useImprimeurs } from '../imprimeurs/hooks/useImprimeurs'
 import { useCustomFieldsByRayon } from '@/features/reglages/hooks/useCustomFields'
 import { useCustomFieldValues, useSaveCustomFieldValues } from '@/features/reglages/hooks/useCustomFieldValues'
 import { CustomFieldsRenderer } from '@/components/CustomFieldsRenderer'
 import { validateCustomFields } from '@/lib/customFieldValidation'
 import { DualRangeSlider } from '@/components/DualRangeSlider'
+import { useFranchiseTVA } from '@/hooks/useFranchiseTVA'
 import type { Article } from './types'
 import styles from './ArticleForm.module.css'
 
@@ -38,6 +40,7 @@ const schema = z.object({
   stockTension:    z.coerce.number().int().min(0).default(0),
   isbn:            z.string().optional(),
   datePublication: z.string().optional(),
+  imprimeurId:     z.string().optional().nullable(),
 })
 
 type FormValues = z.infer<typeof schema>
@@ -53,9 +56,14 @@ export function ArticleForm({ onClose, article }: Props) {
   const updateArticle   = useUpdateArticle()
   const setActif        = useSetArticleActif()
   const saveCustomValues = useSaveCustomFieldValues()
-  const { data: rayons = [] }     = useRayons()
-  const { data: allAuteurs = [] } = useAuteurs({ avecContrat: true })
+  const { data: rayons = [] }      = useRayons()
+  const { data: allAuteurs = [] }  = useAuteurs({ avecContrat: true })
+  const { data: imprimeurs = [] }  = useImprimeurs()
   const { data: customValues = {} } = useCustomFieldValues(article?.id, { enabled: !!article?.id })
+
+  const franchiseTVA    = useFranchiseTVA()
+  const [prixTTC, setPrixTTC] = useState<string>('')
+  const ttcInitialized  = useRef(false)
 
   const [auteurIds, setAuteurIds]     = useState<string[]>(
     article?.auteurs.map((a) => a.auteur.id) ?? [],
@@ -81,17 +89,73 @@ export function ArticleForm({ onClose, article }: Props) {
         stockTension:    article.stockTension,
         isbn:            article.isbn ?? '',
         datePublication: article.datePublication ?? '',
+        imprimeurId:     article.imprimeurId ?? null,
       } : { stock: 0 },
     })
 
-  const selectedRayonId  = useWatch({ control, name: 'rayonId' })
-  const watchStockAlerte  = useWatch({ control, name: 'stockAlerte',  defaultValue: article?.stockAlerte  ?? 0 })
-  const watchStockTension = useWatch({ control, name: 'stockTension', defaultValue: article?.stockTension ?? 0 })
+  const selectedRayonId    = useWatch({ control, name: 'rayonId' })
+  const watchPrixHT        = useWatch({ control, name: 'prixVenteHT' })
+  const watchLotHT         = useWatch({ control, name: 'prixAchatLotHT' })
+  const watchLotQte        = useWatch({ control, name: 'prixAchatLotQte' })
+  const watchStockAlerte   = useWatch({ control, name: 'stockAlerte',  defaultValue: article?.stockAlerte  ?? 0 })
+  const watchStockTension  = useWatch({ control, name: 'stockTension', defaultValue: article?.stockTension ?? 0 })
+
+  // Calcul automatique du prix unitaire depuis le lot
+  const lotValide = watchLotHT != null && watchLotHT > 0 && watchLotQte != null && watchLotQte > 0
+  const prixUnitaireCalcule = lotValide
+    ? Math.round((Number(watchLotHT) / Number(watchLotQte)) * 10000) / 10000
+    : null
+
+  useEffect(() => {
+    if (prixUnitaireCalcule !== null) {
+      setValue('prixAchatHT', prixUnitaireCalcule, { shouldValidate: false })
+    }
+  }, [prixUnitaireCalcule, setValue])
 
   const handleSeuils = useCallback((alerte: number, tension: number) => {
     setValue('stockAlerte',  alerte)
     setValue('stockTension', tension)
   }, [setValue])
+
+  // ── TVA : facteur de conversion selon le rayon sélectionné ──────────────────
+  const selectedRayon = rayons.find(r => r.id === selectedRayonId)
+  const tauxTVA       = franchiseTVA ? 0 : Number(selectedRayon?.tauxTVA ?? 20)
+  const facteurTVA    = 1 + tauxTVA / 100
+
+  // Initialiser le TTC quand on ouvre le formulaire ou quand le rayon change
+  useEffect(() => {
+    const ht = Number(watchPrixHT)
+    if (!isNaN(ht) && ht > 0) {
+      setPrixTTC((ht * facteurTVA).toFixed(2))
+    }
+  }, [facteurTVA]) // recalcule si rayon change ou franchiseTVA change
+
+  // Initialisation une seule fois depuis l'article existant
+  useEffect(() => {
+    if (!ttcInitialized.current && article?.prixVenteHT) {
+      const ht = Number(article.prixVenteHT)
+      setPrixTTC((ht * facteurTVA).toFixed(2))
+      ttcInitialized.current = true
+    }
+  }, [article, facteurTVA])
+
+  function onHTBlur(e: React.FocusEvent<HTMLInputElement>) {
+    const ht = parseFloat(e.target.value.replace(',', '.'))
+    if (!isNaN(ht) && ht >= 0) setPrixTTC((ht * facteurTVA).toFixed(2))
+  }
+
+  function onTTCChange(e: React.ChangeEvent<HTMLInputElement>) {
+    setPrixTTC(e.target.value)
+  }
+
+  function onTTCBlur(e: React.FocusEvent<HTMLInputElement>) {
+    const ttc = parseFloat(e.target.value.replace(',', '.'))
+    if (!isNaN(ttc) && ttc >= 0) {
+      const ht = facteurTVA > 0 ? Math.round((ttc / facteurTVA) * 10000) / 10000 : ttc
+      setValue('prixVenteHT', ht, { shouldValidate: true })
+      setPrixTTC(ttc.toFixed(2))
+    }
+  }
 
   // Remplir les champs custom quand les valeurs chargent (mode édition)
   useEffect(() => {
@@ -102,9 +166,8 @@ export function ArticleForm({ onClose, article }: Props) {
       })
     }
   }, [customValues, isEdit, setValue])
-  const selectedRayon   = rayons.find((r) => r.id === selectedRayonId)
-  const isLibrairie     = selectedRayon?.isLibrairie ?? false
-  const categories      = selectedRayon?.categories ?? []
+  const isLibrairie = selectedRayon?.isLibrairie ?? false
+  const categories  = selectedRayon?.categories ?? []
 
   const { data: rayonChamps = [] } = useCustomFieldsByRayon(
     selectedRayonId ?? '', { enabled: !!selectedRayonId },
@@ -145,6 +208,7 @@ export function ArticleForm({ onClose, article }: Props) {
       isbn:            isLibrairie ? (values.isbn            || null) : null,
       datePublication: isLibrairie ? (values.datePublication || null) : null,
       auteurIds:       isLibrairie ? auteurIds : [],
+      imprimeurId:     values.imprimeurId || null,
     }
     const entityId = isEdit ? article!.id : crypto.randomUUID()
     if (isEdit) {
@@ -246,11 +310,20 @@ export function ArticleForm({ onClose, article }: Props) {
 
       {/* ── Tarification ────────────────────────────────────────── */}
       <div className={styles.section}>
-        <p className={styles.sectionLabel}>Tarification</p>
-        <div className={styles.row2}>
-          <div className={styles.field}>
+        <p className={styles.sectionLabel}>
+          Tarification
+          {selectedRayon && (
+            <span style={{ marginLeft: 8, fontWeight: 400, color: 'var(--text-soft)', textTransform: 'none', letterSpacing: 0 }}>
+              — TVA {franchiseTVA ? 'non applicable (293 B CGI)' : `${tauxTVA} %`}
+            </span>
+          )}
+        </p>
+
+        {/* Prix de vente : double saisie HT ↔ TTC */}
+        <div className={styles.prixVenteRow}>
+          <div className={styles.field} style={{ flex: 1 }}>
             <label className={styles.label} htmlFor="prixVenteHT">
-              Prix de vente HT <span className={styles.req}>*</span>
+              {franchiseTVA ? 'Prix de vente' : `Prix vente HT`} <span className={styles.req}>*</span>
             </label>
             <div className={styles.inputWithUnit}>
               <input
@@ -258,21 +331,40 @@ export function ArticleForm({ onClose, article }: Props) {
                 className={`${styles.input} ${errors.prixVenteHT ? styles.inputError : ''}`}
                 inputMode="decimal"
                 placeholder="0.00"
-                {...register('prixVenteHT')}
+                {...register('prixVenteHT', { onBlur: onHTBlur })}
               />
               <span className={styles.unit}>€</span>
             </div>
             {errors.prixVenteHT && <span className={styles.error}>{errors.prixVenteHT.message}</span>}
           </div>
-          <div className={styles.field}>
-            <label className={styles.label} htmlFor="prixAchatHT">Prix d'achat HT</label>
+
+          <div className={styles.prixArrow} title={franchiseTVA ? 'TVA non applicable' : `TVA ${tauxTVA} %`}>
+            {franchiseTVA ? '=' : '↔'}
+          </div>
+
+          <div className={styles.field} style={{ flex: 1 }}>
+            <label className={styles.label} htmlFor="prixVenteTTC">
+              Prix vente TTC {franchiseTVA && <span style={{ color: 'var(--text-soft)', fontWeight: 400 }}>(TVA non applicable)</span>}
+            </label>
             <div className={styles.inputWithUnit}>
-              <input id="prixAchatHT" className={styles.input} inputMode="decimal" placeholder="0.00" {...register('prixAchatHT')} />
+              <input
+                id="prixVenteTTC"
+                className={styles.input}
+                inputMode="decimal"
+                placeholder="0.00"
+                value={prixTTC}
+                onChange={onTTCChange}
+                onBlur={onTTCBlur}
+                readOnly={franchiseTVA}
+                style={franchiseTVA ? { background: 'var(--cream)', color: 'var(--text-soft)' } : {}}
+              />
               <span className={styles.unit}>€</span>
             </div>
           </div>
         </div>
-        <div className={styles.row3}>
+
+        {/* Achat : lot en premier → prix unitaire dérivé ou saisie directe */}
+        <div className={styles.row2}>
           <div className={styles.field}>
             <label className={styles.label} htmlFor="prixAchatLotHT">Prix lot HT</label>
             <div className={styles.inputWithUnit}>
@@ -281,11 +373,39 @@ export function ArticleForm({ onClose, article }: Props) {
             </div>
           </div>
           <div className={styles.field}>
-            <label className={styles.label} htmlFor="prixAchatLotQte">Qté/lot</label>
+            <label className={styles.label} htmlFor="prixAchatLotQte">Qté par lot</label>
             <input id="prixAchatLotQte" className={styles.input} inputMode="numeric" placeholder="ex : 5" {...register('prixAchatLotQte')} />
           </div>
+        </div>
+
+        <div className={styles.row2}>
           <div className={styles.field}>
-            <label className={styles.label} htmlFor="stock">Stock</label>
+            <label className={styles.label} htmlFor="prixAchatHT">
+              Prix d'achat unitaire HT
+              {lotValide && (
+                <span className={styles.calcBadge}>🔢 calculé depuis le lot</span>
+              )}
+            </label>
+            <div className={styles.inputWithUnit}>
+              <input
+                id="prixAchatHT"
+                className={styles.input}
+                inputMode="decimal"
+                placeholder="0.00"
+                readOnly={lotValide}
+                style={lotValide ? { background: 'var(--cream)', color: 'var(--text-soft)', cursor: 'not-allowed' } : {}}
+                {...register('prixAchatHT')}
+              />
+              <span className={styles.unit}>€</span>
+            </div>
+            {lotValide && prixUnitaireCalcule !== null && (
+              <p className={styles.calcHint}>
+                {Number(watchLotHT).toFixed(2)} € ÷ {watchLotQte} = {prixUnitaireCalcule.toFixed(4)} € / unité
+              </p>
+            )}
+          </div>
+          <div className={styles.field}>
+            <label className={styles.label} htmlFor="stock">Stock initial</label>
             <input id="stock" className={styles.input} inputMode="numeric" placeholder="0" {...register('stock')} />
           </div>
         </div>
@@ -338,6 +458,22 @@ export function ArticleForm({ onClose, article }: Props) {
                 )
               })}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Impression ──────────────────────────────────────────── */}
+      {imprimeurs.length > 0 && (
+        <div className={styles.section}>
+          <p className={styles.sectionLabel}>Impression</p>
+          <div className={styles.field}>
+            <label className={styles.label} htmlFor="imprimeurId">Imprimeur</label>
+            <select id="imprimeurId" className={styles.select} {...register('imprimeurId')}>
+              <option value="">— Aucun —</option>
+              {imprimeurs.map(imp => (
+                <option key={imp.id} value={imp.id}>{imp.nom}</option>
+              ))}
+            </select>
           </div>
         </div>
       )}

@@ -4,16 +4,22 @@ import { ThesaurusSection } from './ThesaurusSection'
 import { RayonsSection }    from './RayonsSection'
 import { TypesDASection }   from './TypesDASection'
 import { useRayons }        from '../catalogue/hooks/useRayons'
+import { useMonTenant, useUpdateMonTenant } from './hooks/useMonTenant'
 import styles from './ReglagesPage.module.css'
 import type { EntityType } from '@megesti/shared'
 
-type Tab = 'champs' | 'rayons' | 'thesaurus' | 'droits'
+type Tab = 'champs' | 'rayons' | 'thesaurus' | 'droits' | 'fiscal'
+type Niveau = 'classique' | 'avance'
 
-const TABS: { key: Tab; label: string }[] = [
-  { key: 'champs',    label: 'Champs personnalisés' },
-  { key: 'rayons',    label: 'Rayons & Catégories' },
-  { key: 'thesaurus', label: 'Thésaurus' },
-  { key: 'droits',    label: 'Barèmes DA' },
+const CLASSIQUE: { key: Tab; label: string; emoji: string; desc: string }[] = [
+  { key: 'rayons',  label: 'Rayons & Catégories', emoji: '🗂️', desc: 'Organisez votre catalogue' },
+  { key: 'droits',  label: 'Barèmes DA',           emoji: '📄', desc: "Formules de droits d'auteur" },
+  { key: 'fiscal',  label: 'Paramètres fiscaux',   emoji: '🧾', desc: 'TVA et régime fiscal' },
+]
+
+const AVANCE: { key: Tab; label: string; emoji: string; desc: string }[] = [
+  { key: 'champs',    label: 'Champs personnalisés', emoji: '✏️', desc: 'Ajoutez des champs sur vos fiches' },
+  { key: 'thesaurus', label: 'Thésaurus',             emoji: '📖', desc: 'Vocabulaires contrôlés' },
 ]
 
 const ENTITY_TABS: { key: EntityType; label: string }[] = [
@@ -29,58 +35,85 @@ type ActiveScope =
   | { kind: 'rayon';  rayonId: string; isLibrairie: boolean }
 
 export function ReglagesPage() {
-  const [tab, setTab]         = useState<Tab>('champs')
+  const [niveau, setNiveau]   = useState<Niveau>('classique')
+  const [tab, setTab]         = useState<Tab>('rayons')
   const [scope, setScope]     = useState<ActiveScope>({ kind: 'entity', entityType: 'auteur' })
   const { data: rayons = [] } = useRayons()
+  const { data: tenant }      = useMonTenant()
+  const updateTenant          = useUpdateMonTenant()
+
+  function handleNiveau(n: Niveau) {
+    setNiveau(n)
+    setTab(n === 'classique' ? 'rayons' : 'champs')
+  }
 
   return (
     <div className={styles.page}>
       <header className={styles.header}>
-        <h1 className={styles.title}>Réglages</h1>
-        <p className={styles.subtitle}>Personnalisez l'application selon vos besoins</p>
+        <div>
+          <h1 className={styles.title}>Réglages</h1>
+          <p className={styles.subtitle}>Personnalisez l'application selon vos besoins</p>
+        </div>
+        {/* Sélecteur Classique / Avancé */}
+        <div className={styles.niveauSwitch}>
+          <button
+            className={`${styles.niveauBtn} ${niveau === 'classique' ? styles.niveauBtnActive : ''}`}
+            onClick={() => handleNiveau('classique')}
+          >
+            ⚙️ Classique
+          </button>
+          <button
+            className={`${styles.niveauBtn} ${niveau === 'avance' ? styles.niveauBtnActive : ''}`}
+            onClick={() => handleNiveau('avance')}
+          >
+            🔬 Avancé
+          </button>
+        </div>
       </header>
 
-      <nav className={styles.tabs}>
-        {TABS.map((t) => (
+      {/* ── Cartes de navigation ── */}
+      <div className={styles.tabCards}>
+        {(niveau === 'classique' ? CLASSIQUE : AVANCE).map(t => (
           <button
             key={t.key}
-            className={`${styles.tab} ${tab === t.key ? styles.tabActive : ''}`}
+            className={`${styles.tabCard} ${tab === t.key ? styles.tabCardActive : ''}`}
             onClick={() => setTab(t.key)}
           >
-            {t.label}
+            <span className={styles.tabCardEmoji}>{t.emoji}</span>
+            <span className={styles.tabCardLabel}>{t.label}</span>
+            <span className={styles.tabCardDesc}>{t.desc}</span>
           </button>
         ))}
-      </nav>
+      </div>
 
       <div className={styles.content}>
 
-        {/* ── Champs personnalisés ─────────────────────────────── */}
+        {/* ── Rayons & Catégories ── */}
+        {tab === 'rayons' && <RayonsSection />}
+
+        {/* ── Barèmes DA ── */}
+        {tab === 'droits' && <TypesDASection />}
+
+        {/* ── Champs personnalisés ── */}
         {tab === 'champs' && (
           <>
             <nav className={styles.entityTabs}>
-              {/* Entity types fixes */}
-              {ENTITY_TABS.map((e) => (
+              {ENTITY_TABS.map(e => (
                 <button
                   key={e.key}
-                  className={`${styles.entityTab} ${
-                    scope.kind === 'entity' && scope.entityType === e.key ? styles.entityTabActive : ''
-                  }`}
+                  className={`${styles.entityTab} ${scope.kind === 'entity' && scope.entityType === e.key ? styles.entityTabActive : ''}`}
                   onClick={() => setScope({ kind: 'entity', entityType: e.key })}
                 >
                   {e.label}
                 </button>
               ))}
 
-              {/* Séparateur si des rayons existent */}
               {rayons.length > 0 && <span className={styles.entityTabSep} />}
 
-              {/* Rayons dynamiques */}
-              {rayons.map((r) => (
+              {rayons.map(r => (
                 <button
                   key={r.id}
-                  className={`${styles.entityTab} ${styles.entityTabRayon} ${
-                    scope.kind === 'rayon' && scope.rayonId === r.id ? styles.entityTabActive : ''
-                  }`}
+                  className={`${styles.entityTab} ${styles.entityTabRayon} ${scope.kind === 'rayon' && scope.rayonId === r.id ? styles.entityTabActive : ''}`}
                   onClick={() => setScope({ kind: 'rayon', rayonId: r.id, isLibrairie: r.isLibrairie })}
                 >
                   {r.isLibrairie && <span className={styles.entityTabIcon}>📚</span>}
@@ -102,14 +135,78 @@ export function ReglagesPage() {
           </>
         )}
 
-        {/* ── Rayons & Catégories ──────────────────────────────── */}
-        {tab === 'rayons' && <RayonsSection />}
+        {/* ── Paramètres fiscaux ── */}
+        {tab === 'fiscal' && (
+          <div className={styles.fiscalWrap}>
+            {/* Franchise en base de TVA */}
+            <div className={styles.fiscalCard}>
+              <div className={styles.fiscalCardHeader}>
+                <span className={styles.fiscalEmoji}>🧾</span>
+                <div>
+                  <h3 className={styles.fiscalTitle}>Régime fiscal de TVA</h3>
+                  <p className={styles.fiscalSub}>
+                    Définit comment la TVA est calculée sur vos ventes.
+                  </p>
+                </div>
+              </div>
 
-        {/* ── Thésaurus ────────────────────────────────────────── */}
+              <div className={styles.fiscalOptions}>
+                {/* Option : assujetti TVA */}
+                <label className={`${styles.fiscalOption} ${!tenant?.franchiseBaseVA ? styles.fiscalOptionActive : ''}`}>
+                  <input
+                    type="radio"
+                    checked={!tenant?.franchiseBaseVA}
+                    onChange={() => updateTenant.mutate({ franchiseBaseVA: false })}
+                    className={styles.fiscalRadio}
+                  />
+                  <div>
+                    <p className={styles.fiscalOptionTitle}>Assujetti à la TVA</p>
+                    <p className={styles.fiscalOptionDesc}>
+                      TVA collectée et reversée. Taux configurés par rayon (ex. 5,5 % livres, 20 % goodies).
+                    </p>
+                  </div>
+                </label>
+
+                {/* Option : franchise en base */}
+                <label className={`${styles.fiscalOption} ${tenant?.franchiseBaseVA ? styles.fiscalOptionActive : ''}`}>
+                  <input
+                    type="radio"
+                    checked={!!tenant?.franchiseBaseVA}
+                    onChange={() => updateTenant.mutate({ franchiseBaseVA: true })}
+                    className={styles.fiscalRadio}
+                  />
+                  <div>
+                    <p className={styles.fiscalOptionTitle}>Franchise en base de TVA</p>
+                    <p className={styles.fiscalOptionDesc}>
+                      Micro-entreprise ou EI sous le seuil de franchise (art. 293 B CGI).
+                      TVA non collectée — les prix HT = TTC, mention légale automatique.
+                    </p>
+                    {tenant?.franchiseBaseVA && (
+                      <p className={styles.fiscalMention}>
+                        Mention appliquée : <em>« TVA non applicable, art. 293 B du CGI »</em>
+                      </p>
+                    )}
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            {/* Info taux TVA livres */}
+            <div className={styles.fiscalInfo}>
+              <span style={{ fontSize: '1.1rem' }}>📚</span>
+              <div>
+                <p className={styles.fiscalInfoTitle}>TVA livres : 5,5 %</p>
+                <p className={styles.fiscalInfoDesc}>
+                  Le taux réduit livres (5,5 %) est configuré automatiquement à la création d'un rayon Librairie.
+                  Vous pouvez ajuster le taux de chaque rayon dans l'onglet <strong>Rayons & Catégories</strong>.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── Thésaurus ── */}
         {tab === 'thesaurus' && <ThesaurusSection />}
-
-        {/* ── Barèmes DA ───────────────────────────────────────── */}
-        {tab === 'droits' && <TypesDASection />}
       </div>
     </div>
   )

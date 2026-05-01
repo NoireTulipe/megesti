@@ -10,16 +10,14 @@ import { DepotsLibrairesPage } from '@/features/depotsLibraires/DepotsLibrairesP
 import { SalonsPage }          from '@/features/salons/SalonsPage'
 import { VentesPage }          from '@/features/ventes/VentesPage'
 import { PointsDeVentePage }   from '@/features/ventes/PointsDeVentePage'
-import { ReglagesPage }  from '@/features/reglages/ReglagesPage'
-
-function ComingSoon({ label }: { label: string }) {
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 12, height: '100%', minHeight: 400 }}>
-      <div style={{ fontFamily: 'DM Serif Display', fontSize: 36, color: 'var(--ink)', opacity: 0.3 }}>{label}</div>
-      <p style={{ fontSize: 13, color: 'var(--text-soft)' }}>En cours de développement.</p>
-    </div>
-  )
-}
+import { ReglagesPage }        from '@/features/reglages/ReglagesPage'
+import { StockPage }           from '@/features/stock/StockPage'
+import { ImprimeurPage }       from '@/features/imprimeurs/ImprimeurPage'
+import { ComptabilitePage }    from '@/features/comptabilite/ComptabilitePage'
+import { BilanPage }          from '@/features/comptabilite/BilanPage'
+import { ChargesPage }        from '@/features/charges/ChargesPage'
+import { ReversementsPage }   from '@/features/reversements/ReversementsPage'
+import { DroitsAuteurPage }   from '@/features/droitsAuteur/DroitsAuteurPage'
 
 export default function App() {
   return (
@@ -30,17 +28,22 @@ export default function App() {
         <ProtectedRoute>
           <AppLayout>
             <Routes>
-              <Route path="/"                  element={<DashboardPage />} />
-              <Route path="/catalogue"         element={<CataloguePage />} />
-              <Route path="/ventes"            element={<VentesPage />} />
+              <Route path="/"                 element={<DashboardPage />} />
+              <Route path="/catalogue"        element={<CataloguePage />} />
+              <Route path="/ventes"           element={<VentesPage />} />
               <Route path="/points-de-vente"  element={<PointsDeVentePage />} />
-              <Route path="/stock"             element={<ComingSoon label="Stock" />} />
-              <Route path="/auteurs"           element={<AuteursPage />} />
-              <Route path="/maisons-edition"   element={<MaisonsEditionPage />} />
-              <Route path="/depots-libraires"  element={<DepotsLibrairesPage />} />
-              <Route path="/salons"            element={<SalonsPage />} />
-              <Route path="/rapports"          element={<ComingSoon label="Rapports" />} />
-              <Route path="/reglages"          element={<ReglagesPage />} />
+              <Route path="/stock"            element={<StockPage />} />
+              <Route path="/auteurs"          element={<AuteursPage />} />
+              <Route path="/maisons-edition"  element={<MaisonsEditionPage />} />
+              <Route path="/depots-libraires" element={<DepotsLibrairesPage />} />
+              <Route path="/salons"           element={<SalonsPage />} />
+              <Route path="/imprimeurs"       element={<ImprimeurPage />} />
+              <Route path="/comptabilite"     element={<ComptabilitePage />} />
+              <Route path="/bilan"           element={<BilanPage />} />
+              <Route path="/charges"         element={<ChargesPage />} />
+              <Route path="/reversements"     element={<ReversementsPage />} />
+              <Route path="/droits-auteur"   element={<DroitsAuteurPage />} />
+              <Route path="/reglages"         element={<ReglagesPage />} />
             </Routes>
           </AppLayout>
         </ProtectedRoute>

@@ -4,30 +4,31 @@
   overflow: hidden;
 }
 
-/* ── Colonne liste ────────────────────────────────────────────── */
+/* ── Colonne liste ── */
 .listCol {
-  width: 480px;
+  width: 500px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
   border-right: 1.5px solid var(--cream-dark);
-  background: #FAFAF8;
+  background: var(--cream);
   overflow: hidden;
 }
 
 .listHeader {
   padding: 24px 24px 16px;
   border-bottom: 1.5px solid var(--cream-dark);
-  background: #fff;
+  background: var(--white);
   flex-shrink: 0;
 }
 
 .listTitle {
   font-family: 'DM Serif Display', serif;
-  font-size: 1.5rem;
-  color: var(--ink);
-  margin: 0 0 12px;
+  font-size: 1.7rem;
   font-weight: 400;
+  color: var(--ink-deep);
+  margin: 0 0 14px;
+  letter-spacing: -0.01em;
 }
 
 .listToolbar {
@@ -38,27 +39,40 @@
 
 .search {
   flex: 1;
-  height: 36px;
-  padding: 0 12px;
+  height: 38px;
+  padding: 0 14px;
   border: 1.5px solid var(--cream-dark);
-  border-radius: 8px;
-  font-size: 0.85rem;
-  background: #fff;
+  border-radius: var(--radius-input);
+  font-size: 0.875rem;
+  background: var(--cream);
   color: var(--ink);
   outline: none;
-  transition: border-color 0.15s;
+  transition: border-color var(--t-fast) ease, box-shadow var(--t-fast) ease;
 }
-.search:focus { border-color: var(--ink-light); }
+.search:focus {
+  border-color: var(--rose);
+  box-shadow: 0 0 0 3px var(--rose-glow);
+}
 
 .btnNew {
-  height: 36px; padding: 0 14px;
-  background: var(--terra); color: #fff;
-  border: none; border-radius: 8px;
-  font-size: 0.82rem; font-weight: 600;
-  cursor: pointer; white-space: nowrap;
-  transition: background 0.15s; flex-shrink: 0;
+  height: 38px;
+  padding: 0 18px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(135deg, var(--rose) 0%, #B87A66 100%);
+  color: white;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  box-shadow: 0 3px 12px rgba(196, 144, 124, 0.3);
+  transition: box-shadow var(--t-med) ease, transform var(--t-med) var(--ease-spring);
 }
-.btnNew:hover { background: var(--ink); }
+.btnNew:hover {
+  box-shadow: 0 6px 20px rgba(196, 144, 124, 0.4);
+  transform: translateY(-1px);
+}
 
 .listBody {
   flex: 1;
@@ -70,31 +84,31 @@
 }
 
 .listEmpty {
-  padding: 60px 0;
+  padding: 48px 24px;
   text-align: center;
   color: var(--text-soft);
-  font-size: 0.9rem;
+  font-size: 0.875rem;
 }
 
 .skeleton {
-  height: 80px;
-  border-radius: 16px;
-  background: linear-gradient(90deg, var(--cream-dark) 25%, var(--cream) 50%, var(--cream-dark) 75%);
+  height: 88px;
+  border-radius: var(--radius-card);
+  background: linear-gradient(90deg, var(--cream-dark) 25%, var(--cream-mid) 50%, var(--cream-dark) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.4s infinite;
 }
-
 @keyframes shimmer {
   0%   { background-position: 200% 0; }
   100% { background-position: -200% 0; }
 }
 
-/* ── Panneau détail ───────────────────────────────────────────── */
+/* ── Panneau détail ── */
 .detailCol {
   flex: 1;
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  background: var(--white);
 }
 
 .detailEmpty {
@@ -103,16 +117,38 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  gap: 16px;
   color: var(--text-soft);
+  position: relative;
+  overflow: hidden;
+}
+
+.detailEmptyBlob {
+  position: absolute;
+  width: 400px;
+  height: 300px;
+  border-radius: 60% 40% 55% 45% / 50% 60% 40% 50%;
+  background: radial-gradient(ellipse at center, rgba(196,144,124,0.07) 0%, transparent 70%);
+  pointer-events: none;
 }
 
 .detailEmptyIcon {
-  font-size: 3rem;
-  opacity: 0.3;
+  font-size: 3.5rem;
+  opacity: 0.6;
+  animation: gentleFloat 4s ease-in-out infinite;
+}
+@keyframes gentleFloat {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-8px); }
 }
 
 .detailEmptyText {
-  font-size: 0.9rem;
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.1rem;
+  font-style: italic;
   color: var(--text-soft);
+  opacity: 0.7;
+  text-align: center;
+  max-width: 260px;
+  line-height: 1.5;
 }

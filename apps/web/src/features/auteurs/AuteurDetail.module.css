@@ -1,0 +1,328 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+/* ── Profile header ── */
+
+.profileHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.6rem;
+  color: #fff;
+  flex-shrink: 0;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.profileInfo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 4px;
+}
+
+.email {
+  font-size: 0.85rem;
+  color: var(--text-soft);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+.email:hover { color: var(--ink); }
+
+.bio {
+  font-size: 0.85rem;
+  color: var(--text-mid);
+  line-height: 1.5;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.statsPills {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 2px;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  background: var(--ink-faint);
+  border: 1px solid var(--cream-dark);
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-mid);
+}
+
+.editBtn {
+  flex-shrink: 0;
+  height: 34px;
+  padding: 0 16px;
+  background: var(--ink);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.15s;
+}
+.editBtn:hover {
+  opacity: 0.85;
+  transform: translateY(-1px);
+}
+
+/* ── Sections ── */
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.sectionTitle {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.05rem;
+  font-weight: 400;
+  color: var(--ink);
+  margin: 0;
+}
+
+/* ── Period tabs ── */
+
+.periodTabs {
+  display: flex;
+  gap: 4px;
+  background: var(--ink-faint);
+  border: 1px solid var(--cream-dark);
+  border-radius: 8px;
+  padding: 3px;
+}
+
+.periodTab {
+  height: 26px;
+  padding: 0 12px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-soft);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.periodTab:hover { color: var(--ink); }
+.periodTabActive {
+  background: #fff;
+  color: var(--ink);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+/* ── Chart ── */
+
+.chartSummary {
+  display: flex;
+  gap: 24px;
+}
+
+.chartStat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.chartStatValue {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.3rem;
+  color: var(--ink);
+  line-height: 1;
+}
+
+.chartStatLabel {
+  font-size: 0.75rem;
+  color: var(--text-soft);
+}
+
+.chartSkeleton {
+  height: 200px;
+  background: linear-gradient(90deg, var(--ink-faint) 25%, var(--cream-dark) 50%, var(--ink-faint) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+  border-radius: 10px;
+}
+
+.emptyChart {
+  font-size: 0.85rem;
+  color: var(--text-soft);
+  font-style: italic;
+  margin: 0;
+  padding: 32px 0;
+  text-align: center;
+}
+
+/* ── Tooltip ── */
+
+.tooltip {
+  background: var(--ink);
+  color: #fff;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 0.8rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.tooltipLabel {
+  font-weight: 700;
+  margin-bottom: 6px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.tooltipRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  line-height: 1.8;
+}
+
+/* ── Colonnes livres + contrats ── */
+
+.columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px;
+  align-items: start;
+}
+
+@media (max-width: 700px) {
+  .columns { grid-template-columns: 1fr; }
+}
+
+/* ── Liste articles ── */
+
+.articleList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.articleItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: var(--ink-faint);
+  border: 1px solid var(--cream-dark);
+  border-radius: 10px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.articleItem:hover {
+  border-color: var(--ink-light);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.articleCover {
+  width: 36px;
+  height: 48px;
+  border-radius: 4px;
+  background: linear-gradient(135deg, var(--terra) 0%, var(--gold) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-family: 'DM Serif Display', serif;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.articleInfo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.articleNom {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.articleMeta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 0.72rem;
+  color: var(--text-soft);
+}
+
+.isbn {
+  font-variant-numeric: tabular-nums;
+}
+
+.stockVide { color: #DC2626; font-weight: 600; }
+.stockOk   { color: #059669; font-weight: 600; }
+
+/* ── Skeletons ── */
+
+.listSkeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.skeletonItem {
+  height: 64px;
+  border-radius: 10px;
+  background: linear-gradient(90deg, var(--ink-faint) 25%, var(--cream-dark) 50%, var(--ink-faint) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+}
+
+.emptyText {
+  font-size: 0.82rem;
+  color: var(--text-soft);
+  font-style: italic;
+  margin: 0;
+}
+
+@keyframes shimmer {
+  from { background-position: 200% 0; }
+  to   { background-position: -200% 0; }
+}

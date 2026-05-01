@@ -1,21 +1,40 @@
 import type { FastifyPluginAsync } from 'fastify'
+import { Prisma } from '@prisma/client'
 import { z } from 'zod'
 import { evaluateDA, calculateRoyalties } from '@megesti/business'
 import type { FormuleDA, ContexteVente } from '@megesti/business'
+import { prochaineDateVersement } from '../services/droitsAuteur.js'
+
+const DateFixeSchema = z.object({ mois: z.number().int().min(1).max(12), jour: z.number().int().min(1).max(31) })
+const PeriodiciteSchema = z.enum(['MENSUEL','TRIMESTRIEL','TOUS_LES_4_MOIS','SEMESTRIEL','ANNUEL','DATES_FIXES'])
 
 const CreateSchema = z.object({
-  id:               z.string().uuid(),
-  auteurId:         z.string().uuid(),
-  typeDAId:         z.string().uuid(),
-  articleId:        z.string().uuid().optional(),
-  avance:           z.number().nonnegative().optional(),
-  dateSignature:    z.string().datetime().optional(),
-  datePriseEffet:   z.string().datetime().optional(),
-  dureeAns:         z.number().int().positive().optional(),
-  reconduiteTacite: z.boolean().default(true),
+  id:                z.string().uuid(),
+  auteurId:          z.string().uuid(),
+  typeDAId:          z.string().uuid(),
+  articleId:         z.string().uuid().optional(),
+  avance:            z.number().nonnegative().optional(),
+  dateSignature:     z.string().datetime().optional(),
+  datePriseEffet:    z.string().datetime().optional(),
+  dureeAns:          z.number().int().positive().optional(),
+  reconduiteTacite:  z.boolean().default(true),
+  periodicite:       PeriodiciteSchema.optional().nullable(),
+  datesFixesJSON:    z.array(DateFixeSchema).optional().nullable(),
+  prochainVersement: z.string().datetime().optional().nullable(),
 })
 
-const PatchSchema = CreateSchema.omit({ id: true }).partial()
+const PatchSchema = z.object({
+  typeDAId:          z.string().uuid().optional(),
+  articleId:         z.string().uuid().nullable().optional(),
+  avance:            z.number().nonnegative().nullable().optional(),
+  dateSignature:     z.string().datetime().optional(),
+  datePriseEffet:    z.string().datetime().optional(),
+  dureeAns:          z.number().int().positive().nullable().optional(),
+  reconduiteTacite:  z.boolean().optional(),
+  periodicite:       PeriodiciteSchema.nullable().optional(),
+  datesFixesJSON:    z.array(DateFixeSchema).nullable().optional(),
+  prochainVersement: z.string().datetime().nullable().optional(),
+})
 
 const SimulerSchema = z.object({
   lignes: z.array(z.object({
@@ -58,15 +77,19 @@ export const contratAuteurRoutes: FastifyPluginAsync = async (app) => {
     if (!typeDA) return reply.notFound('Barème DA introuvable')
 
     const sigDate = dateSignature ? new Date(dateSignature) : null
+    const { periodicite, datesFixesJSON, prochainVersement, ...coreRest } = rest
     return reply.status(201).send(
       await app.db.contratAuteur.create({
         data: {
-          ...rest,
+          ...coreRest,
           tenantId,
-          avance:          avance ?? null,
-          avanceDue:       0,
-          dateSignature:   sigDate,
-          datePriseEffet:  datePriseEffet ? new Date(datePriseEffet) : sigDate,
+          avance:            avance ?? null,
+          avanceDue:         0,
+          dateSignature:     sigDate,
+          datePriseEffet:    datePriseEffet ? new Date(datePriseEffet) : sigDate,
+          periodicite:       periodicite ?? null,
+          datesFixesJSON:    datesFixesJSON ?? Prisma.DbNull,
+          prochainVersement: prochainVersement ? new Date(prochainVersement) : null,
         },
         include: { typeDA: true },
       })
@@ -76,16 +99,29 @@ export const contratAuteurRoutes: FastifyPluginAsync = async (app) => {
   app.patch('/:id', authEditor, async (request, reply) => {
     const { tenantId } = request.tenant
     const { id } = request.params as { id: string }
-    const { avance, dateSignature, datePriseEffet, ...rest } = PatchSchema.parse(request.body)
     const existing = await app.db.contratAuteur.findFirst({ where: { id, tenantId } })
     if (!existing) return reply.notFound()
+    const parsed = PatchSchema.parse(request.body)
+    const { avance, dateSignature, datePriseEffet, periodicite, datesFixesJSON, prochainVersement, ...rest } = parsed
+
+    // Auto-calcul de prochainVersement quand la périodicité est définie mais la date non fournie
+    const periodeEffective  = periodicite ?? existing.periodicite
+    const datesEffectives   = datesFixesJSON ?? existing.datesFixesJSON
+    const pvManuel          = prochainVersement !== undefined ? prochainVersement : null
+    const pvCalcule = (!pvManuel && periodeEffective)
+      ? prochaineDateVersement(periodeEffective, datesEffectives)
+      : (pvManuel ? new Date(pvManuel) : null)
+
     return app.db.contratAuteur.update({
       where: { id },
       data: {
         ...rest,
-        ...(avance         !== undefined ? { avance:         avance ?? null }                                 : {}),
-        ...(dateSignature  !== undefined ? { dateSignature:  dateSignature  ? new Date(dateSignature)  : null } : {}),
-        ...(datePriseEffet !== undefined ? { datePriseEffet: datePriseEffet ? new Date(datePriseEffet) : null } : {}),
+        ...(avance         !== undefined ? { avance:         avance ?? null }                                     : {}),
+        ...(dateSignature  !== undefined ? { dateSignature:  dateSignature  ? new Date(dateSignature)  : null }   : {}),
+        ...(datePriseEffet !== undefined ? { datePriseEffet: datePriseEffet ? new Date(datePriseEffet) : null }   : {}),
+        ...(periodicite    !== undefined ? { periodicite:    periodicite ?? null }                                 : {}),
+        ...(datesFixesJSON !== undefined ? { datesFixesJSON: datesFixesJSON ?? Prisma.DbNull }                    : {}),
+        prochainVersement: pvCalcule,
       },
       include: { typeDA: true },
     })

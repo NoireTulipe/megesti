@@ -1,5 +1,5 @@
 import { ChevronLeft } from 'lucide-react'
-import { NAV_MAIN, NAV_RESEAU, type NavKey } from '@/config/navigation'
+import { NAV_MAIN, NAV_RESEAU, NAV_ADMIN, type NavKey } from '@/config/navigation'
 import styles from './Sidebar.module.css'
 
 interface SidebarProps {
@@ -40,6 +40,12 @@ export function Sidebar({ active, onNav, collapsed, onToggle }: SidebarProps) {
         <div style={{ height: 8 }} />
         {!collapsed && <div className={styles.groupLabel}>Réseau</div>}
         {NAV_RESEAU.map(item => (
+          <NavButton key={item.key} item={item} isActive={item.key === active} collapsed={collapsed} onClick={() => onNav(item.key)} />
+        ))}
+
+        <div style={{ height: 8 }} />
+        {!collapsed && <div className={styles.groupLabel}>Administratif</div>}
+        {NAV_ADMIN.map(item => (
           <NavButton key={item.key} item={item} isActive={item.key === active} collapsed={collapsed} onClick={() => onNav(item.key)} />
         ))}
       </nav>

@@ -4,6 +4,7 @@ import { useRayons }   from './hooks/useRayons'
 import { ArticleCard } from './ArticleCard'
 import { ArticleForm } from './ArticleForm'
 import { Modal }       from '@/components/ui/Modal'
+import { EmptyState }  from '@/components/ui/EmptyState'
 import type { Article } from './types'
 import styles from './CataloguePage.module.css'
 
@@ -104,13 +105,32 @@ export function CataloguePage() {
       )}
 
       {!isLoading && !isError && articles.length === 0 && (
-        <div className={styles.empty}>
-          <p>
-            {rayons.length === 0
-              ? 'Commencez par créer des rayons dans les Réglages.'
-              : `Aucun article${debouncedSearch ? ` pour « ${debouncedSearch} »` : ''}.`}
-          </p>
-        </div>
+        <EmptyState
+          emoji={rayons.length === 0 ? '⚙️' : '📚'}
+          title={
+            rayons.length === 0
+              ? 'Commencez par créer vos rayons'
+              : debouncedSearch
+                ? `Aucun résultat pour « ${debouncedSearch} »`
+                : tab === 'retires'
+                  ? 'Aucun article retiré'
+                  : 'Votre catalogue est vide'
+          }
+          description={
+            rayons.length === 0
+              ? 'Rendez-vous dans les Réglages → Rayons pour structurer votre catalogue.'
+              : debouncedSearch ? undefined
+              : tab === 'actifs' ? 'Ajoutez votre premier livre, goodie ou article.'
+              : undefined
+          }
+          action={
+            rayons.length === 0
+              ? undefined
+              : debouncedSearch ? undefined
+              : tab === 'actifs' ? { label: '+ Nouvel article', onClick: () => setShowCreate(true) }
+              : undefined
+          }
+        />
       )}
 
       {!isLoading && !isError && articles.length > 0 && (
@@ -126,20 +146,12 @@ export function CataloguePage() {
         </div>
       )}
 
-      <Modal isOpen={showCreate} onClose={() => setShowCreate(false)} title="Nouvel article" width={680}>
+      <Modal isOpen={showCreate} onClose={() => setShowCreate(false)} title="Nouvel article" size="xl">
         <ArticleForm onClose={() => setShowCreate(false)} />
       </Modal>
 
-      <Modal
-        isOpen={Boolean(editArticle)}
-        onClose={() => setEditArticle(null)}
-        title="Modifier l'article"
-        subtitle={editArticle?.nom}
-        width={680}
-      >
-        {editArticle && (
-          <ArticleForm article={editArticle} onClose={() => setEditArticle(null)} />
-        )}
+      <Modal isOpen={Boolean(editArticle)} onClose={() => setEditArticle(null)} title="Modifier l'article" subtitle={editArticle?.nom} size="xl">
+        {editArticle && <ArticleForm article={editArticle} onClose={() => setEditArticle(null)} />}
       </Modal>
     </div>
   )

@@ -12,7 +12,9 @@
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:studio": "prisma studio",
-    "db:seed": "tsx --env-file=.env prisma/seed.ts",
+    "db:seed":  "tsx --env-file=.env prisma/seed.ts",
+    "db:reset":        "tsx --env-file=.env prisma/reset.ts",
+    "db:reset-ventes": "tsx --env-file=.env prisma/reset-ventes.ts",
     "test": "vitest run",
     "test:watch": "vitest"
   },
