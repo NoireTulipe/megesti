@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { Sidebar } from './Sidebar'
 import { Header } from './Header'
+import { PageBlobs } from '@/components/PageBlobs'
 import { ALL_NAV, type NavKey } from '@/config/navigation'
 
 interface AppLayoutProps {
@@ -34,6 +35,7 @@ export function AppLayout({ children }: AppLayoutProps) {
 
   return (
     <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
+      <PageBlobs />
       <Sidebar
         active={activeNav}
         onNav={handleNav}
@@ -42,7 +44,7 @@ export function AppLayout({ children }: AppLayoutProps) {
       />
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
         <Header />
-        <main style={{ flex: 1, overflowY: 'auto' }}>
+        <main style={{ flex: 1, overflowY: 'auto', position: 'relative', zIndex: 2 }}>
           {children}
         </main>
       </div>

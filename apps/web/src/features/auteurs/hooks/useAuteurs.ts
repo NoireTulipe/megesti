@@ -9,7 +9,7 @@ export interface Auteur {
   email:      string | null
   bio:        string | null
   actif:      boolean
-  _count:     { contrats: number }
+  _count:     { contrats: number; articles: number }
 }
 
 export interface ArticleForAuteur {

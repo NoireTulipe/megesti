@@ -26,27 +26,32 @@ export interface BilanData {
     }
   }
   sortiesEffectives: {
-    frais:   number
-    charges: number
+    frais:                   number
+    charges:                 number
+    droitsAuteursPaies:      number
+    commissionsReversements: number
     parCategorie: {
       ACHATS: number; SERVICES: number; IMPOTS_TAXES: number
       AUTRES_CHARGES: number; CHARGES_EXCEPT: number
     }
-    total:   number
+    total: number
     detail: {
       frais:   { type: string; motif: string; montantHT: number; date: string }[]
       charges: { libelle: string; montantHT: number; type: string; categorie: string; date: string | null }[]
+      droitsAuteursPaies:      { auteurId: string; nomAuteur: string; montant: number }[]
+      commissionsReversements: { pdvNom: string; montantBrut: number; commission: number }[]
     }
   }
   entreesPrevues: {
     reversementsEnAttente: number
     total: number
-    detail: { pdvNom: string; montant: number; dateCloture: string }[]
+    detail: { pdvNom: string; montant: number; commission: number; dateCloture: string }[]
   }
   sortiesPrevues: {
-    droitsAuteurs: number
-    chargesAVenir: number
-    total:         number
+    droitsAuteurs:           number
+    chargesAVenir:           number
+    commissionsReversements: number
+    total:                   number
     detail: {
       droits:  { auteurId: string; nomAuteur: string; montantNet: number; montantBrut: number }[]
       charges: { id: string; libelle: string; montantHT: number; type: string; periodicite: string | null; prochaineEcheance: string | null }[]

@@ -5,6 +5,7 @@ interface Props {
   article:    Article
   onEdit?:    () => void
   onToggle?:  (actif: boolean) => void
+  onClick?:   () => void
 }
 
 function StockPill({ article }: { article: Article }) {
@@ -18,11 +19,15 @@ function StockPill({ article }: { article: Article }) {
   return <span className={`${styles.stockPill} ${cls}`}>{label}</span>
 }
 
-export function ArticleCard({ article, onEdit, onToggle }: Props) {
+export function ArticleCard({ article, onEdit, onToggle, onClick }: Props) {
   const retire = !article.actif
 
   return (
-    <article className={`${styles.card}${retire ? ` ${styles.cardRetire}` : ''}`}>
+    <article
+      className={`${styles.card}${retire ? ` ${styles.cardRetire}` : ''}`}
+      onClick={onClick}
+      style={onClick ? { cursor: 'pointer' } : undefined}
+    >
       {/* Zone image */}
       <div className={styles.imgWrap}>
         {article.imageUrl

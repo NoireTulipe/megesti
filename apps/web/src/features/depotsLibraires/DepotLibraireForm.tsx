@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useCreateDepotLibraire, useUpdateDepotLibraire } from './hooks/useDepotsLibraires'
-import type { DepotLibraire } from './hooks/useDepotsLibraires'
+import type { DepotLibraireList } from './hooks/useDepotsLibraires'
 import { CustomFieldsRenderer } from '@/components/CustomFieldsRenderer'
 import { useCustomFields } from '@/features/reglages/hooks/useCustomFields'
 import { useCustomFieldValues, useSaveCustomFieldValues } from '@/features/reglages/hooks/useCustomFieldValues'
@@ -14,16 +14,17 @@ import styles from '@/styles/entityForm.module.css'
 const FIXED_CATEGORIES = FIXED_SECTIONS.depotLibraire.map((s) => s.label)
 
 const schema = z.object({
-  nom:     z.string().min(1, 'Requis'),
-  contact: z.string().optional(),
-  adresse: z.string().optional(),
+  nom:                z.string().min(1, 'Requis'),
+  adresse:            z.string().optional(),
+  commissionFixe:     z.string().optional(),
+  commissionPourcent: z.string().optional(),
 })
 
 type FormValues = z.infer<typeof schema>
 
 interface Props {
-  onClose:       () => void
-  depotLibraire?: DepotLibraire
+  onClose:        () => void
+  depotLibraire?: DepotLibraireList
 }
 
 export function DepotLibraireForm({ onClose, depotLibraire }: Props) {
@@ -38,9 +39,10 @@ export function DepotLibraireForm({ onClose, depotLibraire }: Props) {
           formState: { errors, isSubmitting } } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: depotLibraire ? {
-      nom:     depotLibraire.nom,
-      contact: depotLibraire.contact ?? '',
-      adresse: depotLibraire.adresse ?? '',
+      nom:                depotLibraire.nom,
+      adresse:            depotLibraire.adresse ?? '',
+      commissionFixe:     depotLibraire.commissionFixe    ? String(Number(depotLibraire.commissionFixe))    : '',
+      commissionPourcent: depotLibraire.commissionPourcent ? String(Number(depotLibraire.commissionPourcent)) : '',
     } : {},
   })
 
@@ -62,9 +64,10 @@ export function DepotLibraireForm({ onClose, depotLibraire }: Props) {
     if (hasErrors) return
 
     const payload = {
-      nom:     values.nom,
-      contact: values.contact || undefined,
-      adresse: values.adresse || undefined,
+      nom:                values.nom,
+      adresse:            values.adresse || undefined,
+      commissionFixe:     values.commissionFixe    ? Number(values.commissionFixe)    : null,
+      commissionPourcent: values.commissionPourcent ? Number(values.commissionPourcent) : null,
     }
 
     const entityId = isEdit ? depotLibraire!.id : crypto.randomUUID()
@@ -97,9 +100,15 @@ export function DepotLibraireForm({ onClose, depotLibraire }: Props) {
           <input id="nom" className={`${styles.input} ${errors.nom ? styles.inputError : ''}`} {...register('nom')} autoFocus />
           {errors.nom && <span className={styles.error}>{errors.nom.message}</span>}
         </div>
-        <div className={styles.field}>
-          <label className={styles.label} htmlFor="contact">Contact</label>
-          <input id="contact" className={styles.input} {...register('contact')} placeholder="Nom, téléphone…" />
+        <div className={styles.row2}>
+          <div className={styles.field}>
+            <label className={styles.label} htmlFor="commissionFixe">Commission fixe (€)</label>
+            <input id="commissionFixe" type="number" min="0" step="0.01" className={styles.input} {...register('commissionFixe')} placeholder="0.00" />
+          </div>
+          <div className={styles.field}>
+            <label className={styles.label} htmlFor="commissionPourcent">Commission (%)</label>
+            <input id="commissionPourcent" type="number" min="0" max="100" step="0.5" className={styles.input} {...register('commissionPourcent')} placeholder="0" />
+          </div>
         </div>
         <CustomFieldsRenderer entityType="depotLibraire" onlyCategory="Informations" register={register} errors={errors} />
       </div>

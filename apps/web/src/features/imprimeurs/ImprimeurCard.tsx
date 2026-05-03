@@ -5,13 +5,14 @@ import styles from './ImprimeurCard.module.css'
 interface Props {
   imprimeur: Imprimeur
   onEdit:    () => void
+  onClick?:  () => void
 }
 
-export function ImprimeurCard({ imprimeur, onEdit }: Props) {
+export function ImprimeurCard({ imprimeur, onEdit, onClick }: Props) {
   const { nom, lienCommande, pointsForts, pointsFaibles, noteLibre, contacts } = imprimeur
 
   return (
-    <div className={styles.card}>
+    <div className={styles.card} onClick={onClick} style={onClick ? { cursor: 'pointer' } : undefined}>
       {/* En-tête centré */}
       <div className={styles.hero}>
         <div className={styles.iconWrap}>

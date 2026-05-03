@@ -1,0 +1,68 @@
+import sty from '@/features/auteurs/AuteursPage.module.css'
+import type { DepotLibraireList } from './hooks/useDepotsLibraires'
+
+const GRADIENTS = [
+  'linear-gradient(135deg,#6B8F71,#85A88A)',
+  'linear-gradient(135deg,#5B7A60,#7A9E80)',
+  'linear-gradient(135deg,#4A7060,#6A9080)',
+  'linear-gradient(135deg,#3A6050,#5A8070)',
+]
+
+function cardGradient(name: string) {
+  const sum = [...name].reduce((a, c) => a + c.charCodeAt(0), 0)
+  return GRADIENTS[sum % GRADIENTS.length]
+}
+
+interface Props {
+  depot:   DepotLibraireList
+  onClick: () => void
+}
+
+export function DepotLibraireCard({ depot, onClick }: Props) {
+  const gradient     = cardGradient(depot.nom)
+  const nbContacts   = depot.contacts.length
+  const nbArticles   = depot.articles.reduce((s, a) => s + (a.quantiteEnvoyee - a.quantiteVendue), 0)
+  const commission   = depot.commissionPourcent
+    ? `${Number(depot.commissionPourcent)} %`
+    : depot.commissionFixe ? `${Number(depot.commissionFixe).toFixed(2)} € fixe` : null
+
+  return (
+    <article
+      className={sty['auteur-card']}
+      onClick={onClick}
+      role="button"
+      tabIndex={0}
+      onKeyDown={e => e.key === 'Enter' && onClick()}
+    >
+      <div className={sty['card-bg']} style={{
+        background: `radial-gradient(ellipse at 80% 20%,${gradient.match(/#[A-Fa-f0-9]{6}/)?.[0] ?? '#6B8F71'}18 0%,transparent 70%)`,
+      }} />
+
+      <div className={sty['card-avatar']} style={{ background: gradient, fontSize: '1.3rem' }}>
+        📦
+      </div>
+
+      <div className={sty['card-body']}>
+        <div className={sty['card-nom']}>{depot.nom}</div>
+        {depot.adresse && (
+          <div className={sty['card-civil']}>{depot.adresse}</div>
+        )}
+        {commission && (
+          <div className={sty['card-email']}>Commission {commission}</div>
+        )}
+        <div className={sty['card-pills']}>
+          {nbContacts > 0 && (
+            <span className={`${sty['card-pill']} ${sty['pill-contrats']}`}>
+              {nbContacts} contact{nbContacts > 1 ? 's' : ''}
+            </span>
+          )}
+          {nbArticles > 0 && (
+            <span className={`${sty['card-pill']} ${sty['pill-livres']}`}>
+              {nbArticles} ex. en dépôt
+            </span>
+          )}
+        </div>
+      </div>
+    </article>
+  )
+}

@@ -1,4 +1,5 @@
 import { useEffect, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import styles from './Modal.module.css'
 
 interface ModalProps {
@@ -31,15 +32,23 @@ export function Modal({ isOpen, title, subtitle, onClose, children, size = 'lg',
 
   const inlineStyle = width ? { width, maxWidth: '95vw' } : undefined
 
-  return (
-    <div className={styles.overlay}>
+  return createPortal(
+    <div className={styles.overlay} onClick={onClose}>
       <div
         className={`${styles.dialog} ${styles[size]}`}
         style={inlineStyle}
         role="dialog"
         aria-modal="true"
+        onClick={e => e.stopPropagation()}
       >
         <div className={styles.accent} />
+
+        {/* Blobs décoratifs en arrière-plan du header */}
+        <div className={styles.decorations}>
+          <div className={styles.blobA} />
+          <div className={styles.blobB} />
+          <div className={styles.blobC} />
+        </div>
 
         <div className={styles.header}>
           <div>
@@ -57,6 +66,7 @@ export function Modal({ isOpen, title, subtitle, onClose, children, size = 'lg',
           {children}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }

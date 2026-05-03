@@ -121,9 +121,11 @@ export function BilanPage() {
 
   const donutSorties = useMemo(() => {
     if (!data) return []
-    const { frais, parCategorie } = data.sortiesEffectives
+    const { frais, parCategorie, droitsAuteursPaies, commissionsReversements } = data.sortiesEffectives
     const slices = [
-      { name: 'Frais sessions',  value: frais,                           fill: C.terra },
+      { name: 'Frais sessions',     value: frais,                    fill: C.terra },
+      { name: 'DA versés',          value: droitsAuteursPaies,       fill: C.mauve },
+      { name: 'Commissions PDV',    value: commissionsReversements,  fill: C.gold  },
       ...(Object.keys(parCategorie) as CategorieCharge[]).map(cat => ({
         name:  CATEGORIE_CHARGE_LABELS[cat],
         value: parCategorie[cat],
@@ -363,6 +365,7 @@ export function BilanPage() {
               </button>
               {showDetail === 'sorties' && (
                 <div className={styles.detailList}>
+                  {data.sortiesEffectives.detail.frais.length > 0 && <p className={styles.detailCat}>Frais sessions</p>}
                   {data.sortiesEffectives.detail.frais.map((f, i) => (
                     <div key={i} className={styles.detailRow}>
                       <span>{f.motif}</span>
@@ -370,6 +373,7 @@ export function BilanPage() {
                       <span className={styles.detailMontant}>{fEur(f.montantHT)}</span>
                     </div>
                   ))}
+                  {data.sortiesEffectives.detail.charges.length > 0 && <p className={styles.detailCat}>Charges payées</p>}
                   {data.sortiesEffectives.detail.charges.map((c, i) => (
                     <div key={i} className={styles.detailRow}>
                       <span>{c.libelle}</span>
@@ -377,6 +381,22 @@ export function BilanPage() {
                         {CATEGORIE_CHARGE_LABELS[c.categorie as CategorieCharge] ?? TYPE_CHARGE_LABELS[c.type as TypeCharge]}
                       </span>
                       <span className={styles.detailMontant}>{fEur(c.montantHT)}</span>
+                    </div>
+                  ))}
+                  {data.sortiesEffectives.detail.droitsAuteursPaies.length > 0 && <p className={styles.detailCat}>Droits d'auteurs versés</p>}
+                  {data.sortiesEffectives.detail.droitsAuteursPaies.map((d, i) => (
+                    <div key={i} className={styles.detailRow}>
+                      <span>{d.nomAuteur}</span>
+                      <span className={styles.detailSub} style={{ color: C.mauve }}>DA versé</span>
+                      <span className={styles.detailMontant}>{fEur(d.montant)}</span>
+                    </div>
+                  ))}
+                  {data.sortiesEffectives.detail.commissionsReversements.length > 0 && <p className={styles.detailCat}>Commissions PDV</p>}
+                  {data.sortiesEffectives.detail.commissionsReversements.map((c, i) => (
+                    <div key={i} className={styles.detailRow}>
+                      <span>{c.pdvNom}</span>
+                      <span className={styles.detailSub}>Brut {fEur(c.montantBrut)}</span>
+                      <span className={styles.detailMontant} style={{ color: C.gold }}>{fEur(c.commission)}</span>
                     </div>
                   ))}
                 </div>
@@ -403,8 +423,12 @@ export function BilanPage() {
                   {data.entreesPrevues.detail.map((r, i) => (
                     <div key={i} className={styles.detailRow}>
                       <span>{r.pdvNom}</span>
-                      <span className={styles.detailSub}>Clôt. {fDate(r.dateCloture)}</span>
-                      <span className={styles.detailMontant} style={{ color: C.gold }}>{fEur(r.montant)}</span>
+                      <span className={styles.detailSub}>
+                        Brut {fEur(r.montant)}{r.commission > 0 ? ` − comm. ${fEur(r.commission)}` : ''}
+                      </span>
+                      <span className={styles.detailMontant} style={{ color: C.gold }}>
+                        {fEur(r.montant - r.commission)}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -442,7 +466,18 @@ export function BilanPage() {
                   ))}
                 </>
               )}
-              {data.sortiesPrevues.detail.droits.length === 0 && data.sortiesPrevues.detail.charges.length === 0 && (
+              {data.sortiesPrevues.commissionsReversements > 0 && (
+                <>
+                  <p className={styles.detailCat}>Commissions PDV à déduire</p>
+                  <div className={styles.detailRow}>
+                    <span>Total commissions reversements en attente</span>
+                    <span className={styles.detailMontant} style={{ color: C.gold }}>
+                      {fEur(data.sortiesPrevues.commissionsReversements)}
+                    </span>
+                  </div>
+                </>
+              )}
+              {data.sortiesPrevues.detail.droits.length === 0 && data.sortiesPrevues.detail.charges.length === 0 && data.sortiesPrevues.commissionsReversements === 0 && (
                 <p className={styles.empty}>Aucune sortie prévue</p>
               )}
             </div>
@@ -518,6 +553,90 @@ export function BilanPage() {
             </button>
           )}
         </div>
+
+        {/* ── TABLEAU RÉCAPITULATIF ────────────────────────────────────────── */}
+        {data && (
+          <div className={styles.section}>
+            <div className={styles.sectionHeader}>
+              <span className={styles.sectionEmoji}>📋</span>
+              <h2 className={styles.sectionTitle}>Récapitulatif entrées / sorties</h2>
+            </div>
+            <div className={styles.grid2}>
+              {/* Entrées */}
+              <div>
+                <p className={styles.detailCat} style={{ marginBottom: 8 }}>Entrées effectives</p>
+                {[
+                  { label: 'Ventes en session',       val: data.entreesEffectives.ventesDirectes },
+                  { label: 'Ventes hors session',     val: data.entreesEffectives.ventesHorsSession },
+                  { label: 'Reversements PDV (brut)', val: data.entreesEffectives.reversementsEncaisses },
+                ].filter(r => r.val > 0).map((r, i) => (
+                  <div key={i} className={styles.detailRow}>
+                    <span>{r.label}</span>
+                    <span className={styles.detailMontant} style={{ color: C.sage }}>{fEur(r.val)}</span>
+                  </div>
+                ))}
+                <div className={styles.detailRow} style={{ borderTop: '1.5px solid var(--cream-dark)', marginTop: 6, paddingTop: 6, fontWeight: 700 }}>
+                  <span>Total encaissé</span>
+                  <span style={{ color: C.sage }}>{fEur(data.entreesEffectives.total)}</span>
+                </div>
+                {data.entreesPrevues.total > 0 && (
+                  <>
+                    <p className={styles.detailCat} style={{ marginTop: 16, marginBottom: 8 }}>Entrées prévues</p>
+                    <div className={styles.detailRow}>
+                      <span>Reversements PDV en attente (brut)</span>
+                      <span className={styles.detailMontant} style={{ color: C.gold }}>{fEur(data.entreesPrevues.total)}</span>
+                    </div>
+                  </>
+                )}
+              </div>
+              {/* Sorties */}
+              <div>
+                <p className={styles.detailCat} style={{ marginBottom: 8 }}>Sorties effectives</p>
+                {[
+                  { label: 'Frais sessions',        val: data.sortiesEffectives.frais },
+                  { label: 'Charges payées',         val: data.sortiesEffectives.charges },
+                  { label: 'Droits d\'auteurs versés', val: data.sortiesEffectives.droitsAuteursPaies },
+                  { label: 'Commissions PDV',        val: data.sortiesEffectives.commissionsReversements },
+                ].filter(r => r.val > 0).map((r, i) => (
+                  <div key={i} className={styles.detailRow}>
+                    <span>{r.label}</span>
+                    <span className={styles.detailMontant} style={{ color: C.terra }}>{fEur(r.val)}</span>
+                  </div>
+                ))}
+                <div className={styles.detailRow} style={{ borderTop: '1.5px solid var(--cream-dark)', marginTop: 6, paddingTop: 6, fontWeight: 700 }}>
+                  <span>Total décaissé</span>
+                  <span style={{ color: C.terra }}>{fEur(data.sortiesEffectives.total)}</span>
+                </div>
+                {data.sortiesPrevues.total > 0 && (
+                  <>
+                    <p className={styles.detailCat} style={{ marginTop: 16, marginBottom: 8 }}>Sorties prévues</p>
+                    {[
+                      { label: 'Droits d\'auteurs à reverser', val: data.sortiesPrevues.droitsAuteurs },
+                      { label: 'Commissions PDV attendues',    val: data.sortiesPrevues.commissionsReversements },
+                      { label: 'Charges à venir',             val: data.sortiesPrevues.chargesAVenir },
+                    ].filter(r => r.val > 0).map((r, i) => (
+                      <div key={i} className={styles.detailRow}>
+                        <span>{r.label}</span>
+                        <span className={styles.detailMontant} style={{ color: C.mauve }}>{fEur(r.val)}</span>
+                      </div>
+                    ))}
+                    <div className={styles.detailRow} style={{ borderTop: '1.5px solid var(--cream-dark)', marginTop: 6, paddingTop: 6, fontWeight: 700 }}>
+                      <span>Total prévu</span>
+                      <span style={{ color: C.mauve }}>{fEur(data.sortiesPrevues.total)}</span>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+            {/* Solde net */}
+            <div style={{ marginTop: 20, padding: '14px 20px', background: 'var(--cream)', borderRadius: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--ink)' }}>Solde net (effectif)</span>
+              <span style={{ fontFamily: 'DM Serif Display, serif', fontSize: '1.4rem', color: data.entreesEffectives.total - data.sortiesEffectives.total >= 0 ? C.green : C.red }}>
+                {fEur(data.entreesEffectives.total - data.sortiesEffectives.total)}
+              </span>
+            </div>
+          </div>
+        )}
 
         {/* ── BILAN COMPTABLE ──────────────────────────────────────────────── */}
         {bilanActif && bilanPassif && (

@@ -57,7 +57,7 @@ function InPrepCard() {
       boxShadow: '0 4px 20px rgba(201,147,58,0.1)',
       position: 'relative', overflow: 'hidden',
     }}>
-      <svg style={{ position: 'absolute', bottom: -20, right: -20, opacity: 0.25 }} width="100" height="100" viewBox="0 0 100 100">
+      <svg style={{ position: 'absolute', bottom: -20, right: -20, opacity: 0.25, animation: 'floatA 10s ease-in-out infinite' }} width="100" height="100" viewBox="0 0 100 100">
         <circle cx="50" cy="50" r="45" fill="none" stroke="var(--gold)" strokeWidth="20" />
       </svg>
       <div>

@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { calculateRoyalties } from '@megesti/business'
 import type { FormuleDA, ContexteVente, LigneVenteDA } from '@megesti/business'
 import { occurrencesDansPeriode } from './charges.js'
+import { calculerSoldeContrat } from '../services/droitsAuteur.js'
 
 const QuerySchema = z.object({
   period: z.enum(['7d', '30d', '3m', '12m', 'all']).default('30d'),
@@ -225,10 +226,10 @@ export const rapportRoutes: FastifyPluginAsync = async (app) => {
         GROUP BY mv."id", mv."libelle" ORDER BY ca DESC
       `),
 
-      // Reversements encaissés dans la période
+      // Reversements encaissés dans la période (avec données commission)
       app.db.reversement.findMany({
         where:   { tenantId, statut: 'ENCAISSE', dateEncaissement: { gte: from, lte: to } },
-        include: { pointDeVente: { select: { nom: true } } },
+        include: { pointDeVente: { select: { nom: true, commissionFixe: true, commissionPourcent: true } } },
       }),
       // Frais sur la période (avec montant)
       app.db.frais.findMany({
@@ -248,7 +249,7 @@ export const rapportRoutes: FastifyPluginAsync = async (app) => {
       // Reversements en attente (tous)
       app.db.reversement.findMany({
         where:   { tenantId, statut: 'EN_ATTENTE' },
-        include: { pointDeVente: { select: { nom: true } } },
+        include: { pointDeVente: { select: { nom: true, commissionFixe: true, commissionPourcent: true } } },
         orderBy: { dateCloture: 'asc' },
       }),
       // Articles en stock avec coût d'achat
@@ -276,6 +277,38 @@ export const rapportRoutes: FastifyPluginAsync = async (app) => {
           AND v."dateVente" >= ${from} AND v."dateVente" <= ${to}
       `),
     ])
+
+    // ── Soldes réels des contrats (cumul depuis datePriseEffet − déjà versé) ──
+    const contratsActifs = await app.db.contratAuteur.findMany({
+      where:  { tenantId, actif: true },
+      select: { id: true },
+    })
+    const soldesContrats = (await Promise.all(
+      contratsActifs.map(c => calculerSoldeContrat(c.id, tenantId, app.db as any))
+    )).filter(Boolean) as NonNullable<Awaited<ReturnType<typeof calculerSoldeContrat>>>[]
+
+    const auteurSoldes = new Map<string, { nom: string; solde: number; brut: number }>()
+    for (const s of soldesContrats) {
+      if (s.solde <= 0) continue
+      const prev = auteurSoldes.get(s.auteurId) ?? { nom: s.auteurNom, solde: 0, brut: 0 }
+      auteurSoldes.set(s.auteurId, { nom: s.auteurNom, solde: prev.solde + s.solde, brut: prev.brut + s.totalDuBrut })
+    }
+    const totalDroitsOutstanding = [...auteurSoldes.values()].reduce((s, a) => s + a.solde, 0)
+
+    // ── Droits d'auteurs effectivement payés dans la période ─────────────────
+    const paiementsDAperiode = await app.db.paiementDA.findMany({
+      where:  { tenantId, statut: 'PAYE', dateVersement: { gte: from, lte: to } },
+      select: { auteurId: true, montant: true, auteur: { select: { prenom: true, nom: true } } },
+    })
+
+    // ── Helper commission reversement ─────────────────────────────────────────
+    function commissionRev(r: { montantTTC: { toNumber: () => number } | string | number; montantAjuste: { toNumber: () => number } | string | number | null; pointDeVente: { commissionFixe: { toNumber: () => number } | string | number | null; commissionPourcent: { toNumber: () => number } | string | number | null } }): number {
+      const brut = Number(r.montantTTC)
+      if (r.montantAjuste !== null && r.montantAjuste !== undefined) return brut - Number(r.montantAjuste)
+      const fixe = Number(r.pointDeVente.commissionFixe ?? 0)
+      const pct  = Number(r.pointDeVente.commissionPourcent ?? 0)
+      return fixe + brut * pct / 100
+    }
 
     // ── Calcul droits d'auteurs sur la période ────────────────────────────────
     const sessionsAvecVentes = await app.db.sessionCaisse.findMany({
@@ -387,15 +420,22 @@ export const rapportRoutes: FastifyPluginAsync = async (app) => {
     const totalDroits          = [...auteurDroits.values()].reduce((s, a) => s + a.montantNet, 0)
     const totalChargesAVenir   = chargesPonctuellesAVenir.reduce((s, c) => s + Number(c.montantHT), 0)
                                + aboPrevu.reduce((s, e) => s + e.montantHT, 0)
+    const totalDAPaies         = paiementsDAperiode.reduce((s, p) => s + Number(p.montant), 0)
+    const commissionsEncaissees = reversementsEncaisses.reduce((s, r) => s + commissionRev(r), 0)
+    const commissionsEnAttente  = reversementsEnAttente.reduce((s, r) => s + commissionRev(r), 0)
 
     const totalVentesHorsSession = ventesHorsSessionParMotif.reduce((s, m) => s + m.ca, 0)
 
-    const totalEntreesEff = ventesDirectesModes.reduce((s, v) => s + v.ca, 0)
-                          + totalVentesHorsSession
-                          + reversementsEncaisses.reduce((s, r) => s + Number(r.montantTTC), 0)
-    const totalSortiesEff = totalFrais + totalChargesPayees
+    // Entrées : CA brut (ventes directes + hors session + reversements bruts)
+    const totalEntreesEff  = ventesDirectesModes.reduce((s, v) => s + v.ca, 0)
+                           + totalVentesHorsSession
+                           + reversementsEncaisses.reduce((s, r) => s + Number(r.montantTTC), 0)
+    // Sorties effectives : frais + charges + DA payés + commissions PDV encaissés
+    const totalSortiesEff  = totalFrais + totalChargesPayees + totalDAPaies + commissionsEncaissees
+    // Entrées prévues : reversements bruts en attente
     const totalEntreesPrev = reversementsEnAttente.reduce((s, r) => s + Number(r.montantTTC), 0)
-    const totalSortiesPrev = totalDroits + totalChargesAVenir
+    // Sorties prévues : solde DA réel (non payé) + charges + commissions PDV en attente
+    const totalSortiesPrev = totalDroitsOutstanding + totalChargesAVenir + commissionsEnAttente
 
     const valeurStock = articlesStock.reduce((s, a) => {
       const u = a.prixAchatLotHT && a.prixAchatLotQte && Number(a.prixAchatLotQte) > 0
@@ -440,20 +480,41 @@ export const rapportRoutes: FastifyPluginAsync = async (app) => {
         },
       },
       sortiesEffectives: {
-        frais: totalFrais, charges: totalChargesPayees, parCategorie, total: totalSortiesEff,
+        frais:    totalFrais,
+        charges:  totalChargesPayees,
+        droitsAuteursPaies:      totalDAPaies,
+        commissionsReversements: commissionsEncaissees,
+        parCategorie,
+        total: totalSortiesEff,
         detail: {
           frais:   fraisPeriode.map(f => ({ type: f.type, motif: f.motif, montantHT: Number(f.montantHT ?? 0), date: f.date.toISOString() })),
           charges: chargesDetail,
+          droitsAuteursPaies: paiementsDAperiode.map(p => ({
+            auteurId: p.auteurId,
+            nomAuteur: `${p.auteur.prenom} ${p.auteur.nom}`.trim(),
+            montant: Number(p.montant),
+          })),
+          commissionsReversements: reversementsEncaisses
+            .filter(r => commissionRev(r) > 0)
+            .map(r => ({ pdvNom: r.pointDeVente.nom, montantBrut: Number(r.montantTTC), commission: commissionRev(r) })),
         },
       },
       entreesPrevues: {
         reversementsEnAttente: totalEntreesPrev, total: totalEntreesPrev,
-        detail: reversementsEnAttente.map(r => ({ pdvNom: r.pointDeVente.nom, montant: Number(r.montantTTC), dateCloture: r.dateCloture.toISOString() })),
+        detail: reversementsEnAttente.map(r => ({
+          pdvNom: r.pointDeVente.nom,
+          montant: Number(r.montantTTC),
+          commission: commissionRev(r),
+          dateCloture: r.dateCloture.toISOString(),
+        })),
       },
       sortiesPrevues: {
-        droitsAuteurs: totalDroits, chargesAVenir: totalChargesAVenir, total: totalSortiesPrev,
+        droitsAuteurs:           totalDroitsOutstanding,
+        chargesAVenir:           totalChargesAVenir,
+        commissionsReversements: commissionsEnAttente,
+        total: totalSortiesPrev,
         detail: {
-          droits:  [...auteurDroits.entries()].map(([auteurId, d]) => ({ auteurId, nomAuteur: d.nom, montantNet: d.montantNet, montantBrut: d.montantBrut })),
+          droits: [...auteurSoldes.entries()].map(([auteurId, d]) => ({ auteurId, nomAuteur: d.nom, montantNet: d.solde, montantBrut: d.brut })),
           charges: [
             ...chargesPonctuellesAVenir.map(c => ({ id: c.id, libelle: c.libelle, montantHT: Number(c.montantHT), type: c.type, datePrevu: c.dateEffet.toISOString() })),
             ...aboPrevu.map(e => ({ id: e.id, libelle: e.libelle, montantHT: e.montantHT, type: 'ABONNEMENT', datePrevu: e.date.toISOString() })),
@@ -469,10 +530,10 @@ export const rapportRoutes: FastifyPluginAsync = async (app) => {
           total: valeurStock + totalEntreesPrev + Math.max(0, totalEntreesEff - totalSortiesEff),
         },
         passif: {
-          droitsAuteurs: totalDroits,
+          droitsAuteurs: totalDroitsOutstanding,
           chargesAPayer: totalChargesAVenir,
           resultatNet,
-          total: totalDroits + totalChargesAVenir + resultatNet,
+          total: totalDroitsOutstanding + totalChargesAVenir + resultatNet,
         },
       },
     }

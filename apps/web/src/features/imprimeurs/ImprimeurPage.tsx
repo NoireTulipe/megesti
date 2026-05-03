@@ -1,17 +1,18 @@
 import { useState, useEffect, useRef } from 'react'
 import { useImprimeurs } from './hooks/useImprimeurs'
 import type { Imprimeur } from './hooks/useImprimeurs'
-import { ImprimeurCard } from './ImprimeurCard'
-import { ImprimeurForm } from './ImprimeurForm'
-import { SlideOver } from '@/components/ui/SlideOver'
-import { EmptyState } from '@/components/ui/EmptyState'
-import styles from '@/features/auteurs/AuteursPage.module.css'
+import { ImprimeurCard }   from './ImprimeurCard'
+import { ImprimeurDetail } from './ImprimeurDetail'
+import { ImprimeurForm }   from './ImprimeurForm'
+import { Modal } from '@/components/ui/Modal'
+import sty from '@/features/auteurs/AuteursPage.module.css'
 
 export function ImprimeurPage() {
-  const [search, setSearch]       = useState('')
-  const [debounced, setDebounced] = useState('')
+  const [search, setSearch]         = useState('')
+  const [debounced, setDebounced]   = useState('')
+  const [detail, setDetail]         = useState<Imprimeur | null>(null)
   const [showCreate, setShowCreate] = useState(false)
-  const [editItem, setEditItem]   = useState<Imprimeur | null>(null)
+  const [editItem, setEditItem]     = useState<Imprimeur | null>(null)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const { data: items = [], isLoading, isError } = useImprimeurs(debounced || undefined)
@@ -23,62 +24,98 @@ export function ImprimeurPage() {
   }, [search])
 
   return (
-    <div className={styles.page}>
-      <header className={styles.header}>
+    <div className={sty.page}>
+
+      {/* ── Header ── */}
+      <header className={sty.header}>
         <div>
-          <h1 className={styles.title}>Imprimeurs</h1>
-          <p className={styles.subtitle}>
+          <h1 className={sty['page-title']}>Imprimeurs</h1>
+          <p className={sty['page-subtitle']}>
             {items.length} imprimeur{items.length > 1 ? 's' : ''} référencé{items.length > 1 ? 's' : ''}
+            {debounced ? ` · résultats pour « ${debounced} »` : ''}
           </p>
         </div>
-        <div className={styles.actions}>
-          <input
-            className={styles.search}
-            type="search"
-            placeholder="Rechercher…"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-          />
-          <button className={styles.btnPrimary} onClick={() => setShowCreate(true)}>
-            + Nouvel imprimeur
+        <div className={sty['header-actions']}>
+          <div className={sty['search-wrap']}>
+            <span className={sty['search-icon']}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+              </svg>
+            </span>
+            <input
+              className={sty['search-input']}
+              type="search"
+              placeholder="Rechercher un imprimeur…"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+            />
+          </div>
+          <button className={sty['btn-primary']} onClick={() => setShowCreate(true)}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            Nouvel imprimeur
           </button>
         </div>
       </header>
 
+      {/* ── Grille ── */}
       {isLoading && (
-        <div className={styles.grid}>
-          {Array.from({ length: 4 }).map((_, i) => <div key={i} className={styles.skeleton} />)}
+        <div className={sty.grid}>
+          {Array.from({ length: 4 }).map((_, i) => <div key={i} className={sty.skeleton} />)}
         </div>
       )}
 
       {isError && (
-        <div className={styles.empty}><p>Impossible de charger les imprimeurs.</p></div>
+        <div className={sty['empty-state']}>
+          <div className={sty['empty-icon']}>🖨️</div>
+          <div className={sty['empty-title']}>Impossible de charger les imprimeurs</div>
+        </div>
       )}
 
       {!isLoading && !isError && items.length === 0 && (
-        <EmptyState
-          emoji="🖨️"
-          title={debounced ? `Aucun résultat pour « ${debounced} »` : 'Aucun imprimeur référencé'}
-          description={debounced ? undefined : 'Ajoutez vos imprimeurs pour les retrouver en un clic depuis chaque livre.'}
-          action={debounced ? undefined : { label: '+ Nouvel imprimeur', onClick: () => setShowCreate(true) }}
-        />
+        <div className={sty['empty-state']}>
+          <div className={sty['empty-icon']}>🖨️</div>
+          <div className={sty['empty-title']}>
+            {debounced ? `Aucun résultat pour « ${debounced} »` : 'Aucun imprimeur référencé'}
+          </div>
+          <div className={sty['empty-desc']}>
+            {!debounced && 'Ajoutez vos imprimeurs pour les retrouver en un clic depuis chaque livre.'}
+          </div>
+        </div>
       )}
 
       {!isLoading && !isError && items.length > 0 && (
-        <div className={styles.grid}>
+        <div className={sty.grid}>
           {items.map(item => (
-            <ImprimeurCard key={item.id} imprimeur={item} onEdit={() => setEditItem(item)} />
+            <ImprimeurCard
+              key={item.id}
+              imprimeur={item}
+              onClick={() => setDetail(item)}
+              onEdit={() => setEditItem(item)}
+            />
           ))}
         </div>
       )}
 
-      <SlideOver isOpen={showCreate} onClose={() => setShowCreate(false)} title="Nouvel imprimeur" emoji="🖨️">
-        <ImprimeurForm onClose={() => setShowCreate(false)} />
-      </SlideOver>
+      {/* ── Fiche imprimeur ── */}
+      {detail && (
+        <ImprimeurDetail
+          imprimeur={detail}
+          isOpen={Boolean(detail)}
+          onClose={() => setDetail(null)}
+          onEdit={() => { setEditItem(detail); setDetail(null) }}
+        />
+      )}
 
-      <SlideOver isOpen={Boolean(editItem)} onClose={() => setEditItem(null)} title="Modifier l'imprimeur" subtitle={editItem?.nom} emoji="🖨️">
+      {/* ── Modales formulaire ── */}
+      <Modal isOpen={showCreate} onClose={() => setShowCreate(false)} title="Nouvel imprimeur" size="lg">
+        <ImprimeurForm onClose={() => setShowCreate(false)} />
+      </Modal>
+
+      <Modal isOpen={Boolean(editItem)} onClose={() => setEditItem(null)} title="Modifier l'imprimeur" subtitle={editItem?.nom} size="lg">
         {editItem && <ImprimeurForm imprimeur={editItem} onClose={() => setEditItem(null)} />}
-      </SlideOver>
+      </Modal>
     </div>
   )
 }

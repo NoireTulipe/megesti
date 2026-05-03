@@ -75,6 +75,22 @@
   --t-med:         0.25s;
   --t-slow:        0.4s;
 
+  /* ── Aliases design système éditorial (ex. HTML) ─────────── */
+  --terra:         var(--rose);
+  --terra-dark:    var(--rose-dark);
+  --terra-light:   var(--rose-light);
+  --terra-faint:   rgba(196,144,124,0.07);
+  --terra-glow:    var(--rose-glow);
+  --ink-mid:       var(--ink-light);
+  --ink-border:    var(--cream-dark);
+  --r-card:        var(--radius-card);
+  --r-pill:        var(--radius-pill);
+  --r-input:       var(--radius-input);
+  --r-modal:       28px;
+  --t:             0.2s;
+  --ease:          cubic-bezier(0.22,1,0.36,1);
+  --shadow-modal:  var(--shadow-float);
+
   /* ── Mapping shadcn/ui ────────────────────────────────────── */
   --background:          var(--cream);
   --foreground:          var(--text);

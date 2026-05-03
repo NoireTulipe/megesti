@@ -38,7 +38,7 @@ export const auteurRoutes: FastifyPluginAsync = async (app) => {
           ],
         }),
       },
-      include: { _count: { select: { contrats: { where: { actif: true } } } } },
+      include: { _count: { select: { contrats: { where: { actif: true } }, articles: true } } },
       orderBy: [{ nom: 'asc' }, { prenom: 'asc' }],
     })
   })

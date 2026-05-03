@@ -1,32 +1,32 @@
 import styles from './AuteurCard.module.css'
 import type { Auteur } from './hooks/useAuteurs'
 
-interface Props {
-  auteur:   Auteur
-  onClick?: () => void
-  onEdit?:  () => void
-}
-
-const AVATAR_GRADIENTS = [
-  'linear-gradient(135deg, #C4907C 0%, #D4A070 100%)',
-  'linear-gradient(135deg, #8B7BAB 0%, #A090C0 100%)',
-  'linear-gradient(135deg, #6B8F71 0%, #85A88A 100%)',
-  'linear-gradient(135deg, #C9933A 0%, #D4A855 100%)',
-  'linear-gradient(135deg, #3D5470 0%, #5470A0 100%)',
+const GRADIENTS = [
+  'linear-gradient(135deg,#C4907C,#D4A070)',
+  'linear-gradient(135deg,#8B7BAB,#A090C0)',
+  'linear-gradient(135deg,#6B8F71,#85A88A)',
+  'linear-gradient(135deg,#C9933A,#D4A855)',
+  'linear-gradient(135deg,#5B6E8A,#7090B8)',
 ]
 
-function avatarGradient(name: string) {
-  const sum = [...name].reduce((acc, c) => acc + c.charCodeAt(0), 0)
-  return AVATAR_GRADIENTS[sum % AVATAR_GRADIENTS.length]
+function cardGradient(name: string) {
+  const sum = [...name].reduce((a, c) => a + c.charCodeAt(0), 0)
+  return GRADIENTS[sum % GRADIENTS.length]
 }
 
-function initiales(auteur: Auteur): string {
+function initiales(auteur: Auteur) {
   return `${auteur.prenom[0]}${auteur.nom[0]}`.toUpperCase()
 }
 
-export function AuteurCard({ auteur, onClick, onEdit }: Props) {
+interface Props {
+  auteur:   Auteur
+  onClick?: () => void
+}
+
+export function AuteurCard({ auteur, onClick }: Props) {
   const nomAffiche = auteur.pseudonyme ?? `${auteur.prenom} ${auteur.nom}`
-  const gradient   = avatarGradient(auteur.nom)
+  const gradient   = cardGradient(auteur.nom)
+  const bgColor    = gradient.match(/#[A-Fa-f0-9]{6}/)?.[0] ?? '#C4907C'
 
   return (
     <article
@@ -34,51 +34,38 @@ export function AuteurCard({ auteur, onClick, onEdit }: Props) {
       onClick={onClick}
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}
+      onKeyDown={e => e.key === 'Enter' && onClick?.()}
     >
-      {/* Fond dégradé subtil lié à l'auteur */}
-      <div className={styles.bg} style={{ background: gradient.replace('135deg', '180deg').replace('100%)', '8%) 0%, transparent 100%)').replace('linear-gradient', 'radial-gradient') }} />
+      <div className={styles.bg} style={{
+        background: `radial-gradient(ellipse at 80% 20%,${bgColor}18 0%,transparent 70%)`,
+      }} />
 
-      {/* Initiales */}
-      <div className={styles.initiales} style={{ background: gradient }}>
+      <div className={styles.avatar} style={{ background: gradient }}>
         {initiales(auteur)}
       </div>
 
-      {/* Nom — le plus important */}
-      <h3 className={styles.nom}>{nomAffiche}</h3>
+      <div className={styles.body}>
+        <div className={styles.nom}>{nomAffiche}</div>
+        {auteur.pseudonyme && (
+          <div className={styles.civil}>{auteur.prenom} {auteur.nom}</div>
+        )}
+        {auteur.email && (
+          <div className={styles.email}>{auteur.email}</div>
+        )}
+        <div className={styles.pills}>
+          {auteur._count.contrats > 0 && (
+            <span className={`${styles.pill} ${styles.pillContrats}`}>
+              {auteur._count.contrats} contrat{auteur._count.contrats > 1 ? 's' : ''}
+            </span>
+          )}
+          {auteur._count.articles > 0 && (
+            <span className={`${styles.pill} ${styles.pillLivres}`}>
+              {auteur._count.articles} livre{auteur._count.articles > 1 ? 's' : ''}
+            </span>
+          )}
+        </div>
+      </div>
 
-      {/* Nom civil sous le pseudonyme */}
-      {auteur.pseudonyme && (
-        <p className={styles.nomCivil}>{auteur.prenom} {auteur.nom}</p>
-      )}
-
-      {/* Email discret si présent */}
-      {auteur.email && (
-        <a
-          href={`mailto:${auteur.email}`}
-          className={styles.email}
-          onClick={e => e.stopPropagation()}
-        >
-          {auteur.email}
-        </a>
-      )}
-
-      {/* Nb contrats */}
-      {auteur._count.contrats > 0 && (
-        <span className={styles.contratsBadge}>
-          {auteur._count.contrats} contrat{auteur._count.contrats > 1 ? 's' : ''}
-        </span>
-      )}
-
-      {/* Bouton modifier */}
-      {onEdit && (
-        <button
-          className={styles.editBtn}
-          onClick={e => { e.stopPropagation(); onEdit() }}
-          aria-label="Modifier"
-        >
-          Modifier
-        </button>
-      )}
     </article>
   )
 }
