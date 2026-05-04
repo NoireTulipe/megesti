@@ -1,0 +1,88 @@
+/* ── Section compte ────────────────────────────────── */
+.section { display: flex; flex-direction: column; gap: 16px; }
+
+/* ── Carte ─────────────────────────────────────────── */
+.card {
+  background: var(--white); border: 1.5px solid var(--cream-dark);
+  border-radius: var(--radius-card); padding: 24px;
+  box-shadow: var(--shadow-card);
+}
+.cardTitle {
+  font-family: 'DM Serif Display', serif; font-size: 1.1rem;
+  color: var(--ink); margin: 0 0 4px;
+}
+.cardDesc {
+  font-size: 0.8rem; color: var(--text-soft);
+  margin: 0 0 16px; line-height: 1.5;
+}
+
+/* ── Logo ──────────────────────────────────────────── */
+.logoRow { display: flex; align-items: center; gap: 16px; }
+.logoPreview {
+  width: 80px; height: 80px; border-radius: 16px;
+  border: 1.5px solid var(--cream-dark); overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--cream); flex-shrink: 0;
+}
+.logoImg { width: 100%; height: 100%; object-fit: cover; }
+.logoPlaceholder {
+  width: 100%; height: 100%; display: flex;
+  align-items: center; justify-content: center;
+  color: var(--text-soft);
+}
+
+/* ── Champs ────────────────────────────────────────── */
+.fieldRow { display: flex; gap: 10px; align-items: center; }
+.fieldRow .input { flex: 1; }
+.input {
+  height: 44px; padding: 0 16px;
+  border: 1.5px solid var(--cream-dark); border-radius: var(--r-input);
+  font-size: 0.9rem; font-family: inherit; background: var(--white);
+  color: var(--ink); outline: none;
+  transition: border-color var(--t), box-shadow var(--t);
+}
+.input:focus { border-color: var(--terra); box-shadow: 0 0 0 3.5px var(--terra-glow); }
+.textarea {
+  width: 100%; padding: 14px 16px; box-sizing: border-box;
+  border: 1.5px solid var(--cream-dark); border-radius: var(--r-input);
+  font-size: 0.9rem; font-family: inherit; background: var(--white);
+  color: var(--ink); outline: none; resize: vertical;
+  transition: border-color var(--t), box-shadow var(--t);
+  margin-bottom: 12px;
+}
+.textarea:focus { border-color: var(--terra); box-shadow: 0 0 0 3.5px var(--terra-glow); }
+.textarea::placeholder { color: var(--text-soft); font-style: italic; }
+
+/* ── Bouton ────────────────────────────────────────── */
+.btnSave {
+  height: 44px; padding: 0 22px;
+  background: linear-gradient(135deg, var(--terra), var(--terra-dark));
+  color: #fff; border: none; border-radius: var(--r-pill);
+  font-size: 0.85rem; font-weight: 600; cursor: pointer; white-space: nowrap;
+  box-shadow: 0 4px 14px rgba(196,144,124,0.35);
+  transition: box-shadow var(--t), transform var(--t) var(--ease), opacity var(--t);
+}
+.btnSave:hover:not(:disabled) { box-shadow: 0 6px 20px rgba(196,144,124,0.48); transform: translateY(-1px); }
+.btnSave:disabled { opacity: 0.45; cursor: not-allowed; box-shadow: none; }
+
+/* ── Abonnement ────────────────────────────────────── */
+.planRow { display: flex; align-items: center; gap: 16px; }
+.planBadge {
+  padding: 6px 16px; border-radius: var(--r-pill);
+  background: var(--ink-mid); color: #fff;
+  font-size: 0.8rem; font-weight: 700; white-space: nowrap;
+}
+.planHint { font-size: 0.82rem; color: var(--text-soft); line-height: 1.4; }
+
+/* ── Coming soon ───────────────────────────────────── */
+.comingSoon {
+  display: flex; align-items: center; gap: 10px;
+  padding: 14px 18px; margin-top: 4px;
+  background: var(--cream); border: 1px dashed var(--cream-dark);
+  border-radius: var(--radius-md);
+  font-size: 0.8rem; color: var(--text-soft);
+}
+.comingSoon svg { color: var(--text-soft); flex-shrink: 0; }
+
+/* ── Loading ───────────────────────────────────────── */
+.loading { padding: 48px; text-align: center; color: var(--text-soft); font-style: italic; }

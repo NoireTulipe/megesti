@@ -1,5 +1,8 @@
 import { ChevronLeft } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import { NAV_MAIN, NAV_RESEAU, NAV_ADMIN, type NavKey } from '@/config/navigation'
+import { useMonTenant } from '@/features/reglages/hooks/useMonTenant'
+import { useAuthStore } from '@/store/authStore'
 import styles from './Sidebar.module.css'
 
 interface SidebarProps {
@@ -10,7 +13,14 @@ interface SidebarProps {
 }
 
 export function Sidebar({ active, onNav, collapsed, onToggle }: SidebarProps) {
+  const navigate = useNavigate()
   const v = (visible: string, hidden: string) => (collapsed ? hidden : visible)
+  const { data: tenant } = useMonTenant()
+  const user = useAuthStore(s => s.user)
+
+  const tenantName = tenant?.name ?? 'Megesti'
+  const tenantInitial = tenantName.charAt(0).toLowerCase()
+  const tenantLogo = tenant?.logo ?? null
 
   return (
     <aside className={`${styles.sidebar} ${collapsed ? styles.collapsed : styles.expanded}`}>
@@ -18,12 +28,16 @@ export function Sidebar({ active, onNav, collapsed, onToggle }: SidebarProps) {
       {/* Logo */}
       <div className={styles.logoArea}>
         <div className={styles.logoIcon}>
-          <span style={{ color: 'white', fontSize: 17, fontFamily: 'DM Serif Display', fontStyle: 'italic', lineHeight: 1 }}>
-            é
-          </span>
+          {tenantLogo ? (
+            <img src={tenantLogo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 14 }} />
+          ) : (
+            <span style={{ color: 'white', fontSize: 17, fontFamily: 'DM Serif Display', fontStyle: 'italic', lineHeight: 1 }}>
+              {tenantInitial}
+            </span>
+          )}
         </div>
         <div className={`${styles.logoText} ${v(styles.logoTextVisible, styles.logoTextHidden)}`}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: 'white', letterSpacing: '-0.01em' }}>Megesti</div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: 'white', letterSpacing: '-0.01em' }}>{tenantName}</div>
           <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.45)', fontWeight: 500, marginTop: 1 }}>
             Édition & gestion
           </div>
@@ -60,11 +74,11 @@ export function Sidebar({ active, onNav, collapsed, onToggle }: SidebarProps) {
             <span style={{ fontSize: 11, fontWeight: 600, marginLeft: 6, opacity: 0.6 }}>Réduire</span>
           )}
         </button>
-        <div className={styles.user}>
-          <div className={styles.userAvatar}>M</div>
+        <div className={styles.user} onClick={() => navigate('/compte')} style={{ cursor: 'pointer' }}>
+          <div className={styles.userAvatar}>{user?.firstName?.charAt(0) ?? '?'}</div>
           <div className={`${styles.userInfo} ${v(styles.userInfoVisible, styles.userInfoHidden)}`}>
-            <div style={{ fontSize: 12, fontWeight: 600, color: 'white' }}>Marie Leroux</div>
-            <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)' }}>Directrice</div>
+            <div style={{ fontSize: 12, fontWeight: 600, color: 'white' }}>{user?.firstName} {user?.lastName}</div>
+            <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)' }}>{user?.role === 'ADMIN' ? 'Administrateur' : 'Éditeur'}</div>
           </div>
         </div>
       </div>

@@ -9,7 +9,9 @@
       "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\DCFM\\\\Documents\\\\Bobo\\\\megesti\" -Directory -Recurse -Depth 1 | ForEach-Object { $_.FullName })",
       "Bash(Get-ChildItem *)",
       "Bash(npx vitest *)",
-      "Bash(npx *)"
+      "Bash(npx *)",
+      "Bash(taskkill /F /IM node.exe)",
+      "Bash(del \"C:\\\\Users\\\\DCFM\\\\Documents\\\\Bobo\\\\megesti\\\\node_modules\\\\.pnpm\\\\@prisma+client@6.19.3_prisma@6.19.3_typescript@5.9.3__typescript@5.9.3\\\\node_modules\\\\.prisma\\\\client\\\\query_engine-windows.dll.node.tmp*\")"
     ]
   }
 }

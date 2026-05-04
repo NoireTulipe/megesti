@@ -19,6 +19,9 @@ model Tenant {
   stripeSubscriptionId String?
   stripePriceId        String?
   franchiseBaseVA      Boolean  @default(false) // art. 293 B CGI — non assujetti TVA
+  logo                 String?  // URL du logo uploadé
+  siteWeb              String?  // URL du site internet de la ME
+  presentation         String?  // Texte de présentation libre
   actif                Boolean  @default(true)
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt

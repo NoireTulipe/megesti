@@ -11,6 +11,7 @@ import { SalonsPage }          from '@/features/salons/SalonsPage'
 import { VentesPage }          from '@/features/ventes/VentesPage'
 import { PointsDeVentePage }   from '@/features/ventes/PointsDeVentePage'
 import { ReglagesPage }        from '@/features/reglages/ReglagesPage'
+import { ComptePage }         from '@/features/compte/ComptePage'
 import { StockPage }           from '@/features/stock/StockPage'
 import { ImprimeurPage }       from '@/features/imprimeurs/ImprimeurPage'
 import { ComptabilitePage }    from '@/features/comptabilite/ComptabilitePage'
@@ -44,6 +45,7 @@ export default function App() {
               <Route path="/reversements"     element={<ReversementsPage />} />
               <Route path="/droits-auteur"   element={<DroitsAuteurPage />} />
               <Route path="/reglages"         element={<ReglagesPage />} />
+              <Route path="/compte"           element={<ComptePage />} />
             </Routes>
           </AppLayout>
         </ProtectedRoute>

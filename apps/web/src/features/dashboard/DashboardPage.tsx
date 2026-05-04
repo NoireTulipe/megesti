@@ -9,8 +9,8 @@ import { QuickBtn } from './QuickBtn'
 import { useDashboardStats } from './hooks/useDashboardStats'
 import { useTotauxReversements } from '@/features/reversements/hooks/useReversements'
 import { useAlertesDA } from '@/features/droitsAuteur/hooks/useDroitsAuteur'
-// Note: totaux côté API calculent déjà le net basé sur montantAjuste ou montantTTC brut
-// Les totaux affinés (après commission) sont calculés côté page Reversements
+import { useMonTenant } from '@/features/reglages/hooks/useMonTenant'
+import { useAuthStore } from '@/store/authStore'
 import { useNavigate } from 'react-router-dom'
 import type { AlertData, ActivityData } from './data'
 import { METRIC_CA, METRIC_COMMANDES, METRIC_DROITS, QUICK_ACTIONS, IN_PREP } from './data'
@@ -86,6 +86,28 @@ function InPrepCard() {
 }
 
 // ── Dashboard ──────────────────────────────────────────────
+const MOIS = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre']
+
+function DashboardGreeting() {
+  const { data: tenant } = useMonTenant()
+  const user = useAuthStore(s => s.user)
+  const now = new Date()
+  const mois = MOIS[now.getMonth()]
+  const prenom = user?.firstName ?? ''
+
+  return (
+    <div>
+      <h1 style={{ fontFamily: 'DM Serif Display', fontSize: 30, color: 'var(--ink)', fontWeight: 400, letterSpacing: '-0.01em' }}>
+        Bonjour{prenom ? `, ${prenom}` : ''} —{' '}
+        <span style={{ fontStyle: 'italic', color: 'var(--terra)' }}>{mois} {now.getFullYear()}</span>
+      </h1>
+      <p style={{ fontSize: 13, color: 'var(--text-soft)', marginTop: 5 }}>
+        {tenant?.name ? `${tenant.name} — ` : ''}Vue d'ensemble de votre activité.
+      </p>
+    </div>
+  )
+}
+
 export function DashboardPage() {
   const [modal, setModal] = useState<string | null>(null)
   const [saleSubmitted, setSaleSubmitted] = useState(false)
@@ -173,15 +195,7 @@ export function DashboardPage() {
       {/* ── Titre ── */}
       <div className="zone-animate" style={{ animationDelay: '0ms' }}>
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
-          <div>
-            <h1 style={{ fontFamily: 'DM Serif Display', fontSize: 30, color: 'var(--ink)', fontWeight: 400, letterSpacing: '-0.01em' }}>
-              Bonjour, Marie —{' '}
-              <span style={{ fontStyle: 'italic', color: 'var(--terra)' }}>avril 2026</span>
-            </h1>
-            <p style={{ fontSize: 13, color: 'var(--text-soft)', marginTop: 5 }}>
-              Votre maison d'édition se porte bien ce mois-ci.
-            </p>
-          </div>
+          <DashboardGreeting />
           <svg width="120" height="40" viewBox="0 0 120 40" style={{ opacity: 0.15, flexShrink: 0 }}>
             <path d="M10,35 Q60,-10 110,35" fill="none" stroke="var(--terra)" strokeWidth="2.5" strokeLinecap="round" />
             <path d="M20,35 Q60,0 100,35" fill="none" stroke="var(--ink)" strokeWidth="1.5" strokeLinecap="round" />

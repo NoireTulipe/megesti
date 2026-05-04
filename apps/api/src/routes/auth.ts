@@ -7,6 +7,17 @@ const LoginSchema = z.object({
   password: z.string().min(8),
 })
 
+const PatchMeSchema = z.object({
+  firstName: z.string().min(1).optional(),
+  lastName:  z.string().min(1).optional(),
+  email:     z.string().email().optional(),
+})
+
+const PasswordSchema = z.object({
+  current: z.string().min(1),
+  new:     z.string().min(8),
+})
+
 export const authRoutes: FastifyPluginAsync = async (app) => {
   app.post('/login', async (request, reply) => {
     const body = LoginSchema.parse(request.body)
@@ -35,5 +46,31 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
       select: { id: true, email: true, firstName: true, lastName: true, role: true, tenantId: true },
     })
     return user
+  })
+
+  // Mettre à jour son profil
+  app.patch('/me', { preHandler: app.authenticate }, async (request) => {
+    const { userId } = request.tenant
+    const body = PatchMeSchema.parse(request.body)
+    return app.db.user.update({
+      where: { id: userId },
+      data:  body,
+      select: { id: true, email: true, firstName: true, lastName: true, role: true, tenantId: true },
+    })
+  })
+
+  // Changer son mot de passe
+  app.patch('/password', { preHandler: app.authenticate }, async (request, reply) => {
+    const { userId } = request.tenant
+    const body = PasswordSchema.parse(request.body)
+
+    const user = await app.db.user.findUniqueOrThrow({ where: { id: userId } })
+    const valid = await bcrypt.compare(body.current, user.passwordHash)
+    if (!valid) return reply.status(403).send({ message: 'Mot de passe actuel incorrect' })
+
+    const passwordHash = await bcrypt.hash(body.new, 12)
+    await app.db.user.update({ where: { id: userId }, data: { passwordHash } })
+
+    return { ok: true }
   })
 }

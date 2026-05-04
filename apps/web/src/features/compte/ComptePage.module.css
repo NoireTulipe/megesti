@@ -1,0 +1,224 @@
+/* ══════════════════════════════════════════════════════════════════
+   COMPTE — Style aligné sur AuteursPage (définitif)
+   ══════════════════════════════════════════════════════════════════ */
+
+/* ── PAGE ─────────────────────────────────────────── */
+.page {
+  padding: 40px 44px 60px; animation: fadeUp 0.5s cubic-bezier(0.22,1,0.36,1) both;
+  position: relative; z-index: 1;
+}
+
+/* ── HEADER ───────────────────────────────────────── */
+.header {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  gap: 24px; margin-bottom: 32px; flex-shrink: 0;
+}
+.pageTitle {
+  font-family: 'DM Serif Display', serif; font-size: 2.6rem; font-weight: 400;
+  color: var(--ink); letter-spacing: -0.03em; line-height: 1; margin-bottom: 6px;
+}
+.pageSubtitle {
+  font-size: 0.83rem; color: var(--text-soft); font-style: italic;
+}
+
+/* ── TAB BAR ──────────────────────────────────────── */
+.tabBar {
+  display: inline-flex; background: var(--white);
+  border: 1.5px solid var(--cream-dark); border-radius: var(--r-pill);
+  padding: 4px; gap: 2px; margin-bottom: 28px;
+  box-shadow: var(--shadow-card);
+}
+.tabBtn {
+  height: 36px; padding: 0 20px; border-radius: var(--r-pill);
+  background: transparent; border: none;
+  font-size: 0.85rem; font-weight: 500; color: var(--text-soft); cursor: pointer;
+  transition: background var(--t), color var(--t), box-shadow var(--t);
+  display: flex; align-items: center; gap: 7px;
+}
+.tabBtn:hover { color: var(--ink-mid); }
+.tabBtnActive {
+  background: var(--ink-mid); color: var(--white);
+  box-shadow: 0 2px 8px rgba(44,24,16,0.18); font-weight: 600;
+}
+
+/* ── BODY ─────────────────────────────────────────── */
+.body { display: flex; flex-direction: column; gap: 0; }
+.tabContent { display: flex; flex-direction: column; gap: 20px; }
+
+/* ── SECTIONS ─────────────────────────────────────── */
+.section {
+  background: var(--white); border: 1.5px solid var(--cream-dark);
+  border-radius: var(--r-card); padding: 28px 32px;
+  box-shadow: var(--shadow-card);
+}
+.sectionHeader {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 16px; margin-bottom: 20px;
+}
+.sectionTitle {
+  font-family: 'DM Serif Display', serif; font-size: 1.2rem; font-weight: 400;
+  color: var(--ink); margin: 0 0 4px;
+}
+.sectionDesc {
+  font-size: 0.8rem; color: var(--text-soft); margin: 0; line-height: 1.5;
+}
+
+/* ── LOGO ─────────────────────────────────────────── */
+.logoRow { display: flex; align-items: center; gap: 20px; }
+.logoPreview {
+  width: 88px; height: 88px; border-radius: 18px;
+  border: 1.5px solid var(--cream-dark); overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--cream); flex-shrink: 0;
+}
+.logoImg { width: 100%; height: 100%; object-fit: cover; }
+.logoPlaceholder {
+  width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
+}
+
+/* ── CHAMPS ───────────────────────────────────────── */
+.fieldRow { display: flex; gap: 10px; align-items: center; }
+.input {
+  height: 46px; padding: 0 16px; flex: 1;
+  border: 1.5px solid var(--cream-dark); border-radius: var(--r-input);
+  font-size: 0.9rem; font-family: inherit; background: var(--white);
+  color: var(--ink); outline: none;
+  transition: border-color var(--t), box-shadow var(--t);
+}
+.input:focus { border-color: var(--terra); box-shadow: 0 0 0 3.5px var(--terra-glow); }
+.input::placeholder { color: var(--text-soft); font-style: italic; }
+
+.textarea {
+  width: 100%; padding: 14px 16px; box-sizing: border-box;
+  border: 1.5px solid var(--cream-dark); border-radius: var(--r-input);
+  font-size: 0.9rem; font-family: inherit; background: var(--white);
+  color: var(--ink); outline: none; resize: vertical;
+  transition: border-color var(--t), box-shadow var(--t);
+}
+.textarea:focus { border-color: var(--terra); box-shadow: 0 0 0 3.5px var(--terra-glow); }
+.textarea::placeholder { color: var(--text-soft); font-style: italic; }
+
+/* ── BOUTON PRINCIPAL ─────────────────────────────── */
+.btnSave {
+  height: 46px; padding: 0 24px;
+  background: linear-gradient(135deg, var(--terra), var(--terra-dark));
+  color: #fff; border: none; border-radius: var(--r-pill);
+  font-size: 0.85rem; font-weight: 600; cursor: pointer; white-space: nowrap;
+  box-shadow: 0 4px 14px rgba(196,144,124,0.35);
+  transition: box-shadow var(--t), transform var(--t) var(--ease);
+}
+.btnSave:hover:not(:disabled) { box-shadow: 0 6px 20px rgba(196,144,124,0.48); transform: translateY(-1px); }
+.btnSave:disabled { opacity: 0.45; cursor: not-allowed; box-shadow: none; }
+
+.btnAdd {
+  height: 40px; padding: 0 20px;
+  background: linear-gradient(135deg, var(--terra), var(--terra-dark));
+  color: #fff; border: none; border-radius: var(--r-pill);
+  font-size: 0.82rem; font-weight: 600; cursor: pointer;
+  box-shadow: 0 3px 12px rgba(196,144,124,0.32);
+  transition: box-shadow var(--t), transform var(--t) var(--ease);
+  display: flex; align-items: center; gap: 7px; white-space: nowrap;
+}
+.btnAdd:hover { box-shadow: 0 6px 18px rgba(196,144,124,0.45); transform: translateY(-1px); }
+
+/* ── TABLEAU CONTACTS ─────────────────────────────── */
+.contactsTable {
+  border: 1.5px solid var(--cream-dark); border-radius: var(--r-card);
+  overflow: hidden; box-shadow: var(--shadow-card);
+}
+.contactsHead {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1.3fr 1fr 44px;
+  padding: 12px 18px; background: var(--cream);
+  border-bottom: 1.5px solid var(--cream-dark);
+  font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--text-soft);
+}
+.contactsRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1.3fr 1fr 44px;
+  padding: 8px 12px; align-items: center; gap: 6px;
+  border-bottom: 1px solid var(--cream-dark);
+  background: var(--white);
+  transition: background var(--t);
+}
+.contactsRow:last-child { border-bottom: none; }
+.contactsRow:hover { background: #FDFCFA; }
+
+.contactInput {
+  width: 100%; height: 36px; padding: 0 10px; box-sizing: border-box;
+  border: 1.5px solid var(--cream-dark); border-radius: var(--r-input);
+  font-size: 0.82rem; font-family: inherit; background: var(--white);
+  color: var(--ink); outline: none;
+  transition: border-color var(--t), box-shadow var(--t);
+}
+.contactInput:focus { border-color: var(--terra); box-shadow: 0 0 0 2.5px var(--terra-glow); }
+.contactInput::placeholder { color: var(--text-soft); font-style: italic; }
+
+.btnRemove {
+  width: 32px; height: 32px; border-radius: 50%; border: none;
+  background: transparent; color: var(--text-soft); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background var(--t), color var(--t);
+}
+.btnRemove:hover { background: #FEF2F2; color: #DC2626; }
+
+/* Ligne propriétaire */
+.contactsRowOwner { background: #FFFDF9; }
+.contactsRowOwner:hover { background: #FFFBF3; }
+.fonctionCell { display: flex; align-items: center; gap: 6px; }
+.fonctionCell .contactInput { flex: 1; }
+.ownerBadge {
+  font-size: 0.6rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.06em; color: var(--terra);
+  background: var(--terra-faint); border: 1px solid var(--terra-light);
+  padding: 2px 8px; border-radius: var(--r-pill); white-space: nowrap;
+}
+
+.btnSaveSm {
+  width: 32px; height: 32px; border-radius: 50%; border: none;
+  background: var(--sage); color: #fff; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.85rem; font-weight: 700;
+  transition: opacity var(--t);
+}
+.btnSaveSm:hover { opacity: 0.85; }
+
+/* ── MOT DE PASSE ─────────────────────────────────── */
+.btnOutline {
+  display: inline-flex; align-items: center; gap: 7px;
+  height: 42px; padding: 0 20px;
+  border: 1.5px solid var(--cream-dark); border-radius: var(--r-pill);
+  background: var(--white); font-size: 0.85rem; font-weight: 600;
+  color: var(--text-mid); cursor: pointer;
+  transition: all var(--t);
+}
+.btnOutline:hover { border-color: var(--ink-light); color: var(--ink); background: var(--cream); }
+
+.pwdForm { display: flex; flex-direction: column; gap: 10px; }
+.pwdError { font-size: 0.78rem; color: #DC2626; margin: 0; padding: 6px 12px; background: #FEF2F2; border-radius: var(--r-input); }
+.pwdOk    { font-size: 0.8rem; color: var(--sage); margin: 0; padding: 6px 12px; background: var(--sage-light); border-radius: var(--r-input); font-weight: 600; }
+
+/* ── ABONNEMENT ───────────────────────────────────── */
+.planCard {
+  display: flex; flex-direction: column; gap: 12px;
+  padding: 20px; background: var(--cream);
+  border: 1px solid var(--cream-dark); border-radius: var(--radius-md);
+}
+.planBadge {
+  align-self: flex-start; padding: 6px 18px;
+  background: var(--ink-mid); color: #fff; border-radius: var(--r-pill);
+  font-size: 0.82rem; font-weight: 700;
+}
+.planDesc { font-size: 0.85rem; color: var(--text-soft); margin: 0; line-height: 1.5; }
+
+.comingSoon {
+  display: flex; align-items: center; gap: 12px;
+  padding: 16px 20px; background: var(--cream);
+  border: 1px dashed var(--cream-dark); border-radius: var(--radius-md);
+  font-size: 0.82rem; color: var(--text-soft); line-height: 1.5;
+}
+.comingSoon svg { color: var(--text-soft); flex-shrink: 0; }
+
+/* ── LOADING ──────────────────────────────────────── */
+.loading { padding: 80px 44px; text-align: center; color: var(--text-soft); font-style: italic; }
