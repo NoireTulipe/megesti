@@ -19,6 +19,7 @@ model Tenant {
   stripeSubscriptionId String?
   stripePriceId        String?
   franchiseBaseVA      Boolean  @default(false) // art. 293 B CGI — non assujetti TVA
+  actif                Boolean  @default(true)
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
 
@@ -48,6 +49,17 @@ model Tenant {
   paiementsDA            PaiementDA[]
   charges                Charge[]
   motifsVente            MotifVente[]
+}
+
+// ─── Admin ───────────────────────────────────────────────────────────────────
+
+model AdminUser {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  nom          String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
 // ─── User ─────────────────────────────────────────────────────────────────────

@@ -3,11 +3,13 @@ import cors from '@fastify/cors'
 import jwt from '@fastify/jwt'
 import sensible from '@fastify/sensible'
 
-import { prismaPlugin } from './plugins/prisma.js'
-import { redisPlugin }  from './plugins/redis.js'
-import { queuePlugin }  from './plugins/queue.js'
-import { tenantPlugin } from './plugins/tenant.js'
-import { routes } from './routes/index.js'
+import { prismaPlugin }    from './plugins/prisma.js'
+import { redisPlugin }     from './plugins/redis.js'
+import { queuePlugin }     from './plugins/queue.js'
+import { tenantPlugin }    from './plugins/tenant.js'
+import { adminAuthPlugin } from './plugins/adminAuth.js'
+import { routes }          from './routes/index.js'
+import { adminRoutes }     from './routes/admin/index.js'
 
 export async function buildServer() {
   const app = Fastify({
@@ -16,8 +18,12 @@ export async function buildServer() {
     },
   })
 
+  const corsOrigins = (process.env['CORS_ORIGIN'] ?? 'http://localhost:5173,http://localhost:5174')
+    .split(',')
+    .map(o => o.trim())
+
   await app.register(cors, {
-    origin: process.env['CORS_ORIGIN'] ?? 'http://localhost:5173',
+    origin: corsOrigins,
     credentials: true,
   })
 
@@ -30,7 +36,9 @@ export async function buildServer() {
   await app.register(redisPlugin)
   await app.register(queuePlugin)
   await app.register(tenantPlugin)
-  await app.register(routes, { prefix: '/api' })
+  await app.register(adminAuthPlugin)
+  await app.register(routes,       { prefix: '/api' })
+  await app.register(adminRoutes,  { prefix: '/admin' })
 
   return app
 }
