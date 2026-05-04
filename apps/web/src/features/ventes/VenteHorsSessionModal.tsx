@@ -1,4 +1,5 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { useMotifVente, useCreateMotifVente } from './hooks/useMotifVente'
 import { useCreateVenteHorsSession } from './hooks/useVentes'
 import type { ModePaiement, CartLigne } from './hooks/useVentes'
@@ -40,6 +41,22 @@ export function VenteHorsSessionModal({ isOpen, onClose }: Props) {
   const franchiseTVA             = useFranchiseTVA()
   const createVente              = useCreateVenteHorsSession()
   const createMotif              = useCreateMotifVente()
+
+  // Lock body scroll
+  useEffect(() => {
+    if (!isOpen) return
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = prev }
+  }, [isOpen])
+
+  // Close on Escape
+  useEffect(() => {
+    if (!isOpen) return
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') handleClose() }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [isOpen, motifId])
 
   const filteredArticles = useMemo(() => {
     let list = articles.filter(a => a.actif)
@@ -107,23 +124,34 @@ export function VenteHorsSessionModal({ isOpen, onClose }: Props) {
 
   if (!isOpen) return null
 
-  return (
-    <div className={styles.horsSessionOverlay}>
-      <div className={styles.horsSessionDialog}>
+  const dialog = (
+    <div className={styles.hsOverlay} onClick={handleClose}>
+      <div className={styles.hsDialog} role="dialog" aria-modal="true" onClick={e => e.stopPropagation()}>
+
+        {/* Accent + décos */}
+        <div className={styles.hsAccent} />
+        <div className={styles.hsDecorations}>
+          <div className={styles.hsBlobA} />
+          <div className={styles.hsBlobB} />
+        </div>
 
         {/* Header */}
-        <div className={styles.horsSessionHeader}>
+        <div className={styles.hsHeader}>
           <div>
-            <h2 className={styles.horsSessionTitle}>Vente hors session</h2>
-            <p className={styles.horsSessionSub}>Sans session de caisse ouverte</p>
+            <h2 className={styles.hsTitle}>Vente hors session</h2>
+            <p className={styles.hsSub}>Sans session de caisse ouverte</p>
           </div>
-          <button className={styles.closeBtn} onClick={handleClose} aria-label="Fermer">✕</button>
+          <button className={styles.hsClose} onClick={handleClose} aria-label="Fermer">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M1 1l12 12M13 1L1 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+          </button>
         </div>
 
         {/* Motif */}
-        <div className={styles.horsSessionMotifBar}>
-          <label className={styles.horsSessionMotifLabel}>Motif</label>
-          <div className={styles.horsSessionMotifRow}>
+        <div className={styles.hsMotifBar}>
+          <label className={styles.hsMotifLabel}>Motif de la vente</label>
+          <div className={styles.hsMotifRow}>
             {motifs.map(m => (
               <button key={m.id}
                 className={`${styles.motifBtn} ${motifId === m.id ? styles.motifBtnActive : ''}`}
@@ -151,78 +179,103 @@ export function VenteHorsSessionModal({ isOpen, onClose }: Props) {
         </div>
 
         {/* Corps : catalogue + panier */}
-        <div className={styles.horsSessionBody}>
+        <div className={styles.hsBody}>
 
           {/* Catalogue */}
-          <div className={styles.horsSessionCatalogue}>
-            <div className={styles.catalogueBar}>
-              <input className={styles.catalogueSearch} placeholder="Rechercher…" value={search}
-                onChange={e => setSearch(e.target.value)} />
+          <div className={styles.hsCatalogue}>
+            <div className={styles.hsCatalogueBar}>
+              <input
+                className={styles.hsSearch}
+                placeholder="Rechercher un article…"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+              />
               <div className={styles.rayonTabs}>
-                <button className={`${styles.rayonTab} ${!rayonId ? styles.rayonTabActive : ''}`}
-                  onClick={() => setRayonId(null)}>Tout</button>
+                <button
+                  className={`${styles.rayonTab} ${!rayonId ? styles.rayonTabActive : ''}`}
+                  onClick={() => setRayonId(null)}
+                >
+                  Tout
+                </button>
                 {rayons.map(r => (
                   <button key={r.id}
                     className={`${styles.rayonTab} ${rayonId === r.id ? styles.rayonTabActive : ''}`}
-                    onClick={() => setRayonId(r.id)}>{r.nom}</button>
+                    onClick={() => setRayonId(r.id)}>
+                    {r.nom}
+                  </button>
                 ))}
               </div>
             </div>
-            <div className={styles.articlesGrid}>
+            <div className={styles.hsArticleGrid}>
+              {filteredArticles.length === 0 && (
+                <p className={styles.hsNoArticles}>
+                  {search ? `Aucun résultat pour « ${search} »` : 'Aucun article dans ce rayon.'}
+                </p>
+              )}
               {filteredArticles.map(a => (
-                <button key={a.id} className={styles.articleTile} onClick={() => addToCart(a)}>
-                  <span className={styles.articleNom}>{a.nom}</span>
-                  <span className={styles.articlePrix}>{fEur(parseFloat(a.prixVenteHT))}</span>
+                <button key={a.id} className={styles.hsArticle} onClick={() => addToCart(a)}>
+                  <span className={styles.hsArticleNom}>{a.nom}</span>
+                  <span className={styles.hsArticleStock}>Stock : {a.stock}</span>
+                  <span className={styles.hsArticlePrix}>{fEur(parseFloat(a.prixVenteHT))}</span>
                 </button>
               ))}
             </div>
           </div>
 
           {/* Panier */}
-          <div className={styles.horsSessionPanier}>
-            <div className={styles.panierHeader}>
-              <span className={styles.panierTitle}>Panier</span>
+          <div className={styles.hsPanier}>
+            <div className={styles.hsPanierHeader}>
+              <p className={styles.hsPanierTitle}>Panier</p>
               {cart.length > 0 && (
-                <button className={styles.viderBtn} onClick={() => setCart([])}>Vider</button>
+                <button className={styles.hsPanierVider} onClick={() => setCart([])}>Vider</button>
               )}
             </div>
 
             {cart.length === 0 ? (
-              <p className={styles.panierEmpty}>Cliquez sur un article pour l'ajouter</p>
+              <p className={styles.hsPanierEmpty}>Cliquez sur un article pour l'ajouter au panier.</p>
             ) : (
-              <div className={styles.panierLignes}>
-                {cart.map(l => (
-                  <div key={l.articleId} className={styles.panierLigne}>
-                    <span className={styles.panierNom}>{l.nom}</span>
-                    <div className={styles.qtyControls}>
-                      <button onClick={() => setQty(l.articleId, l.quantite - 1)}>−</button>
-                      <span>{l.quantite}</span>
-                      <button onClick={() => setQty(l.articleId, l.quantite + 1)}>+</button>
+              <div className={styles.hsPanierLignes}>
+                {cart.map(l => {
+                  const pu = l.prixEffectif ?? l.prixUnitaireHT
+                  const sousTotal = pu * l.quantite
+                  return (
+                    <div key={l.articleId} className={styles.hsPanierLigne}>
+                      <span className={styles.hsPanierNom}>{l.nom}</span>
+                      <div className={styles.hsQtyWrap}>
+                        <button className={styles.hsQtyBtn} onClick={() => setQty(l.articleId, l.quantite - 1)}>−</button>
+                        <span className={styles.hsQtyVal}>{l.quantite}</span>
+                        <button className={styles.hsQtyBtn} onClick={() => setQty(l.articleId, l.quantite + 1)}>+</button>
+                      </div>
+                      <span className={styles.hsPanierSousTotal}>{fEur(sousTotal)}</span>
+                      <button className={styles.hsPanierDel} onClick={() => removeFromCart(l.articleId)}>
+                        <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
+                          <path d="M1 1l12 12M13 1L1 13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+                        </svg>
+                      </button>
                     </div>
-                    <span className={styles.panierSous}>{fEur((l.prixEffectif ?? l.prixUnitaireHT) * l.quantite)}</span>
-                    <button className={styles.panierDel} onClick={() => removeFromCart(l.articleId)}>×</button>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             )}
 
             {/* Mode paiement */}
-            <div className={styles.modeRow}>
+            <div className={styles.hsModeRow}>
               {MODES.map(m => (
                 <button key={m.key}
-                  className={`${styles.modeBtn} ${mode === m.key ? styles.modeBtnActive : ''}`}
+                  className={`${styles.hsModeBtn} ${mode === m.key ? styles.hsModeBtnActive : ''}`}
                   onClick={() => setMode(m.key)}>{m.label}</button>
               ))}
             </div>
 
             {/* Total + valider */}
-            <div className={styles.horsSessionFooter}>
-              <div className={styles.totalBlock}>
-                <span className={styles.totalHT}>Total HT : {fEur(totalHT)}</span>
-                {!franchiseTVA && <span className={styles.totalTTC}>TTC : {fEur(totalTTC)}</span>}
+            <div className={styles.hsFooter}>
+              <div className={styles.hsTotalBlock}>
+                <span className={styles.hsTotalHT}>Total HT : {fEur(totalHT)}</span>
+                {!franchiseTVA && <span className={styles.hsTotalTTC}>TTC : {fEur(totalTTC)}</span>}
+                {franchiseTVA && <span className={styles.hsTotalTTC}>Total : {fEur(totalTTC)}</span>}
               </div>
               <button
-                className={`${styles.validerBtn} ${success ? styles.validerSuccess : ''}`}
+                className={`${styles.hsValider} ${success ? styles.hsValiderSuccess : ''}`}
                 disabled={!motifId || cart.length === 0 || pending}
                 onClick={handleValider}
               >
@@ -234,4 +287,6 @@ export function VenteHorsSessionModal({ isOpen, onClose }: Props) {
       </div>
     </div>
   )
+
+  return createPortal(dialog, document.body)
 }

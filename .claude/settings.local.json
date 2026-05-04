@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsc *)",
+      "Bash(npx vite *)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\DCFM\\\\Documents\\\\Bobo\\\\megesti\" -Directory)",
+      "Bash(Select-Object -ExpandProperty Name)",
+      "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\DCFM\\\\Documents\\\\Bobo\\\\megesti\" -Directory | ForEach-Object { $_.Name })",
+      "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\DCFM\\\\Documents\\\\Bobo\\\\megesti\" -Directory -Recurse -Depth 1 | ForEach-Object { $_.FullName })",
+      "Bash(Get-ChildItem *)",
+      "Bash(npx vitest *)",
+      "Bash(npx *)"
+    ]
+  }
+}

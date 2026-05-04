@@ -17,6 +17,9 @@ export interface BilanData {
   entreesEffectives: {
     ventesDirectes:        number
     ventesHorsSession:     number
+    ventesDepotTTC:        number
+    ventesDepotHT:         number
+    ventesDepotNb:         number
     reversementsEncaisses: number
     total: number
     detail: {

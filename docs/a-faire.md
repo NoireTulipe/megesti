@@ -15,7 +15,7 @@ Il ne sera pas éditable.
 
 
 
-**Dépôt librairie :** Dans le bilan, je vois bien les frais des ventes en dépôt, mais je ne vois pas l'entrée d'argent. Vérifier que c'est bien pris en compte (CA Brut)
+
 
 **Dans les articles :** Ajout d'un bouton pour upload une image d'illustration. Cette image sera converti en thumbnail pour l'app mobile. on réduit la taille de l'image uploader pour un besoin qui se limite à l'affichage d'une illustration dans la liste des articles. On surveille que le client de flood pas les uploads. Conserver l'ajour d'image par url. Une upload renseignera le champs url.
 

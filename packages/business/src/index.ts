@@ -1,3 +1,5 @@
 export * from './till/integrity.js'
 export * from './droits/royalties.js'
 export * from './droits/types.js'
+export * from './droits/reference.js'
+export * from './bilan/commission.js'

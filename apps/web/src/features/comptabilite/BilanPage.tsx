@@ -106,16 +106,17 @@ export function BilanPage() {
   // ── Données donut flux ──────────────────────────────────────────────────────
   const donutEntrees = useMemo(() => {
     if (!data) return []
-    const { ventesDirectes, ventesHorsSession, reversementsEncaisses, detail } = data.entreesEffectives
+    const { ventesDirectes, ventesHorsSession, ventesDepotTTC, reversementsEncaisses, detail } = data.entreesEffectives
     const motifSlices = (detail.ventesParMotif ?? []).map(m => ({
       name:  m.libelle,
       value: m.ca,
       fill:  C.mauve,
     }))
     return [
-      { name: 'Ventes sessions', value: ventesDirectes,        fill: C.rose },
+      { name: 'Ventes sessions',   value: ventesDirectes,        fill: C.rose },
       ...motifSlices,
-      { name: 'Reversements',    value: reversementsEncaisses, fill: C.gold },
+      { name: 'Ventes en dépôt',   value: ventesDepotTTC,        fill: C.ink },
+      { name: 'Reversements PDV',  value: reversementsEncaisses, fill: C.gold },
     ].filter(d => d.value > 0)
   }, [data])
 
@@ -568,10 +569,11 @@ export function BilanPage() {
                 {[
                   { label: 'Ventes en session',       val: data.entreesEffectives.ventesDirectes },
                   { label: 'Ventes hors session',     val: data.entreesEffectives.ventesHorsSession },
-                  { label: 'Reversements PDV (brut)', val: data.entreesEffectives.reversementsEncaisses },
+                  { label: 'Ventes en dépôt (CA brut)', val: data.entreesEffectives.ventesDepotTTC, extra: data.entreesEffectives.ventesDepotNb > 0 ? `${data.entreesEffectives.ventesDepotNb} vente${data.entreesEffectives.ventesDepotNb > 1 ? 's' : ''}` : undefined },
+                  { label: 'Reversements PDV encaissés', val: data.entreesEffectives.reversementsEncaisses },
                 ].filter(r => r.val > 0).map((r, i) => (
                   <div key={i} className={styles.detailRow}>
-                    <span>{r.label}</span>
+                    <span>{r.label}{r.extra && <span className={styles.detailSub}> · {r.extra}</span>}</span>
                     <span className={styles.detailMontant} style={{ color: C.sage }}>{fEur(r.val)}</span>
                   </div>
                 ))}

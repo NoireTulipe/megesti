@@ -200,7 +200,8 @@ export const rapportRoutes: FastifyPluginAsync = async (app) => {
     from.setHours(0, 0, 0, 0)
 
     const [
-      ventesDirectesModes, ventesHorsSessionParMotif, reversementsEncaisses, fraisPeriode,
+      ventesDirectesModes, ventesHorsSessionParMotif, ventesDepotResult,
+      reversementsEncaisses, fraisPeriode,
       chargesPayees, chargesAVenir, reversementsEnAttente,
       articlesStock, caResult,
     ] = await Promise.all([
@@ -224,6 +225,18 @@ export const rapportRoutes: FastifyPluginAsync = async (app) => {
           AND v."sessionId" IS NULL
           AND v."dateVente" >= ${from} AND v."dateVente" <= ${to}
         GROUP BY mv."id", mv."libelle" ORDER BY ca DESC
+      `),
+      // CA brut des ventes en dépôt (modePaiement = 'PDV') — apparaît dans caHT mais pas dans ventesDirectes
+      app.db.$queryRaw<{ caTTC: number; caHT: number; nb: bigint }[]>(Prisma.sql`
+        SELECT
+          CAST(SUM(v."totalTTC") AS FLOAT) AS "caTTC",
+          CAST(SUM(v."totalHT")  AS FLOAT) AS "caHT",
+          COUNT(*)                         AS nb
+        FROM "Vente" v
+        WHERE v."tenantId" = ${tenantId} AND v."statut" = 'VALIDEE'
+          AND v."modePaiement" = 'PDV'
+          AND v."sessionId" IS NOT NULL
+          AND v."dateVente" >= ${from} AND v."dateVente" <= ${to}
       `),
 
       // Reversements encaissés dans la période (avec données commission)
@@ -425,6 +438,9 @@ export const rapportRoutes: FastifyPluginAsync = async (app) => {
     const commissionsEnAttente  = reversementsEnAttente.reduce((s, r) => s + commissionRev(r), 0)
 
     const totalVentesHorsSession = ventesHorsSessionParMotif.reduce((s, m) => s + m.ca, 0)
+    const ventesDepotTTC = ventesDepotResult[0]?.caTTC ?? 0
+    const ventesDepotHT  = ventesDepotResult[0]?.caHT  ?? 0
+    const ventesDepotNb  = Number(ventesDepotResult[0]?.nb ?? 0)
 
     // Entrées : CA brut (ventes directes + hors session + reversements bruts)
     const totalEntreesEff  = ventesDirectesModes.reduce((s, v) => s + v.ca, 0)
@@ -471,6 +487,9 @@ export const rapportRoutes: FastifyPluginAsync = async (app) => {
       entreesEffectives: {
         ventesDirectes:        ventesDirectesModes.reduce((s, v) => s + v.ca, 0),
         ventesHorsSession:     totalVentesHorsSession,
+        ventesDepotTTC,
+        ventesDepotHT,
+        ventesDepotNb,
         reversementsEncaisses: reversementsEncaisses.reduce((s, r) => s + Number(r.montantTTC), 0),
         total: totalEntreesEff,
         detail: {

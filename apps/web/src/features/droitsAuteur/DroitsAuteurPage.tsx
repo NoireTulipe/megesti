@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
 } from 'recharts'
@@ -31,6 +32,28 @@ function urgencyClass(prochainVersement: string | null): string {
   return styles.urgenceOk
 }
 
+// ── Helpers référence ──────────────────────────────────────────────────────────
+
+function buildReference(
+  auteurNom: string, articleNom: string | null,
+  annee: string, numero: number,
+): string {
+  const initiales = auteurNom
+    .split(/\s+/)
+    .map(w => w.charAt(0).toUpperCase())
+    .join('')
+    .slice(0, 2)
+
+  const livre4 = (articleNom ?? 'TOUS')
+    .replace(/[^a-zA-Z0-9]/g, '')
+    .toUpperCase()
+    .slice(0, 4)
+    .padEnd(4, 'X')
+
+  const ordre = String(numero).padStart(3, '0')
+  return `${initiales}-${livre4}-${annee}-${ordre}`
+}
+
 // ── Modal paiement ────────────────────────────────────────────────────────────
 
 interface ModalPaiementProps {
@@ -40,14 +63,34 @@ interface ModalPaiementProps {
 
 function ModalPaiement({ contrat, onClose }: ModalPaiementProps) {
   const create = useCreatePaiementDA()
+  const { data: allPaiements = [] } = useHistoriquePaiements()
   const today  = new Date().toISOString().slice(0, 10)
   const [montant, setMontant]       = useState(String(contrat.solde))
   const [dateVersement, setDate]    = useState(today)
   const [dateDebut, setDateDebut]   = useState(today)
   const [dateFin, setDateFin]       = useState(today)
   const [mode, setMode]             = useState<'VIREMENT' | 'CHEQUE'>('VIREMENT')
-  const [reference, setReference]   = useState('')
   const [notes, setNotes]           = useState('')
+
+  // Compteur de paiements existants pour ce contrat
+  const paiementsContrat = allPaiements.filter(
+    p => p.contratId === contrat.contratId && p.statut !== 'ANNULE'
+  )
+  const numeroOrdre = paiementsContrat.length + 1
+  const anneeVersement = dateVersement.slice(0, 4)
+  const reference = buildReference(contrat.auteurNom, contrat.articleNom, anneeVersement, numeroOrdre)
+
+  useEffect(() => {
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = prev }
+  }, [])
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [onClose])
 
   async function handleSubmit() {
     await create.mutateAsync({
@@ -58,71 +101,95 @@ function ModalPaiement({ contrat, onClose }: ModalPaiementProps) {
       dateDebutPeriode: `${dateDebut}T00:00:00.000Z`,
       dateFinPeriode:   `${dateFin}T00:00:00.000Z`,
       modePaiement:     mode,
-      reference:        reference || undefined,
+      reference,
       notes:            notes || undefined,
     })
     onClose()
   }
 
-  return (
+  const dialog = (
     <div className={styles.modalOverlay} onClick={onClose}>
-      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-        <h3 className={styles.modalTitle}>Enregistrer un paiement</h3>
-        <p className={styles.modalSub}>{contrat.auteurNom} · {contrat.articleNom ?? 'Tous les articles'}</p>
-
-        <div className={styles.modalGrid}>
-          <div className={styles.field}>
-            <label className={styles.label}>Montant (€)</label>
-            <input type="number" step="0.01" className={styles.input} value={montant} onChange={(e) => setMontant(e.target.value)} />
-          </div>
-          <div className={styles.field}>
-            <label className={styles.label}>Date de versement</label>
-            <input type="date" className={styles.input} value={dateVersement} onChange={(e) => setDate(e.target.value)} />
-          </div>
-          <div className={styles.field}>
-            <label className={styles.label}>Période du</label>
-            <input type="date" className={styles.input} value={dateDebut} onChange={(e) => setDateDebut(e.target.value)} />
-          </div>
-          <div className={styles.field}>
-            <label className={styles.label}>Au</label>
-            <input type="date" className={styles.input} value={dateFin} onChange={(e) => setDateFin(e.target.value)} />
-          </div>
-          <div className={styles.field}>
-            <label className={styles.label}>Mode</label>
-            <select className={styles.input} value={mode} onChange={(e) => setMode(e.target.value as 'VIREMENT' | 'CHEQUE')}>
-              <option value="VIREMENT">Virement</option>
-              <option value="CHEQUE">Chèque</option>
-            </select>
-          </div>
-          <div className={styles.field}>
-            <label className={styles.label}>Référence</label>
-            <input type="text" className={styles.input} value={reference} onChange={(e) => setReference(e.target.value)} placeholder="N° virement…" />
-          </div>
+      <div className={styles.modal} role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
+        <div className={styles.modalAccent} />
+        <div className={styles.modalDecorations}>
+          <div className={styles.modalBlobA} />
+          <div className={styles.modalBlobB} />
         </div>
 
-        <div className={styles.field} style={{ marginTop: 8 }}>
-          <label className={styles.label}>Notes</label>
-          <textarea className={styles.textarea} value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} />
-        </div>
-
-        <div className={styles.modalSolde}>
-          Solde disponible : <strong>{fmtEuro(contrat.solde)}</strong>
-          {contrat.avanceRestante > 0 && <span className={styles.avanceBadge}>À-valoir restant : {fmtEuro(contrat.avanceRestante)}</span>}
-        </div>
-
-        <div className={styles.modalFooter}>
-          <button className={styles.btnCancel} onClick={onClose}>Annuler</button>
-          <button
-            className={styles.btnSave}
-            disabled={!montant || Number(montant) <= 0 || create.isPending}
-            onClick={handleSubmit}
-          >
-            {create.isPending ? 'Enregistrement…' : 'Enregistrer le paiement'}
+        <div className={styles.modalHeader}>
+          <div>
+            <h3 className={styles.modalTitle}>Enregistrer un paiement</h3>
+            <p className={styles.modalSub}>{contrat.auteurNom} · {contrat.articleNom ?? 'Tous les articles'}</p>
+          </div>
+          <button className={styles.modalClose} onClick={onClose} aria-label="Fermer">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M1 1l12 12M13 1L1 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
           </button>
+        </div>
+
+        <div className={styles.modalBody}>
+          <div className={styles.modalGrid}>
+            <div className={styles.field}>
+              <label className={styles.label}>Montant (€)</label>
+              <input type="number" step="0.01" className={styles.input} value={montant} onChange={(e) => setMontant(e.target.value)} />
+            </div>
+            <div className={styles.field}>
+              <label className={styles.label}>Date de versement</label>
+              <input type="date" className={styles.input} value={dateVersement} onChange={(e) => setDate(e.target.value)} />
+            </div>
+            <div className={styles.field}>
+              <label className={styles.label}>Période du</label>
+              <input type="date" className={styles.input} value={dateDebut} onChange={(e) => setDateDebut(e.target.value)} />
+            </div>
+            <div className={styles.field}>
+              <label className={styles.label}>Au</label>
+              <input type="date" className={styles.input} value={dateFin} onChange={(e) => setDateFin(e.target.value)} />
+            </div>
+            <div className={styles.field}>
+              <label className={styles.label}>Mode</label>
+              <select className={styles.input} value={mode} onChange={(e) => setMode(e.target.value as 'VIREMENT' | 'CHEQUE')}>
+                <option value="VIREMENT">Virement</option>
+                <option value="CHEQUE">Chèque</option>
+              </select>
+            </div>
+            <div className={styles.field}>
+              <label className={styles.label}>Référence</label>
+              <input type="text" className={styles.input} value={reference} readOnly tabIndex={-1}
+                style={{ background: 'var(--cream)', color: 'var(--text-mid)', cursor: 'default', userSelect: 'all' }}
+              />
+              <span style={{ fontSize: '0.65rem', color: 'var(--text-soft)', fontStyle: 'italic', marginTop: 2 }}>
+                Générée automatiquement — {numeroOrdre > 1 ? `${paiementsContrat.length} paiement(s) existant(s)` : 'premier paiement'}
+              </span>
+            </div>
+          </div>
+
+          <div className={`${styles.field} ${styles.fieldFull}`}>
+            <label className={styles.label}>Notes</label>
+            <textarea className={styles.textarea} value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} />
+          </div>
+
+          <div className={styles.modalSolde}>
+            Solde disponible : <strong>{fmtEuro(contrat.solde)}</strong>
+            {contrat.avanceRestante > 0 && <span className={styles.avanceBadge}>À-valoir restant : {fmtEuro(contrat.avanceRestante)}</span>}
+          </div>
+
+          <div className={styles.modalFooter}>
+            <button className={styles.btnCancel} onClick={onClose}>Annuler</button>
+            <button
+              className={styles.btnSave}
+              disabled={!montant || Number(montant) <= 0 || create.isPending}
+              onClick={handleSubmit}
+            >
+              {create.isPending ? 'Enregistrement…' : 'Enregistrer le paiement'}
+            </button>
+          </div>
         </div>
       </div>
     </div>
   )
+
+  return createPortal(dialog, document.body)
 }
 
 // ── Onglet Échéances ──────────────────────────────────────────────────────────
@@ -142,12 +209,18 @@ function OngletEcheances() {
 
   if (tries.length === 0) {
     return (
-      <div className={styles.empty}>
-        <span style={{ fontSize: '2.5rem' }}>📝</span>
-        <p>Aucun contrat actif avec droits configurés.</p>
-        <p style={{ fontSize: '0.82rem', color: 'var(--text-soft)' }}>
-          Configurez la périodicité dans les fiches auteurs.
-        </p>
+      <div className={styles.emptyState}>
+        <div className={styles.emptyIcon}>
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#C4907C" strokeWidth="1.8" strokeLinecap="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+            <polyline points="10 9 9 9 8 9"/>
+          </svg>
+        </div>
+        <div className={styles.emptyTitle}>Aucun contrat actif avec droits configurés</div>
+        <div className={styles.emptyDesc}>Configurez la périodicité dans les fiches auteurs.</div>
       </div>
     )
   }
@@ -155,53 +228,78 @@ function OngletEcheances() {
   return (
     <>
       <div className={styles.table}>
-        <div className={styles.tableHead}>
-          <span>Auteur</span>
-          <span>Article</span>
-          <span>Périodicité</span>
-          <span>Prochain versement</span>
-          <span style={{ textAlign: 'right' }}>Droits bruts</span>
-          <span style={{ textAlign: 'right' }}>À-valoir restant</span>
-          <span style={{ textAlign: 'right' }}>Déjà versé</span>
-          <span style={{ textAlign: 'right' }}>Solde</span>
-          <span />
-        </div>
-        {tries.map((s) => (
-          <div key={s.contratId} className={`${styles.tableRow} ${urgencyClass(s.prochainVersement)}`}>
-            <span className={styles.nomCell}>{s.auteurNom}</span>
-            <span className={styles.soft}>{s.articleNom ?? <em>Tous</em>}</span>
-            <span className={styles.soft}>{s.periodicite ? PERIODICITE_LABELS[s.periodicite] : '—'}</span>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              {s.prochainVersement ? (
-                <>
-                  <span className={styles.dateCell}>{fmtDate(s.prochainVersement)}</span>
-                  {new Date(s.prochainVersement) < new Date() && (
-                    <span style={{ fontSize: '0.65rem', fontWeight: 700, padding: '1px 7px', borderRadius: 20, background: '#FEE2E2', color: '#DC2626' }}>
-                      En retard
-                    </span>
+        {tries.map((s) => {
+          const prochain = s.prochainVersement ? new Date(s.prochainVersement) : null
+          const enRetard = prochain && prochain < new Date()
+          const urgent   = prochain && !enRetard && (prochain.getTime() - Date.now()) / 86400000 <= 14
+
+          return (
+            <div key={s.contratId} className={`${styles.tableCard} ${urgencyClass(s.prochainVersement)}`}>
+              {/* Ligne haute : identité + périodicité + échéance */}
+              <div className={styles.cardMain}>
+                <div className={styles.cardLeft}>
+                  <span className={styles.cardAuteur}>{s.auteurNom}</span>
+                  <span className={styles.cardArticle}>{s.articleNom ?? 'Tous les articles'}</span>
+                </div>
+                <div className={styles.cardMeta}>
+                  <span className={styles.cardPeriodBadge}>
+                    {s.periodicite ? PERIODICITE_LABELS[s.periodicite] : '—'}
+                  </span>
+                  <div className={styles.cardVersement}>
+                    {prochain ? (
+                      <>
+                        <span className={`${styles.cardDate} ${enRetard ? styles.cardDateRetard : ''} ${!enRetard && !urgent ? styles.cardDateFuture : ''}`}>
+                          {enRetard && (
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" style={{flexShrink:0}}>
+                              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                              <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                            </svg>
+                          )}
+                          {fmtDate(s.prochainVersement!)}
+                        </span>
+                        {enRetard && <span className={styles.cardRetardBadge}>En retard</span>}
+                        {urgent && <span className={styles.cardUrgentBadge}>Imminent</span>}
+                      </>
+                    ) : (
+                      <span className={styles.cardDate} style={{color:'var(--text-soft)'}}>—</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Ligne basse : montants + action */}
+              <div className={styles.cardAmounts}>
+                <div className={styles.amountItem}>
+                  <span className={styles.amountLabel}>Droits bruts</span>
+                  <span className={styles.amountValue}>{fmtEuro(s.totalDuBrut)}</span>
+                </div>
+                <div className={styles.amountItem}>
+                  <span className={styles.amountLabel}>À-valoir</span>
+                  {s.avanceRestante > 0 ? (
+                    <span className={styles.amountAvance}>{fmtEuro(s.avanceRestante)}</span>
+                  ) : (
+                    <span className={styles.amountValue} style={{color:'var(--text-soft)'}}>—</span>
                   )}
-                </>
-              ) : (
-                <span className={styles.soft}>—</span>
-              )}
-            </span>
-            <span style={{ textAlign: 'right' }}>{fmtEuro(s.totalDuBrut)}</span>
-            <span style={{ textAlign: 'right', color: s.avanceRestante > 0 ? 'var(--gold)' : 'var(--text-soft)' }}>
-              {s.avanceRestante > 0 ? fmtEuro(s.avanceRestante) : '—'}
-            </span>
-            <span style={{ textAlign: 'right', color: 'var(--text-soft)' }}>{fmtEuro(s.totalVerse)}</span>
-            <span style={{ textAlign: 'right', fontWeight: 700, color: s.solde > 0 ? '#059669' : 'var(--text-soft)' }}>
-              {fmtEuro(s.solde)}
-            </span>
-            <span>
-              {s.solde > 0 && (
-                <button className={styles.btnPayer} onClick={() => setModal(s)}>
-                  Payer
-                </button>
-              )}
-            </span>
-          </div>
-        ))}
+                </div>
+                <div className={styles.amountItem}>
+                  <span className={styles.amountLabel}>Déjà versé</span>
+                  <span className={styles.amountValue} style={{color:'var(--text-soft)'}}>{fmtEuro(s.totalVerse)}</span>
+                </div>
+                <div className={styles.amountItem}>
+                  <span className={styles.amountLabel}>Solde</span>
+                  <span className={s.solde > 0 ? styles.amountSolde : styles.amountSoldeZero}>
+                    {fmtEuro(s.solde)}
+                  </span>
+                </div>
+                {s.solde > 0 && (
+                  <button className={styles.btnPayer} onClick={() => setModal(s)}>
+                    Payer
+                  </button>
+                )}
+              </div>
+            </div>
+          )
+        })}
       </div>
       {modal && <ModalPaiement contrat={modal} onClose={() => setModal(null)} />}
     </>
@@ -222,48 +320,64 @@ function OngletHistorique() {
 
   if (isLoading) return <div className={styles.loading}>Chargement…</div>
   if (paiements.length === 0) return (
-    <div className={styles.empty}>
-      <span style={{ fontSize: '2.5rem' }}>🗓️</span>
-      <p>Aucun paiement enregistré.</p>
+    <div className={styles.emptyState}>
+      <div className={styles.emptyIcon}>
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#C4907C" strokeWidth="1.8" strokeLinecap="round">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+          <line x1="16" y1="2" x2="16" y2="6"/>
+          <line x1="8" y1="2" x2="8" y2="6"/>
+          <line x1="3" y1="10" x2="21" y2="10"/>
+        </svg>
+      </div>
+      <div className={styles.emptyTitle}>Aucun paiement enregistré</div>
     </div>
   )
 
   return (
     <div className={styles.table}>
-      <div className={`${styles.tableHead} ${styles.tableHeadHisto}`}>
+      <div className={styles.histoHeader}>
         <span>Date</span>
         <span>Auteur</span>
-        <span>Article</span>
-        <span>Période couverte</span>
-        <span style={{ textAlign: 'right' }}>Montant</span>
-        <span>Mode</span>
-        <span>Référence</span>
-        <span>Statut</span>
+        <span>Détails</span>
+        <span>Montant</span>
         <span />
       </div>
       {paiements.map((p) => {
-        const s = STATUT_STYLES[p.statut]
+        const st = STATUT_STYLES[p.statut]
         return (
-          <div key={p.id} className={styles.tableRow}>
-            <span>{fmtDate(p.dateVersement)}</span>
-            <span className={styles.nomCell}>{p.auteur.prenom} {p.auteur.nom}</span>
-            <span className={styles.soft}>{p.contrat.article?.nom ?? <em>Tous</em>}</span>
-            <span className={styles.soft}>{fmtDate(p.dateDebutPeriode)} → {fmtDate(p.dateFinPeriode)}</span>
-            <span style={{ textAlign: 'right', fontWeight: 700 }}>{fmtEuro(Number(p.montant))}</span>
-            <span className={styles.soft}>{p.modePaiement ?? '—'}</span>
-            <span className={styles.soft}>{p.reference ?? '—'}</span>
-            <span>
-              <span style={{ fontSize: '0.72rem', fontWeight: 700, padding: '2px 9px', borderRadius: 20, color: s.color, background: s.bg }}>
-                {s.label}
+          <div key={p.id} className={styles.tableCardSm}>
+            <div className={styles.cardSmMain}>
+              <span className={styles.cardSmDate}>{fmtDate(p.dateVersement)}</span>
+              <span className={styles.cardSmAuteur}>{p.auteur.prenom} {p.auteur.nom}</span>
+              <div className={styles.cardSmDetails}>
+                <span>{p.contrat.article?.nom ?? 'Tous les articles'}</span>
+                <span style={{color:'var(--text-mid)'}}>·</span>
+                <span>{fmtDate(p.dateDebutPeriode)} → {fmtDate(p.dateFinPeriode)}</span>
+                {p.modePaiement && (
+                  <>
+                    <span style={{color:'var(--text-mid)'}}>·</span>
+                    <span>{p.modePaiement}</span>
+                  </>
+                )}
+                {p.reference && (
+                  <>
+                    <span style={{color:'var(--text-mid)'}}>·</span>
+                    <span style={{fontWeight:500}}>{p.reference}</span>
+                  </>
+                )}
+              </div>
+            </div>
+            <div className={styles.cardSmRight}>
+              <span className={styles.cardSmMontant}>{fmtEuro(Number(p.montant))}</span>
+              <span className={styles.cardSmStatut} style={{color: st.color, background: st.bg}}>
+                {st.label}
               </span>
-            </span>
-            <span>
               {p.statut === 'PREVU' && (
                 <button className={styles.btnPayer} onClick={() => patch.mutate({ id: p.id, statut: 'PAYE' })}>
                   Confirmer
                 </button>
               )}
-            </span>
+            </div>
           </div>
         )
       })}
@@ -281,9 +395,15 @@ function OngletStats() {
 
   if (isLoading) return <div className={styles.loading}>Chargement…</div>
   if (stats.length === 0) return (
-    <div className={styles.empty}>
-      <span style={{ fontSize: '2.5rem' }}>📊</span>
-      <p>Aucun versement enregistré.</p>
+    <div className={styles.emptyState}>
+      <div className={styles.emptyIcon}>
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#C4907C" strokeWidth="1.8" strokeLinecap="round">
+          <line x1="18" y1="20" x2="18" y2="10"/>
+          <line x1="12" y1="20" x2="12" y2="4"/>
+          <line x1="6" y1="20" x2="6" y2="14"/>
+        </svg>
+      </div>
+      <div className={styles.emptyTitle}>Aucun versement enregistré</div>
     </div>
   )
 
@@ -358,16 +478,32 @@ export function DroitsAuteurPage() {
 
       <div className={styles.tabBar}>
         {([
-          ['echeances',  'Échéances & soldes'],
-          ['historique', 'Historique des paiements'],
-          ['stats',      'Par auteur'],
-        ] as [Tab, string][]).map(([key, label]) => (
+          ['echeances',  'Échéances & soldes', (
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+              <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
+              <line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+          )],
+          ['historique', 'Historique des paiements', (
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+            </svg>
+          )],
+          ['stats',      'Par auteur', (
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <line x1="18" y1="20" x2="18" y2="10"/>
+              <line x1="12" y1="20" x2="12" y2="4"/>
+              <line x1="6" y1="20" x2="6" y2="14"/>
+            </svg>
+          )],
+        ] as [Tab, string, JSX.Element][]).map(([key, label, icon]) => (
           <button
             key={key}
             className={`${styles.tab} ${tab === key ? styles.tabActive : ''}`}
             onClick={() => setTab(key)}
           >
-            {label}
+            {icon}{label}
           </button>
         ))}
       </div>
