@@ -9,6 +9,7 @@ import {
   useCreatePaiementDA, usePatchPaiementDA,
 } from './hooks/useDroitsAuteur'
 import type { SoldeContrat } from './hooks/useDroitsAuteur'
+import { buildReference } from '@megesti/business/droits/reference'
 import styles from './DroitsAuteurPage.module.css'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -30,28 +31,6 @@ function urgencyClass(prochainVersement: string | null): string {
   if (jours < 0)  return styles.urgenceRetard
   if (jours <= 7) return styles.urgenceSemaine
   return styles.urgenceOk
-}
-
-// ── Helpers référence ──────────────────────────────────────────────────────────
-
-function buildReference(
-  auteurNom: string, articleNom: string | null,
-  annee: string, numero: number,
-): string {
-  const initiales = auteurNom
-    .split(/\s+/)
-    .map(w => w.charAt(0).toUpperCase())
-    .join('')
-    .slice(0, 2)
-
-  const livre4 = (articleNom ?? 'TOUS')
-    .replace(/[^a-zA-Z0-9]/g, '')
-    .toUpperCase()
-    .slice(0, 4)
-    .padEnd(4, 'X')
-
-  const ordre = String(numero).padStart(3, '0')
-  return `${initiales}-${livre4}-${annee}-${ordre}`
 }
 
 // ── Modal paiement ────────────────────────────────────────────────────────────

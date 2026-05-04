@@ -4,7 +4,7 @@ export interface VenteHashData {
   id: string
   numero: number
   tenantId: string
-  sessionId: string
+  sessionId: string | null
   dateVente: Date | string
   modePaiement: string
   totalHT: number
@@ -44,7 +44,7 @@ export function computeVenteHash(
     vente.id,
     String(vente.numero),
     vente.tenantId,
-    vente.sessionId,
+    vente.sessionId ?? '',
     toISO(vente.dateVente),
     vente.modePaiement,
     vente.totalHT.toFixed(2),

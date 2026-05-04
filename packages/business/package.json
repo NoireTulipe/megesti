@@ -5,7 +5,9 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./till": "./src/till/integrity.ts"
+    "./till": "./src/till/integrity.ts",
+    "./droits/reference": "./src/droits/reference.ts",
+    "./bilan/commission": "./src/bilan/commission.ts"
   },
   "scripts": {
     "test": "vitest run",

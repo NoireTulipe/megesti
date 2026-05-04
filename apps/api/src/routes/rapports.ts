@@ -2,6 +2,7 @@ import type { FastifyPluginAsync } from 'fastify'
 import { Prisma } from '@prisma/client'
 import { z } from 'zod'
 import { calculateRoyalties } from '@megesti/business'
+import { calculerCommissionReversement } from '@megesti/business/bilan/commission'
 import type { FormuleDA, ContexteVente, LigneVenteDA } from '@megesti/business'
 import { occurrencesDansPeriode } from './charges.js'
 import { calculerSoldeContrat } from '../services/droitsAuteur.js'
@@ -316,11 +317,12 @@ export const rapportRoutes: FastifyPluginAsync = async (app) => {
 
     // ── Helper commission reversement ─────────────────────────────────────────
     function commissionRev(r: { montantTTC: { toNumber: () => number } | string | number; montantAjuste: { toNumber: () => number } | string | number | null; pointDeVente: { commissionFixe: { toNumber: () => number } | string | number | null; commissionPourcent: { toNumber: () => number } | string | number | null } }): number {
-      const brut = Number(r.montantTTC)
-      if (r.montantAjuste !== null && r.montantAjuste !== undefined) return brut - Number(r.montantAjuste)
-      const fixe = Number(r.pointDeVente.commissionFixe ?? 0)
-      const pct  = Number(r.pointDeVente.commissionPourcent ?? 0)
-      return fixe + brut * pct / 100
+      return calculerCommissionReversement({
+        montantBrut:        Number(r.montantTTC),
+        montantAjuste:      r.montantAjuste !== null && r.montantAjuste !== undefined ? Number(r.montantAjuste) : undefined,
+        commissionFixe:     r.pointDeVente.commissionFixe != null ? Number(r.pointDeVente.commissionFixe) : undefined,
+        commissionPourcent: r.pointDeVente.commissionPourcent != null ? Number(r.pointDeVente.commissionPourcent) : undefined,
+      })
     }
 
     // ── Calcul droits d'auteurs sur la période ────────────────────────────────

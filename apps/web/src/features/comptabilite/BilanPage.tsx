@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, Cell, PieChart, Pie, Legend,
+  ResponsiveContainer, Cell, PieChart, Pie,
 } from 'recharts'
 import { useBilan } from './hooks/useBilan'
 import {
@@ -287,15 +287,25 @@ export function BilanPage() {
               </div>
               {donutEntrees.length > 0 ? (
                 <div className={styles.donutWrap}>
-                  <ResponsiveContainer width="100%" height={180}>
-                    <PieChart>
-                      <Pie data={donutEntrees} dataKey="value" cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={3}>
-                        {donutEntrees.map((d, i) => <Cell key={i} fill={d.fill} />)}
-                      </Pie>
-                      <Tooltip formatter={(v: number) => fEur(v)} />
-                      <Legend iconType="circle" iconSize={8} />
-                    </PieChart>
-                  </ResponsiveContainer>
+                  <div className={styles.donutChart}>
+                    <ResponsiveContainer width="100%" height={180}>
+                      <PieChart>
+                        <Pie data={donutEntrees} dataKey="value" cx="50%" cy="50%" innerRadius={45} outerRadius={75} paddingAngle={3}>
+                          {donutEntrees.map((d, i) => <Cell key={i} fill={d.fill} />)}
+                        </Pie>
+                        <Tooltip formatter={(v: number) => fEur(v)} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <div className={styles.donutLegend}>
+                    {donutEntrees.map(d => (
+                      <div key={d.name} className={styles.donutLegendRow}>
+                        <span className={styles.donutLegendDot} style={{ background: d.fill }} />
+                        <span className={styles.donutLegendName}>{d.name}</span>
+                        <span className={styles.donutLegendVal}>{fEur(d.value)}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               ) : (
                 <p className={styles.empty}>Aucune entrée sur la période</p>
@@ -306,35 +316,51 @@ export function BilanPage() {
               {showDetail === 'entrees' && (
                 <div className={styles.detailList}>
                   {data.entreesEffectives.detail.ventesParMode.length > 0 && (
-                    <p className={styles.detailCat}>Ventes en session</p>
+                    <>
+                      <p className={styles.detailCat}>Ventes en session · {fEur(data.entreesEffectives.ventesDirectes)}</p>
+                      {data.entreesEffectives.detail.ventesParMode.map(v => (
+                        <div key={v.mode} className={styles.detailRow}>
+                          <span>{MODE_LABEL(v.mode)}</span>
+                          <span className={styles.detailSub}>{v.nb} vente{v.nb > 1 ? 's' : ''} · {data.entreesEffectives.ventesDirectes > 0 ? ((v.ca / data.entreesEffectives.ventesDirectes) * 100).toFixed(0) : 0}% du total session</span>
+                          <span className={styles.detailMontant}>{fEur(v.ca)}</span>
+                        </div>
+                      ))}
+                    </>
                   )}
-                  {data.entreesEffectives.detail.ventesParMode.map(v => (
-                    <div key={v.mode} className={styles.detailRow}>
-                      <span>{MODE_LABEL(v.mode)}</span>
-                      <span className={styles.detailSub}>{v.nb} vente{v.nb > 1 ? 's' : ''}</span>
-                      <span className={styles.detailMontant}>{fEur(v.ca)}</span>
-                    </div>
-                  ))}
                   {(data.entreesEffectives.detail.ventesParMotif ?? []).length > 0 && (
-                    <p className={styles.detailCat}>Ventes hors session</p>
+                    <>
+                      <p className={styles.detailCat}>Ventes hors session · {fEur(data.entreesEffectives.ventesHorsSession)}</p>
+                      {(data.entreesEffectives.detail.ventesParMotif ?? []).map(m => (
+                        <div key={m.motifVenteId} className={styles.detailRow}>
+                          <span>{m.libelle}</span>
+                          <span className={styles.detailSub}>{m.nb} vente{m.nb > 1 ? 's' : ''}</span>
+                          <span className={styles.detailMontant}>{fEur(m.ca)}</span>
+                        </div>
+                      ))}
+                    </>
                   )}
-                  {(data.entreesEffectives.detail.ventesParMotif ?? []).map(m => (
-                    <div key={m.motifVenteId} className={styles.detailRow}>
-                      <span>{m.libelle}</span>
-                      <span className={styles.detailSub}>{m.nb} vente{m.nb > 1 ? 's' : ''}</span>
-                      <span className={styles.detailMontant}>{fEur(m.ca)}</span>
-                    </div>
-                  ))}
                   {data.entreesEffectives.detail.reversements.length > 0 && (
-                    <p className={styles.detailCat}>Reversements PDV</p>
+                    <>
+                      <p className={styles.detailCat}>Reversements PDV encaissés · {fEur(data.entreesEffectives.reversementsEncaisses)}</p>
+                      {data.entreesEffectives.detail.reversements.map((r, i) => (
+                        <div key={i} className={styles.detailRow}>
+                          <span>{r.pdvNom}</span>
+                          <span className={styles.detailSub}>{r.dateEncaissement ? fDate(r.dateEncaissement) : ''}</span>
+                          <span className={styles.detailMontant}>{fEur(r.montant)}</span>
+                        </div>
+                      ))}
+                    </>
                   )}
-                  {data.entreesEffectives.detail.reversements.map((r, i) => (
-                    <div key={i} className={styles.detailRow}>
-                      <span>{r.pdvNom}</span>
-                      <span className={styles.detailSub}>{r.dateEncaissement ? fDate(r.dateEncaissement) : ''}</span>
-                      <span className={styles.detailMontant}>{fEur(r.montant)}</span>
-                    </div>
-                  ))}
+                  {data.entreesEffectives.ventesDepotTTC > 0 && (
+                    <>
+                      <p className={styles.detailCat}>Ventes en dépôt (CA brut) · {fEur(data.entreesEffectives.ventesDepotTTC)}</p>
+                      <div className={styles.detailRow}>
+                        <span>Ventes avec mode PDV</span>
+                        <span className={styles.detailSub}>{data.entreesEffectives.ventesDepotNb} vente{data.entreesEffectives.ventesDepotNb > 1 ? 's' : ''}</span>
+                        <span className={styles.detailMontant}>{fEur(data.entreesEffectives.ventesDepotTTC)}</span>
+                      </div>
+                    </>
+                  )}
                 </div>
               )}
             </div>
@@ -348,15 +374,25 @@ export function BilanPage() {
               </div>
               {donutSorties.length > 0 ? (
                 <div className={styles.donutWrap}>
-                  <ResponsiveContainer width="100%" height={180}>
-                    <PieChart>
-                      <Pie data={donutSorties} dataKey="value" cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={3}>
-                        {donutSorties.map((d, i) => <Cell key={i} fill={d.fill} />)}
-                      </Pie>
-                      <Tooltip formatter={(v: number) => fEur(v)} />
-                      <Legend iconType="circle" iconSize={8} />
-                    </PieChart>
-                  </ResponsiveContainer>
+                  <div className={styles.donutChart}>
+                    <ResponsiveContainer width="100%" height={180}>
+                      <PieChart>
+                        <Pie data={donutSorties} dataKey="value" cx="50%" cy="50%" innerRadius={45} outerRadius={75} paddingAngle={3}>
+                          {donutSorties.map((d, i) => <Cell key={i} fill={d.fill} />)}
+                        </Pie>
+                        <Tooltip formatter={(v: number) => fEur(v)} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <div className={styles.donutLegend}>
+                    {donutSorties.map(d => (
+                      <div key={d.name} className={styles.donutLegendRow}>
+                        <span className={styles.donutLegendDot} style={{ background: d.fill }} />
+                        <span className={styles.donutLegendName}>{d.name}</span>
+                        <span className={styles.donutLegendVal}>{fEur(d.value)}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               ) : (
                 <p className={styles.empty}>Aucune sortie sur la période</p>
@@ -366,40 +402,56 @@ export function BilanPage() {
               </button>
               {showDetail === 'sorties' && (
                 <div className={styles.detailList}>
-                  {data.sortiesEffectives.detail.frais.length > 0 && <p className={styles.detailCat}>Frais sessions</p>}
-                  {data.sortiesEffectives.detail.frais.map((f, i) => (
-                    <div key={i} className={styles.detailRow}>
-                      <span>{f.motif}</span>
-                      <span className={styles.detailSub}>{f.type}</span>
-                      <span className={styles.detailMontant}>{fEur(f.montantHT)}</span>
-                    </div>
-                  ))}
-                  {data.sortiesEffectives.detail.charges.length > 0 && <p className={styles.detailCat}>Charges payées</p>}
-                  {data.sortiesEffectives.detail.charges.map((c, i) => (
-                    <div key={i} className={styles.detailRow}>
-                      <span>{c.libelle}</span>
-                      <span className={styles.detailSub} style={{ color: CATEGORIE_CHARGE_COLORS[c.categorie as CategorieCharge] }}>
-                        {CATEGORIE_CHARGE_LABELS[c.categorie as CategorieCharge] ?? TYPE_CHARGE_LABELS[c.type as TypeCharge]}
-                      </span>
-                      <span className={styles.detailMontant}>{fEur(c.montantHT)}</span>
-                    </div>
-                  ))}
-                  {data.sortiesEffectives.detail.droitsAuteursPaies.length > 0 && <p className={styles.detailCat}>Droits d'auteurs versés</p>}
-                  {data.sortiesEffectives.detail.droitsAuteursPaies.map((d, i) => (
-                    <div key={i} className={styles.detailRow}>
-                      <span>{d.nomAuteur}</span>
-                      <span className={styles.detailSub} style={{ color: C.mauve }}>DA versé</span>
-                      <span className={styles.detailMontant}>{fEur(d.montant)}</span>
-                    </div>
-                  ))}
-                  {data.sortiesEffectives.detail.commissionsReversements.length > 0 && <p className={styles.detailCat}>Commissions PDV</p>}
-                  {data.sortiesEffectives.detail.commissionsReversements.map((c, i) => (
-                    <div key={i} className={styles.detailRow}>
-                      <span>{c.pdvNom}</span>
-                      <span className={styles.detailSub}>Brut {fEur(c.montantBrut)}</span>
-                      <span className={styles.detailMontant} style={{ color: C.gold }}>{fEur(c.commission)}</span>
-                    </div>
-                  ))}
+                  {data.sortiesEffectives.detail.frais.length > 0 && (
+                    <>
+                      <p className={styles.detailCat}>Frais sessions · {fEur(data.sortiesEffectives.frais)}</p>
+                      {data.sortiesEffectives.detail.frais.map((f, i) => (
+                        <div key={i} className={styles.detailRow}>
+                          <span>{f.motif}</span>
+                          <span className={styles.detailSub}>{f.type}</span>
+                          <span className={styles.detailMontant}>{fEur(f.montantHT)}</span>
+                        </div>
+                      ))}
+                    </>
+                  )}
+                  {data.sortiesEffectives.detail.charges.length > 0 && (
+                    <>
+                      <p className={styles.detailCat}>Charges payées · {fEur(data.sortiesEffectives.charges)}</p>
+                      {data.sortiesEffectives.detail.charges.map((c, i) => (
+                        <div key={i} className={styles.detailRow}>
+                          <span>{c.libelle}</span>
+                          <span className={styles.detailSub} style={{ color: CATEGORIE_CHARGE_COLORS[c.categorie as CategorieCharge] }}>
+                            {CATEGORIE_CHARGE_LABELS[c.categorie as CategorieCharge] ?? TYPE_CHARGE_LABELS[c.type as TypeCharge]}
+                          </span>
+                          <span className={styles.detailMontant}>{fEur(c.montantHT)}</span>
+                        </div>
+                      ))}
+                    </>
+                  )}
+                  {data.sortiesEffectives.detail.droitsAuteursPaies.length > 0 && (
+                    <>
+                      <p className={styles.detailCat}>Droits d'auteur versés · {fEur(data.sortiesEffectives.droitsAuteursPaies)}</p>
+                      {data.sortiesEffectives.detail.droitsAuteursPaies.map((d, i) => (
+                        <div key={i} className={styles.detailRow}>
+                          <span>{d.nomAuteur}</span>
+                          <span className={styles.detailSub} style={{ color: C.mauve }}>DA versé</span>
+                          <span className={styles.detailMontant}>{fEur(d.montant)}</span>
+                        </div>
+                      ))}
+                    </>
+                  )}
+                  {data.sortiesEffectives.detail.commissionsReversements.length > 0 && (
+                    <>
+                      <p className={styles.detailCat}>Commissions PDV · {fEur(data.sortiesEffectives.commissionsReversements)}</p>
+                      {data.sortiesEffectives.detail.commissionsReversements.map((c, i) => (
+                        <div key={i} className={styles.detailRow}>
+                          <span>{c.pdvNom}</span>
+                          <span className={styles.detailSub}>Brut {fEur(c.montantBrut)}</span>
+                          <span className={styles.detailMontant} style={{ color: C.gold }}>{fEur(c.commission)}</span>
+                        </div>
+                      ))}
+                    </>
+                  )}
                 </div>
               )}
             </div>
