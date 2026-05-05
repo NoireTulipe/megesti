@@ -1,18 +1,26 @@
 import * as SQLite from 'expo-sqlite'
-import { Platform } from 'react-native'
 
 let _db: SQLite.SQLiteDatabase | null = null
 
-export function getDb(): SQLite.SQLiteDatabase {
+export async function getDb(): Promise<SQLite.SQLiteDatabase> {
   if (!_db) {
-    _db = new SQLite.SQLiteDatabase('megesti.db')
-    _db.execSync(`PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON;`)
+    _db = await SQLite.openDatabaseAsync('megesti.db')
+    await _db.execAsync(`PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON;`)
   }
   return _db
 }
 
 export async function initDb(): Promise<void> {
-  const db = getDb()
+  const db = await getDb()
+
+  // Migrations pour les bases existantes (ALTER TABLE ADD COLUMN ignore si déjà présent)
+  for (const col of [
+    `ALTER TABLE articles ADD COLUMN stock_alerte INTEGER NOT NULL DEFAULT 0`,
+    `ALTER TABLE articles ADD COLUMN categorie_id TEXT`,
+    `ALTER TABLE articles ADD COLUMN categorie_nom TEXT`,
+  ]) {
+    try { await db.execAsync(col) } catch { /* colonne existe déjà */ }
+  }
 
   await db.execAsync(`
     CREATE TABLE IF NOT EXISTS articles (
@@ -23,7 +31,10 @@ export async function initDb(): Promise<void> {
       prix_vente_ht REAL NOT NULL,
       taux_tva REAL NOT NULL DEFAULT 5.5,
       stock_local INTEGER NOT NULL DEFAULT 0,
+      stock_alerte INTEGER NOT NULL DEFAULT 0,
       rayon_nom TEXT,
+      categorie_id TEXT,
+      categorie_nom TEXT,
       isbn TEXT,
       actif INTEGER NOT NULL DEFAULT 1
     );
@@ -82,13 +93,7 @@ export async function initDb(): Promise<void> {
   `)
 }
 
-// ── Helpers ────────────────────────────────────────────────────────
-
 export function generateUUID(): string {
-  if (Platform.OS === 'web') {
-    return crypto.randomUUID()
-  }
-  // React Native polyfill
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
     const r = (Math.random() * 16) | 0
     const v = c === 'x' ? r : (r & 0x3) | 0x8

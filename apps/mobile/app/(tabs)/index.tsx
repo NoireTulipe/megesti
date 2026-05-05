@@ -60,7 +60,7 @@ export default function DashboardScreen() {
             <Text style={styles.tenant}>{user?.tenantName}</Text>
           </View>
           <TouchableOpacity style={styles.avatar}
-            onLongPress={showDevMenu} delayLongPress={3000} activeOpacity={0.8}>
+            onLongPress={showDevMenu} delayLongPress={1500} activeOpacity={0.8}>
             <Text style={styles.avatarText}>
               {(user?.firstName ?? '')[0]}{(user?.lastName ?? '')[0]}
             </Text>
@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24,
   },
-  greeting: { fontFamily: Fonts.display, fontSize: 26, color: Colors.ink, fontStyle: 'italic' },
+  greeting: { fontFamily: Fonts.displayItalic, fontSize: 26, color: Colors.ink, fontStyle: 'italic' },
   tenant: { fontFamily: Fonts.body, fontSize: 12, color: Colors.textSoft, marginTop: 2 },
   avatar: {
     width: 44, height: 44, borderRadius: Radius.full,
@@ -178,21 +178,21 @@ const styles = StyleSheet.create({
   sessionHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6 },
   sessionDot: { color: Colors.sage, fontSize: 10 },
   sessionTitle: { fontFamily: Fonts.body, fontSize: 12, fontWeight: '700', color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: 0.8 },
-  sessionPdv: { fontFamily: Fonts.display, fontSize: 20, color: Colors.white, fontStyle: 'italic', marginBottom: 16 },
   sessionStats: { flexDirection: 'row', gap: 24, marginBottom: 18 },
   sessionStat: {},
   sessionStatValue: { fontFamily: Fonts.body, fontSize: 20, fontWeight: '700', color: Colors.white },
   sessionStatLabel: { fontFamily: Fonts.body, fontSize: 11, color: 'rgba(255,255,255,0.55)', marginTop: 2 },
   sessionBtn: { backgroundColor: 'rgba(255,255,255,0.12)', borderRadius: Radius.md, paddingVertical: 12, alignItems: 'center' },
   sessionBtnText: { fontFamily: Fonts.body, fontSize: 13, fontWeight: '600', color: Colors.white },
+  sessionPdv: { fontFamily: Fonts.body, fontSize: 16, fontWeight: '600', color: Colors.white, marginTop: 4 },
 
   openSessionCard: { backgroundColor: Colors.white, borderRadius: Radius.xl, padding: 28, marginBottom: 24, alignItems: 'center', ...Shadow.card },
   openSessionEmoji: { fontSize: 40, marginBottom: 12 },
-  openSessionTitle: { fontFamily: Fonts.display, fontSize: 20, color: Colors.ink, fontStyle: 'italic', marginBottom: 6 },
+  openSessionTitle: { fontFamily: Fonts.displayItalic, fontSize: 18, color: Colors.ink, fontStyle: 'italic', marginBottom: 6 },
   openSessionSub: { fontFamily: Fonts.body, fontSize: 13, color: Colors.textSoft, textAlign: 'center', lineHeight: 20 },
 
-  sectionTitle: { fontFamily: Fonts.display, fontSize: 18, color: Colors.ink, fontStyle: 'italic', marginBottom: 12 },
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
+  sectionTitle: { fontFamily: Fonts.displayItalic, fontSize: 18, color: Colors.ink, fontStyle: 'italic', marginBottom: 12 },
   sectionLink: { fontFamily: Fonts.body, fontSize: 12, fontWeight: '700', color: Colors.rose },
   quickGrid: { flexDirection: 'row', gap: 10, marginBottom: 28 },
   quickBtn: { flex: 1, borderRadius: Radius.lg, padding: 14, alignItems: 'center', gap: 6 },

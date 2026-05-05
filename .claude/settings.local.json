@@ -16,7 +16,11 @@
       "PowerShell(& \"C:\\\\Program Files\\\\PostgreSQL\\\\18\\\\bin\\\\psql.exe\" -U postgres -d megesti_dev -c \"SELECT 1 AS test;\" 2>&1)",
       "PowerShell(Get-Command *)",
       "PowerShell(Test-NetConnection *)",
-      "PowerShell(npm list *)"
+      "PowerShell(npm list *)",
+      "PowerShell(New-NetFirewallRule *)",
+      "Bash(Select-Object -First 40)",
+      "Bash(Select-Object FullName, Mode)",
+      "Bash(Format-Table -AutoSize -Wrap)"
     ]
   }
 }

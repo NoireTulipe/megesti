@@ -1,8 +1,12 @@
-import { useState, useEffect, useCallback } from 'react'
-import { View, Text, TouchableOpacity, ScrollView, TextInput, StyleSheet, Modal, Alert } from 'react-native'
+import { useState, useEffect, useMemo, useRef } from 'react'
+import {
+  View, Text, TouchableOpacity, ScrollView, TextInput,
+  StyleSheet, Modal, FlatList, Switch, useWindowDimensions,
+} from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useLocalSession, usePointsDeVente } from '@/hooks/useLocalSession'
-import { useLocalArticles } from '@/hooks/useLocalArticles'
+import { useLocalArticles, LocalArticle } from '@/hooks/useLocalArticles'
 import { useLocalVentes } from '@/hooks/useLocalVentes'
 import { useDevStore } from '@/store/devStore'
 import { Colors, Fonts, Radius, Shadow } from '@/constants/theme'
@@ -24,93 +28,122 @@ const PAYMENT_MODES: { mode: PaymentMode; label: string; emoji: string }[] = [
   { mode: 'SUMUP', label: 'SumUp', emoji: '📱' },
 ]
 
+// Palette rayons (couleur par rayon)
+const RAYON_COLORS: Record<string, string> = {}
+const RAYON_PALETTE = [Colors.ink, Colors.rose, Colors.sage, Colors.gold, Colors.terra, '#6C5CE7', '#0984E3', '#00B894']
+function rayonColor(name: string, index: number) {
+  if (!RAYON_COLORS[name]) RAYON_COLORS[name] = RAYON_PALETTE[index % RAYON_PALETTE.length]
+  return RAYON_COLORS[name]
+}
+
+// ── Composant ────────────────────────────────────────────────────────
+
 export default function CaisseScreen() {
-  const { session, loading: sessionLoading, openSession, closeSession, refresh: refreshSession } = useLocalSession()
-  const { pdvs, loading: pdvsLoading } = usePointsDeVente()
+  const insets = useSafeAreaInsets()
+  const { width: screenW } = useWindowDimensions()
+  const TAB_BAR_H = 68 + insets.bottom
+
+  const { session, openSession, closeSession, refresh: refreshSession } = useLocalSession()
+  const { pdvs, loading: pdvsLoading, error: pdvsError } = usePointsDeVente()
   const { articles, pullFromServer } = useLocalArticles()
-  const { createVente, stats } = useLocalVentes(session?.id)
+  const { createVente } = useLocalVentes(session?.id)
   const addLog = useDevStore(s => s.addLog)
 
+  // Session ouverte ?
+  const hasSession = !!session
+  const sessionPdv = hasSession ? pdvs.find(p => p.id === session!.point_de_vente_id) : null
+  const encaissementDirect = sessionPdv?.encaissementDirect ?? false
+
+  // ── États ──
   const [showSessionModal, setShowSessionModal] = useState(false)
   const [fondCaisse, setFondCaisse] = useState('')
   const [selectedPdvId, setSelectedPdvId] = useState<string | null>(null)
-  const [selectArticles, setSelectArticles] = useState<'all' | 'choose'>('all')
   const [search, setSearch] = useState('')
+  const [selectedRayon, setSelectedRayon] = useState<string | null>(null) // null = Tous
+  const [enabledCats, setEnabledCats] = useState<Set<string>>(new Set()) // catégories affichées (vide = toutes)
 
   // Panier
   const [cart, setCart] = useState<CartItem[]>([])
   const [showCart, setShowCart] = useState(false)
+  const [showConfirm, setShowConfirm] = useState(false)
   const [selectedPayment, setSelectedPayment] = useState<PaymentMode>('CB')
+  const [submitting, setSubmitting] = useState(false)
 
-  // Session ouverte ?
-  const hasSession = !!session
+  // ── Données dérivées ──
+  const exposedIds: string[] = session?.articles_exposes ? JSON.parse(session.articles_exposes) : []
 
-  // Récupérer les articles exposés depuis la session
-  useEffect(() => {
-    if (hasSession && session!.articles_exposes) {
-      const ids = JSON.parse(session!.articles_exposes)
-      pullFromServer(ids)
+  // Rayons disponibles
+  const rayons = useMemo(() => {
+    const set = new Map<string, number>()
+    for (const a of articles) {
+      if (exposedIds.length && !exposedIds.includes(a.id)) continue
+      if (a.rayon_nom) set.set(a.rayon_nom, (set.get(a.rayon_nom) ?? 0) + 1)
     }
-  }, [hasSession, session?.articles_exposes])
+    return Array.from(set.entries()).map(([nom, count]) => ({ nom, count }))
+  }, [articles, exposedIds.join(',')])
+
+  // Catégories filtrées par rayon
+  const categories = useMemo(() => {
+    const cats = new Map<string, { id: string; nom: string }>()
+    for (const a of articles) {
+      if (exposedIds.length && !exposedIds.includes(a.id)) continue
+      if (selectedRayon && a.rayon_nom !== selectedRayon) continue
+      if (a.categorie_id && a.categorie_nom) cats.set(a.categorie_id, { id: a.categorie_id, nom: a.categorie_nom })
+    }
+    return Array.from(cats.values()).sort((x, y) => x.nom.localeCompare(y.nom))
+  }, [articles, exposedIds.join(','), selectedRayon])
+
+  // Produits filtrés
+  const filtered = useMemo(() => articles.filter(a => {
+    if (exposedIds.length && !exposedIds.includes(a.id)) return false
+    if (selectedRayon && a.rayon_nom !== selectedRayon) return false
+    if (search && !a.nom.toLowerCase().includes(search.toLowerCase()) && !(a.isbn ?? '').includes(search)) return false
+    if (enabledCats.size > 0 && a.categorie_id && !enabledCats.has(a.categorie_id)) return false
+    return true
+  }), [articles, exposedIds.join(','), selectedRayon, search, enabledCats])
+
+  const total = cart.reduce((s, i) => s + i.prix * i.quantite, 0)
+
+  // Ref FlatList pour le swipe entre rayons
+  const flatListRef = useRef<FlatList<any>>(null)
+
+  // ── Pull initial des articles ──
+  useEffect(() => {
+    if (hasSession) pullFromServer()
+  }, [hasSession])
 
   // ── Ouverture session ──
   async function handleOpenSession() {
-    if (!fondCaisse || !selectedPdvId) return
+    if (!selectedPdvId) return
     const pdv = pdvs.find(p => p.id === selectedPdvId)
     if (!pdv) return
+    const fond = pdv.encaissementDirect ? 0 : (parseFloat(fondCaisse) || 0)
 
     try {
-      // Pull les articles depuis l'API
-      await pullFromServer(selectArticles === 'all' ? undefined : undefined)
-      // Pour l'instant on prend tous les articles
-      const articleIds = articles.map(a => a.id)
-      await openSession(selectedPdvId, pdv.nom, parseFloat(fondCaisse), articleIds)
-      addLog('info', `Session ouverte: ${pdv.nom}`)
+      const articleIds = await pullFromServer()
+      await openSession(selectedPdvId, pdv.nom, fond, articleIds)
       setShowSessionModal(false)
+      setFondCaisse('')
+      setSelectedPdvId(null)
     } catch (e: any) {
       addLog('error', `Erreur ouverture: ${e?.message}`)
     }
   }
 
   async function handleCloseSession() {
-    Alert.alert(
-      'Fermer la session',
-      'Cette action est irréversible. Vérifiez votre fond de caisse final.',
-      [
-        { text: 'Annuler', style: 'cancel' },
-        {
-          text: 'Fermer', style: 'destructive',
-          onPress: () => {
-            Alert.prompt
-              ? Alert.prompt('Fond de caisse final (€)', '', [
-                  { text: 'Annuler', style: 'cancel' },
-                  { text: 'Fermer', onPress: (val?: string) => {
-                    if (val) closeSession(parseFloat(val))
-                  }},
-                ])
-              : closeSession(0) // fallback si prompt pas dispo
-          },
-        },
-      ],
-    )
+    closeSession(0)
   }
 
   // ── Panier ──
-  function addToCart(article: { id: string; nom: string; prix_vente_ht: number }) {
+  function addToCart(article: LocalArticle) {
+    if (article.stock_local <= 0) return // rupture
     setCart(prev => {
       const existing = prev.find(i => i.articleId === article.id)
       if (existing) {
-        return prev.map(i => i.articleId === article.id
-          ? { ...i, quantite: i.quantite + 1 }
-          : i)
+        if (existing.quantite >= article.stock_local) return prev // stock max
+        return prev.map(i => i.articleId === article.id ? { ...i, quantite: i.quantite + 1 } : i)
       }
-      return [...prev, {
-        id: Date.now().toString(),
-        articleId: article.id,
-        nom: article.nom,
-        prix: article.prix_vente_ht,
-        quantite: 1,
-      }]
+      return [...prev, { id: Date.now().toString(), articleId: article.id, nom: article.nom, prix: article.prix_vente_ht, quantite: 1 }]
     })
   }
 
@@ -122,14 +155,17 @@ export default function CaisseScreen() {
     }).filter(i => i.quantite > 0))
   }
 
-  const total = cart.reduce((s, i) => s + i.prix * i.quantite, 0)
+  function clearCart() { setCart([]); setShowCart(false) }
 
+  // ── Validation vente ──
   async function handleSale() {
-    if (cart.length === 0) return
+    if (cart.length === 0 || submitting) return
+    setSubmitting(true)
+    const payment = encaissementDirect ? 'PDV' : selectedPayment
     try {
       await createVente({
         sessionId: session?.id,
-        modePaiement: selectedPayment,
+        modePaiement: payment,
         lignes: cart.map(item => ({
           articleId: item.articleId,
           nom: item.nom,
@@ -139,13 +175,19 @@ export default function CaisseScreen() {
       })
       setCart([])
       setShowCart(false)
+      setShowConfirm(false)
       refreshSession()
+      addLog('info', `Vente validée: ${total.toFixed(2)} €`)
     } catch (e: any) {
       addLog('error', `Erreur vente: ${e?.message}`)
+    } finally {
+      setSubmitting(false)
     }
   }
 
-  // ── Session fermée ──
+  // ════════════════════════════════════════════════════════════════════
+  // RENDU : Session fermée
+  // ════════════════════════════════════════════════════════════════════
   if (!hasSession) {
     return (
       <View style={styles.shell}>
@@ -154,9 +196,9 @@ export default function CaisseScreen() {
           <Text style={styles.emptyEmoji}>📖</Text>
           <Text style={styles.emptyTitle}>Session de caisse</Text>
           <Text style={styles.emptySub}>
-            Ouvrez une session pour commencer à enregistrer vos ventes en salon.
+            Ouvrez une session pour commencer à enregistrer vos ventes.
           </Text>
-          <TouchableOpacity style={styles.openBtn} activeOpacity={0.8}
+          <TouchableOpacity style={styles.openBtn} activeOpacity={0.85}
             onPress={() => setShowSessionModal(true)}>
             <LinearGradient colors={[Colors.ink, Colors.inkLight]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
               style={styles.openBtnBg}>
@@ -165,174 +207,347 @@ export default function CaisseScreen() {
           </TouchableOpacity>
         </View>
 
+        {/* Modal nouvelle session */}
         <Modal visible={showSessionModal} transparent animationType="fade">
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalCard}>
+          <TouchableOpacity style={styles.modalOverlay} activeOpacity={1}
+            onPress={() => setShowSessionModal(false)}>
+            <View style={styles.modalCard} onStartShouldSetResponder={() => true}>
               <Text style={styles.modalTitle}>Nouvelle session</Text>
 
-              <Text style={styles.modalLabel}>Point de vente</Text>
-              {pdvs.map(pdv => (
-                <TouchableOpacity key={pdv.id}
-                  style={[styles.pdvOption, selectedPdvId === pdv.id && styles.pdvOptionActive]}
-                  onPress={() => setSelectedPdvId(pdv.id)}>
-                  <Text style={[styles.pdvOptionText, selectedPdvId === pdv.id && styles.pdvOptionTextActive]}>
-                    {pdv.nom}
-                  </Text>
-                  {pdv.encaissementDirect && (
-                    <Text style={styles.pdvOptionMeta}>Paiement à la caisse du PDV</Text>
-                  )}
-                </TouchableOpacity>
-              ))}
+              <Text style={styles.sectionLabel}>Point de vente</Text>
+              {pdvsLoading ? (
+                <Text style={styles.hint}>Chargement…</Text>
+              ) : pdvsError ? (
+                <Text style={styles.errorHint}>Erreur: {pdvsError}</Text>
+              ) : pdvs.length === 0 ? (
+                <Text style={styles.hint}>Aucun point de vente. Créez-en un depuis l'interface web.</Text>
+              ) : (
+                pdvs.map(pdv => (
+                  <TouchableOpacity key={pdv.id}
+                    style={[styles.pdvOption, selectedPdvId === pdv.id && styles.pdvOptionActive]}
+                    onPress={() => setSelectedPdvId(pdv.id)}
+                    activeOpacity={0.7}>
+                    <Text style={[styles.pdvOptionText, selectedPdvId === pdv.id && styles.pdvOptionTextActive]}>
+                      {pdv.nom}
+                    </Text>
+                    {pdv.encaissementDirect && (
+                      <Text style={styles.pdvOptionMeta}>Règlement à la caisse du PDV</Text>
+                    )}
+                  </TouchableOpacity>
+                ))
+              )}
 
-              <Text style={styles.modalLabel}>Fond de caisse (€)</Text>
-              <TextInput style={styles.modalInput} value={fondCaisse} onChangeText={setFondCaisse}
-                placeholder="0.00" placeholderTextColor={Colors.textSoft} keyboardType="decimal-pad" />
-
-              <Text style={styles.modalLabel}>Articles exposés</Text>
-              <View style={styles.articleChoice}>
-                <TouchableOpacity
-                  style={[styles.articleChoiceBtn, selectArticles === 'all' && styles.articleChoiceBtnActive]}
-                  onPress={() => setSelectArticles('all')}>
-                  <Text style={[styles.articleChoiceText, selectArticles === 'all' && styles.articleChoiceTextActive]}>
-                    Tous
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.articleChoiceBtn, selectArticles === 'choose' && styles.articleChoiceBtnActive]}
-                  onPress={() => setSelectArticles('choose')}>
-                  <Text style={[styles.articleChoiceText, selectArticles === 'choose' && styles.articleChoiceTextActive]}>
-                    Choisir
-                  </Text>
-                </TouchableOpacity>
-              </View>
+              {selectedPdvId && !pdvs.find(p => p.id === selectedPdvId)?.encaissementDirect && (
+                <>
+                  <Text style={styles.sectionLabel}>Fond de caisse (€)</Text>
+                  <TextInput style={styles.modalInput} value={fondCaisse} onChangeText={setFondCaisse}
+                    placeholder="0.00" placeholderTextColor={Colors.textSoft} keyboardType="decimal-pad" />
+                </>
+              )}
 
               <View style={styles.modalActions}>
-                <TouchableOpacity onPress={() => setShowSessionModal(false)} style={styles.modalBtnCancel}>
+                <TouchableOpacity onPress={() => setShowSessionModal(false)}
+                  style={styles.modalBtnCancel} activeOpacity={0.7}>
                   <Text style={styles.modalBtnCancelText}>Annuler</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={handleOpenSession}
-                  style={styles.modalBtnConfirm} disabled={!fondCaisse || !selectedPdvId}>
-                  <LinearGradient colors={[Colors.ink, Colors.inkLight]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-                    style={styles.modalBtnConfirmBg}>
-                    <Text style={styles.modalBtnConfirmText}>Ouvrir</Text>
-                  </LinearGradient>
-                </TouchableOpacity>
+                {(() => {
+                  const sel = pdvs.find(p => p.id === selectedPdvId)
+                  const needsFond = sel && !sel.encaissementDirect
+                  const canOpen = !!selectedPdvId && (!needsFond || !!fondCaisse)
+                  return (
+                    <TouchableOpacity
+                      onPress={canOpen ? handleOpenSession : undefined}
+                      activeOpacity={canOpen ? 0.85 : 1}
+                      style={styles.modalBtnConfirm}>
+                      <LinearGradient
+                        colors={canOpen ? [Colors.ink, Colors.inkLight] : [Colors.textSoft, Colors.textSoft]}
+                        start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+                        style={styles.modalBtnConfirmBg}>
+                        <Text style={styles.modalBtnConfirmText}>Ouvrir</Text>
+                      </LinearGradient>
+                    </TouchableOpacity>
+                  )
+                })()}
               </View>
             </View>
-          </View>
+          </TouchableOpacity>
         </Modal>
       </View>
     )
   }
 
-  // ── Session ouverte ──
-  const exposedIds: string[] = session?.articles_exposes ? JSON.parse(session.articles_exposes) : []
-  const filtered = articles.filter(a =>
-    (exposedIds.length === 0 || exposedIds.includes(a.id)) &&
-    a.nom.toLowerCase().includes(search.toLowerCase()))
+  // ════════════════════════════════════════════════════════════════════
+  // RENDU : Session ouverte
+  // ════════════════════════════════════════════════════════════════════
+
+  function toggleCat(id: string) {
+    setEnabledCats(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id); else next.add(id)
+      return next
+    })
+  }
+
+  const rayonIdx = rayons.findIndex(r => r.nom === selectedRayon)
 
   return (
     <View style={styles.shell}>
-      <LinearGradient colors={[Colors.inkFaint, Colors.cream]} style={styles.bg} />
-      <View style={styles.sessionBar}>
-        <View>
-          <Text style={styles.sessionBarTitle}>{session!.point_de_vente_nom}</Text>
-          <Text style={styles.sessionBarSub}>{cart.length} article{cart.length > 1 ? 's' : ''} · {total.toFixed(2)} €</Text>
-        </View>
-        <TouchableOpacity onPress={handleCloseSession} style={styles.closeBtn}>
-          <Text style={styles.closeBtnText}>Fermer</Text>
-        </TouchableOpacity>
-      </View>
+      <LinearGradient colors={[Colors.inkFaint, Colors.cream, Colors.cream]} style={styles.bg} />
 
-      <View style={styles.searchRow}>
-        <View style={styles.searchWrap}>
-          <Text style={styles.searchIcon}>🔍</Text>
-          <TextInput style={styles.searchInput} value={search} onChangeText={setSearch}
-            placeholder="Rechercher un article…" placeholderTextColor={Colors.textSoft} />
-        </View>
-        <TouchableOpacity style={styles.scanBtn} activeOpacity={0.7}>
-          <Text style={styles.scanBtnEmoji}>📷</Text>
-        </TouchableOpacity>
-      </View>
-
-      <ScrollView contentContainerStyle={styles.articleGrid} showsVerticalScrollIndicator={false}>
-        {filtered.map(a => (
-          <TouchableOpacity key={a.id} style={styles.articleCard} activeOpacity={0.7}
-            onPress={() => addToCart(a)}>
-            <View style={styles.articleImgPlaceholder}>
-              <Text style={styles.articleImgEmoji}>📚</Text>
-            </View>
-            <Text style={styles.articleName} numberOfLines={2}>{a.nom}</Text>
-            <Text style={styles.articlePrice}>{a.prix_vente_ht.toFixed(2)} €</Text>
-            <Text style={styles.articleStock}>{a.stock_local} en stock</Text>
+      {/* ── Header ── */}
+      <LinearGradient
+        colors={[Colors.ink, Colors.inkLight]}
+        start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+        style={[styles.headerGradient, { paddingTop: 48 + insets.top }]}>
+        <View style={styles.headerRow}>
+          <View style={styles.headerLeft}>
+            <Text style={styles.headerPdv}>{session!.point_de_vente_nom}</Text>
+            <Text style={styles.headerSub}>
+              {filtered.length} articles · {cart.length > 0 ? `${cart.length} au panier` : 'Session ouverte'}
+            </Text>
+          </View>
+          <TouchableOpacity onPress={handleCloseSession} style={styles.closeBtn} activeOpacity={0.7}>
+            <Text style={styles.closeBtnText}>Fermer</Text>
           </TouchableOpacity>
-        ))}
-      </ScrollView>
+        </View>
 
-      {/* Panier flottant */}
+        {/* ── Recherche ── */}
+        <View style={styles.searchRow}>
+          <View style={styles.searchWrap}>
+            <Text style={styles.searchIcon}>🔍</Text>
+            <TextInput style={styles.searchInput} value={search} onChangeText={setSearch}
+              placeholder="Titre, ISBN…" placeholderTextColor="rgba(255,255,255,0.4)" />
+          </View>
+        </View>
+
+        {/* ── Rayons (tabs avec flèches) ── */}
+        {rayons.length > 1 && (
+          <View style={styles.rayonRow}>
+            <TouchableOpacity
+              onPress={() => {
+                const prev = rayonIdx <= 0 ? rayons.length - 1 : rayonIdx - 1
+                setSelectedRayon(rayons[prev].nom)
+              }}
+              style={styles.rayonArrow} activeOpacity={0.6}>
+              <Text style={styles.rayonArrowText}>‹</Text>
+            </TouchableOpacity>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.rayonTabs}>
+              <TouchableOpacity
+                style={[styles.rayonTab, !selectedRayon && styles.rayonTabActive]}
+                activeOpacity={0.7}
+                onPress={() => setSelectedRayon(null)}>
+                <Text style={[styles.rayonTabText, !selectedRayon && styles.rayonTabTextActive]}>Tous</Text>
+              </TouchableOpacity>
+              {rayons.map((r, i) => (
+                <TouchableOpacity key={r.nom}
+                  style={[styles.rayonTab, selectedRayon === r.nom && styles.rayonTabActive]}
+                  activeOpacity={0.7}
+                  onPress={() => setSelectedRayon(r.nom)}>
+                  <Text style={[styles.rayonTabText, selectedRayon === r.nom && styles.rayonTabTextActive]}>
+                    {r.nom}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+            <TouchableOpacity
+              onPress={() => {
+                const next = rayonIdx >= rayons.length - 1 ? 0 : rayonIdx + 1
+                setSelectedRayon(rayons[next].nom)
+              }}
+              style={styles.rayonArrow} activeOpacity={0.6}>
+              <Text style={styles.rayonArrowText}>›</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      </LinearGradient>
+
+      {/* ── Catégories (switches) ── */}
+      {categories.length > 0 && (
+        <View style={styles.catSwitchRow}>
+          {categories.map(c => (
+            <TouchableOpacity key={c.id} style={styles.catSwitchItem}
+              activeOpacity={0.7}
+              onPress={() => toggleCat(c.id)}>
+              <Switch
+                value={enabledCats.size === 0 || enabledCats.has(c.id)}
+                onValueChange={() => toggleCat(c.id)}
+                trackColor={{ false: Colors.creamDark, true: Colors.inkFaint }}
+                thumbColor={enabledCats.size === 0 || enabledCats.has(c.id) ? Colors.ink : Colors.textSoft}
+                style={styles.catSwitch}
+              />
+              <Text style={styles.catSwitchLabel}>{c.nom}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
+
+      {/* ── Grille produits ── */}
+      <FlatList
+        ref={flatListRef}
+        data={filtered}
+        keyExtractor={a => a.id}
+        numColumns={2}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={[styles.productGrid, { paddingBottom: TAB_BAR_H + 100 }]}
+        columnWrapperStyle={{ gap: 10 }}
+        renderItem={({ item: a }) => {
+          const rupture = a.stock_local <= 0
+          const stockLow = a.stock_local > 0 && a.stock_local <= 3
+          const accent = rayonColor(a.rayon_nom ?? '', rayons.findIndex(r => r.nom === a.rayon_nom))
+          const inCart = cart.find(i => i.articleId === a.id)
+          return (
+            <TouchableOpacity
+              style={[styles.productCard, rupture && styles.productCardRupture]}
+              activeOpacity={0.75}
+              onPress={() => addToCart(a)}>
+              <View style={[styles.productAccent, { backgroundColor: accent }]} />
+              {inCart && (
+                <View style={styles.productCartBadge}>
+                  <Text style={styles.productCartBadgeText}>{inCart.quantite}</Text>
+                </View>
+              )}
+              <View style={styles.productBody}>
+                <Text style={styles.productName} numberOfLines={2}>{a.nom}</Text>
+                <Text style={styles.productPrice}>{a.prix_vente_ht.toFixed(2)} €</Text>
+                <View style={styles.productStockRow}>
+                  {rupture ? (
+                    <Text style={styles.stockRupture}>Rupture</Text>
+                  ) : stockLow ? (
+                    <Text style={styles.stockLow}>⚠ {a.stock_local} ex.</Text>
+                  ) : (
+                    <Text style={styles.stockOk}>{a.stock_local} ex.</Text>
+                  )}
+                </View>
+              </View>
+            </TouchableOpacity>
+          )
+        }}
+        ListEmptyComponent={
+          <View style={styles.emptyList}>
+            <Text style={styles.emptyListEmoji}>📚</Text>
+            <Text style={styles.emptyListText}>Aucun article trouvé</Text>
+          </View>
+        }
+      />
+
+      {/* ── Barre panier ── */}
       {cart.length > 0 && (
-        <TouchableOpacity style={styles.cartFab} activeOpacity={0.9}
-          onPress={() => setShowCart(true)}>
+        <TouchableOpacity
+          style={[styles.cartBar, { bottom: TAB_BAR_H + 8 }]}
+          activeOpacity={0.9}
+          onPress={() => { setShowCart(true); setShowConfirm(false) }}>
           <LinearGradient colors={[Colors.ink, Colors.inkLight]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-            style={styles.cartFabBg}>
-            <Text style={styles.cartFabCount}>{cart.length}</Text>
-            <Text style={styles.cartFabLabel}>Voir le panier</Text>
-            <Text style={styles.cartFabTotal}>{total.toFixed(2)} €</Text>
+            style={styles.cartBarBg}>
+            <View style={styles.cartBarBadge}>
+              <Text style={styles.cartBarBadgeText}>{cart.length}</Text>
+            </View>
+            <Text style={styles.cartBarLabel}>Voir le panier</Text>
+            <Text style={styles.cartBarTotal}>{total.toFixed(2)} €</Text>
           </LinearGradient>
         </TouchableOpacity>
       )}
 
-      {/* Modal panier */}
-      <Modal visible={showCart} transparent animationType="slide">
-        <View style={styles.cartOverlay}>
-          <View style={styles.cartSheet}>
-            <View style={styles.cartHandle} />
-            <Text style={styles.cartTitle}>Panier</Text>
-
-            {cart.map(item => (
-              <View key={item.id} style={styles.cartRow}>
-                <View style={styles.cartRowLeft}>
-                  <Text style={styles.cartItemName}>{item.nom}</Text>
-                  <Text style={styles.cartItemPrice}>{item.prix.toFixed(2)} € / u.</Text>
-                </View>
-                <View style={styles.cartQteRow}>
-                  <TouchableOpacity onPress={() => updateQte(item.id, -1)}
-                    style={styles.cartQteBtn}>
-                    <Text style={styles.cartQteBtnText}>−</Text>
-                  </TouchableOpacity>
-                  <Text style={styles.cartQte}>{item.quantite}</Text>
-                  <TouchableOpacity onPress={() => updateQte(item.id, 1)}
-                    style={styles.cartQteBtn}>
-                    <Text style={styles.cartQteBtnText}>+</Text>
-                  </TouchableOpacity>
-                </View>
-                <Text style={styles.cartRowTotal}>{(item.prix * item.quantite).toFixed(2)} €</Text>
-              </View>
-            ))}
-
-            <Text style={styles.paymentTitle}>Mode de paiement</Text>
-            <View style={styles.paymentRow}>
-              {PAYMENT_MODES.map(p => (
-                <TouchableOpacity key={p.mode}
-                  style={[styles.paymentChip, selectedPayment === p.mode && styles.paymentChipActive]}
-                  onPress={() => setSelectedPayment(p.mode)}>
-                  <Text style={styles.paymentChipEmoji}>{p.emoji}</Text>
-                  <Text style={[styles.paymentChipLabel, selectedPayment === p.mode && styles.paymentChipLabelActive]}>
-                    {p.label}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+      {/* ── Panier (bottom sheet) ── */}
+      <Modal visible={showCart} transparent animationType="slide"
+        onRequestClose={() => setShowCart(false)}>
+        <TouchableOpacity style={styles.sheetOverlay} activeOpacity={1}
+          onPress={() => setShowCart(false)}>
+          <View style={styles.sheet} onStartShouldSetResponder={() => true}>
+            <View style={styles.sheetHandle} />
+            <View style={styles.sheetHeader}>
+              <Text style={styles.sheetTitle}>Panier</Text>
+              <TouchableOpacity onPress={clearCart} activeOpacity={0.7}>
+                <Text style={styles.sheetClear}>Vider</Text>
+              </TouchableOpacity>
             </View>
 
-            <View style={styles.cartFooter}>
-              <View>
-                <Text style={styles.cartTotalLabel}>Total</Text>
-                <Text style={styles.cartTotalValue}>{total.toFixed(2)} €</Text>
+            <ScrollView style={styles.sheetList} showsVerticalScrollIndicator={false}>
+              {cart.map(item => (
+                <View key={item.id} style={styles.cartRow}>
+                  <View style={styles.cartRowInfo}>
+                    <Text style={styles.cartRowName}>{item.nom}</Text>
+                    <Text style={styles.cartRowUnit}>{item.prix.toFixed(2)} € / u.</Text>
+                  </View>
+                  <View style={styles.cartRowQty}>
+                    <TouchableOpacity onPress={() => updateQte(item.id, -1)}
+                      style={styles.qtyBtn} activeOpacity={0.6}>
+                      <Text style={styles.qtyBtnText}>−</Text>
+                    </TouchableOpacity>
+                    <Text style={styles.qtyValue}>{item.quantite}</Text>
+                    <TouchableOpacity onPress={() => updateQte(item.id, 1)}
+                      style={styles.qtyBtn} activeOpacity={0.6}>
+                      <Text style={styles.qtyBtnText}>+</Text>
+                    </TouchableOpacity>
+                  </View>
+                  <Text style={styles.cartRowTotal}>{(item.prix * item.quantite).toFixed(2)} €</Text>
+                </View>
+              ))}
+            </ScrollView>
+
+            <View style={[styles.sheetFooter, { paddingBottom: insets.bottom + 8 }]}>
+              <View style={styles.sheetTotalRow}>
+                <Text style={styles.sheetTotalLabel}>Total</Text>
+                <Text style={styles.sheetTotalValue}>{total.toFixed(2)} €</Text>
               </View>
-              <TouchableOpacity onPress={handleSale} activeOpacity={0.85}>
-                <LinearGradient colors={[Colors.terra, '#D9775A']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+              <TouchableOpacity activeOpacity={0.85}
+                onPress={() => setShowConfirm(true)}>
+                <LinearGradient colors={[Colors.sage, '#3A7D63']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
                   style={styles.validateBtn}>
                   <Text style={styles.validateBtnText}>Valider la vente</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* ── Confirmation paiement (modale centrée) ── */}
+      <Modal visible={showConfirm} transparent animationType="fade"
+        onRequestClose={() => setShowConfirm(false)}>
+        <View style={styles.confirmOverlay}>
+          <View style={styles.confirmCard}>
+            <Text style={styles.confirmTitle}>Confirmer la vente</Text>
+
+            <Text style={styles.confirmTotal}>{total.toFixed(2)} €</Text>
+            <Text style={styles.confirmArticles}>{cart.length} article{cart.length > 1 ? 's' : ''}</Text>
+
+            {!encaissementDirect && (
+              <>
+                <Text style={styles.confirmSectionLabel}>Mode de paiement</Text>
+                <View style={styles.confirmPayRow}>
+                  {PAYMENT_MODES.map(p => (
+                    <TouchableOpacity key={p.mode}
+                      style={[styles.confirmPayChip, selectedPayment === p.mode && styles.confirmPayChipActive]}
+                      activeOpacity={0.7}
+                      onPress={() => setSelectedPayment(p.mode)}>
+                      <Text style={styles.confirmPayEmoji}>{p.emoji}</Text>
+                      <Text style={[styles.confirmPayLabel, selectedPayment === p.mode && styles.confirmPayLabelActive]}>
+                        {p.label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </>
+            )}
+
+            <View style={styles.confirmActions}>
+              <TouchableOpacity
+                style={styles.confirmBtnCancel}
+                activeOpacity={0.7}
+                onPress={() => setShowConfirm(false)}>
+                <Text style={styles.confirmBtnCancelText}>Retour</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.confirmBtnOk}
+                activeOpacity={0.85}
+                disabled={submitting}
+                onPress={handleSale}>
+                <LinearGradient colors={[Colors.sage, '#3A7D63']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+                  style={styles.confirmBtnOkBg}>
+                  <Text style={styles.confirmBtnOkText}>
+                    {submitting ? 'Envoi…' : 'Confirmer'}
+                  </Text>
                 </LinearGradient>
               </TouchableOpacity>
             </View>
@@ -343,101 +558,148 @@ export default function CaisseScreen() {
   )
 }
 
+// ══════════════════════════════════════════════════════════════════════
+// Styles
+// ══════════════════════════════════════════════════════════════════════
+
 const styles = StyleSheet.create({
   shell: { flex: 1, backgroundColor: Colors.cream },
   bg: { ...StyleSheet.absoluteFillObject },
 
-  // Session fermée
+  // ── Session fermée ──
   centerCard: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 40 },
   emptyEmoji: { fontSize: 56, marginBottom: 16 },
-  emptyTitle: { fontFamily: Fonts.display, fontSize: 24, color: Colors.ink, fontStyle: 'italic', marginBottom: 8 },
+  emptyTitle: { fontFamily: Fonts.displayItalic, fontSize: 22, color: Colors.ink, fontStyle: 'italic', marginBottom: 8 },
   emptySub: { fontFamily: Fonts.body, fontSize: 14, color: Colors.textSoft, textAlign: 'center', lineHeight: 22, marginBottom: 28 },
-  openBtn: { borderRadius: Radius.md, overflow: 'hidden', width: '100%' },
+  openBtn: { borderRadius: Radius.lg, overflow: 'hidden', width: '100%' },
   openBtnBg: { paddingVertical: 16, alignItems: 'center' },
   openBtnText: { fontFamily: Fonts.body, fontSize: 15, fontWeight: '700', color: Colors.white },
 
-  // Modal ouverture session
+  // Modal session
   modalOverlay: { flex: 1, backgroundColor: Colors.overlay, justifyContent: 'center', alignItems: 'center', padding: 28 },
-  modalCard: { backgroundColor: Colors.white, borderRadius: Radius.xl, padding: 24, width: '100%', maxWidth: 380, maxHeight: '80%', ...Shadow.float },
-  modalTitle: { fontFamily: Fonts.display, fontSize: 22, color: Colors.ink, fontStyle: 'italic', marginBottom: 20 },
-  modalLabel: { fontFamily: Fonts.body, fontSize: 11, fontWeight: '700', color: Colors.textSoft, textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 6, marginTop: 12 },
-  modalInput: { fontFamily: Fonts.body, fontSize: 15, color: Colors.text, backgroundColor: Colors.cream, borderRadius: Radius.md, paddingHorizontal: 14, paddingVertical: 12, borderWidth: 1.5, borderColor: 'rgba(36,51,71,0.08)', marginBottom: 8 },
+  modalCard: { backgroundColor: Colors.white, borderRadius: Radius.xl, padding: 24, width: '100%', maxWidth: 380, ...Shadow.float },
+  modalTitle: { fontFamily: Fonts.displayItalic, fontSize: 20, color: Colors.ink, fontStyle: 'italic', marginBottom: 16 },
+  sectionLabel: { fontFamily: Fonts.body, fontSize: 11, fontWeight: '700', color: Colors.textSoft, textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 6, marginTop: 14 },
+  modalInput: { fontFamily: Fonts.body, fontSize: 15, color: Colors.text, backgroundColor: Colors.cream, borderRadius: Radius.md, paddingHorizontal: 14, paddingVertical: 12, borderWidth: 1.5, borderColor: 'rgba(36,51,71,0.08)' },
   pdvOption: { padding: 14, borderRadius: Radius.md, backgroundColor: Colors.cream, marginBottom: 6, borderWidth: 2, borderColor: 'transparent' },
   pdvOptionActive: { borderColor: Colors.ink, backgroundColor: Colors.inkFaint },
   pdvOptionText: { fontFamily: Fonts.body, fontSize: 14, fontWeight: '600', color: Colors.textMid },
   pdvOptionTextActive: { color: Colors.ink },
   pdvOptionMeta: { fontFamily: Fonts.body, fontSize: 11, color: Colors.textSoft, marginTop: 2 },
-  articleChoice: { flexDirection: 'row', gap: 8, marginBottom: 8 },
-  articleChoiceBtn: { flex: 1, padding: 12, borderRadius: Radius.md, backgroundColor: Colors.cream, alignItems: 'center', borderWidth: 2, borderColor: 'transparent' },
-  articleChoiceBtnActive: { borderColor: Colors.ink, backgroundColor: Colors.inkFaint },
-  articleChoiceText: { fontFamily: Fonts.body, fontSize: 13, fontWeight: '600', color: Colors.textMid },
-  articleChoiceTextActive: { color: Colors.ink },
-  modalActions: { flexDirection: 'row', gap: 10, marginTop: 14 },
+  hint: { fontFamily: Fonts.body, fontSize: 13, color: Colors.textSoft, paddingVertical: 8, fontStyle: 'italic' },
+  errorHint: { fontFamily: Fonts.body, fontSize: 13, color: Colors.terra, paddingVertical: 8 },
+  modalActions: { flexDirection: 'row', gap: 10, marginTop: 20 },
   modalBtnCancel: { flex: 1, paddingVertical: 14, alignItems: 'center', borderRadius: Radius.md, backgroundColor: Colors.cream },
   modalBtnCancelText: { fontFamily: Fonts.body, fontSize: 14, fontWeight: '600', color: Colors.textMid },
   modalBtnConfirm: { flex: 1, borderRadius: Radius.md, overflow: 'hidden' },
   modalBtnConfirmBg: { paddingVertical: 14, alignItems: 'center' },
   modalBtnConfirmText: { fontFamily: Fonts.body, fontSize: 14, fontWeight: '700', color: Colors.white },
 
-  // Barre session
-  sessionBar: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingTop: 60, paddingBottom: 12 },
-  sessionBarTitle: { fontFamily: Fonts.display, fontSize: 20, color: Colors.ink, fontStyle: 'italic' },
-  sessionBarSub: { fontFamily: Fonts.body, fontSize: 12, color: Colors.textSoft, marginTop: 2 },
-  closeBtn: { backgroundColor: Colors.terraLight, paddingHorizontal: 16, paddingVertical: 10, borderRadius: Radius.full },
-  closeBtnText: { fontFamily: Fonts.body, fontSize: 12, fontWeight: '700', color: Colors.terra },
+  // ── Header session ──
+  headerGradient: { paddingBottom: 16 },
+  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', paddingHorizontal: 20, marginBottom: 12 },
+  headerLeft: { flex: 1 },
+  headerPdv: { fontFamily: Fonts.displayItalic, fontSize: 20, color: Colors.white, fontStyle: 'italic' },
+  headerSub: { fontFamily: Fonts.body, fontSize: 12, color: 'rgba(255,255,255,0.6)', marginTop: 3 },
+  closeBtn: { backgroundColor: 'rgba(255,255,255,0.15)', paddingHorizontal: 14, paddingVertical: 8, borderRadius: Radius.full },
+  closeBtnText: { fontFamily: Fonts.body, fontSize: 12, fontWeight: '700', color: Colors.white },
 
-  // Recherche
-  searchRow: { flexDirection: 'row', gap: 8, paddingHorizontal: 20, marginBottom: 16 },
-  searchWrap: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.white, borderRadius: Radius.md, paddingHorizontal: 12, borderWidth: 1.5, borderColor: 'rgba(36,51,71,0.06)' },
-  searchIcon: { fontSize: 16, marginRight: 8 },
-  searchInput: { flex: 1, fontFamily: Fonts.body, fontSize: 14, color: Colors.text, paddingVertical: 12 },
-  scanBtn: { width: 48, height: 48, backgroundColor: Colors.roseLight, borderRadius: Radius.md, justifyContent: 'center', alignItems: 'center' },
-  scanBtnEmoji: { fontSize: 22 },
+  // ── Recherche (sur fond sombre) ──
+  searchRow: { flexDirection: 'row', paddingHorizontal: 20, marginBottom: 12 },
+  searchWrap: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.12)', borderRadius: Radius.md, paddingHorizontal: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
+  searchIcon: { fontSize: 15, marginRight: 6 },
+  searchInput: { flex: 1, fontFamily: Fonts.body, fontSize: 14, color: Colors.white, paddingVertical: 10 },
 
-  // Grille articles
-  articleGrid: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 16, paddingBottom: 120, gap: 10 },
-  articleCard: { width: '47%', backgroundColor: Colors.white, borderRadius: Radius.lg, padding: 12, ...Shadow.card },
-  articleImgPlaceholder: { height: 100, backgroundColor: Colors.cream, borderRadius: Radius.md, justifyContent: 'center', alignItems: 'center', marginBottom: 10 },
-  articleImgEmoji: { fontSize: 32 },
-  articleName: { fontFamily: Fonts.body, fontSize: 13, fontWeight: '600', color: Colors.text, marginBottom: 4 },
-  articlePrice: { fontFamily: Fonts.body, fontSize: 15, fontWeight: '700', color: Colors.ink },
-  articleStock: { fontFamily: Fonts.body, fontSize: 10, color: Colors.textSoft, marginTop: 2 },
+  // ── Rayons ──
+  rayonRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 0 },
+  rayonArrow: { width: 32, alignItems: 'center', justifyContent: 'center', paddingVertical: 4 },
+  rayonArrowText: { fontFamily: Fonts.body, fontSize: 24, color: 'rgba(255,255,255,0.5)', fontWeight: '300' },
+  rayonTabs: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 0 },
+  rayonTab: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: Radius.full },
+  rayonTabActive: { backgroundColor: 'rgba(255,255,255,0.2)' },
+  rayonTabText: { fontFamily: Fonts.body, fontSize: 13, fontWeight: '600', color: 'rgba(255,255,255,0.55)' },
+  rayonTabTextActive: { color: Colors.white },
 
-  // FAB panier
-  cartFab: { position: 'absolute', bottom: 90, left: 20, right: 20, borderRadius: Radius.lg, overflow: 'hidden', ...Shadow.float },
-  cartFabBg: { flexDirection: 'row', alignItems: 'center', padding: 16, gap: 12 },
-  cartFabCount: { fontFamily: Fonts.body, fontSize: 14, fontWeight: '700', color: Colors.white, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: Radius.full, width: 28, height: 28, textAlign: 'center', lineHeight: 28, overflow: 'hidden' },
-  cartFabLabel: { flex: 1, fontFamily: Fonts.body, fontSize: 14, fontWeight: '600', color: Colors.white },
-  cartFabTotal: { fontFamily: Fonts.body, fontSize: 16, fontWeight: '700', color: Colors.white },
+  // ── Catégories (switches) ──
+  catSwitchRow: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 16, paddingVertical: 8, gap: 4 },
+  catSwitchItem: { flexDirection: 'row', alignItems: 'center', paddingRight: 12, paddingVertical: 2 },
+  catSwitch: { transform: [{ scaleX: 0.7 }, { scaleY: 0.7 }] },
+  catSwitchLabel: { fontFamily: Fonts.body, fontSize: 11, color: Colors.textSoft, marginLeft: -4 },
 
-  // Modal panier
-  cartOverlay: { flex: 1, backgroundColor: Colors.overlay, justifyContent: 'flex-end' },
-  cartSheet: { backgroundColor: Colors.white, borderTopLeftRadius: Radius.xl, borderTopRightRadius: Radius.xl, padding: 24, maxHeight: '80%' },
-  cartHandle: { width: 40, height: 4, backgroundColor: Colors.creamDark, borderRadius: 2, alignSelf: 'center', marginBottom: 16 },
-  cartTitle: { fontFamily: Fonts.display, fontSize: 22, color: Colors.ink, fontStyle: 'italic', marginBottom: 16 },
+  // ── Grille produits ──
+  productGrid: { paddingHorizontal: 16, gap: 10 },
+  productCard: {
+    flex: 1, backgroundColor: Colors.white, borderRadius: Radius.lg, overflow: 'hidden',
+    ...Shadow.card, marginBottom: 10, maxWidth: '48%',
+  },
+  productCardRupture: { opacity: 0.45 },
+  productAccent: { height: 5 },
+  productCartBadge: {
+    position: 'absolute', top: 8, right: 8,
+    backgroundColor: Colors.ink, borderRadius: Radius.full, width: 24, height: 24,
+    justifyContent: 'center', alignItems: 'center',
+  },
+  productCartBadgeText: { fontFamily: Fonts.body, fontSize: 11, fontWeight: '700', color: Colors.white },
+  productBody: { padding: 10 },
+  productName: { fontFamily: Fonts.body, fontSize: 13, fontWeight: '600', color: Colors.text, marginBottom: 4, lineHeight: 18 },
+  productPrice: { fontFamily: Fonts.body, fontSize: 15, fontWeight: '700', color: Colors.ink },
+  productStockRow: { marginTop: 6 },
+  stockOk: { fontFamily: Fonts.body, fontSize: 10, color: Colors.sage, fontWeight: '600' },
+  stockLow: { fontFamily: Fonts.body, fontSize: 10, color: Colors.gold, fontWeight: '600' },
+  stockRupture: { fontFamily: Fonts.body, fontSize: 10, color: Colors.terra, fontWeight: '700' },
+  emptyList: { alignItems: 'center', paddingTop: 60 },
+  emptyListEmoji: { fontSize: 40, marginBottom: 12 },
+  emptyListText: { fontFamily: Fonts.body, fontSize: 14, color: Colors.textSoft },
+
+  // ── Barre panier ──
+  cartBar: { position: 'absolute', left: 16, right: 16, borderRadius: Radius.lg, overflow: 'hidden', ...Shadow.float },
+  cartBarBg: { flexDirection: 'row', alignItems: 'center', padding: 14, gap: 10 },
+  cartBarBadge: { backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: Radius.full, width: 26, height: 26, justifyContent: 'center', alignItems: 'center' },
+  cartBarBadgeText: { fontFamily: Fonts.body, fontSize: 13, fontWeight: '700', color: Colors.white },
+  cartBarLabel: { flex: 1, fontFamily: Fonts.body, fontSize: 14, fontWeight: '600', color: Colors.white },
+  cartBarTotal: { fontFamily: Fonts.body, fontSize: 16, fontWeight: '700', color: Colors.white, marginRight: 4 },
+
+  // ── Bottom sheet panier ──
+  sheetOverlay: { flex: 1, backgroundColor: Colors.overlay, justifyContent: 'flex-end' },
+  sheet: { backgroundColor: Colors.white, borderTopLeftRadius: Radius.xl, borderTopRightRadius: Radius.xl, maxHeight: '85%' },
+  sheetHandle: { width: 36, height: 4, backgroundColor: Colors.creamDark, borderRadius: 2, alignSelf: 'center', marginTop: 12, marginBottom: 8 },
+  sheetHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingBottom: 12 },
+  sheetTitle: { fontFamily: Fonts.displayItalic, fontSize: 20, color: Colors.ink, fontStyle: 'italic' },
+  sheetClear: { fontFamily: Fonts.body, fontSize: 13, fontWeight: '600', color: Colors.terra },
+  sheetList: { paddingHorizontal: 20, maxHeight: 340 },
   cartRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: Colors.cream },
-  cartRowLeft: { flex: 1 },
-  cartItemName: { fontFamily: Fonts.body, fontSize: 14, fontWeight: '600', color: Colors.text },
-  cartItemPrice: { fontFamily: Fonts.body, fontSize: 11, color: Colors.textSoft },
-  cartQteRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  cartQteBtn: { width: 30, height: 30, borderRadius: Radius.full, backgroundColor: Colors.cream, justifyContent: 'center', alignItems: 'center' },
-  cartQteBtnText: { fontSize: 16, color: Colors.ink, fontWeight: '600' },
-  cartQte: { fontFamily: Fonts.body, fontSize: 15, fontWeight: '700', color: Colors.text, minWidth: 20, textAlign: 'center' },
-  cartRowTotal: { fontFamily: Fonts.body, fontSize: 14, fontWeight: '700', color: Colors.ink, marginLeft: 12, minWidth: 60, textAlign: 'right' },
+  cartRowInfo: { flex: 1 },
+  cartRowName: { fontFamily: Fonts.body, fontSize: 14, fontWeight: '600', color: Colors.text },
+  cartRowUnit: { fontFamily: Fonts.body, fontSize: 11, color: Colors.textSoft, marginTop: 2 },
+  cartRowQty: { flexDirection: 'row', alignItems: 'center', gap: 8, marginRight: 12 },
+  qtyBtn: { width: 30, height: 30, borderRadius: Radius.full, backgroundColor: Colors.cream, justifyContent: 'center', alignItems: 'center' },
+  qtyBtnText: { fontSize: 16, color: Colors.ink, fontWeight: '600' },
+  qtyValue: { fontFamily: Fonts.body, fontSize: 15, fontWeight: '700', color: Colors.text, minWidth: 20, textAlign: 'center' },
+  cartRowTotal: { fontFamily: Fonts.body, fontSize: 14, fontWeight: '700', color: Colors.ink, minWidth: 56, textAlign: 'right' },
+  sheetFooter: { paddingHorizontal: 20, paddingTop: 16 },
+  sheetTotalRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 },
+  sheetTotalLabel: { fontFamily: Fonts.body, fontSize: 12, fontWeight: '700', color: Colors.textSoft, textTransform: 'uppercase', letterSpacing: 0.6 },
+  sheetTotalValue: { fontFamily: Fonts.displayItalic, fontSize: 28, color: Colors.ink, fontStyle: 'italic' },
+  validateBtn: { paddingVertical: 16, borderRadius: Radius.md, alignItems: 'center' },
+  validateBtnText: { fontFamily: Fonts.body, fontSize: 15, fontWeight: '700', color: Colors.white },
 
-  // Paiement
-  paymentTitle: { fontFamily: Fonts.body, fontSize: 11, fontWeight: '700', color: Colors.textSoft, textTransform: 'uppercase', letterSpacing: 0.6, marginTop: 20, marginBottom: 10 },
-  paymentRow: { flexDirection: 'row', gap: 8 },
-  paymentChip: { flex: 1, alignItems: 'center', padding: 12, borderRadius: Radius.md, backgroundColor: Colors.cream, borderWidth: 2, borderColor: 'transparent' },
-  paymentChipActive: { borderColor: Colors.ink, backgroundColor: Colors.inkFaint },
-  paymentChipEmoji: { fontSize: 20, marginBottom: 4 },
-  paymentChipLabel: { fontFamily: Fonts.body, fontSize: 10, fontWeight: '600', color: Colors.textSoft },
-  paymentChipLabelActive: { color: Colors.ink },
-
-  // Footer
-  cartFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 20 },
-  cartTotalLabel: { fontFamily: Fonts.body, fontSize: 11, color: Colors.textSoft, textTransform: 'uppercase', letterSpacing: 0.6 },
-  cartTotalValue: { fontFamily: Fonts.display, fontSize: 26, color: Colors.ink, fontStyle: 'italic' },
-  validateBtn: { paddingHorizontal: 24, paddingVertical: 16, borderRadius: Radius.md },
-  validateBtnText: { fontFamily: Fonts.body, fontSize: 14, fontWeight: '700', color: Colors.white },
+  // ── Confirmation ──
+  confirmOverlay: { flex: 1, backgroundColor: 'rgba(36,39,51,0.5)', justifyContent: 'center', alignItems: 'center', padding: 28 },
+  confirmCard: { backgroundColor: Colors.white, borderRadius: Radius.xl, padding: 28, width: '100%', maxWidth: 340, alignItems: 'center', ...Shadow.float },
+  confirmTitle: { fontFamily: Fonts.displayItalic, fontSize: 18, color: Colors.ink, fontStyle: 'italic', marginBottom: 16 },
+  confirmTotal: { fontFamily: Fonts.displayItalic, fontSize: 42, color: Colors.sage, fontStyle: 'italic' },
+  confirmArticles: { fontFamily: Fonts.body, fontSize: 13, color: Colors.textSoft, marginBottom: 20 },
+  confirmSectionLabel: { fontFamily: Fonts.body, fontSize: 11, fontWeight: '700', color: Colors.textSoft, textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 8, alignSelf: 'flex-start' },
+  confirmPayRow: { flexDirection: 'row', gap: 6, marginBottom: 24, alignSelf: 'stretch' },
+  confirmPayChip: { flex: 1, alignItems: 'center', padding: 10, borderRadius: Radius.md, backgroundColor: Colors.cream, borderWidth: 2, borderColor: 'transparent' },
+  confirmPayChipActive: { borderColor: Colors.ink, backgroundColor: Colors.inkFaint },
+  confirmPayEmoji: { fontSize: 18, marginBottom: 2 },
+  confirmPayLabel: { fontFamily: Fonts.body, fontSize: 9, fontWeight: '600', color: Colors.textSoft },
+  confirmPayLabelActive: { color: Colors.ink },
+  confirmActions: { flexDirection: 'row', gap: 10, alignSelf: 'stretch' },
+  confirmBtnCancel: { flex: 1, paddingVertical: 14, alignItems: 'center', borderRadius: Radius.md, backgroundColor: Colors.cream },
+  confirmBtnCancelText: { fontFamily: Fonts.body, fontSize: 14, fontWeight: '600', color: Colors.textMid },
+  confirmBtnOk: { flex: 1.5, borderRadius: Radius.md, overflow: 'hidden' },
+  confirmBtnOkBg: { paddingVertical: 14, alignItems: 'center' },
+  confirmBtnOkText: { fontFamily: Fonts.body, fontSize: 14, fontWeight: '700', color: Colors.white },
 })

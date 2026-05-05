@@ -46,7 +46,7 @@ export function DevMenu() {
       {
         text: 'Vider', style: 'destructive',
         onPress: async () => {
-          const db = getDb()
+          const db = await getDb()
           await db.execAsync(`
             DELETE FROM ventes_locales;
             DELETE FROM frais_locaux;
@@ -164,7 +164,7 @@ const styles = StyleSheet.create({
   shell: { flex: 1, backgroundColor: Colors.ink },
   bg: { ...StyleSheet.absoluteFillObject },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', paddingTop: 60, paddingHorizontal: 24, paddingBottom: 16 },
-  title: { fontFamily: Fonts.display, fontSize: 24, color: Colors.white, fontStyle: 'italic' },
+  title: { fontFamily: Fonts.displayItalic, fontSize: 24, color: Colors.white, fontStyle: 'italic' },
   sub: { fontFamily: Fonts.body, fontSize: 12, color: 'rgba(255,255,255,0.5)', marginTop: 4 },
   closeBtn: { width: 36, height: 36, borderRadius: Radius.full, backgroundColor: 'rgba(255,255,255,0.15)', justifyContent: 'center', alignItems: 'center' },
   closeBtnText: { color: Colors.white, fontSize: 14, fontWeight: '700' },

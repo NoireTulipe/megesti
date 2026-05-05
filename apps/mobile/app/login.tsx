@@ -3,6 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingVi
 import { router } from 'expo-router'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useAuthStore } from '@/store/authStore'
+import { useDevStore } from '@/store/devStore'
 import { Colors, Fonts, Radius, Spacing, Shadow } from '@/constants/theme'
 
 export default function LoginScreen() {
@@ -11,6 +12,7 @@ export default function LoginScreen() {
   const [error, setError] = useState('')
   const [pending, setPending] = useState(false)
   const login = useAuthStore(s => s.login)
+  const showDevMenu = useDevStore(s => s.showDevMenu)
 
   async function handleLogin() {
     setError('')
@@ -36,12 +38,12 @@ export default function LoginScreen() {
       <LinearGradient colors={[Colors.cream, Colors.roseLight, Colors.cream]} style={styles.bg} />
 
       <View style={styles.card}>
-        {/* Logo / marque */}
-        <View style={styles.brand}>
+        {/* Logo / marque — appui long = menu dev */}
+        <TouchableOpacity style={styles.brand} onLongPress={showDevMenu} delayLongPress={1500} activeOpacity={0.8}>
           <Text style={styles.brandIcon}>📚</Text>
           <Text style={styles.brandName}>MeGesti</Text>
           <Text style={styles.brandSub}>Maison d'édition</Text>
-        </View>
+        </TouchableOpacity>
 
         <View style={styles.form}>
           <Text style={styles.label}>Email</Text>
@@ -120,10 +122,9 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   brandName: {
-    fontFamily: Fonts.display,
+    fontFamily: Fonts.displayItalic,
     fontSize: 32,
     color: Colors.ink,
-    fontStyle: 'italic',
   },
   brandSub: {
     fontFamily: Fonts.body,

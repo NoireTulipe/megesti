@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { getDb, generateUUID } from '@/lib/db'
+import { api } from '@/lib/api'
 import { syncEngine } from '@/lib/sync'
 import { useDevStore } from '@/store/devStore'
 
@@ -40,7 +41,7 @@ export function useLocalVentes(sessionId?: string) {
   const addLog = useDevStore(s => s.addLog)
 
   const refresh = useCallback(async () => {
-    const db = getDb()
+    const db = await getDb()
     const where = sessionId ? 'WHERE session_id = ?' : ''
     const params = sessionId ? [sessionId] : []
     const rows = await db.getAllAsync<LocalVente>(
@@ -53,7 +54,7 @@ export function useLocalVentes(sessionId?: string) {
 
   useEffect(() => { refresh() }, [refresh])
 
-  /** Créer une vente locale + l'ajouter à la queue de synchro */
+  /** Créer une vente : serveur d'abord, fallback local + queue de synchro */
   async function createVente(input: CreateVenteInput) {
     const id = generateUUID()
     const dateVente = new Date().toISOString()
@@ -78,24 +79,42 @@ export function useLocalVentes(sessionId?: string) {
     const totalTVAr = Math.round(totalTVA * 100) / 100
     const totalTTCr = Math.round(totalTTC * 100) / 100
 
-    const db = getDb()
-    await db.runAsync(
-      `INSERT INTO ventes_locales (id, session_id, motif_vente_id, date_vente, mode_paiement, total_ht, total_tva, total_ttc, lignes_json)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [id, input.sessionId ?? null, input.motifVenteId ?? null, dateVente, input.modePaiement, totalHTr, totalTVAr, totalTTCr, JSON.stringify(lignesCompletes)],
-    )
-
-    // Enqueue pour synchro
-    await syncEngine.enqueue('vente', id, 'create', {
+    // Payload API (sans les champs null — rejetés par Zod)
+    const syncPayload: Record<string, unknown> = {
       id,
-      sessionId: input.sessionId ?? null,
-      motifVenteId: input.motifVenteId ?? null,
       modePaiement: input.modePaiement,
       dateVente,
-      lignes: lignesCompletes,
-    })
+      lignes: lignesCompletes.map(l => ({
+        articleId: l.articleId,
+        quantite: l.quantite,
+        prixUnitaireHT: l.prixUnitaireHT,
+      })),
+    }
+    if (input.sessionId) syncPayload.sessionId = input.sessionId
+    if (input.motifVenteId) syncPayload.motifVenteId = input.motifVenteId
 
-    addLog('info', `Vente locale: ${totalTTCr.toFixed(2)} € — ${input.modePaiement}`)
+    // Essayer le serveur d'abord
+    let synced = 0
+    try {
+      await api.post('/ventes', syncPayload)
+      synced = 1
+      addLog('info', `Vente envoyée au serveur: ${totalTTCr.toFixed(2)} € — ${input.modePaiement}`)
+    } catch (e: any) {
+      addLog('warn', `Vente stockée en local (serveur injoignable): ${e.message}`)
+    }
+
+    const db = await getDb()
+    await db.runAsync(
+      `INSERT INTO ventes_locales (id, session_id, motif_vente_id, date_vente, mode_paiement, total_ht, total_tva, total_ttc, lignes_json, synced)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [id, input.sessionId ?? null, input.motifVenteId ?? null, dateVente, input.modePaiement, totalHTr, totalTVAr, totalTTCr, JSON.stringify(lignesCompletes), synced],
+    )
+
+    // Si le serveur n'a pas répondu, mettre en queue pour retry plus tard
+    if (!synced) {
+      await syncEngine.enqueue('vente', id, 'create', syncPayload)
+    }
+
     await refresh()
     return id
   }

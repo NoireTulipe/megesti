@@ -3,7 +3,8 @@
   "private": true,
   "version": "0.0.0",
   "scripts": {
-    "dev": "turbo dev",
+    "dev": "turbo dev --filter=!@megesti/mobile",
+    "dev:mobile": "turbo dev --filter=@megesti/mobile",
     "build": "turbo build",
     "lint": "turbo lint",
     "typecheck": "turbo typecheck",

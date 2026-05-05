@@ -46,6 +46,7 @@ function AuthGate({ children }: { children: React.ReactNode }) {
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
     'DM Serif Display': require('../assets/fonts/DMSerifDisplay-Regular.ttf'),
+    'DM Serif Display Italic': require('../assets/fonts/DMSerifDisplay-Italic.ttf'),
   })
 
   if (!fontsLoaded) return null

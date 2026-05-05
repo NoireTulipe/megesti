@@ -1,9 +1,12 @@
 import { create } from 'zustand'
 import * as SecureStore from 'expo-secure-store'
-import { api } from '@/lib/api'
+import { api, setTokenGetter } from '@/lib/api'
 
 const TOKEN_KEY = 'megesti_token'
 const USER_KEY  = 'megesti_user'
+
+// Enregistre le getter de token pour casser le cycle d'import
+setTokenGetter(() => useAuthStore.getState().token)
 
 export interface AuthUser {
   id: string

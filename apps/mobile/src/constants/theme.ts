@@ -50,8 +50,9 @@ export const Colors = {
 } as const
 
 export const Fonts = {
-  display: 'DM Serif Display',
-  body:    'Plus Jakarta Sans',
+  display:       'DM Serif Display',
+  displayItalic: 'DM Serif Display Italic',
+  body:          'Plus Jakarta Sans',
 }
 
 export const Spacing = {

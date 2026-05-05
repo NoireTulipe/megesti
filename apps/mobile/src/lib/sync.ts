@@ -1,6 +1,5 @@
 import { getDb } from './db'
 import { api } from './api'
-import { Config } from '@/constants/Config'
 
 // ── Types ──────────────────────────────────────────────────────────
 
@@ -30,7 +29,7 @@ export const syncEngine = {
 
   /** Appelé après chaque opération locale (vente, frais, fermeture session) */
   async enqueue(entityType: string, entityId: string, operation: string, payload: unknown) {
-    const db = getDb()
+    const db = await getDb()
     await db.runAsync(
       `INSERT INTO sync_queue (entity_type, entity_id, operation, payload) VALUES (?, ?, ?, ?)`,
       [entityType, entityId, operation, JSON.stringify(payload)],
@@ -56,10 +55,7 @@ export const syncEngine = {
 
 async function checkNetwork() {
   try {
-    const controller = new AbortController()
-    const timeout = setTimeout(() => controller.abort(), 5000)
-    await fetch(`${Config.apiBaseUrl}/auth/ping`, { method: 'HEAD', signal: controller.signal })
-    clearTimeout(timeout)
+    await api.get('/auth/ping')
     setStatus('online')
   } catch {
     setStatus('offline')
@@ -70,9 +66,10 @@ async function checkNetwork() {
 
 async function processQueue() {
   if (_status === 'syncing') return
+  const prevStatus = _status
   setStatus('syncing')
 
-  const db = getDb()
+  const db = await getDb()
 
   try {
     const pending = await db.getAllAsync<{
@@ -140,13 +137,13 @@ async function processQueue() {
     console.error('[sync] Erreur processQueue:', e)
   }
 
-  setStatus(_status === 'syncing' ? 'online' : _status)
+  setStatus(prevStatus)
 }
 
 // ── Helpers ────────────────────────────────────────────────────────
 
 async function updatePendingCount() {
-  const db = getDb()
+  const db = await getDb()
   const row = await db.getFirstAsync<{ cnt: number }>(
     'SELECT COUNT(*) as cnt FROM sync_queue',
   )

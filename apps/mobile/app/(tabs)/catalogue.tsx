@@ -1,15 +1,31 @@
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet, RefreshControl } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useLocalArticles } from '@/hooks/useLocalArticles'
 import { useLocalSession } from '@/hooks/useLocalSession'
 import { Colors, Fonts, Radius, Shadow } from '@/constants/theme'
 
 export default function CatalogueScreen() {
+  const insets = useSafeAreaInsets()
   const [search, setSearch] = useState('')
   const [selected, setSelected] = useState<string | null>(null)
-  const { articles, loading, refresh, pullFromServer } = useLocalArticles()
+  const [editingStock, setEditingStock] = useState<string | null>(null)
+  const [stockValue, setStockValue] = useState('')
+  const { articles, pullFromServer, updateStock } = useLocalArticles()
   const { session } = useLocalSession()
+  const [refreshing, setRefreshing] = useState(false)
+
+  // Pull initial depuis le serveur
+  useEffect(() => {
+    pullFromServer()
+  }, [])
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true)
+    await pullFromServer()
+    setRefreshing(false)
+  }, [pullFromServer])
 
   const exposedIds: string[] = session?.articles_exposes ? JSON.parse(session.articles_exposes) : []
 
@@ -17,6 +33,14 @@ export default function CatalogueScreen() {
     (exposedIds.length === 0 || exposedIds.includes(a.id)) &&
     (a.nom.toLowerCase().includes(search.toLowerCase()) ||
      (a.isbn ?? '').includes(search)))
+
+  async function handleStockSubmit(articleId: string) {
+    const val = parseInt(stockValue, 10)
+    if (!isNaN(val) && val >= 0) {
+      await updateStock(articleId, val)
+    }
+    setEditingStock(null)
+  }
 
   return (
     <View style={styles.shell}>
@@ -33,12 +57,12 @@ export default function CatalogueScreen() {
           placeholder="Rechercher par titre ou ISBN…" placeholderTextColor={Colors.textSoft} />
       </View>
 
-      <ScrollView contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}
+      <ScrollView contentContainerStyle={[styles.list, { paddingBottom: 120 + insets.bottom }]} showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={loading} onRefresh={refresh} tintColor={Colors.sage} />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.sage} />
         }
       >
-        {displayed.length === 0 && !loading ? (
+        {displayed.length === 0 && !refreshing ? (
           <View style={styles.empty}>
             <Text style={styles.emptyEmoji}>📚</Text>
             <Text style={styles.emptyText}>Aucun article exposé</Text>
@@ -65,11 +89,26 @@ export default function CatalogueScreen() {
               </View>
               <View style={styles.cardRight}>
                 <Text style={styles.cardPrice}>{a.prix_vente_ht.toFixed(2)} €</Text>
-                <View style={[styles.stockBadge, a.stock_local <= 3 && styles.stockBadgeLow]}>
-                  <Text style={[styles.stockBadgeText, a.stock_local <= 3 && styles.stockBadgeTextLow]}>
-                    {a.stock_local}
-                  </Text>
-                </View>
+                {editingStock === a.id ? (
+                  <TextInput
+                    style={styles.stockInput}
+                    value={stockValue}
+                    onChangeText={setStockValue}
+                    keyboardType="number-pad"
+                    autoFocus
+                    onBlur={() => handleStockSubmit(a.id)}
+                    onSubmitEditing={() => handleStockSubmit(a.id)}
+                    selectTextOnFocus
+                  />
+                ) : (
+                  <TouchableOpacity
+                    style={[styles.stockBadge, a.stock_local <= 3 && styles.stockBadgeLow]}
+                    onPress={() => { setEditingStock(a.id); setStockValue(String(a.stock_local)) }}>
+                    <Text style={[styles.stockBadgeText, a.stock_local <= 3 && styles.stockBadgeTextLow]}>
+                      {a.stock_local}
+                    </Text>
+                  </TouchableOpacity>
+                )}
               </View>
             </TouchableOpacity>
           ))
@@ -83,15 +122,15 @@ const styles = StyleSheet.create({
   shell: { flex: 1, backgroundColor: Colors.cream },
   bg: { ...StyleSheet.absoluteFillObject },
   header: { paddingHorizontal: 20, paddingTop: 60, paddingBottom: 8 },
-  title: { fontFamily: Fonts.display, fontSize: 26, color: Colors.ink, fontStyle: 'italic' },
+  title: { fontFamily: Fonts.displayItalic, fontSize: 26, color: Colors.ink, fontStyle: 'italic' },
   subtitle: { fontFamily: Fonts.body, fontSize: 13, color: Colors.textSoft, marginTop: 4 },
   searchWrap: { flexDirection: 'row', alignItems: 'center', marginHorizontal: 20, marginBottom: 16, backgroundColor: Colors.white, borderRadius: Radius.md, paddingHorizontal: 12, borderWidth: 1.5, borderColor: 'rgba(36,51,71,0.06)' },
   searchIcon: { fontSize: 16, marginRight: 8 },
   searchInput: { flex: 1, fontFamily: Fonts.body, fontSize: 14, color: Colors.text, paddingVertical: 12 },
-  list: { paddingHorizontal: 20, paddingBottom: 120 },
+  list: { paddingHorizontal: 20 },
   empty: { alignItems: 'center', paddingTop: 80 },
   emptyEmoji: { fontSize: 48, marginBottom: 16 },
-  emptyText: { fontFamily: Fonts.display, fontSize: 18, color: Colors.textMid, fontStyle: 'italic' },
+  emptyText: { fontFamily: Fonts.displayItalic, fontSize: 18, color: Colors.textMid, fontStyle: 'italic' },
   emptySub: { fontFamily: Fonts.body, fontSize: 13, color: Colors.textSoft, textAlign: 'center', marginTop: 6, lineHeight: 20 },
   card: {
     flexDirection: 'row', backgroundColor: Colors.white, borderRadius: Radius.lg, padding: 14,
@@ -110,4 +149,10 @@ const styles = StyleSheet.create({
   stockBadgeLow: { backgroundColor: Colors.terraLight },
   stockBadgeText: { fontFamily: Fonts.body, fontSize: 10, fontWeight: '700', color: Colors.sage },
   stockBadgeTextLow: { color: Colors.terra },
+  stockInput: {
+    marginTop: 6, width: 48, height: 28, borderRadius: Radius.full,
+    backgroundColor: Colors.cream, borderWidth: 1.5, borderColor: Colors.ink,
+    fontFamily: Fonts.body, fontSize: 10, fontWeight: '700', color: Colors.ink,
+    textAlign: 'center', paddingVertical: 0, paddingHorizontal: 4,
+  },
 })

@@ -1,6 +1,7 @@
 import { useCallback } from 'react'
 import { View, Text, ScrollView, StyleSheet, RefreshControl } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useLocalVentes, LocalVente } from '@/hooks/useLocalVentes'
 import { useLocalSession } from '@/hooks/useLocalSession'
 import { Colors, Fonts, Radius, Shadow } from '@/constants/theme'
@@ -18,6 +19,7 @@ function groupByDate(ventes: LocalVente[]) {
 }
 
 export default function VentesScreen() {
+  const insets = useSafeAreaInsets()
   const { session } = useLocalSession()
   const { ventes, stats, loading, refresh } = useLocalVentes(session?.id)
 
@@ -90,7 +92,7 @@ export default function VentesScreen() {
             </View>
           ))
         )}
-        <View style={{ height: 120 }} />
+        <View style={{ height: 120 + insets.bottom }} />
       </ScrollView>
     </View>
   )
@@ -100,7 +102,7 @@ const styles = StyleSheet.create({
   shell: { flex: 1, backgroundColor: Colors.cream },
   bg: { ...StyleSheet.absoluteFillObject },
   header: { paddingHorizontal: 20, paddingTop: 60, paddingBottom: 16 },
-  title: { fontFamily: Fonts.display, fontSize: 26, color: Colors.ink, fontStyle: 'italic' },
+  title: { fontFamily: Fonts.displayItalic, fontSize: 26, color: Colors.ink, fontStyle: 'italic' },
   headerStats: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 6 },
   headerStat: {},
   headerStatValue: { fontFamily: Fonts.body, fontSize: 18, fontWeight: '700', color: Colors.ink },
@@ -110,7 +112,7 @@ const styles = StyleSheet.create({
   list: { paddingHorizontal: 20, paddingBottom: 80 },
   empty: { alignItems: 'center', paddingTop: 80 },
   emptyEmoji: { fontSize: 48, marginBottom: 16 },
-  emptyText: { fontFamily: Fonts.display, fontSize: 18, color: Colors.textMid, fontStyle: 'italic' },
+  emptyText: { fontFamily: Fonts.displayItalic, fontSize: 18, color: Colors.textMid, fontStyle: 'italic' },
   emptySub: { fontFamily: Fonts.body, fontSize: 13, color: Colors.textSoft, textAlign: 'center', marginTop: 6 },
   dayLabel: { fontFamily: Fonts.body, fontSize: 11, fontWeight: '700', color: Colors.textSoft, textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 8, marginTop: 16 },
   saleCard: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: Colors.white, borderRadius: Radius.md, padding: 14, marginBottom: 6, ...Shadow.card },
