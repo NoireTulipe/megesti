@@ -1,0 +1,111 @@
+import { useState, useEffect, useCallback } from 'react'
+import { getDb, generateUUID } from '@/lib/db'
+import { syncEngine } from '@/lib/sync'
+import { useDevStore } from '@/store/devStore'
+
+export interface LocalVente {
+  id: string
+  session_id: string | null
+  motif_vente_id: string | null
+  numero: number | null
+  date_vente: string
+  mode_paiement: string
+  total_ht: number
+  total_tva: number
+  total_ttc: number
+  lignes_json: string
+  synced: number
+  synced_at: string | null
+}
+
+export interface LigneVente {
+  articleId: string
+  nom: string
+  quantite: number
+  prixUnitaireHT: number
+  totalHT: number
+  totalTTC: number
+}
+
+export interface CreateVenteInput {
+  sessionId?: string
+  motifVenteId?: string
+  modePaiement: string
+  lignes: Omit<LigneVente, 'totalHT' | 'totalTTC'>[]
+}
+
+export function useLocalVentes(sessionId?: string) {
+  const [ventes, setVentes] = useState<LocalVente[]>([])
+  const [loading, setLoading] = useState(true)
+  const addLog = useDevStore(s => s.addLog)
+
+  const refresh = useCallback(async () => {
+    const db = getDb()
+    const where = sessionId ? 'WHERE session_id = ?' : ''
+    const params = sessionId ? [sessionId] : []
+    const rows = await db.getAllAsync<LocalVente>(
+      `SELECT * FROM ventes_locales ${where} ORDER BY date_vente DESC LIMIT 100`,
+      params,
+    )
+    setVentes(rows)
+    setLoading(false)
+  }, [sessionId])
+
+  useEffect(() => { refresh() }, [refresh])
+
+  /** Créer une vente locale + l'ajouter à la queue de synchro */
+  async function createVente(input: CreateVenteInput) {
+    const id = generateUUID()
+    const dateVente = new Date().toISOString()
+
+    // Calculer les totaux
+    let totalHT = 0, totalTVA = 0, totalTTC = 0
+    const lignesCompletes: LigneVente[] = input.lignes.map(l => {
+      const ligneHT = l.prixUnitaireHT * l.quantite
+      const tauxTVA = 0.055 // défaut livre — à terme depuis l'article
+      const ligneTTC = ligneHT * (1 + tauxTVA)
+      totalHT += ligneHT
+      totalTVA += ligneTTC - ligneHT
+      totalTTC += ligneTTC
+      return {
+        ...l,
+        totalHT: Math.round(ligneHT * 100) / 100,
+        totalTTC: Math.round(ligneTTC * 100) / 100,
+      }
+    })
+
+    const totalHTr  = Math.round(totalHT * 100) / 100
+    const totalTVAr = Math.round(totalTVA * 100) / 100
+    const totalTTCr = Math.round(totalTTC * 100) / 100
+
+    const db = getDb()
+    await db.runAsync(
+      `INSERT INTO ventes_locales (id, session_id, motif_vente_id, date_vente, mode_paiement, total_ht, total_tva, total_ttc, lignes_json)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [id, input.sessionId ?? null, input.motifVenteId ?? null, dateVente, input.modePaiement, totalHTr, totalTVAr, totalTTCr, JSON.stringify(lignesCompletes)],
+    )
+
+    // Enqueue pour synchro
+    await syncEngine.enqueue('vente', id, 'create', {
+      id,
+      sessionId: input.sessionId ?? null,
+      motifVenteId: input.motifVenteId ?? null,
+      modePaiement: input.modePaiement,
+      dateVente,
+      lignes: lignesCompletes,
+    })
+
+    addLog('info', `Vente locale: ${totalTTCr.toFixed(2)} € — ${input.modePaiement}`)
+    await refresh()
+    return id
+  }
+
+  // Stats
+  const stats = {
+    total: ventes.reduce((s, v) => s + v.total_ttc, 0),
+    count: ventes.length,
+    enAttente: ventes.filter(v => !v.synced).length,
+  }
+
+  return { ventes, loading, refresh, createVente, stats }
+}

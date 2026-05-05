@@ -1,0 +1,65 @@
+{
+  "dashboard": {
+    "greeting": "Hello",
+    "monthly": "Overview",
+    "activeSession": "Active session",
+    "noSession": "No active session",
+    "openSession": "Open a session",
+    "todaySales": "Today's sales",
+    "pendingSync": "Pending sync",
+    "synced": "All synced",
+    "quickActions": "Quick actions",
+    "newSale": "New sale",
+    "scan": "Scan ISBN",
+    "expenses": "Expenses",
+    "stock": "Stock"
+  },
+  "session": {
+    "title": "Checkout session",
+    "open": "Open",
+    "close": "Close",
+    "pointOfSale": "Point of sale",
+    "initialFund": "Initial float",
+    "finalFund": "Final float",
+    "chooseArticles": "Exposed articles",
+    "allArticles": "All articles",
+    "selectArticles": "Select articles",
+    "addMissing": "Add a forgotten article",
+    "debitStock": "Deduct from stock",
+    "debitStockDesc": "Decrement stock on each sale",
+    "confirmClose": "Confirm close",
+    "closeWarning": "This action is irreversible. Please verify your final float."
+  },
+  "sale": {
+    "title": "Sale",
+    "cart": "Cart",
+    "add": "Add article",
+    "paymentMethod": "Payment method",
+    "total": "Total",
+    "validate": "Confirm sale",
+    "cancel": "Cancel",
+    "scanBarcode": "Scan barcode",
+    "searchArticle": "Search article",
+    "quantity": "Quantity",
+    "price": "Unit price"
+  },
+  "catalogue": {
+    "title": "Exposed articles",
+    "empty": "No articles exposed",
+    "inStock": "in stock",
+    "price": "Price"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "confirm": "Confirm",
+    "close": "Close",
+    "back": "Back",
+    "loading": "Loading…",
+    "error": "An error occurred",
+    "retry": "Retry",
+    "offline": "Offline",
+    "online": "Online"
+  }
+}

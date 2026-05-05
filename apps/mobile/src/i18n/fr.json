@@ -1,0 +1,65 @@
+{
+  "dashboard": {
+    "greeting": "Bonjour",
+    "monthly": "Vue d'ensemble",
+    "activeSession": "Session active",
+    "noSession": "Aucune session en cours",
+    "openSession": "Ouvrir une session",
+    "todaySales": "Ventes du jour",
+    "pendingSync": "En attente de synchro",
+    "synced": "Tout est synchronisé",
+    "quickActions": "Actions rapides",
+    "newSale": "Nouvelle vente",
+    "scan": "Scanner un ISBN",
+    "expenses": "Frais",
+    "stock": "Stock"
+  },
+  "session": {
+    "title": "Session de caisse",
+    "open": "Ouvrir",
+    "close": "Fermer",
+    "pointOfSale": "Point de vente",
+    "initialFund": "Fond de caisse",
+    "finalFund": "Fond de caisse final",
+    "chooseArticles": "Articles exposés",
+    "allArticles": "Tous les articles",
+    "selectArticles": "Choisir les articles",
+    "addMissing": "Ajouter un article oublié",
+    "debitStock": "Débiter le stock",
+    "debitStockDesc": "Décrémenter le stock à chaque vente",
+    "confirmClose": "Confirmer la fermeture",
+    "closeWarning": "Cette action est irréversible. Vérifiez votre fond de caisse final."
+  },
+  "sale": {
+    "title": "Vente",
+    "cart": "Panier",
+    "add": "Ajouter un article",
+    "paymentMethod": "Mode de paiement",
+    "total": "Total",
+    "validate": "Valider la vente",
+    "cancel": "Annuler",
+    "scanBarcode": "Scanner le code-barres",
+    "searchArticle": "Rechercher un article",
+    "quantity": "Quantité",
+    "price": "Prix unitaire"
+  },
+  "catalogue": {
+    "title": "Articles exposés",
+    "empty": "Aucun article exposé",
+    "inStock": "en stock",
+    "price": "Prix"
+  },
+  "common": {
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "confirm": "Confirmer",
+    "close": "Fermer",
+    "back": "Retour",
+    "loading": "Chargement…",
+    "error": "Une erreur est survenue",
+    "retry": "Réessayer",
+    "offline": "Hors ligne",
+    "online": "En ligne"
+  }
+}

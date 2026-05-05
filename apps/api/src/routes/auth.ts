@@ -19,6 +19,9 @@ const PasswordSchema = z.object({
 })
 
 export const authRoutes: FastifyPluginAsync = async (app) => {
+  // Ping santé réseau pour le client mobile (hors auth)
+  app.get('/ping', async () => ({ ok: true }))
+
   app.post('/login', async (request, reply) => {
     const body = LoginSchema.parse(request.body)
 

@@ -1,0 +1,5 @@
+Les assets (icon.png, splash-icon.png, adaptive-icon.png) sont à générer.
+En attendant, Expo utilise les icônes par défaut.
+
+Pour les polices : télécharger DM Serif Display (Regular + Italic) depuis Google Fonts
+et les placer dans assets/fonts/DMSerifDisplay-Regular.ttf (et Italic).
