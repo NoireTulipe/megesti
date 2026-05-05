@@ -98,17 +98,29 @@
 .textarea:focus { border-color: var(--terra); box-shadow: 0 0 0 3.5px var(--terra-glow); }
 .textarea::placeholder { color: var(--text-soft); font-style: italic; }
 
-/* ── BOUTON PRINCIPAL ─────────────────────────────── */
+/* ── BOUTONS ──────────────────────────────────────── */
 .btnSave {
   height: 46px; padding: 0 24px;
   background: linear-gradient(135deg, var(--terra), var(--terra-dark));
   color: #fff; border: none; border-radius: var(--r-pill);
   font-size: 0.85rem; font-weight: 600; cursor: pointer; white-space: nowrap;
   box-shadow: 0 4px 14px rgba(196,144,124,0.35);
-  transition: box-shadow var(--t), transform var(--t) var(--ease);
+  transition: all var(--t) var(--ease);
 }
 .btnSave:hover:not(:disabled) { box-shadow: 0 6px 20px rgba(196,144,124,0.48); transform: translateY(-1px); }
 .btnSave:disabled { opacity: 0.45; cursor: not-allowed; box-shadow: none; }
+
+/* Feedback succès */
+.btnSaved {
+  background: var(--sage) !important;
+  box-shadow: 0 0 0 6px rgba(107,143,113,0.15) !important;
+  animation: pulseSaved 0.6s ease;
+}
+@keyframes pulseSaved {
+  0%   { box-shadow: 0 0 0 0px rgba(107,143,113,0.4); }
+  50%  { box-shadow: 0 0 0 12px rgba(107,143,113,0); }
+  100% { box-shadow: 0 0 0 6px rgba(107,143,113,0.15); }
+}
 
 .btnAdd {
   height: 40px; padding: 0 20px;
@@ -120,6 +132,27 @@
   display: flex; align-items: center; gap: 7px; white-space: nowrap;
 }
 .btnAdd:hover { box-shadow: 0 6px 18px rgba(196,144,124,0.45); transform: translateY(-1px); }
+
+/* Logout */
+.btnLogout {
+  height: 42px; padding: 0 20px;
+  border: 1.5px solid #FECACA; border-radius: var(--r-pill);
+  background: var(--white); color: #DC2626;
+  font-size: 0.83rem; font-weight: 600; cursor: pointer;
+  display: flex; align-items: center; gap: 7px; flex-shrink: 0;
+  transition: all var(--t);
+}
+.btnLogout:hover { background: #FEF2F2; border-color: #DC2626; }
+
+/* ── PROPRIÉTAIRE ─────────────────────────────────── */
+.ownerGrid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+}
+.fieldCol { display: flex; flex-direction: column; gap: 5px; }
+.fieldLabel {
+  font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--text-soft);
+}
 
 /* ── TABLEAU CONTACTS ─────────────────────────────── */
 .contactsTable {
@@ -155,6 +188,8 @@
 .contactInput:focus { border-color: var(--terra); box-shadow: 0 0 0 2.5px var(--terra-glow); }
 .contactInput::placeholder { color: var(--text-soft); font-style: italic; }
 
+.contactActions { display: flex; align-items: center; gap: 4px; }
+
 .btnRemove {
   width: 32px; height: 32px; border-radius: 50%; border: none;
   background: transparent; color: var(--text-soft); cursor: pointer;
@@ -163,26 +198,31 @@
 }
 .btnRemove:hover { background: #FEF2F2; color: #DC2626; }
 
-/* Ligne propriétaire */
-.contactsRowOwner { background: #FFFDF9; }
-.contactsRowOwner:hover { background: #FFFBF3; }
-.fonctionCell { display: flex; align-items: center; gap: 6px; }
-.fonctionCell .contactInput { flex: 1; }
-.ownerBadge {
-  font-size: 0.6rem; font-weight: 700; text-transform: uppercase;
-  letter-spacing: 0.06em; color: var(--terra);
-  background: var(--terra-faint); border: 1px solid var(--terra-light);
-  padding: 2px 8px; border-radius: var(--r-pill); white-space: nowrap;
-}
-
 .btnSaveSm {
   width: 32px; height: 32px; border-radius: 50%; border: none;
-  background: var(--sage); color: #fff; cursor: pointer;
+  background: var(--cream-dark); color: var(--text-soft); cursor: pointer;
   display: flex; align-items: center; justify-content: center;
-  font-size: 0.85rem; font-weight: 700;
-  transition: opacity var(--t);
+  transition: all var(--t);
 }
-.btnSaveSm:hover { opacity: 0.85; }
+.btnSaveSm:hover:not(:disabled) { background: var(--sage); color: #fff; }
+.btnSaveSm:disabled { opacity: 0.3; cursor: not-allowed; }
+
+/* Feedback succès contact */
+.btnSavedSm {
+  background: var(--sage) !important; color: #fff !important;
+  box-shadow: 0 0 0 5px rgba(107,143,113,0.18);
+  animation: pulseSm 0.5s ease;
+}
+@keyframes pulseSm {
+  0%   { box-shadow: 0 0 0 0px rgba(107,143,113,0.5); }
+  50%  { box-shadow: 0 0 0 10px rgba(107,143,113,0); }
+  100% { box-shadow: 0 0 0 5px rgba(107,143,113,0.18); }
+}
+
+.contactsRowSaved {
+  background: #F6FCF7 !important;
+  transition: background 0.3s ease;
+}
 
 /* ── MOT DE PASSE ─────────────────────────────────── */
 .btnOutline {

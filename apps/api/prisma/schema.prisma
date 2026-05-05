@@ -34,6 +34,7 @@ model Tenant {
   depotsLibraires          DepotLibraire[]
   articlesDepot            ArticleDepot[]
   salons                   Salon[]
+  contacts                 ContactTenant[]
   categoriesPointDeVente   CategoriePointDeVente[]
   pointsDeVente            PointDeVente[]
   sessionsCaisse           SessionCaisse[]
@@ -556,6 +557,20 @@ model ContactSalon {
   salon Salon @relation(fields: [salonId], references: [id], onDelete: Cascade)
 
   @@index([salonId])
+}
+
+model ContactTenant {
+  id        String  @id @default(uuid())
+  tenantId  String
+  nom       String
+  prenom    String?
+  email     String?
+  telephone String?
+  fonction  String?
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
 }
 
 // ─── Champs personnalisés ─────────────────────────────────────────────────────
