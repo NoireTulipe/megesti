@@ -5,7 +5,6 @@ import { api, setTokenGetter } from '@/lib/api'
 const TOKEN_KEY = 'megesti_token'
 const USER_KEY  = 'megesti_user'
 
-// Enregistre le getter de token pour casser le cycle d'import
 setTokenGetter(() => useAuthStore.getState().token)
 
 export interface AuthUser {
@@ -18,34 +17,44 @@ export interface AuthUser {
   tenantName: string
 }
 
+interface MeResponse {
+  id: string; email: string
+  firstName: string; lastName: string
+  role: 'ADMIN' | 'EDITOR' | 'AUTHOR'
+  tenantId: string; tenantName: string
+}
+
 interface AuthState {
   token: string | null
   user:  AuthUser | null
   isLoading: boolean
-  login: (email: string, password: string) => Promise<void>
-  logout: () => Promise<void>
-  hydrate: () => Promise<void>
+  login:       (email: string, password: string) => Promise<void>
+  logout:      () => Promise<void>
+  hydrate:     () => Promise<void>
+  refreshUser: () => Promise<void>
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
+export const useAuthStore = create<AuthState>((set, get) => ({
   token: null,
   user: null,
   isLoading: true,
 
+  // ── Login : on reçoit le token enrichi (firstName, lastName, tenantName inclus) ──
   login: async (email, password) => {
     const data = await api.post<{ token: string }>('/auth/login', { email, password })
     const token = data.token
-    // Le payload JWT contient les infos user
     const payload = JSON.parse(atob(token.split('.')[1]))
+
     const user: AuthUser = {
-      id: payload.sub,
-      email: payload.email,
-      firstName: payload.firstName,
-      lastName: payload.lastName,
-      role: payload.role,
-      tenantId: payload.tenantId,
-      tenantName: payload.tenantName,
+      id:         payload.sub ?? payload.userId,
+      email:      payload.email     ?? '',
+      firstName:  payload.firstName ?? '',
+      lastName:   payload.lastName  ?? '',
+      role:       payload.role,
+      tenantId:   payload.tenantId,
+      tenantName: payload.tenantName ?? '',
     }
+
     await SecureStore.setItemAsync(TOKEN_KEY, token)
     await SecureStore.setItemAsync(USER_KEY, JSON.stringify(user))
     set({ token, user })
@@ -57,6 +66,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ token: null, user: null })
   },
 
+  // ── Hydrate depuis le SecureStore ──
   hydrate: async () => {
     try {
       const [token, userJson] = await Promise.all([
@@ -64,12 +74,40 @@ export const useAuthStore = create<AuthState>((set) => ({
         SecureStore.getItemAsync(USER_KEY),
       ])
       if (token && userJson) {
-        set({ token, user: JSON.parse(userJson), isLoading: false })
+        const user: AuthUser = JSON.parse(userJson)
+        set({ token, user, isLoading: false })
+
+        // Rafraîchissement en arrière-plan si firstName absent (ancienne session pré-fix)
+        if (!user.firstName) {
+          get().refreshUser().catch(() => {})
+        }
       } else {
         set({ isLoading: false })
       }
     } catch {
       set({ isLoading: false })
+    }
+  },
+
+  // ── Refresh depuis /auth/me (récupère firstName + tenantName à jour) ──
+  refreshUser: async () => {
+    const { token } = get()
+    if (!token) return
+    try {
+      const me = await api.get<MeResponse>('/auth/me')
+      const updatedUser: AuthUser = {
+        id:         me.id,
+        email:      me.email,
+        firstName:  me.firstName,
+        lastName:   me.lastName,
+        role:       me.role,
+        tenantId:   me.tenantId,
+        tenantName: me.tenantName,
+      }
+      await SecureStore.setItemAsync(USER_KEY, JSON.stringify(updatedUser))
+      set({ user: updatedUser })
+    } catch {
+      // silencieux si hors-ligne
     }
   },
 }))

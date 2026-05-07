@@ -21,12 +21,9 @@
     "pointOfSale": "Point de vente",
     "initialFund": "Fond de caisse",
     "finalFund": "Fond de caisse final",
-    "chooseArticles": "Articles exposés",
-    "allArticles": "Tous les articles",
-    "selectArticles": "Choisir les articles",
-    "addMissing": "Ajouter un article oublié",
-    "debitStock": "Débiter le stock",
-    "debitStockDesc": "Décrémenter le stock à chaque vente",
+    "active": "En cours",
+    "history": "Historique",
+    "noActive": "Aucune session active",
     "confirmClose": "Confirmer la fermeture",
     "closeWarning": "Cette action est irréversible. Vérifiez votre fond de caisse final."
   },
@@ -43,11 +40,28 @@
     "quantity": "Quantité",
     "price": "Prix unitaire"
   },
-  "catalogue": {
-    "title": "Articles exposés",
-    "empty": "Aucun article exposé",
-    "inStock": "en stock",
-    "price": "Prix"
+  "stock": {
+    "title": "Stock",
+    "empty": "Aucun article",
+    "takePhoto": "Prendre une photo",
+    "chooseGallery": "Choisir dans la galerie",
+    "noPhoto": "Aucune photo",
+    "uploading": "Envoi de la photo…"
+  },
+  "bilan": {
+    "title": "Bilan",
+    "thisSalon": "Ce salon",
+    "thisWeek": "Cette semaine",
+    "thisMonth": "Ce mois",
+    "all": "Tout",
+    "net": "net estimé",
+    "ca": "CA TTC",
+    "sales": "ventes",
+    "expenses": "frais",
+    "sessions": "sessions",
+    "bySessions": "Détail par session",
+    "noData": "Aucune donnée",
+    "noDataSub": "Enregistrez des ventes pour voir apparaître votre bilan."
   },
   "common": {
     "save": "Enregistrer",

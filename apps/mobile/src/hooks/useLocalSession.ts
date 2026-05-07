@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { getDb, generateUUID } from '@/lib/db'
 import { api } from '@/lib/api'
 import { syncEngine } from '@/lib/sync'
@@ -88,6 +88,80 @@ export function useLocalSession() {
   }
 
   return { session, loading, refresh, openSession, closeSession }
+}
+
+export interface SessionWithStats extends LocalSession {
+  venteCount: number
+  ca: number
+}
+
+const HISTORY_PAGE = 10
+
+async function attachStats(db: Awaited<ReturnType<typeof getDb>>, rows: LocalSession[]): Promise<SessionWithStats[]> {
+  if (rows.length === 0) return []
+  const ids = rows.map(r => r.id)
+  const ph  = ids.map(() => '?').join(',')
+  const statsRows = await db.getAllAsync<{ session_id: string; count: number; ca: number }>(
+    `SELECT session_id, COUNT(*) as count, COALESCE(SUM(total_ttc),0) as ca
+     FROM ventes_locales WHERE session_id IN (${ph}) GROUP BY session_id`,
+    ids,
+  )
+  const map = new Map(statsRows.map(s => [s.session_id, s]))
+  return rows.map(s => ({
+    ...s,
+    venteCount: map.get(s.id)?.count ?? 0,
+    ca:         map.get(s.id)?.ca    ?? 0,
+  }))
+}
+
+/** Sessions actives + historique paginé (10 par page) */
+export function useAllSessions() {
+  const [actives,        setActives]        = useState<SessionWithStats[]>([])
+  const [history,        setHistory]        = useState<SessionWithStats[]>([])
+  const [historyHasMore, setHistoryHasMore] = useState(false)
+  const [loadingMore,    setLoadingMore]    = useState(false)
+  const [loading,        setLoading]        = useState(true)
+  const loadedCount = useRef(0)
+
+  const refresh = useCallback(async () => {
+    setLoading(true)
+    const db = await getDb()
+
+    const [activeRows, histRows, totalRow] = await Promise.all([
+      db.getAllAsync<LocalSession>("SELECT * FROM sessions WHERE statut='OUVERTE' ORDER BY date_ouverture DESC"),
+      db.getAllAsync<LocalSession>("SELECT * FROM sessions WHERE statut='FERMEE' ORDER BY date_ouverture DESC LIMIT ?", [HISTORY_PAGE]),
+      db.getFirstAsync<{ total: number }>("SELECT COUNT(*) as total FROM sessions WHERE statut='FERMEE'"),
+    ])
+    const [a, h] = await Promise.all([attachStats(db, activeRows), attachStats(db, histRows)])
+    loadedCount.current = histRows.length
+    setActives(a)
+    setHistory(h)
+    setHistoryHasMore(histRows.length < (totalRow?.total ?? 0))
+    setLoading(false)
+  }, [])
+
+  const loadMoreHistory = useCallback(async () => {
+    if (loadingMore) return
+    setLoadingMore(true)
+    const db = await getDb()
+    const more = await db.getAllAsync<LocalSession>(
+      "SELECT * FROM sessions WHERE statut='FERMEE' ORDER BY date_ouverture DESC LIMIT ? OFFSET ?",
+      [HISTORY_PAGE, loadedCount.current],
+    )
+    const withStats = await attachStats(db, more)
+    loadedCount.current += more.length
+    setHistory(prev => [...prev, ...withStats])
+    const totalRow = await db.getFirstAsync<{ total: number }>("SELECT COUNT(*) as total FROM sessions WHERE statut='FERMEE'")
+    setHistoryHasMore(loadedCount.current < (totalRow?.total ?? 0))
+    setLoadingMore(false)
+  }, [loadingMore])
+
+  useEffect(() => { refresh() }, [refresh])
+
+  // Rétrocompatibilité avec le DetailSheet qui utilise session.id
+  const sessions = useMemo(() => [...actives, ...history], [actives, history])
+
+  return { sessions, actives, history, historyHasMore, loadingMore, loading, refresh, loadMoreHistory }
 }
 
 /** Récupère la liste des points de vente depuis l'API */

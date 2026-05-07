@@ -21,12 +21,9 @@
     "pointOfSale": "Point of sale",
     "initialFund": "Initial float",
     "finalFund": "Final float",
-    "chooseArticles": "Exposed articles",
-    "allArticles": "All articles",
-    "selectArticles": "Select articles",
-    "addMissing": "Add a forgotten article",
-    "debitStock": "Deduct from stock",
-    "debitStockDesc": "Decrement stock on each sale",
+    "active": "Active",
+    "history": "History",
+    "noActive": "No active session",
     "confirmClose": "Confirm close",
     "closeWarning": "This action is irreversible. Please verify your final float."
   },
@@ -43,11 +40,28 @@
     "quantity": "Quantity",
     "price": "Unit price"
   },
-  "catalogue": {
-    "title": "Exposed articles",
-    "empty": "No articles exposed",
-    "inStock": "in stock",
-    "price": "Price"
+  "stock": {
+    "title": "Stock",
+    "empty": "No articles",
+    "takePhoto": "Take a photo",
+    "chooseGallery": "Choose from gallery",
+    "noPhoto": "No photo",
+    "uploading": "Uploading photo…"
+  },
+  "bilan": {
+    "title": "Report",
+    "thisSalon": "This event",
+    "thisWeek": "This week",
+    "thisMonth": "This month",
+    "all": "All time",
+    "net": "estimated net",
+    "ca": "Revenue",
+    "sales": "sales",
+    "expenses": "expenses",
+    "sessions": "sessions",
+    "bySessions": "By session",
+    "noData": "No data",
+    "noDataSub": "Record some sales to see your report."
   },
   "common": {
     "save": "Save",

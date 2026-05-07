@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { createPortal } from 'react-dom'
+import { getImageUrl } from '@/lib/api'
 import type { Article } from './types'
 import sty from '@/features/auteurs/AuteursPage.module.css'
 
@@ -65,7 +66,7 @@ export function ArticleDetail({ article, isOpen, onClose, onEdit, onToggle }: Pr
               overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
               {article.imageUrl
-                ? <img src={article.imageUrl} alt={article.nom} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ? <img src={getImageUrl(article.imageUrl)!} alt={article.nom} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 : <span style={{ fontFamily: "'DM Serif Display',serif", fontSize: '1.6rem', color: '#fff', fontStyle: 'italic' }}>
                     {article.nom[0].toUpperCase()}
                   </span>

@@ -26,7 +26,8 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
     const body = LoginSchema.parse(request.body)
 
     const user = await app.db.user.findFirst({
-      where: { email: body.email, active: true },
+      where:   { email: body.email, active: true },
+      include: { tenant: { select: { name: true } } },
     })
 
     if (!user || !(await bcrypt.compare(body.password, user.passwordHash))) {
@@ -34,21 +35,34 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
     }
 
     const token = app.jwt.sign({
-      tenantId: user.tenantId,
-      userId:   user.id,
-      role:     user.role,
+      sub:        user.id,
+      tenantId:   user.tenantId,
+      userId:     user.id,
+      role:       user.role,
+      email:      user.email,
+      firstName:  user.firstName,
+      lastName:   user.lastName,
+      tenantName: user.tenant.name,
     })
 
     return { token }
   })
 
   app.get('/me', { preHandler: app.authenticate }, async (request) => {
-    const { userId, tenantId } = request.tenant
+    const { userId } = request.tenant
     const user = await app.db.user.findUniqueOrThrow({
-      where: { id: userId },
-      select: { id: true, email: true, firstName: true, lastName: true, role: true, tenantId: true },
+      where:  { id: userId },
+      select: {
+        id: true, email: true, firstName: true, lastName: true, role: true, tenantId: true,
+        tenant: { select: { name: true } },
+      },
     })
-    return user
+    return {
+      id: user.id, email: user.email,
+      firstName: user.firstName, lastName: user.lastName,
+      role: user.role, tenantId: user.tenantId,
+      tenantName: user.tenant.name,
+    }
   })
 
   // Mettre à jour son profil

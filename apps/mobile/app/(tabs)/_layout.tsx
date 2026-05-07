@@ -18,7 +18,7 @@ export default function TabsLayout() {
       headerShown: false,
       tabBarStyle: [tabStyles.bar, { paddingBottom: 8 + insets.bottom, height: 68 + insets.bottom }],
       tabBarShowLabel: true,
-      tabBarActiveTintColor: Colors.ink,
+      tabBarActiveTintColor: Colors.rose,
       tabBarInactiveTintColor: Colors.textSoft,
       tabBarLabelStyle: tabStyles.label,
     }}>
@@ -31,13 +31,19 @@ export default function TabsLayout() {
         tabBarIcon: ({ focused }) => <TabIcon emoji="📖" focused={focused} />,
       }} />
       <Tabs.Screen name="catalogue" options={{
-        title: 'Articles',
-        tabBarIcon: ({ focused }) => <TabIcon emoji="📚" focused={focused} />,
+        title: 'Stock',
+        tabBarIcon: ({ focused }) => <TabIcon emoji="📦" focused={focused} />,
       }} />
-      <Tabs.Screen name="ventes" options={{
-        title: 'Ventes',
-        tabBarIcon: ({ focused }) => <TabIcon emoji="📋" focused={focused} />,
+      <Tabs.Screen name="sessions" options={{
+        title: 'Sessions',
+        tabBarIcon: ({ focused }) => <TabIcon emoji="🏪" focused={focused} />,
       }} />
+      <Tabs.Screen name="bilan" options={{
+        title: 'Bilan',
+        tabBarIcon: ({ focused }) => <TabIcon emoji="📊" focused={focused} />,
+      }} />
+      {/* ventes.tsx conservé pour compatibilité liens, masqué de la tab bar */}
+      <Tabs.Screen name="ventes" options={{ href: null }} />
     </Tabs>
   )
 }

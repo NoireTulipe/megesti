@@ -1,9 +1,12 @@
 import Constants from 'expo-constants'
 
-const DEV_API = 'http://192.168.1.100:3001/api'
+const DEV_HOST = 'http://192.168.1.100:3001'
+
+const host = Constants.expoConfig?.hostUri
+  ? `http://${Constants.expoConfig.hostUri!.split(':')[0]}:3001`
+  : DEV_HOST
 
 export const Config = {
-  apiBaseUrl: Constants.expoConfig?.hostUri
-    ? `http://${Constants.expoConfig.hostUri!.split(':')[0]}:3001/api`
-    : DEV_API,
+  apiBaseUrl:    `${host}/api`,
+  uploadBaseUrl: host,           // base pour les fichiers statiques /uploads/...
 } as const

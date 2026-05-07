@@ -1,5 +1,6 @@
 import { useCallback } from 'react'
 import { View, Text, ScrollView, StyleSheet, RefreshControl } from 'react-native'
+import { useFocusEffect } from 'expo-router'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useLocalVentes, LocalVente } from '@/hooks/useLocalVentes'
@@ -22,6 +23,8 @@ export default function VentesScreen() {
   const insets = useSafeAreaInsets()
   const { session } = useLocalSession()
   const { ventes, stats, loading, refresh } = useLocalVentes(session?.id)
+
+  useFocusEffect(useCallback(() => { refresh() }, [refresh]))
 
   const onRefresh = useCallback(() => { refresh() }, [refresh])
   const grouped = groupByDate(ventes)

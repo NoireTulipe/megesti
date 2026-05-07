@@ -73,6 +73,13 @@ export const Radius = {
   full: 9999,
 } as const
 
+// Gradients prédéfinis (rose→mauve pour caisse, sage pour sessions, gold pour bilan)
+export const Gradients = {
+  caisse:   ['#C4847A', '#8B7BAB'] as [string, string],
+  sessions: ['#6B8F71', '#4A7058'] as [string, string],
+  bilan:    ['#C9933A', '#A07028'] as [string, string],
+}
+
 export const Shadow = {
   card: {
     shadowColor: Colors.text,

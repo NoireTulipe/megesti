@@ -18,6 +18,7 @@ export async function initDb(): Promise<void> {
     `ALTER TABLE articles ADD COLUMN stock_alerte INTEGER NOT NULL DEFAULT 0`,
     `ALTER TABLE articles ADD COLUMN categorie_id TEXT`,
     `ALTER TABLE articles ADD COLUMN categorie_nom TEXT`,
+    `ALTER TABLE articles ADD COLUMN thumb_app_url TEXT`,
   ]) {
     try { await db.execAsync(col) } catch { /* colonne existe déjà */ }
   }
@@ -36,6 +37,7 @@ export async function initDb(): Promise<void> {
       categorie_id TEXT,
       categorie_nom TEXT,
       isbn TEXT,
+      thumb_app_url TEXT,
       actif INTEGER NOT NULL DEFAULT 1
     );
 

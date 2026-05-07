@@ -1,15 +1,19 @@
-import { useState, useEffect, useMemo, useRef } from 'react'
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import {
   View, Text, TouchableOpacity, ScrollView, TextInput,
-  StyleSheet, Modal, FlatList, Switch, useWindowDimensions,
+  StyleSheet, Modal, FlatList, useWindowDimensions,
 } from 'react-native'
+import { Image } from 'expo-image'
+import { GestureDetector, Gesture } from 'react-native-gesture-handler'
+import { router, useFocusEffect } from 'expo-router'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useLocalSession, usePointsDeVente } from '@/hooks/useLocalSession'
 import { useLocalArticles, LocalArticle } from '@/hooks/useLocalArticles'
 import { useLocalVentes } from '@/hooks/useLocalVentes'
 import { useDevStore } from '@/store/devStore'
-import { Colors, Fonts, Radius, Shadow } from '@/constants/theme'
+import { useScannerStore } from '@/store/scannerStore'
+import { Colors, Fonts, Radius, Shadow, Gradients } from '@/constants/theme'
 
 type PaymentMode = 'CB' | 'ESPECES' | 'CHEQUE' | 'VIREMENT' | 'SUMUP' | 'PDV'
 
@@ -22,21 +26,34 @@ interface CartItem {
 }
 
 const PAYMENT_MODES: { mode: PaymentMode; label: string; emoji: string }[] = [
-  { mode: 'CB', label: 'CB', emoji: '💳' },
+  { mode: 'CB',      label: 'CB',      emoji: '💳' },
   { mode: 'ESPECES', label: 'Espèces', emoji: '💶' },
-  { mode: 'CHEQUE', label: 'Chèque', emoji: '📝' },
-  { mode: 'SUMUP', label: 'SumUp', emoji: '📱' },
+  { mode: 'CHEQUE',  label: 'Chèque',  emoji: '📝' },
+  { mode: 'SUMUP',   label: 'SumUp',   emoji: '📱' },
 ]
 
-// Palette rayons (couleur par rayon)
-const RAYON_COLORS: Record<string, string> = {}
-const RAYON_PALETTE = [Colors.ink, Colors.rose, Colors.sage, Colors.gold, Colors.terra, '#6C5CE7', '#0984E3', '#00B894']
-function rayonColor(name: string, index: number) {
-  if (!RAYON_COLORS[name]) RAYON_COLORS[name] = RAYON_PALETTE[index % RAYON_PALETTE.length]
-  return RAYON_COLORS[name]
+// Palette catégories — teintes douces mais distinctes
+const CAT_PALETTE = [
+  '#C4847A', // rose
+  '#8B7BAB', // mauve
+  '#6B8F71', // sage
+  '#C9933A', // gold
+  '#5A8BAF', // bleu ardoise
+  '#AF6B8B', // rose foncé
+  '#5A8B8F', // teal
+  '#AF8B5A', // brun chaud
+]
+
+function catColor(key: string): string {
+  if (!key) return CAT_PALETTE[0]
+  let h = 0
+  for (let i = 0; i < key.length; i++) { h = ((h << 5) - h) + key.charCodeAt(i); h |= 0 }
+  return CAT_PALETTE[Math.abs(h) % CAT_PALETTE.length]
 }
 
-// ── Composant ────────────────────────────────────────────────────────
+const CARD_IMG_H = 96  // hauteur de la zone image/contenu sous la barre accent
+
+// ── Composant principal ──────────────────────────────────────────────
 
 export default function CaisseScreen() {
   const insets = useSafeAreaInsets()
@@ -49,30 +66,46 @@ export default function CaisseScreen() {
   const { createVente } = useLocalVentes(session?.id)
   const addLog = useDevStore(s => s.addLog)
 
-  // Session ouverte ?
   const hasSession = !!session
   const sessionPdv = hasSession ? pdvs.find(p => p.id === session!.point_de_vente_id) : null
   const encaissementDirect = sessionPdv?.encaissementDirect ?? false
 
-  // ── États ──
+  // Récupérer les scans du scanner
+  const scannedItems = useScannerStore(s => s.items)
+  const clearScannedItems = useScannerStore(s => s.clearItems)
+  useFocusEffect(useCallback(() => {
+    if (scannedItems.length > 0 && hasSession) {
+      for (const item of scannedItems) {
+        const article = articles.find(a => a.id === item.articleId)
+        if (article) {
+          setCart(prev => {
+            const existing = prev.find(i => i.articleId === article.id)
+            if (existing) {
+              return prev.map(i => i.articleId === article.id ? { ...i, quantite: i.quantite + 1 } : i)
+            }
+            return [...prev, { id: Date.now().toString() + Math.random(), articleId: article.id, nom: article.nom, prix: article.prix_vente_ht, quantite: 1 }]
+          })
+        }
+      }
+      clearScannedItems()
+    }
+  }, [scannedItems, hasSession, articles]))
+
   const [showSessionModal, setShowSessionModal] = useState(false)
   const [fondCaisse, setFondCaisse] = useState('')
   const [selectedPdvId, setSelectedPdvId] = useState<string | null>(null)
   const [search, setSearch] = useState('')
-  const [selectedRayon, setSelectedRayon] = useState<string | null>(null) // null = Tous
-  const [enabledCats, setEnabledCats] = useState<Set<string>>(new Set()) // catégories affichées (vide = toutes)
+  const [selectedRayon, setSelectedRayon] = useState<string | null>(null)
+  const [enabledCats, setEnabledCats] = useState<Set<string>>(new Set())
 
-  // Panier
   const [cart, setCart] = useState<CartItem[]>([])
   const [showCart, setShowCart] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
   const [selectedPayment, setSelectedPayment] = useState<PaymentMode>('CB')
   const [submitting, setSubmitting] = useState(false)
 
-  // ── Données dérivées ──
   const exposedIds: string[] = session?.articles_exposes ? JSON.parse(session.articles_exposes) : []
 
-  // Rayons disponibles
   const rayons = useMemo(() => {
     const set = new Map<string, number>()
     for (const a of articles) {
@@ -82,7 +115,6 @@ export default function CaisseScreen() {
     return Array.from(set.entries()).map(([nom, count]) => ({ nom, count }))
   }, [articles, exposedIds.join(',')])
 
-  // Catégories filtrées par rayon
   const categories = useMemo(() => {
     const cats = new Map<string, { id: string; nom: string }>()
     for (const a of articles) {
@@ -93,7 +125,6 @@ export default function CaisseScreen() {
     return Array.from(cats.values()).sort((x, y) => x.nom.localeCompare(y.nom))
   }, [articles, exposedIds.join(','), selectedRayon])
 
-  // Produits filtrés
   const filtered = useMemo(() => articles.filter(a => {
     if (exposedIds.length && !exposedIds.includes(a.id)) return false
     if (selectedRayon && a.rayon_nom !== selectedRayon) return false
@@ -103,44 +134,53 @@ export default function CaisseScreen() {
   }), [articles, exposedIds.join(','), selectedRayon, search, enabledCats])
 
   const total = cart.reduce((s, i) => s + i.prix * i.quantite, 0)
-
-  // Ref FlatList pour le swipe entre rayons
   const flatListRef = useRef<FlatList<any>>(null)
 
-  // ── Pull initial des articles ──
-  useEffect(() => {
-    if (hasSession) pullFromServer()
-  }, [hasSession])
+  useEffect(() => { if (hasSession) pullFromServer() }, [hasSession])
 
-  // ── Ouverture session ──
+  // ── Navigation rayons (swipe + flèches) ──
+  function goNextRayon() {
+    if (rayons.length === 0) return
+    if (selectedRayon === null) { setSelectedRayon(rayons[0].nom); return }
+    const idx = rayons.findIndex(r => r.nom === selectedRayon)
+    setSelectedRayon(idx >= rayons.length - 1 ? null : rayons[idx + 1].nom)
+  }
+  function goPrevRayon() {
+    if (rayons.length === 0) return
+    if (selectedRayon === null) { setSelectedRayon(rayons[rayons.length - 1].nom); return }
+    const idx = rayons.findIndex(r => r.nom === selectedRayon)
+    setSelectedRayon(idx <= 0 ? null : rayons[idx - 1].nom)
+  }
+
+  const swipeGesture = Gesture.Pan()
+    .activeOffsetX([-25, 25])
+    .failOffsetY([-10, 10])
+    .runOnJS(true)
+    .onEnd((e) => {
+      if (e.translationX < -50 && e.velocityX < 0) goNextRayon()
+      else if (e.translationX > 50 && e.velocityX > 0) goPrevRayon()
+    })
+
   async function handleOpenSession() {
     if (!selectedPdvId) return
     const pdv = pdvs.find(p => p.id === selectedPdvId)
     if (!pdv) return
     const fond = pdv.encaissementDirect ? 0 : (parseFloat(fondCaisse) || 0)
-
     try {
       const articleIds = await pullFromServer()
       await openSession(selectedPdvId, pdv.nom, fond, articleIds)
-      setShowSessionModal(false)
-      setFondCaisse('')
-      setSelectedPdvId(null)
-    } catch (e: any) {
-      addLog('error', `Erreur ouverture: ${e?.message}`)
-    }
+      setShowSessionModal(false); setFondCaisse(''); setSelectedPdvId(null)
+    } catch (e: any) { addLog('error', `Erreur ouverture: ${e?.message}`) }
   }
 
-  async function handleCloseSession() {
-    closeSession(0)
-  }
+  async function handleCloseSession() { closeSession(0) }
 
-  // ── Panier ──
   function addToCart(article: LocalArticle) {
-    if (article.stock_local <= 0) return // rupture
+    if (article.stock_local <= 0) return
     setCart(prev => {
       const existing = prev.find(i => i.articleId === article.id)
       if (existing) {
-        if (existing.quantite >= article.stock_local) return prev // stock max
+        if (existing.quantite >= article.stock_local) return prev
         return prev.map(i => i.articleId === article.id ? { ...i, quantite: i.quantite + 1 } : i)
       }
       return [...prev, { id: Date.now().toString(), articleId: article.id, nom: article.nom, prix: article.prix_vente_ht, quantite: 1 }]
@@ -157,7 +197,6 @@ export default function CaisseScreen() {
 
   function clearCart() { setCart([]); setShowCart(false) }
 
-  // ── Validation vente ──
   async function handleSale() {
     if (cart.length === 0 || submitting) return
     setSubmitting(true)
@@ -173,21 +212,17 @@ export default function CaisseScreen() {
           prixUnitaireHT: item.prix,
         })),
       })
-      setCart([])
-      setShowCart(false)
-      setShowConfirm(false)
+      setCart([]); setShowCart(false); setShowConfirm(false)
       refreshSession()
       addLog('info', `Vente validée: ${total.toFixed(2)} €`)
     } catch (e: any) {
       addLog('error', `Erreur vente: ${e?.message}`)
-    } finally {
-      setSubmitting(false)
-    }
+    } finally { setSubmitting(false) }
   }
 
-  // ════════════════════════════════════════════════════════════════════
+  // ════════════════════════════════════════════════════════════════
   // RENDU : Session fermée
-  // ════════════════════════════════════════════════════════════════════
+  // ════════════════════════════════════════════════════════════════
   if (!hasSession) {
     return (
       <View style={styles.shell}>
@@ -195,38 +230,33 @@ export default function CaisseScreen() {
         <View style={styles.centerCard}>
           <Text style={styles.emptyEmoji}>📖</Text>
           <Text style={styles.emptyTitle}>Session de caisse</Text>
-          <Text style={styles.emptySub}>
-            Ouvrez une session pour commencer à enregistrer vos ventes.
-          </Text>
+          <Text style={styles.emptySub}>Ouvrez une session pour commencer à enregistrer vos ventes.</Text>
           <TouchableOpacity style={styles.openBtn} activeOpacity={0.85}
             onPress={() => setShowSessionModal(true)}>
-            <LinearGradient colors={[Colors.ink, Colors.inkLight]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+            <LinearGradient colors={Gradients.caisse} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
               style={styles.openBtnBg}>
               <Text style={styles.openBtnText}>Ouvrir une session</Text>
             </LinearGradient>
           </TouchableOpacity>
         </View>
 
-        {/* Modal nouvelle session */}
         <Modal visible={showSessionModal} transparent animationType="fade">
           <TouchableOpacity style={styles.modalOverlay} activeOpacity={1}
             onPress={() => setShowSessionModal(false)}>
             <View style={styles.modalCard} onStartShouldSetResponder={() => true}>
               <Text style={styles.modalTitle}>Nouvelle session</Text>
-
               <Text style={styles.sectionLabel}>Point de vente</Text>
               {pdvsLoading ? (
                 <Text style={styles.hint}>Chargement…</Text>
               ) : pdvsError ? (
-                <Text style={styles.errorHint}>Erreur: {pdvsError}</Text>
+                <Text style={styles.errorHint}>Erreur : {pdvsError}</Text>
               ) : pdvs.length === 0 ? (
                 <Text style={styles.hint}>Aucun point de vente. Créez-en un depuis l'interface web.</Text>
               ) : (
                 pdvs.map(pdv => (
                   <TouchableOpacity key={pdv.id}
                     style={[styles.pdvOption, selectedPdvId === pdv.id && styles.pdvOptionActive]}
-                    onPress={() => setSelectedPdvId(pdv.id)}
-                    activeOpacity={0.7}>
+                    onPress={() => setSelectedPdvId(pdv.id)} activeOpacity={0.7}>
                     <Text style={[styles.pdvOptionText, selectedPdvId === pdv.id && styles.pdvOptionTextActive]}>
                       {pdv.nom}
                     </Text>
@@ -236,7 +266,6 @@ export default function CaisseScreen() {
                   </TouchableOpacity>
                 ))
               )}
-
               {selectedPdvId && !pdvs.find(p => p.id === selectedPdvId)?.encaissementDirect && (
                 <>
                   <Text style={styles.sectionLabel}>Fond de caisse (€)</Text>
@@ -244,7 +273,6 @@ export default function CaisseScreen() {
                     placeholder="0.00" placeholderTextColor={Colors.textSoft} keyboardType="decimal-pad" />
                 </>
               )}
-
               <View style={styles.modalActions}>
                 <TouchableOpacity onPress={() => setShowSessionModal(false)}
                   style={styles.modalBtnCancel} activeOpacity={0.7}>
@@ -252,15 +280,12 @@ export default function CaisseScreen() {
                 </TouchableOpacity>
                 {(() => {
                   const sel = pdvs.find(p => p.id === selectedPdvId)
-                  const needsFond = sel && !sel.encaissementDirect
-                  const canOpen = !!selectedPdvId && (!needsFond || !!fondCaisse)
+                  const canOpen = !!selectedPdvId && (!!sel?.encaissementDirect || !!fondCaisse)
                   return (
-                    <TouchableOpacity
-                      onPress={canOpen ? handleOpenSession : undefined}
-                      activeOpacity={canOpen ? 0.85 : 1}
-                      style={styles.modalBtnConfirm}>
+                    <TouchableOpacity onPress={canOpen ? handleOpenSession : undefined}
+                      activeOpacity={canOpen ? 0.85 : 1} style={styles.modalBtnConfirm}>
                       <LinearGradient
-                        colors={canOpen ? [Colors.ink, Colors.inkLight] : [Colors.textSoft, Colors.textSoft]}
+                        colors={canOpen ? Gradients.caisse : [Colors.textSoft, Colors.textSoft]}
                         start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
                         style={styles.modalBtnConfirmBg}>
                         <Text style={styles.modalBtnConfirmText}>Ouvrir</Text>
@@ -276,9 +301,9 @@ export default function CaisseScreen() {
     )
   }
 
-  // ════════════════════════════════════════════════════════════════════
+  // ════════════════════════════════════════════════════════════════
   // RENDU : Session ouverte
-  // ════════════════════════════════════════════════════════════════════
+  // ════════════════════════════════════════════════════════════════
 
   function toggleCat(id: string) {
     setEnabledCats(prev => {
@@ -292,11 +317,11 @@ export default function CaisseScreen() {
 
   return (
     <View style={styles.shell}>
-      <LinearGradient colors={[Colors.inkFaint, Colors.cream, Colors.cream]} style={styles.bg} />
+      <LinearGradient colors={['#FAF0EC', Colors.cream, Colors.cream]} style={styles.bg} />
 
-      {/* ── Header ── */}
+      {/* ── Header gradient rose→mauve ── */}
       <LinearGradient
-        colors={[Colors.ink, Colors.inkLight]}
+        colors={Gradients.caisse}
         start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
         style={[styles.headerGradient, { paddingTop: 48 + insets.top }]}>
         <View style={styles.headerRow}>
@@ -311,78 +336,65 @@ export default function CaisseScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* ── Recherche ── */}
+        {/* Recherche */}
         <View style={styles.searchRow}>
           <View style={styles.searchWrap}>
             <Text style={styles.searchIcon}>🔍</Text>
             <TextInput style={styles.searchInput} value={search} onChangeText={setSearch}
-              placeholder="Titre, ISBN…" placeholderTextColor="rgba(255,255,255,0.4)" />
+              placeholder="Titre, ISBN…" placeholderTextColor="rgba(255,255,255,0.45)" />
           </View>
         </View>
 
-        {/* ── Rayons (tabs avec flèches) ── */}
-        {rayons.length > 1 && (
-          <View style={styles.rayonRow}>
-            <TouchableOpacity
-              onPress={() => {
-                const prev = rayonIdx <= 0 ? rayons.length - 1 : rayonIdx - 1
-                setSelectedRayon(rayons[prev].nom)
-              }}
-              style={styles.rayonArrow} activeOpacity={0.6}>
-              <Text style={styles.rayonArrowText}>‹</Text>
+        {/* Rayons — toujours présent pour hauteur fixe du header */}
+        <View style={[styles.rayonRow, { opacity: rayons.length > 1 ? 1 : 0 }]}
+          pointerEvents={rayons.length > 1 ? 'auto' : 'none'}>
+          <TouchableOpacity onPress={goPrevRayon} style={styles.rayonArrow} activeOpacity={0.6}>
+            <Text style={styles.rayonArrowText}>‹</Text>
+          </TouchableOpacity>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.rayonTabs}>
+            <TouchableOpacity style={[styles.rayonTab, !selectedRayon && styles.rayonTabActive]}
+              activeOpacity={0.7} onPress={() => setSelectedRayon(null)}>
+              <Text style={[styles.rayonTabText, !selectedRayon && styles.rayonTabTextActive]}>Tous</Text>
             </TouchableOpacity>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.rayonTabs}>
-              <TouchableOpacity
-                style={[styles.rayonTab, !selectedRayon && styles.rayonTabActive]}
-                activeOpacity={0.7}
-                onPress={() => setSelectedRayon(null)}>
-                <Text style={[styles.rayonTabText, !selectedRayon && styles.rayonTabTextActive]}>Tous</Text>
+            {rayons.map(r => (
+              <TouchableOpacity key={r.nom}
+                style={[styles.rayonTab, selectedRayon === r.nom && styles.rayonTabActive]}
+                activeOpacity={0.7} onPress={() => setSelectedRayon(r.nom)}>
+                <Text style={[styles.rayonTabText, selectedRayon === r.nom && styles.rayonTabTextActive]}>{r.nom}</Text>
               </TouchableOpacity>
-              {rayons.map((r, i) => (
-                <TouchableOpacity key={r.nom}
-                  style={[styles.rayonTab, selectedRayon === r.nom && styles.rayonTabActive]}
-                  activeOpacity={0.7}
-                  onPress={() => setSelectedRayon(r.nom)}>
-                  <Text style={[styles.rayonTabText, selectedRayon === r.nom && styles.rayonTabTextActive]}>
-                    {r.nom}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-            <TouchableOpacity
-              onPress={() => {
-                const next = rayonIdx >= rayons.length - 1 ? 0 : rayonIdx + 1
-                setSelectedRayon(rayons[next].nom)
-              }}
-              style={styles.rayonArrow} activeOpacity={0.6}>
-              <Text style={styles.rayonArrowText}>›</Text>
-            </TouchableOpacity>
-          </View>
-        )}
+            ))}
+          </ScrollView>
+          <TouchableOpacity onPress={goNextRayon} style={styles.rayonArrow} activeOpacity={0.6}>
+            <Text style={styles.rayonArrowText}>›</Text>
+          </TouchableOpacity>
+        </View>
       </LinearGradient>
 
-      {/* ── Catégories (switches) ── */}
-      {categories.length > 0 && (
-        <View style={styles.catSwitchRow}>
-          {categories.map(c => (
-            <TouchableOpacity key={c.id} style={styles.catSwitchItem}
-              activeOpacity={0.7}
-              onPress={() => toggleCat(c.id)}>
-              <Switch
-                value={enabledCats.size === 0 || enabledCats.has(c.id)}
-                onValueChange={() => toggleCat(c.id)}
-                trackColor={{ false: Colors.creamDark, true: Colors.inkFaint }}
-                thumbColor={enabledCats.size === 0 || enabledCats.has(c.id) ? Colors.ink : Colors.textSoft}
-                style={styles.catSwitch}
-              />
-              <Text style={styles.catSwitchLabel}>{c.nom}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      )}
+      {/* ── Catégories (chips fixes, hauteur constante) ── */}
+      <View style={styles.catBarFixed}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.catRowContent}>
+          <TouchableOpacity
+            style={[styles.catChip, enabledCats.size === 0 && styles.catChipAll]}
+            onPress={() => setEnabledCats(new Set())} activeOpacity={0.7}>
+            <Text style={[styles.catChipText, enabledCats.size === 0 && styles.catChipTextActive]}>Tous</Text>
+          </TouchableOpacity>
+          {categories.map(c => {
+            const color = catColor(c.id)
+            const active = enabledCats.has(c.id)
+            return (
+              <TouchableOpacity key={c.id}
+                style={[styles.catChip, { borderColor: color }, active && { backgroundColor: color }]}
+                onPress={() => toggleCat(c.id)} activeOpacity={0.7}>
+                <Text style={[styles.catChipText, active && styles.catChipTextActive]}>{c.nom}</Text>
+              </TouchableOpacity>
+            )
+          })}
+        </ScrollView>
+      </View>
 
-      {/* ── Grille produits ── */}
+      {/* ── Grille produits (avec swipe pour changer de rayon) ── */}
+      <GestureDetector gesture={swipeGesture}>
       <FlatList
         ref={flatListRef}
         data={filtered}
@@ -393,33 +405,54 @@ export default function CaisseScreen() {
         columnWrapperStyle={{ gap: 10 }}
         renderItem={({ item: a }) => {
           const rupture = a.stock_local <= 0
-          const stockLow = a.stock_local > 0 && a.stock_local <= 3
-          const accent = rayonColor(a.rayon_nom ?? '', rayons.findIndex(r => r.nom === a.rayon_nom))
+          const stockLow = a.stock_local > 0 && a.stock_local <= (a.stock_alerte || 3)
+          const accent = catColor(a.categorie_id ?? a.rayon_nom ?? a.nom)
           const inCart = cart.find(i => i.articleId === a.id)
           return (
             <TouchableOpacity
-              style={[styles.productCard, rupture && styles.productCardRupture]}
-              activeOpacity={0.75}
+              style={[styles.productCard, inCart && { borderColor: accent, borderWidth: 2 }]}
+              activeOpacity={rupture ? 1 : 0.75}
               onPress={() => addToCart(a)}>
-              <View style={[styles.productAccent, { backgroundColor: accent }]} />
+              {/* Barre accent colorée */}
+              <View style={[styles.productAccentBar, { backgroundColor: accent }]} />
+              {/* Corps : texte gauche + image droite */}
+              <View style={styles.productInner}>
+                <View style={styles.productLeft}>
+                  <Text style={styles.productName} numberOfLines={3}>{a.nom}</Text>
+                  <Text style={[styles.productPrice, { color: accent }]}>
+                    {a.prix_vente_ht.toFixed(2)} €
+                  </Text>
+                  <View style={styles.productStockRow}>
+                    {rupture ? (
+                      <Text style={styles.stockRupture}>Rupture</Text>
+                    ) : stockLow ? (
+                      <Text style={styles.stockLow}>⚠ {a.stock_local} ex.</Text>
+                    ) : (
+                      <Text style={styles.stockOk}>{a.stock_local} ex.</Text>
+                    )}
+                  </View>
+                </View>
+                {a.thumb_app_url ? (
+                  <Image
+                    source={a.thumb_app_url}
+                    style={styles.productThumb}
+                    contentFit="cover"
+                    cachePolicy="memory-disk"
+                  />
+                ) : (
+                  <View style={[styles.productThumbEmpty, { backgroundColor: accent + '18' }]}>
+                    <Text style={styles.productThumbEmoji}>📚</Text>
+                  </View>
+                )}
+              </View>
+              {/* Badge panier */}
               {inCart && (
-                <View style={styles.productCartBadge}>
+                <View style={[styles.productCartBadge, { backgroundColor: accent }]}>
                   <Text style={styles.productCartBadgeText}>{inCart.quantite}</Text>
                 </View>
               )}
-              <View style={styles.productBody}>
-                <Text style={styles.productName} numberOfLines={2}>{a.nom}</Text>
-                <Text style={styles.productPrice}>{a.prix_vente_ht.toFixed(2)} €</Text>
-                <View style={styles.productStockRow}>
-                  {rupture ? (
-                    <Text style={styles.stockRupture}>Rupture</Text>
-                  ) : stockLow ? (
-                    <Text style={styles.stockLow}>⚠ {a.stock_local} ex.</Text>
-                  ) : (
-                    <Text style={styles.stockOk}>{a.stock_local} ex.</Text>
-                  )}
-                </View>
-              </View>
+              {/* Overlay rupture */}
+              {rupture && <View style={styles.productRuptureOverlay} />}
             </TouchableOpacity>
           )
         }}
@@ -430,6 +463,7 @@ export default function CaisseScreen() {
           </View>
         }
       />
+      </GestureDetector>
 
       {/* ── Barre panier ── */}
       {cart.length > 0 && (
@@ -437,7 +471,7 @@ export default function CaisseScreen() {
           style={[styles.cartBar, { bottom: TAB_BAR_H + 8 }]}
           activeOpacity={0.9}
           onPress={() => { setShowCart(true); setShowConfirm(false) }}>
-          <LinearGradient colors={[Colors.ink, Colors.inkLight]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+          <LinearGradient colors={Gradients.caisse} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
             style={styles.cartBarBg}>
             <View style={styles.cartBarBadge}>
               <Text style={styles.cartBarBadgeText}>{cart.length}</Text>
@@ -448,11 +482,9 @@ export default function CaisseScreen() {
         </TouchableOpacity>
       )}
 
-      {/* ── Panier (bottom sheet) ── */}
-      <Modal visible={showCart} transparent animationType="slide"
-        onRequestClose={() => setShowCart(false)}>
-        <TouchableOpacity style={styles.sheetOverlay} activeOpacity={1}
-          onPress={() => setShowCart(false)}>
+      {/* ── Bottom sheet panier ── */}
+      <Modal visible={showCart} transparent animationType="slide" onRequestClose={() => setShowCart(false)}>
+        <TouchableOpacity style={styles.sheetOverlay} activeOpacity={1} onPress={() => setShowCart(false)}>
           <View style={styles.sheet} onStartShouldSetResponder={() => true}>
             <View style={styles.sheetHandle} />
             <View style={styles.sheetHeader}>
@@ -461,7 +493,6 @@ export default function CaisseScreen() {
                 <Text style={styles.sheetClear}>Vider</Text>
               </TouchableOpacity>
             </View>
-
             <ScrollView style={styles.sheetList} showsVerticalScrollIndicator={false}>
               {cart.map(item => (
                 <View key={item.id} style={styles.cartRow}>
@@ -470,13 +501,11 @@ export default function CaisseScreen() {
                     <Text style={styles.cartRowUnit}>{item.prix.toFixed(2)} € / u.</Text>
                   </View>
                   <View style={styles.cartRowQty}>
-                    <TouchableOpacity onPress={() => updateQte(item.id, -1)}
-                      style={styles.qtyBtn} activeOpacity={0.6}>
+                    <TouchableOpacity onPress={() => updateQte(item.id, -1)} style={styles.qtyBtn} activeOpacity={0.6}>
                       <Text style={styles.qtyBtnText}>−</Text>
                     </TouchableOpacity>
                     <Text style={styles.qtyValue}>{item.quantite}</Text>
-                    <TouchableOpacity onPress={() => updateQte(item.id, 1)}
-                      style={styles.qtyBtn} activeOpacity={0.6}>
+                    <TouchableOpacity onPress={() => updateQte(item.id, 1)} style={styles.qtyBtn} activeOpacity={0.6}>
                       <Text style={styles.qtyBtnText}>+</Text>
                     </TouchableOpacity>
                   </View>
@@ -484,15 +513,13 @@ export default function CaisseScreen() {
                 </View>
               ))}
             </ScrollView>
-
             <View style={[styles.sheetFooter, { paddingBottom: insets.bottom + 8 }]}>
               <View style={styles.sheetTotalRow}>
                 <Text style={styles.sheetTotalLabel}>Total</Text>
                 <Text style={styles.sheetTotalValue}>{total.toFixed(2)} €</Text>
               </View>
-              <TouchableOpacity activeOpacity={0.85}
-                onPress={() => setShowConfirm(true)}>
-                <LinearGradient colors={[Colors.sage, '#3A7D63']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+              <TouchableOpacity activeOpacity={0.85} onPress={() => setShowConfirm(true)}>
+                <LinearGradient colors={Gradients.sessions} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
                   style={styles.validateBtn}>
                   <Text style={styles.validateBtnText}>Valider la vente</Text>
                 </LinearGradient>
@@ -502,16 +529,13 @@ export default function CaisseScreen() {
         </TouchableOpacity>
       </Modal>
 
-      {/* ── Confirmation paiement (modale centrée) ── */}
-      <Modal visible={showConfirm} transparent animationType="fade"
-        onRequestClose={() => setShowConfirm(false)}>
+      {/* ── Confirmation paiement ── */}
+      <Modal visible={showConfirm} transparent animationType="fade" onRequestClose={() => setShowConfirm(false)}>
         <View style={styles.confirmOverlay}>
           <View style={styles.confirmCard}>
             <Text style={styles.confirmTitle}>Confirmer la vente</Text>
-
             <Text style={styles.confirmTotal}>{total.toFixed(2)} €</Text>
             <Text style={styles.confirmArticles}>{cart.length} article{cart.length > 1 ? 's' : ''}</Text>
-
             {!encaissementDirect && (
               <>
                 <Text style={styles.confirmSectionLabel}>Mode de paiement</Text>
@@ -519,8 +543,7 @@ export default function CaisseScreen() {
                   {PAYMENT_MODES.map(p => (
                     <TouchableOpacity key={p.mode}
                       style={[styles.confirmPayChip, selectedPayment === p.mode && styles.confirmPayChipActive]}
-                      activeOpacity={0.7}
-                      onPress={() => setSelectedPayment(p.mode)}>
+                      activeOpacity={0.7} onPress={() => setSelectedPayment(p.mode)}>
                       <Text style={styles.confirmPayEmoji}>{p.emoji}</Text>
                       <Text style={[styles.confirmPayLabel, selectedPayment === p.mode && styles.confirmPayLabelActive]}>
                         {p.label}
@@ -530,24 +553,16 @@ export default function CaisseScreen() {
                 </View>
               </>
             )}
-
             <View style={styles.confirmActions}>
-              <TouchableOpacity
-                style={styles.confirmBtnCancel}
-                activeOpacity={0.7}
+              <TouchableOpacity style={styles.confirmBtnCancel} activeOpacity={0.7}
                 onPress={() => setShowConfirm(false)}>
                 <Text style={styles.confirmBtnCancelText}>Retour</Text>
               </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.confirmBtnOk}
-                activeOpacity={0.85}
-                disabled={submitting}
-                onPress={handleSale}>
-                <LinearGradient colors={[Colors.sage, '#3A7D63']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+              <TouchableOpacity style={styles.confirmBtnOk} activeOpacity={0.85}
+                disabled={submitting} onPress={handleSale}>
+                <LinearGradient colors={Gradients.sessions} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
                   style={styles.confirmBtnOkBg}>
-                  <Text style={styles.confirmBtnOkText}>
-                    {submitting ? 'Envoi…' : 'Confirmer'}
-                  </Text>
+                  <Text style={styles.confirmBtnOkText}>{submitting ? 'Envoi…' : 'Confirmer'}</Text>
                 </LinearGradient>
               </TouchableOpacity>
             </View>
@@ -566,25 +581,23 @@ const styles = StyleSheet.create({
   shell: { flex: 1, backgroundColor: Colors.cream },
   bg: { ...StyleSheet.absoluteFillObject },
 
-  // ── Session fermée ──
   centerCard: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 40 },
   emptyEmoji: { fontSize: 56, marginBottom: 16 },
-  emptyTitle: { fontFamily: Fonts.displayItalic, fontSize: 22, color: Colors.ink, fontStyle: 'italic', marginBottom: 8 },
+  emptyTitle: { fontFamily: Fonts.displayItalic, fontSize: 22, color: Colors.rose, fontStyle: 'italic', marginBottom: 8 },
   emptySub: { fontFamily: Fonts.body, fontSize: 14, color: Colors.textSoft, textAlign: 'center', lineHeight: 22, marginBottom: 28 },
   openBtn: { borderRadius: Radius.lg, overflow: 'hidden', width: '100%' },
   openBtnBg: { paddingVertical: 16, alignItems: 'center' },
   openBtnText: { fontFamily: Fonts.body, fontSize: 15, fontWeight: '700', color: Colors.white },
 
-  // Modal session
   modalOverlay: { flex: 1, backgroundColor: Colors.overlay, justifyContent: 'center', alignItems: 'center', padding: 28 },
-  modalCard: { backgroundColor: Colors.white, borderRadius: Radius.xl, padding: 24, width: '100%', maxWidth: 380, ...Shadow.float },
-  modalTitle: { fontFamily: Fonts.displayItalic, fontSize: 20, color: Colors.ink, fontStyle: 'italic', marginBottom: 16 },
+  modalCard: { backgroundColor: Colors.white, borderRadius: Radius.xl, padding: 24, width: '100%', maxWidth: 380, shadowColor: Colors.text, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.10, shadowRadius: 24, elevation: 8 },
+  modalTitle: { fontFamily: Fonts.displayItalic, fontSize: 20, color: Colors.rose, fontStyle: 'italic', marginBottom: 16 },
   sectionLabel: { fontFamily: Fonts.body, fontSize: 11, fontWeight: '700', color: Colors.textSoft, textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 6, marginTop: 14 },
-  modalInput: { fontFamily: Fonts.body, fontSize: 15, color: Colors.text, backgroundColor: Colors.cream, borderRadius: Radius.md, paddingHorizontal: 14, paddingVertical: 12, borderWidth: 1.5, borderColor: 'rgba(36,51,71,0.08)' },
+  modalInput: { fontFamily: Fonts.body, fontSize: 15, color: Colors.text, backgroundColor: Colors.cream, borderRadius: Radius.md, paddingHorizontal: 14, paddingVertical: 12, borderWidth: 1.5, borderColor: 'rgba(196,132,122,0.2)' },
   pdvOption: { padding: 14, borderRadius: Radius.md, backgroundColor: Colors.cream, marginBottom: 6, borderWidth: 2, borderColor: 'transparent' },
-  pdvOptionActive: { borderColor: Colors.ink, backgroundColor: Colors.inkFaint },
+  pdvOptionActive: { borderColor: Colors.rose, backgroundColor: Colors.roseLight },
   pdvOptionText: { fontFamily: Fonts.body, fontSize: 14, fontWeight: '600', color: Colors.textMid },
-  pdvOptionTextActive: { color: Colors.ink },
+  pdvOptionTextActive: { color: Colors.roseDark },
   pdvOptionMeta: { fontFamily: Fonts.body, fontSize: 11, color: Colors.textSoft, marginTop: 2 },
   hint: { fontFamily: Fonts.body, fontSize: 13, color: Colors.textSoft, paddingVertical: 8, fontStyle: 'italic' },
   errorHint: { fontFamily: Fonts.body, fontSize: 13, color: Colors.terra, paddingVertical: 8 },
@@ -595,76 +608,77 @@ const styles = StyleSheet.create({
   modalBtnConfirmBg: { paddingVertical: 14, alignItems: 'center' },
   modalBtnConfirmText: { fontFamily: Fonts.body, fontSize: 14, fontWeight: '700', color: Colors.white },
 
-  // ── Header session ──
   headerGradient: { paddingBottom: 16 },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', paddingHorizontal: 20, marginBottom: 12 },
   headerLeft: { flex: 1 },
   headerPdv: { fontFamily: Fonts.displayItalic, fontSize: 20, color: Colors.white, fontStyle: 'italic' },
-  headerSub: { fontFamily: Fonts.body, fontSize: 12, color: 'rgba(255,255,255,0.6)', marginTop: 3 },
-  closeBtn: { backgroundColor: 'rgba(255,255,255,0.15)', paddingHorizontal: 14, paddingVertical: 8, borderRadius: Radius.full },
+  headerSub: { fontFamily: Fonts.body, fontSize: 12, color: 'rgba(255,255,255,0.65)', marginTop: 3 },
+  closeBtn: { backgroundColor: 'rgba(255,255,255,0.2)', paddingHorizontal: 14, paddingVertical: 8, borderRadius: Radius.full },
   closeBtnText: { fontFamily: Fonts.body, fontSize: 12, fontWeight: '700', color: Colors.white },
 
-  // ── Recherche (sur fond sombre) ──
   searchRow: { flexDirection: 'row', paddingHorizontal: 20, marginBottom: 12 },
-  searchWrap: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.12)', borderRadius: Radius.md, paddingHorizontal: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
+  searchWrap: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: Radius.md, paddingHorizontal: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)' },
   searchIcon: { fontSize: 15, marginRight: 6 },
   searchInput: { flex: 1, fontFamily: Fonts.body, fontSize: 14, color: Colors.white, paddingVertical: 10 },
 
-  // ── Rayons ──
-  rayonRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 0 },
+  rayonRow: { flexDirection: 'row', alignItems: 'center' },
   rayonArrow: { width: 32, alignItems: 'center', justifyContent: 'center', paddingVertical: 4 },
   rayonArrowText: { fontFamily: Fonts.body, fontSize: 24, color: 'rgba(255,255,255,0.5)', fontWeight: '300' },
-  rayonTabs: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 0 },
+  rayonTabs: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 4 },
   rayonTab: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: Radius.full },
-  rayonTabActive: { backgroundColor: 'rgba(255,255,255,0.2)' },
+  rayonTabActive: { backgroundColor: 'rgba(255,255,255,0.22)' },
   rayonTabText: { fontFamily: Fonts.body, fontSize: 13, fontWeight: '600', color: 'rgba(255,255,255,0.55)' },
   rayonTabTextActive: { color: Colors.white },
 
-  // ── Catégories (switches) ──
-  catSwitchRow: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 16, paddingVertical: 8, gap: 4 },
-  catSwitchItem: { flexDirection: 'row', alignItems: 'center', paddingRight: 12, paddingVertical: 2 },
-  catSwitch: { transform: [{ scaleX: 0.7 }, { scaleY: 0.7 }] },
-  catSwitchLabel: { fontFamily: Fonts.body, fontSize: 11, color: Colors.textSoft, marginLeft: -4 },
+  catBarFixed: { height: 48, backgroundColor: Colors.white, borderBottomWidth: 1, borderBottomColor: Colors.cream, justifyContent: 'center' },
+  catRowContent: { paddingHorizontal: 16, paddingVertical: 8, gap: 6, flexDirection: 'row', alignItems: 'center', minHeight: 48 },
+  catChip: { paddingHorizontal: 12, paddingVertical: 5, borderRadius: Radius.full, borderWidth: 1.5, borderColor: Colors.creamDark },
+  catChipAll: { backgroundColor: Colors.text, borderColor: Colors.text },
+  catChipText: { fontFamily: Fonts.body, fontSize: 11, fontWeight: '600', color: Colors.textMid },
+  catChipTextActive: { color: Colors.white },
 
-  // ── Grille produits ──
   productGrid: { paddingHorizontal: 16, gap: 10 },
   productCard: {
     flex: 1, backgroundColor: Colors.white, borderRadius: Radius.lg, overflow: 'hidden',
-    ...Shadow.card, marginBottom: 10, maxWidth: '48%',
+    borderWidth: 2, borderColor: 'transparent',
+    shadowColor: Colors.text, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 8, elevation: 3,
+    marginBottom: 10, maxWidth: '48%',
   },
-  productCardRupture: { opacity: 0.45 },
-  productAccent: { height: 5 },
-  productCartBadge: {
-    position: 'absolute', top: 8, right: 8,
-    backgroundColor: Colors.ink, borderRadius: Radius.full, width: 24, height: 24,
-    justifyContent: 'center', alignItems: 'center',
-  },
-  productCartBadgeText: { fontFamily: Fonts.body, fontSize: 11, fontWeight: '700', color: Colors.white },
-  productBody: { padding: 10 },
-  productName: { fontFamily: Fonts.body, fontSize: 13, fontWeight: '600', color: Colors.text, marginBottom: 4, lineHeight: 18 },
-  productPrice: { fontFamily: Fonts.body, fontSize: 15, fontWeight: '700', color: Colors.ink },
-  productStockRow: { marginTop: 6 },
+  productAccentBar: { height: 5 },
+  productInner: { flexDirection: 'row', height: CARD_IMG_H },
+  productLeft: { flex: 1, padding: 8, justifyContent: 'space-between' },
+  productName: { fontFamily: Fonts.body, fontSize: 12, fontWeight: '600', color: Colors.text, lineHeight: 17 },
+  productPrice: { fontFamily: Fonts.body, fontSize: 14, fontWeight: '800' },
+  productStockRow: { marginTop: 2 },
   stockOk: { fontFamily: Fonts.body, fontSize: 10, color: Colors.sage, fontWeight: '600' },
   stockLow: { fontFamily: Fonts.body, fontSize: 10, color: Colors.gold, fontWeight: '600' },
   stockRupture: { fontFamily: Fonts.body, fontSize: 10, color: Colors.terra, fontWeight: '700' },
+  productThumb: { width: '40%', height: '100%' },
+  productThumbEmpty: { width: '40%', height: '100%', justifyContent: 'center', alignItems: 'center' },
+  productThumbEmoji: { fontSize: 24 },
+  productCartBadge: {
+    position: 'absolute', top: 8, right: 8,
+    borderRadius: Radius.full, width: 22, height: 22,
+    justifyContent: 'center', alignItems: 'center',
+  },
+  productCartBadgeText: { fontFamily: Fonts.body, fontSize: 11, fontWeight: '700', color: Colors.white },
+  productRuptureOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(255,255,255,0.55)' },
   emptyList: { alignItems: 'center', paddingTop: 60 },
   emptyListEmoji: { fontSize: 40, marginBottom: 12 },
   emptyListText: { fontFamily: Fonts.body, fontSize: 14, color: Colors.textSoft },
 
-  // ── Barre panier ──
-  cartBar: { position: 'absolute', left: 16, right: 16, borderRadius: Radius.lg, overflow: 'hidden', ...Shadow.float },
+  cartBar: { position: 'absolute', left: 16, right: 16, borderRadius: Radius.lg, overflow: 'hidden', shadowColor: Colors.text, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.10, shadowRadius: 24, elevation: 8 },
   cartBarBg: { flexDirection: 'row', alignItems: 'center', padding: 14, gap: 10 },
-  cartBarBadge: { backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: Radius.full, width: 26, height: 26, justifyContent: 'center', alignItems: 'center' },
+  cartBarBadge: { backgroundColor: 'rgba(255,255,255,0.22)', borderRadius: Radius.full, width: 26, height: 26, justifyContent: 'center', alignItems: 'center' },
   cartBarBadgeText: { fontFamily: Fonts.body, fontSize: 13, fontWeight: '700', color: Colors.white },
   cartBarLabel: { flex: 1, fontFamily: Fonts.body, fontSize: 14, fontWeight: '600', color: Colors.white },
   cartBarTotal: { fontFamily: Fonts.body, fontSize: 16, fontWeight: '700', color: Colors.white, marginRight: 4 },
 
-  // ── Bottom sheet panier ──
   sheetOverlay: { flex: 1, backgroundColor: Colors.overlay, justifyContent: 'flex-end' },
   sheet: { backgroundColor: Colors.white, borderTopLeftRadius: Radius.xl, borderTopRightRadius: Radius.xl, maxHeight: '85%' },
   sheetHandle: { width: 36, height: 4, backgroundColor: Colors.creamDark, borderRadius: 2, alignSelf: 'center', marginTop: 12, marginBottom: 8 },
   sheetHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingBottom: 12 },
-  sheetTitle: { fontFamily: Fonts.displayItalic, fontSize: 20, color: Colors.ink, fontStyle: 'italic' },
+  sheetTitle: { fontFamily: Fonts.displayItalic, fontSize: 20, color: Colors.rose, fontStyle: 'italic' },
   sheetClear: { fontFamily: Fonts.body, fontSize: 13, fontWeight: '600', color: Colors.terra },
   sheetList: { paddingHorizontal: 20, maxHeight: 340 },
   cartRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: Colors.cream },
@@ -673,29 +687,28 @@ const styles = StyleSheet.create({
   cartRowUnit: { fontFamily: Fonts.body, fontSize: 11, color: Colors.textSoft, marginTop: 2 },
   cartRowQty: { flexDirection: 'row', alignItems: 'center', gap: 8, marginRight: 12 },
   qtyBtn: { width: 30, height: 30, borderRadius: Radius.full, backgroundColor: Colors.cream, justifyContent: 'center', alignItems: 'center' },
-  qtyBtnText: { fontSize: 16, color: Colors.ink, fontWeight: '600' },
+  qtyBtnText: { fontSize: 16, color: Colors.rose, fontWeight: '600' },
   qtyValue: { fontFamily: Fonts.body, fontSize: 15, fontWeight: '700', color: Colors.text, minWidth: 20, textAlign: 'center' },
-  cartRowTotal: { fontFamily: Fonts.body, fontSize: 14, fontWeight: '700', color: Colors.ink, minWidth: 56, textAlign: 'right' },
+  cartRowTotal: { fontFamily: Fonts.body, fontSize: 14, fontWeight: '700', color: Colors.roseDark, minWidth: 56, textAlign: 'right' },
   sheetFooter: { paddingHorizontal: 20, paddingTop: 16 },
   sheetTotalRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 },
   sheetTotalLabel: { fontFamily: Fonts.body, fontSize: 12, fontWeight: '700', color: Colors.textSoft, textTransform: 'uppercase', letterSpacing: 0.6 },
-  sheetTotalValue: { fontFamily: Fonts.displayItalic, fontSize: 28, color: Colors.ink, fontStyle: 'italic' },
+  sheetTotalValue: { fontFamily: Fonts.displayItalic, fontSize: 28, color: Colors.rose, fontStyle: 'italic' },
   validateBtn: { paddingVertical: 16, borderRadius: Radius.md, alignItems: 'center' },
   validateBtnText: { fontFamily: Fonts.body, fontSize: 15, fontWeight: '700', color: Colors.white },
 
-  // ── Confirmation ──
   confirmOverlay: { flex: 1, backgroundColor: 'rgba(36,39,51,0.5)', justifyContent: 'center', alignItems: 'center', padding: 28 },
-  confirmCard: { backgroundColor: Colors.white, borderRadius: Radius.xl, padding: 28, width: '100%', maxWidth: 340, alignItems: 'center', ...Shadow.float },
-  confirmTitle: { fontFamily: Fonts.displayItalic, fontSize: 18, color: Colors.ink, fontStyle: 'italic', marginBottom: 16 },
+  confirmCard: { backgroundColor: Colors.white, borderRadius: Radius.xl, padding: 28, width: '100%', maxWidth: 340, alignItems: 'center', shadowColor: Colors.text, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.10, shadowRadius: 24, elevation: 8 },
+  confirmTitle: { fontFamily: Fonts.displayItalic, fontSize: 18, color: Colors.rose, fontStyle: 'italic', marginBottom: 16 },
   confirmTotal: { fontFamily: Fonts.displayItalic, fontSize: 42, color: Colors.sage, fontStyle: 'italic' },
   confirmArticles: { fontFamily: Fonts.body, fontSize: 13, color: Colors.textSoft, marginBottom: 20 },
   confirmSectionLabel: { fontFamily: Fonts.body, fontSize: 11, fontWeight: '700', color: Colors.textSoft, textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 8, alignSelf: 'flex-start' },
   confirmPayRow: { flexDirection: 'row', gap: 6, marginBottom: 24, alignSelf: 'stretch' },
   confirmPayChip: { flex: 1, alignItems: 'center', padding: 10, borderRadius: Radius.md, backgroundColor: Colors.cream, borderWidth: 2, borderColor: 'transparent' },
-  confirmPayChipActive: { borderColor: Colors.ink, backgroundColor: Colors.inkFaint },
+  confirmPayChipActive: { borderColor: Colors.rose, backgroundColor: Colors.roseLight },
   confirmPayEmoji: { fontSize: 18, marginBottom: 2 },
   confirmPayLabel: { fontFamily: Fonts.body, fontSize: 9, fontWeight: '600', color: Colors.textSoft },
-  confirmPayLabelActive: { color: Colors.ink },
+  confirmPayLabelActive: { color: Colors.roseDark },
   confirmActions: { flexDirection: 'row', gap: 10, alignSelf: 'stretch' },
   confirmBtnCancel: { flex: 1, paddingVertical: 14, alignItems: 'center', borderRadius: Radius.md, backgroundColor: Colors.cream },
   confirmBtnCancelText: { fontFamily: Fonts.body, fontSize: 14, fontWeight: '600', color: Colors.textMid },

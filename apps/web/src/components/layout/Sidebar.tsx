@@ -19,29 +19,18 @@ export function Sidebar({ active, onNav, collapsed, onToggle }: SidebarProps) {
   const user = useAuthStore(s => s.user)
 
   const tenantName = tenant?.name ?? 'Megesti'
-  const tenantInitial = tenantName.charAt(0).toLowerCase()
-  const tenantLogo = tenant?.logo ?? null
 
   return (
     <aside className={`${styles.sidebar} ${collapsed ? styles.collapsed : styles.expanded}`}>
 
       {/* Logo */}
       <div className={styles.logoArea}>
-        <div className={styles.logoIcon}>
-          {tenantLogo ? (
-            <img src={tenantLogo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 14 }} />
-          ) : (
-            <span style={{ color: 'white', fontSize: 17, fontFamily: 'DM Serif Display', fontStyle: 'italic', lineHeight: 1 }}>
-              {tenantInitial}
-            </span>
-          )}
-        </div>
-        <div className={`${styles.logoText} ${v(styles.logoTextVisible, styles.logoTextHidden)}`}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: 'white', letterSpacing: '-0.01em' }}>{tenantName}</div>
-          <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.45)', fontWeight: 500, marginTop: 1 }}>
-            Édition & gestion
-          </div>
-        </div>
+        <img
+          src="/img/logo-MeGesti.png"
+          alt="Megesti"
+          className={`${styles.logoImg} ${collapsed ? styles.logoImgCollapsed : styles.logoImgExpanded}`}
+        />
+        
       </div>
 
       {/* Nav */}

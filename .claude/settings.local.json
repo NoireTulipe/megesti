@@ -20,7 +20,17 @@
       "PowerShell(New-NetFirewallRule *)",
       "Bash(Select-Object -First 40)",
       "Bash(Select-Object FullName, Mode)",
-      "Bash(Format-Table -AutoSize -Wrap)"
+      "Bash(Format-Table -AutoSize -Wrap)",
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(Sort-Object)",
+      "Bash(Select-Object -First 50)",
+      "Bash(Format-Table FullName, PSIsContainer)",
+      "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\DCFM\\\\Documents\\\\Bobo\\\\Eva_Project\\\\Eva2\\\\mobile\" -Recurse | Select-Object -First 100 FullName | ForEach-Object { $_.FullName })",
+      "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\DCFM\\\\Documents\\\\Bobo\\\\Eva_Project\\\\Eva2\\\\mobile\\\\src\" -Recurse | Where-Object { $_.Extension -in '.tsx', '.ts', '.jsx', '.js' } | Select-Object FullName)",
+      "Bash(Select-Object FullName, Length, LastWriteTime)",
+      "Bash(pnpm add *)",
+      "Bash(pnpm typecheck *)",
+      "Bash(Select-Object Name)"
     ]
   }
 }

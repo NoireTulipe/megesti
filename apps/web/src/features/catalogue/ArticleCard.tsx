@@ -1,3 +1,4 @@
+import { getImageUrl } from '@/lib/api'
 import styles from './ArticleCard.module.css'
 import type { Article } from './types'
 
@@ -31,7 +32,7 @@ export function ArticleCard({ article, onEdit, onToggle, onClick }: Props) {
       {/* Zone image */}
       <div className={styles.imgWrap}>
         {article.imageUrl
-          ? <img src={article.imageUrl} alt={article.nom} className={styles.img} />
+          ? <img src={getImageUrl(article.imageUrl)!} alt={article.nom} className={styles.img} />
           : (
             <div className={styles.imgPlaceholder}>
               <span className={styles.placeholderLetter}>{article.nom[0]?.toUpperCase()}</span>

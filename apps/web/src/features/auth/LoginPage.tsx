@@ -31,9 +31,7 @@ export function LoginPage() {
 
       {/* ── Panneau visuel gauche ── */}
       <div className={styles.visual}>
-        <div className={styles.visualLogo}>
-          <span style={{ color: 'white', fontSize: 22, fontFamily: 'DM Serif Display', fontStyle: 'italic' }}>é</span>
-        </div>
+        <img src="/img/logo-MeGesti.png" alt="Megesti" className={styles.visualLogo} />
         <h2 className={styles.visualTitle}>
           L'atelier<br />de l'éditeur
         </h2>
@@ -48,10 +46,8 @@ export function LoginPage() {
         <div className={styles.card}>
 
           <div className={styles.brandSmall}>
-            <div className={styles.brandIcon}>
-              <span style={{ color: 'white', fontSize: 14, fontFamily: 'DM Serif Display', fontStyle: 'italic' }}>é</span>
-            </div>
-            <span className={styles.brandName}>Megesti</span>
+            <img src="/img/logo-MeGesti-sans-texte.png" alt="Megesti" className={styles.brandIconImg} />
+            <span className={styles.brandName}>MeGesti</span>
           </div>
 
           <h1 className={styles.title}>Bon retour.</h1>

@@ -1,5 +1,14 @@
 const BASE = import.meta.env['VITE_API_URL'] ?? 'http://localhost:3001/api'
 
+/** Résout une URL d'image (relative → absolue via le serveur API, absolue → telle quelle) */
+export function getImageUrl(imageUrl: string | null): string | null {
+  if (!imageUrl) return null
+  if (imageUrl.startsWith('http')) return imageUrl
+  // Chemin relatif → préfixer avec l'URL racine du serveur (sans /api)
+  const root = BASE.replace(/\/api$/, '')
+  return `${root}${imageUrl}`
+}
+
 function getToken(): string | null {
   return localStorage.getItem('megesti_token')
 }

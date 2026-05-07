@@ -2,6 +2,10 @@ import Fastify from 'fastify'
 import cors from '@fastify/cors'
 import jwt from '@fastify/jwt'
 import sensible from '@fastify/sensible'
+import multipart from '@fastify/multipart'
+import staticPlugin from '@fastify/static'
+import path from 'node:path'
+import { mkdir } from 'node:fs/promises'
 
 import { prismaPlugin }    from './plugins/prisma.js'
 import { redisPlugin }     from './plugins/redis.js'
@@ -31,14 +35,28 @@ export async function buildServer() {
     secret: process.env['JWT_SECRET'] ?? (() => { throw new Error('JWT_SECRET manquant') })(),
   })
 
+  // Multipart (upload d'images) — 10 Mo max
+  await app.register(multipart, {
+    limits: { fileSize: 10 * 1024 * 1024 },
+  })
+
+  // Fichiers statiques (thumbnails) servis depuis /uploads
+  const uploadsDir = process.env['UPLOAD_DIR'] ?? path.join(process.cwd(), 'uploads')
+  await mkdir(uploadsDir, { recursive: true })
+  await app.register(staticPlugin, {
+    root:   uploadsDir,
+    prefix: '/uploads',
+    decorateReply: false,
+  })
+
   await app.register(sensible)
   await app.register(prismaPlugin)
   await app.register(redisPlugin)
   await app.register(queuePlugin)
   await app.register(tenantPlugin)
   await app.register(adminAuthPlugin)
-  await app.register(routes,       { prefix: '/api' })
-  await app.register(adminRoutes,  { prefix: '/admin' })
+  await app.register(routes,      { prefix: '/api' })
+  await app.register(adminRoutes, { prefix: '/admin' })
 
   return app
 }

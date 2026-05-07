@@ -39,9 +39,27 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   return res.json()
 }
 
+async function uploadFile<T>(path: string, formData: FormData): Promise<T> {
+  const token = getToken()
+  const res = await fetch(`${Config.apiBaseUrl}${path}`, {
+    method: 'POST',
+    headers: {
+      // Pas de Content-Type ici — fetch le génère avec le boundary multipart
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: formData,
+  })
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({ message: res.statusText }))
+    throw new ApiError(res.status, body.message ?? 'Erreur serveur')
+  }
+  return res.json()
+}
+
 export const api = {
   get:    <T>(path: string) => request<T>(path),
   post:   <T>(path: string, body?: unknown) => request<T>(path, { method: 'POST', body: body ? JSON.stringify(body) : undefined }),
   patch:  <T>(path: string, body?: unknown) => request<T>(path, { method: 'PATCH', body: body ? JSON.stringify(body) : undefined }),
   delete: <T>(path: string) => request<T>(path, { method: 'DELETE' }),
+  upload: <T>(path: string, formData: FormData) => uploadFile<T>(path, formData),
 }

@@ -1,25 +1,31 @@
 import { useState, useEffect, useCallback } from 'react'
-import { View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet, RefreshControl } from 'react-native'
+import {
+  View, Text, TouchableOpacity, TextInput, ScrollView,
+  StyleSheet, RefreshControl, Modal, Alert, ActivityIndicator,
+} from 'react-native'
+import { useFocusEffect, router } from 'expo-router'
+import { BarcodeIcon } from '@/components/BarcodeIcon'
+import { Image } from 'expo-image'
+import * as ImagePicker from 'expo-image-picker'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { useLocalArticles } from '@/hooks/useLocalArticles'
+import { useLocalArticles, LocalArticle } from '@/hooks/useLocalArticles'
 import { useLocalSession } from '@/hooks/useLocalSession'
-import { Colors, Fonts, Radius, Shadow } from '@/constants/theme'
+import { Colors, Fonts, Radius, Shadow, Gradients } from '@/constants/theme'
 
-export default function CatalogueScreen() {
+export default function StockScreen() {
   const insets = useSafeAreaInsets()
   const [search, setSearch] = useState('')
   const [selected, setSelected] = useState<string | null>(null)
   const [editingStock, setEditingStock] = useState<string | null>(null)
   const [stockValue, setStockValue] = useState('')
-  const { articles, pullFromServer, updateStock } = useLocalArticles()
+  const [photoSheet, setPhotoSheet] = useState<LocalArticle | null>(null)
+  const [uploading, setUploading] = useState(false)
+  const { articles, pullFromServer, updateStock, uploadImage } = useLocalArticles()
   const { session } = useLocalSession()
   const [refreshing, setRefreshing] = useState(false)
 
-  // Pull initial depuis le serveur
-  useEffect(() => {
-    pullFromServer()
-  }, [])
+  useFocusEffect(useCallback(() => { pullFromServer() }, [pullFromServer]))
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true)
@@ -28,65 +34,134 @@ export default function CatalogueScreen() {
   }, [pullFromServer])
 
   const exposedIds: string[] = session?.articles_exposes ? JSON.parse(session.articles_exposes) : []
-
   const displayed = articles.filter(a =>
     (exposedIds.length === 0 || exposedIds.includes(a.id)) &&
-    (a.nom.toLowerCase().includes(search.toLowerCase()) ||
-     (a.isbn ?? '').includes(search)))
+    (a.nom.toLowerCase().includes(search.toLowerCase()) || (a.isbn ?? '').includes(search))
+  )
 
   async function handleStockSubmit(articleId: string) {
     const val = parseInt(stockValue, 10)
-    if (!isNaN(val) && val >= 0) {
-      await updateStock(articleId, val)
-    }
+    if (!isNaN(val) && val >= 0) await updateStock(articleId, val)
     setEditingStock(null)
+  }
+
+  async function pickImage(source: 'camera' | 'gallery', article: LocalArticle) {
+    setPhotoSheet(null)
+    setUploading(true)
+    try {
+      let result: ImagePicker.ImagePickerResult
+      if (source === 'camera') {
+        const perm = await ImagePicker.requestCameraPermissionsAsync()
+        if (!perm.granted) {
+          Alert.alert('Permission refusée', 'Autorisez l\'accès à la caméra dans les paramètres.')
+          setUploading(false)
+          return
+        }
+        result = await ImagePicker.launchCameraAsync({
+          mediaTypes: ['images'],
+          quality: 0.8,
+          allowsEditing: true,
+          aspect: [3, 4],
+        })
+      } else {
+        result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ['images'],
+          quality: 0.8,
+          allowsEditing: true,
+          aspect: [3, 4],
+        })
+      }
+      if (!result.canceled && result.assets[0]) {
+        await uploadImage(article.id, result.assets[0].uri)
+      }
+    } finally {
+      setUploading(false)
+    }
   }
 
   return (
     <View style={styles.shell}>
       <LinearGradient colors={[Colors.sageLight, Colors.cream]} style={styles.bg} />
 
-      <View style={styles.header}>
-        <Text style={styles.title}>Articles exposés</Text>
+      {/* En-tête */}
+      <View style={[styles.header, { paddingTop: 48 + insets.top }]}>
+        <Text style={styles.title}>Stock</Text>
         <Text style={styles.subtitle}>{displayed.length} articles</Text>
       </View>
 
+      {/* Recherche */}
       <View style={styles.searchWrap}>
         <Text style={styles.searchIcon}>🔍</Text>
         <TextInput style={styles.searchInput} value={search} onChangeText={setSearch}
-          placeholder="Rechercher par titre ou ISBN…" placeholderTextColor={Colors.textSoft} />
+          placeholder="Titre ou ISBN…" placeholderTextColor={Colors.textSoft} />
       </View>
 
-      <ScrollView contentContainerStyle={[styles.list, { paddingBottom: 120 + insets.bottom }]} showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.sage} />
-        }
-      >
+      <ScrollView
+        contentContainerStyle={[styles.list, { paddingBottom: 120 + insets.bottom }]}
+        showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.sage} />}>
+
         {displayed.length === 0 && !refreshing ? (
           <View style={styles.empty}>
-            <Text style={styles.emptyEmoji}>📚</Text>
-            <Text style={styles.emptyText}>Aucun article exposé</Text>
-            <Text style={styles.emptySub}>Ouvrez une session de caisse et sélectionnez vos articles.</Text>
+            <Text style={styles.emptyEmoji}>📦</Text>
+            <Text style={styles.emptyText}>Aucun article</Text>
+            <Text style={styles.emptySub}>Ouvrez une session ou synchronisez le stock depuis l'interface web.</Text>
           </View>
         ) : (
           displayed.map(a => (
             <TouchableOpacity key={a.id} style={styles.card} activeOpacity={0.7}
               onPress={() => setSelected(selected === a.id ? null : a.id)}>
-              <View style={styles.cardImg}>
-                <Text style={styles.cardImgEmoji}>📚</Text>
-              </View>
+
+              {/* Thumbnail ou placeholder */}
+              <TouchableOpacity
+                style={styles.cardImg}
+                activeOpacity={0.8}
+                onPress={(e) => { e.stopPropagation(); setPhotoSheet(a) }}>
+                {a.thumb_app_url ? (
+                  <Image
+                    source={a.thumb_app_url}
+                    style={styles.cardImgPhoto}
+                    contentFit="cover"
+                    cachePolicy="memory-disk"
+                  />
+                ) : (
+                  <View style={styles.cardImgEmpty}>
+                    <Text style={styles.cardImgEmoji}>📚</Text>
+                  </View>
+                )}
+                <View style={styles.cardImgCameraBadge}>
+                  <Text style={styles.cardImgCameraIcon}>📷</Text>
+                </View>
+              </TouchableOpacity>
+
+              {/* Infos article */}
               <View style={styles.cardBody}>
-                <Text style={styles.cardTitle}>{a.nom}</Text>
-                <Text style={styles.cardAuthor}>{a.rayon_nom ?? 'Sans rayon'}</Text>
+                <Text style={styles.cardTitle} numberOfLines={2}>{a.nom}</Text>
+                <Text style={styles.cardMeta}>{a.rayon_nom ?? 'Sans rayon'}{a.categorie_nom ? ` · ${a.categorie_nom}` : ''}</Text>
+
                 {selected === a.id && (
                   <View style={styles.cardDetail}>
-                    {a.isbn && <Text style={styles.detailRow}>ISBN : {a.isbn}</Text>}
-                    <Text style={styles.detailRow}>Stock : {a.stock_local} exemplaires</Text>
+                    <View style={styles.isbnRow}>
+                      <Text style={styles.detailRow}>
+                        ISBN : {a.isbn || 'Non renseigné'}
+                      </Text>
+                      <TouchableOpacity
+                        style={styles.isbnScanBtn}
+                        activeOpacity={0.7}
+                        onPress={(e) => {
+                          e.stopPropagation()
+                          router.push(`/scanner?mode=attribution&articleId=${a.id}`)
+                        }}>
+                        <BarcodeIcon size={14} color={Colors.textSoft} />
+                      </TouchableOpacity>
+                    </View>
                     <Text style={styles.detailRow}>Prix : {a.prix_vente_ht.toFixed(2)} €</Text>
                     <Text style={styles.detailRow}>TVA : {a.taux_tva}%</Text>
                   </View>
                 )}
               </View>
+
+              {/* Stock éditable */}
               <View style={styles.cardRight}>
                 <Text style={styles.cardPrice}>{a.prix_vente_ht.toFixed(2)} €</Text>
                 {editingStock === a.id ? (
@@ -102,9 +177,15 @@ export default function CatalogueScreen() {
                   />
                 ) : (
                   <TouchableOpacity
-                    style={[styles.stockBadge, a.stock_local <= 3 && styles.stockBadgeLow]}
+                    style={[
+                      styles.stockBadge,
+                      a.stock_local <= 0 ? styles.stockBadgeRupture : a.stock_local <= (a.stock_alerte || 3) ? styles.stockBadgeLow : styles.stockBadgeOk,
+                    ]}
                     onPress={() => { setEditingStock(a.id); setStockValue(String(a.stock_local)) }}>
-                    <Text style={[styles.stockBadgeText, a.stock_local <= 3 && styles.stockBadgeTextLow]}>
+                    <Text style={[
+                      styles.stockBadgeText,
+                      a.stock_local <= 0 ? styles.stockBadgeTextRupture : a.stock_local <= (a.stock_alerte || 3) ? styles.stockBadgeTextLow : styles.stockBadgeTextOk,
+                    ]}>
                       {a.stock_local}
                     </Text>
                   </TouchableOpacity>
@@ -114,6 +195,61 @@ export default function CatalogueScreen() {
           ))
         )}
       </ScrollView>
+
+      {/* Indicateur upload */}
+      {uploading && (
+        <View style={styles.uploadOverlay}>
+          <View style={styles.uploadCard}>
+            <ActivityIndicator color={Colors.rose} size="large" />
+            <Text style={styles.uploadText}>Envoi de la photo…</Text>
+          </View>
+        </View>
+      )}
+
+      {/* Sheet choix photo */}
+      <Modal visible={!!photoSheet} transparent animationType="slide" onRequestClose={() => setPhotoSheet(null)}>
+        <TouchableOpacity style={styles.sheetOverlay} activeOpacity={1} onPress={() => setPhotoSheet(null)}>
+          <View style={styles.sheet} onStartShouldSetResponder={() => true}>
+            <View style={styles.sheetHandle} />
+            <View style={styles.sheetHeader}>
+              <Text style={styles.sheetTitle}>Photo</Text>
+              <Text style={styles.sheetSubtitle} numberOfLines={1}>{photoSheet?.nom}</Text>
+            </View>
+
+            {/* Preview de la photo actuelle */}
+            <View style={styles.sheetPreview}>
+              {photoSheet?.thumb_app_url ? (
+                <Image source={photoSheet.thumb_app_url} style={styles.sheetPreviewImg}
+                  contentFit="cover" cachePolicy="memory-disk" />
+              ) : (
+                <View style={styles.sheetPreviewEmpty}>
+                  <Text style={styles.sheetPreviewEmoji}>📷</Text>
+                  <Text style={styles.sheetPreviewHint}>Aucune photo</Text>
+                </View>
+              )}
+            </View>
+
+            <View style={styles.sheetActions}>
+              <TouchableOpacity style={styles.sheetBtn} activeOpacity={0.8}
+                onPress={() => photoSheet && pickImage('camera', photoSheet)}>
+                <LinearGradient colors={Gradients.caisse} style={styles.sheetBtnBg} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
+                  <Text style={styles.sheetBtnEmoji}>📷</Text>
+                  <Text style={styles.sheetBtnText}>Prendre une photo</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.sheetBtn} activeOpacity={0.8}
+                onPress={() => photoSheet && pickImage('gallery', photoSheet)}>
+                <View style={styles.sheetBtnSecondary}>
+                  <Text style={styles.sheetBtnEmoji}>🖼</Text>
+                  <Text style={styles.sheetBtnTextSecondary}>Choisir dans la galerie</Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+
+            <View style={{ height: insets.bottom + 16 }} />
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </View>
   )
 }
@@ -121,38 +257,84 @@ export default function CatalogueScreen() {
 const styles = StyleSheet.create({
   shell: { flex: 1, backgroundColor: Colors.cream },
   bg: { ...StyleSheet.absoluteFillObject },
-  header: { paddingHorizontal: 20, paddingTop: 60, paddingBottom: 8 },
-  title: { fontFamily: Fonts.displayItalic, fontSize: 26, color: Colors.ink, fontStyle: 'italic' },
+  header: { paddingHorizontal: 20, paddingBottom: 8 },
+  title: { fontFamily: Fonts.displayItalic, fontSize: 26, color: Colors.sage, fontStyle: 'italic' },
   subtitle: { fontFamily: Fonts.body, fontSize: 13, color: Colors.textSoft, marginTop: 4 },
-  searchWrap: { flexDirection: 'row', alignItems: 'center', marginHorizontal: 20, marginBottom: 16, backgroundColor: Colors.white, borderRadius: Radius.md, paddingHorizontal: 12, borderWidth: 1.5, borderColor: 'rgba(36,51,71,0.06)' },
+
+  searchWrap: { flexDirection: 'row', alignItems: 'center', marginHorizontal: 20, marginBottom: 16, backgroundColor: Colors.white, borderRadius: Radius.md, paddingHorizontal: 12, borderWidth: 1.5, borderColor: 'rgba(107,143,113,0.15)' },
   searchIcon: { fontSize: 16, marginRight: 8 },
   searchInput: { flex: 1, fontFamily: Fonts.body, fontSize: 14, color: Colors.text, paddingVertical: 12 },
   list: { paddingHorizontal: 20 },
+
   empty: { alignItems: 'center', paddingTop: 80 },
   emptyEmoji: { fontSize: 48, marginBottom: 16 },
   emptyText: { fontFamily: Fonts.displayItalic, fontSize: 18, color: Colors.textMid, fontStyle: 'italic' },
   emptySub: { fontFamily: Fonts.body, fontSize: 13, color: Colors.textSoft, textAlign: 'center', marginTop: 6, lineHeight: 20 },
-  card: {
-    flexDirection: 'row', backgroundColor: Colors.white, borderRadius: Radius.lg, padding: 14,
-    marginBottom: 8, ...Shadow.card, alignItems: 'center',
-  },
-  cardImg: { width: 52, height: 70, backgroundColor: Colors.cream, borderRadius: Radius.sm, justifyContent: 'center', alignItems: 'center', marginRight: 14 },
+
+  card: { flexDirection: 'row', backgroundColor: Colors.white, borderRadius: Radius.lg, padding: 12, marginBottom: 8, ...Shadow.card, alignItems: 'center' },
+
+  cardImg: { width: 52, height: 70, borderRadius: Radius.sm, marginRight: 12, overflow: 'visible' },
+  cardImgPhoto: { width: 52, height: 70, borderRadius: Radius.sm },
+  cardImgEmpty: { width: 52, height: 70, borderRadius: Radius.sm, backgroundColor: Colors.creamMid, justifyContent: 'center', alignItems: 'center' },
   cardImgEmoji: { fontSize: 24 },
+  cardImgCameraBadge: {
+    position: 'absolute', bottom: -4, right: -4,
+    backgroundColor: Colors.rose, borderRadius: Radius.full, width: 20, height: 20,
+    justifyContent: 'center', alignItems: 'center',
+    borderWidth: 1.5, borderColor: Colors.white,
+  },
+  cardImgCameraIcon: { fontSize: 10 },
+
   cardBody: { flex: 1 },
   cardTitle: { fontFamily: Fonts.body, fontSize: 14, fontWeight: '600', color: Colors.text },
-  cardAuthor: { fontFamily: Fonts.body, fontSize: 12, color: Colors.textSoft, marginTop: 2 },
-  cardDetail: { marginTop: 10, paddingTop: 10, borderTopWidth: 1, borderTopColor: Colors.cream },
+  cardMeta: { fontFamily: Fonts.body, fontSize: 11, color: Colors.textSoft, marginTop: 3 },
+  cardDetail: { marginTop: 8, paddingTop: 8, borderTopWidth: 1, borderTopColor: Colors.cream },
   detailRow: { fontFamily: Fonts.body, fontSize: 11, color: Colors.textMid, marginBottom: 3 },
-  cardRight: { alignItems: 'flex-end', marginLeft: 12 },
-  cardPrice: { fontFamily: Fonts.body, fontSize: 15, fontWeight: '700', color: Colors.ink },
-  stockBadge: { marginTop: 6, paddingHorizontal: 8, paddingVertical: 3, borderRadius: Radius.full, backgroundColor: Colors.sageLight },
-  stockBadgeLow: { backgroundColor: Colors.terraLight },
-  stockBadgeText: { fontFamily: Fonts.body, fontSize: 10, fontWeight: '700', color: Colors.sage },
-  stockBadgeTextLow: { color: Colors.terra },
+  isbnRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  isbnScanBtn: {
+    width: 28, height: 28, borderRadius: Radius.sm,
+    backgroundColor: Colors.cream, justifyContent: 'center', alignItems: 'center',
+    marginBottom: 3, marginLeft: 8,
+  },
+  isbnScanIcon: { fontSize: 14 },
+
+  cardRight: { alignItems: 'flex-end', marginLeft: 10 },
+  cardPrice: { fontFamily: Fonts.body, fontSize: 14, fontWeight: '700', color: Colors.sage },
+  stockBadge: { marginTop: 6, paddingHorizontal: 10, paddingVertical: 4, borderRadius: Radius.full, minWidth: 36, alignItems: 'center' },
+  stockBadgeOk: { backgroundColor: Colors.sageLight },
+  stockBadgeLow: { backgroundColor: Colors.goldLight },
+  stockBadgeRupture: { backgroundColor: Colors.terraLight },
+  stockBadgeText: { fontFamily: Fonts.body, fontSize: 11, fontWeight: '700' },
+  stockBadgeTextOk: { color: Colors.sage },
+  stockBadgeTextLow: { color: Colors.gold },
+  stockBadgeTextRupture: { color: Colors.terra },
   stockInput: {
-    marginTop: 6, width: 48, height: 28, borderRadius: Radius.full,
-    backgroundColor: Colors.cream, borderWidth: 1.5, borderColor: Colors.ink,
-    fontFamily: Fonts.body, fontSize: 10, fontWeight: '700', color: Colors.ink,
+    marginTop: 6, width: 48, height: 30, borderRadius: Radius.full,
+    backgroundColor: Colors.cream, borderWidth: 1.5, borderColor: Colors.sage,
+    fontFamily: Fonts.body, fontSize: 11, fontWeight: '700', color: Colors.sage,
     textAlign: 'center', paddingVertical: 0, paddingHorizontal: 4,
   },
+
+  uploadOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(255,255,255,0.8)', justifyContent: 'center', alignItems: 'center' },
+  uploadCard: { backgroundColor: Colors.white, borderRadius: Radius.xl, padding: 28, alignItems: 'center', gap: 16, ...Shadow.float },
+  uploadText: { fontFamily: Fonts.body, fontSize: 14, color: Colors.textMid },
+
+  sheetOverlay: { flex: 1, backgroundColor: Colors.overlay, justifyContent: 'flex-end' },
+  sheet: { backgroundColor: Colors.white, borderTopLeftRadius: Radius.xl, borderTopRightRadius: Radius.xl },
+  sheetHandle: { width: 36, height: 4, backgroundColor: Colors.creamDark, borderRadius: 2, alignSelf: 'center', marginTop: 12, marginBottom: 8 },
+  sheetHeader: { paddingHorizontal: 20, paddingBottom: 16 },
+  sheetTitle: { fontFamily: Fonts.displayItalic, fontSize: 22, color: Colors.rose, fontStyle: 'italic' },
+  sheetSubtitle: { fontFamily: Fonts.body, fontSize: 13, color: Colors.textSoft, marginTop: 2 },
+  sheetPreview: { marginHorizontal: 20, marginBottom: 20, height: 180, borderRadius: Radius.lg, overflow: 'hidden', backgroundColor: Colors.creamMid },
+  sheetPreviewImg: { width: '100%', height: '100%' },
+  sheetPreviewEmpty: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 8 },
+  sheetPreviewEmoji: { fontSize: 40 },
+  sheetPreviewHint: { fontFamily: Fonts.body, fontSize: 13, color: Colors.textSoft },
+  sheetActions: { paddingHorizontal: 20, gap: 10 },
+  sheetBtn: { borderRadius: Radius.md, overflow: 'hidden' },
+  sheetBtnBg: { flexDirection: 'row', alignItems: 'center', paddingVertical: 16, paddingHorizontal: 20, gap: 10 },
+  sheetBtnSecondary: { flexDirection: 'row', alignItems: 'center', paddingVertical: 16, paddingHorizontal: 20, gap: 10, backgroundColor: Colors.cream, borderRadius: Radius.md },
+  sheetBtnEmoji: { fontSize: 20 },
+  sheetBtnText: { fontFamily: Fonts.body, fontSize: 15, fontWeight: '700', color: Colors.white },
+  sheetBtnTextSecondary: { fontFamily: Fonts.body, fontSize: 15, fontWeight: '600', color: Colors.textMid },
 })
