@@ -31,7 +31,7 @@ export const categorieRoutes: FastifyPluginAsync = async (app) => {
     const body = CreateCategorieSchema.parse(request.body)
     const rayon = await app.db.rayon.findFirst({ where: { id: body.rayonId, tenantId } })
     if (!rayon) return reply.notFound()
-    const categorie = await app.db.categorie.create({ data: { ...body, tenantId } })
+    const categorie = await app.db.categorie.create({ data: { ...body, tenantId } as any })
     return reply.status(201).send(categorie)
   })
 

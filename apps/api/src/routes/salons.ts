@@ -96,8 +96,8 @@ export const salonRoutes: FastifyPluginAsync = async (app) => {
           dateFin:       dateFin       ? new Date(dateFin)   : undefined,
           prixPrevuFixe: prixPrevuFixe ?? null,
           prixPrevuPct:  prixPrevuPct  ?? null,
-          contacts: contacts?.length ? { create: contacts } : undefined,
-        },
+          contacts: contacts?.length ? { create: contacts as any[] } : undefined,
+        } as any,
         include,
       })
       if (creerPointDeVente) {
@@ -119,7 +119,7 @@ export const salonRoutes: FastifyPluginAsync = async (app) => {
     return app.db.$transaction(async (tx) => {
       if (contacts !== undefined) {
         await tx.contactSalon.deleteMany({ where: { salonId: id } })
-        if (contacts.length > 0) await tx.contactSalon.createMany({ data: contacts.map((c) => ({ ...c, salonId: id })) })
+        if (contacts.length > 0) await tx.contactSalon.createMany({ data: contacts.map((c) => ({ ...c, salonId: id })) as any[] })
       }
 
       const salonNom = nom ?? existing.nom

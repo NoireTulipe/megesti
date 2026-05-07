@@ -30,7 +30,7 @@ export const fraisRoutes: FastifyPluginAsync = async (app) => {
     const { tenantId } = request.tenant
     const body = CreateSchema.parse(request.body)
     const rec = await app.db.frais.create({
-      data: { ...body, tenantId },
+      data: { ...body, tenantId } as any,
     })
     return reply.status(201).send(rec)
   })

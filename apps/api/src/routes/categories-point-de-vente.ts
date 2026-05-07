@@ -23,7 +23,7 @@ export const categoriePointDeVenteRoutes: FastifyPluginAsync = async (app) => {
     const { tenantId } = request.tenant
     const body = CreateSchema.parse(request.body)
     return reply.status(201).send(
-      await app.db.categoriePointDeVente.create({ data: { ...body, tenantId } })
+      await app.db.categoriePointDeVente.create({ data: { ...body, tenantId } as any })
     )
   })
 

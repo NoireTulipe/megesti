@@ -32,7 +32,7 @@ export const rayonRoutes: FastifyPluginAsync = async (app) => {
   app.post('/', authAdmin, async (request, reply) => {
     const { tenantId } = request.tenant
     const body = CreateRayonSchema.parse(request.body)
-    const rayon = await app.db.rayon.create({ data: { ...body, tenantId } })
+    const rayon = await app.db.rayon.create({ data: { ...body, tenantId } as any })
     return reply.status(201).send(rayon)
   })
 

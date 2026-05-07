@@ -79,7 +79,7 @@ export const depotLibraireRoutes: FastifyPluginAsync = async (app) => {
     const { tenantId } = request.tenant
     const body = CreateSchema.parse(request.body)
     return reply.status(201).send(
-      await app.db.depotLibraire.create({ data: { ...body, tenantId }, ...withRelations })
+      await app.db.depotLibraire.create({ data: { ...body, tenantId } as any, ...withRelations })
     )
   })
 
@@ -110,7 +110,7 @@ export const depotLibraireRoutes: FastifyPluginAsync = async (app) => {
     const depot = await app.db.depotLibraire.findFirst({ where: { id, tenantId } })
     if (!depot) return reply.notFound()
     return reply.status(201).send(
-      await app.db.contactDepotLibraire.create({ data: { ...body, depotLibraireId: id } })
+      await app.db.contactDepotLibraire.create({ data: { ...body, depotLibraireId: id } as any })
     )
   })
 
@@ -151,7 +151,7 @@ export const depotLibraireRoutes: FastifyPluginAsync = async (app) => {
     // Sortie de stock + création ArticleDepot (transaction callback — plus robuste avec nouveaux modèles)
     const articleDepot = await app.db.$transaction(async (tx) => {
       const ad = await tx.articleDepot.create({
-        data: { ...body, tenantId, depotLibraireId: id },
+        data: { ...body, tenantId, depotLibraireId: id } as any,
         include: { article: { select: { id: true, nom: true, isbn: true, prixVenteHT: true, stock: true } } },
       })
       await tx.mouvementStock.create({

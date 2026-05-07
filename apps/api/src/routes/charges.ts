@@ -92,7 +92,7 @@ export const chargeRoutes: FastifyPluginAsync = async (app) => {
           datePaiement: datePaiement ? new Date(datePaiement) : null,
           // prochaineEcheance calculée dynamiquement, pas stockée
           prochaineEcheance: null,
-        },
+        } as any,
       })
     )
   })

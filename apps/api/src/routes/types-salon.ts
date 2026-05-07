@@ -22,7 +22,7 @@ export const typeSalonRoutes: FastifyPluginAsync = async (app) => {
     const { tenantId } = request.tenant
     const body = CreateSchema.parse(request.body)
     return reply.status(201).send(
-      await app.db.typeSalon.create({ data: { ...body, tenantId } })
+      await app.db.typeSalon.create({ data: { ...body, tenantId } as any })
     )
   })
 

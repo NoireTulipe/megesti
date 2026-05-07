@@ -62,8 +62,8 @@ export const pointDeVenteRoutes: FastifyPluginAsync = async (app) => {
       await app.db.pointDeVente.create({
         data: {
           ...body, tenantId,
-          contacts: contacts.length ? { create: contacts } : undefined,
-        },
+          contacts: contacts.length ? { create: contacts as any[] } : undefined,
+        } as any,
         include: INCLUDE,
       })
     )
@@ -84,8 +84,8 @@ export const pointDeVenteRoutes: FastifyPluginAsync = async (app) => {
         where: { id },
         data: {
           ...body,
-          ...(contacts?.length ? { contacts: { create: contacts } } : {}),
-        },
+          ...(contacts?.length ? { contacts: { create: contacts as any[] } } : {}),
+        } as any,
         include: INCLUDE,
       })
     })

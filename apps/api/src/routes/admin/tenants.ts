@@ -124,7 +124,7 @@ export const adminTenantRoutes: FastifyPluginAsync = async (app) => {
     const { password, ...rest } = body
     const passwordHash = await bcrypt.hash(password, 12)
     const user = await app.db.user.create({
-      data: { tenantId: id, ...rest, passwordHash },
+      data: { tenantId: id, ...rest, passwordHash } as any,
       select: { id: true, email: true, firstName: true, lastName: true, role: true, active: true },
     })
     return reply.code(201).send(user)

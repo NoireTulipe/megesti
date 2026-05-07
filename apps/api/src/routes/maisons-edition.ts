@@ -41,7 +41,7 @@ export const maisonEditionRoutes: FastifyPluginAsync = async (app) => {
   app.post('/', authEditor, async (request, reply) => {
     const { tenantId } = request.tenant
     const body = CreateSchema.parse(request.body)
-    const rec = await app.db.maisonEdition.create({ data: { ...body, tenantId } })
+    const rec = await app.db.maisonEdition.create({ data: { ...body, tenantId } as any })
     return reply.status(201).send(rec)
   })
 

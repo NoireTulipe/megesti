@@ -44,7 +44,7 @@ export const motifVenteRoutes: FastifyPluginAsync = async (app) => {
     const { tenantId } = request.tenant
     const body = CreateSchema.parse(request.body)
     return reply.status(201).send(
-      await app.db.motifVente.create({ data: { ...body, tenantId } })
+      await app.db.motifVente.create({ data: { ...body, tenantId } as any })
     )
   })
 

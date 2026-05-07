@@ -26,7 +26,7 @@ export const contactsTenantRoutes: FastifyPluginAsync = async (app) => {
     const { tenantId } = request.tenant
     const body = ContactSchema.parse(request.body)
     return app.db.contactTenant.create({
-      data: { ...body, tenantId },
+      data: { ...body, tenantId } as any,
     })
   })
 

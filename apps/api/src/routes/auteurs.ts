@@ -121,7 +121,7 @@ export const auteurRoutes: FastifyPluginAsync = async (app) => {
     const body = CreateAuteurSchema.parse(request.body)
 
     const auteur = await app.db.auteur.create({
-      data: { ...body, tenantId },
+      data: { ...body, tenantId } as any,
     })
     return reply.status(201).send(auteur)
   })

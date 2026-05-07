@@ -57,8 +57,8 @@ export const imprimeurRoutes: FastifyPluginAsync = async (app) => {
       data: {
         ...body,
         tenantId,
-        contacts: contacts.length ? { create: contacts } : undefined,
-      },
+        contacts: contacts.length ? { create: contacts as any[] } : undefined,
+      } as any,
       include: { contacts: true },
     })
     return reply.status(201).send(rec)
@@ -81,9 +81,9 @@ export const imprimeurRoutes: FastifyPluginAsync = async (app) => {
         data: {
           ...body,
           ...(contacts !== undefined && contacts.length > 0
-            ? { contacts: { create: contacts } }
+            ? { contacts: { create: contacts as any[] } }
             : {}),
-        },
+        } as any,
         include: { contacts: true },
       })
     })

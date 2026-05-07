@@ -106,7 +106,7 @@ export const articleRoutes: FastifyPluginAsync = async (app) => {
         ...rest,
         tenantId,
         auteurs: { create: auteurIds.map((auteurId, ordre) => ({ auteurId, ordre })) },
-      },
+      } as any,
       include: ARTICLE_INCLUDE,
     })
     return reply.status(201).send(article)

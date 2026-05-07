@@ -90,7 +90,7 @@ export const contratAuteurRoutes: FastifyPluginAsync = async (app) => {
           periodicite:       periodicite ?? null,
           datesFixesJSON:    datesFixesJSON ?? Prisma.DbNull,
           prochainVersement: prochainVersement ? new Date(prochainVersement) : null,
-        },
+        } as any,
         include: { typeDA: true },
       })
     )
@@ -152,6 +152,6 @@ export const contratAuteurRoutes: FastifyPluginAsync = async (app) => {
     const avanceTotal = Number(contrat.avance ?? 0)
     const avanceDue   = Number(contrat.avanceDue)
 
-    return calculateRoyalties(lignes, formule, contexte as ContexteVente, avanceDue, avanceTotal)
+    return calculateRoyalties(lignes as any, formule, contexte as ContexteVente, avanceDue, avanceTotal)
   })
 }
