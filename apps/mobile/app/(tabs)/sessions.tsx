@@ -303,7 +303,7 @@ function ActiveSessionCard({ s, venteCount, ca, onDetail }: {
   s: SessionWithStats; venteCount: number; ca: number; onDetail: () => void
 }) {
   return (
-    <LinearGradient colors={Gradients.caisse} style={styles.heroCard} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
+    <LinearGradient colors={Gradients.sessions} style={styles.heroCard} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
       <View style={styles.heroTop}>
         <View style={styles.heroBadge}>
           <View style={styles.heroLiveDot} />
@@ -373,24 +373,28 @@ export default function SessionsScreen() {
     <View style={styles.shell}>
       <LinearGradient colors={[Colors.sageLight, Colors.cream, Colors.cream]} style={styles.bg} />
 
-      <View style={[styles.header, { paddingTop: 48 + insets.top }]}>
-        <Text style={styles.title}>Sessions</Text>
-      </View>
+      {/* En-tête dégradé */}
+      <LinearGradient
+        colors={Gradients.sessions}
+        start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+        style={[styles.heroGradient, { paddingTop: 48 + insets.top }]}>
+        <Text style={styles.heroTitle}>Sessions</Text>
 
-      <View style={styles.tabRow}>
-        <TouchableOpacity style={[styles.tabBtn, tab === 'active' && styles.tabBtnActive]}
-          onPress={() => setTab('active')} activeOpacity={0.7}>
-          <Text style={[styles.tabBtnText, tab === 'active' && styles.tabBtnTextActive]}>
-            En cours {actives.length > 0 ? `(${actives.length})` : ''}
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={[styles.tabBtn, tab === 'history' && styles.tabBtnActive]}
-          onPress={() => setTab('history')} activeOpacity={0.7}>
-          <Text style={[styles.tabBtnText, tab === 'history' && styles.tabBtnTextActive]}>
-            Historique {history.length > 0 ? `(${history.length})` : ''}
-          </Text>
-        </TouchableOpacity>
-      </View>
+        <View style={styles.heroTabRow}>
+          <TouchableOpacity style={[styles.heroTab, tab === 'active' && styles.heroTabActive]}
+            onPress={() => setTab('active')} activeOpacity={0.7}>
+            <Text style={[styles.heroTabText, tab === 'active' && styles.heroTabTextActive]}>
+              En cours {actives.length > 0 ? `(${actives.length})` : ''}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.heroTab, tab === 'history' && styles.heroTabActive]}
+            onPress={() => setTab('history')} activeOpacity={0.7}>
+            <Text style={[styles.heroTabText, tab === 'history' && styles.heroTabTextActive]}>
+              Historique {history.length > 0 ? `(${history.length})` : ''}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </LinearGradient>
 
       <ScrollView
         contentContainerStyle={[styles.content, { paddingBottom: 120 + insets.bottom }]}
@@ -480,14 +484,14 @@ export default function SessionsScreen() {
 const styles = StyleSheet.create({
   shell: { flex: 1, backgroundColor: Colors.cream },
   bg: { ...StyleSheet.absoluteFillObject },
-  header: { paddingHorizontal: 20, paddingBottom: 16 },
-  title: { fontFamily: Fonts.displayItalic, fontSize: 28, color: Colors.sage, fontStyle: 'italic' },
+  heroGradient: { paddingHorizontal: 20, paddingBottom: 24, marginBottom: 16 },
+  heroTitle: { fontFamily: Fonts.displayItalic, fontSize: 22, color: Colors.white, fontStyle: 'italic' },
 
-  tabRow: { flexDirection: 'row', marginHorizontal: 20, marginBottom: 16, backgroundColor: Colors.white, borderRadius: Radius.lg, padding: 4, ...Shadow.card },
-  tabBtn: { flex: 1, paddingVertical: 10, borderRadius: Radius.md, alignItems: 'center' },
-  tabBtnActive: { backgroundColor: Colors.sage },
-  tabBtnText: { fontFamily: Fonts.body, fontSize: 13, fontWeight: '600', color: Colors.textSoft },
-  tabBtnTextActive: { color: Colors.white },
+  heroTabRow: { flexDirection: 'row', marginTop: 16, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: Radius.lg, padding: 4 },
+  heroTab: { flex: 1, paddingVertical: 10, borderRadius: Radius.md, alignItems: 'center' },
+  heroTabActive: { backgroundColor: 'rgba(255,255,255,0.25)' },
+  heroTabText: { fontFamily: Fonts.body, fontSize: 13, fontWeight: '600', color: 'rgba(255,255,255,0.55)' },
+  heroTabTextActive: { color: Colors.white },
 
   content: { paddingHorizontal: 20 },
 

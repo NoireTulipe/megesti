@@ -83,18 +83,21 @@ export default function StockScreen() {
     <View style={styles.shell}>
       <LinearGradient colors={[Colors.sageLight, Colors.cream]} style={styles.bg} />
 
-      {/* En-tête */}
-      <View style={[styles.header, { paddingTop: 48 + insets.top }]}>
-        <Text style={styles.title}>Stock</Text>
-        <Text style={styles.subtitle}>{displayed.length} articles</Text>
-      </View>
+      {/* En-tête dégradé */}
+      <LinearGradient
+        colors={Gradients.stock}
+        start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+        style={[styles.heroGradient, { paddingTop: 48 + insets.top }]}>
+        <Text style={styles.heroTitle}>Stock</Text>
+        <Text style={styles.heroSub}>{displayed.length} articles</Text>
 
-      {/* Recherche */}
-      <View style={styles.searchWrap}>
-        <Text style={styles.searchIcon}>🔍</Text>
-        <TextInput style={styles.searchInput} value={search} onChangeText={setSearch}
-          placeholder="Titre ou ISBN…" placeholderTextColor={Colors.textSoft} />
-      </View>
+        {/* Recherche */}
+        <View style={styles.heroSearch}>
+          <Text style={styles.heroSearchIcon}>🔍</Text>
+          <TextInput style={styles.heroSearchInput} value={search} onChangeText={setSearch}
+            placeholder="Titre ou ISBN…" placeholderTextColor="rgba(255,255,255,0.4)" />
+        </View>
+      </LinearGradient>
 
       <ScrollView
         contentContainerStyle={[styles.list, { paddingBottom: 120 + insets.bottom }]}
@@ -257,13 +260,14 @@ export default function StockScreen() {
 const styles = StyleSheet.create({
   shell: { flex: 1, backgroundColor: Colors.cream },
   bg: { ...StyleSheet.absoluteFillObject },
-  header: { paddingHorizontal: 20, paddingBottom: 8 },
-  title: { fontFamily: Fonts.displayItalic, fontSize: 26, color: Colors.sage, fontStyle: 'italic' },
-  subtitle: { fontFamily: Fonts.body, fontSize: 13, color: Colors.textSoft, marginTop: 4 },
+  // Hero (même style que la caisse)
+  heroGradient: { paddingHorizontal: 20, paddingBottom: 20, marginBottom: 16 },
+  heroTitle: { fontFamily: Fonts.displayItalic, fontSize: 22, color: Colors.white, fontStyle: 'italic' },
+  heroSub: { fontFamily: Fonts.body, fontSize: 12, color: 'rgba(255,255,255,0.55)', marginTop: 3, marginBottom: 14 },
 
-  searchWrap: { flexDirection: 'row', alignItems: 'center', marginHorizontal: 20, marginBottom: 16, backgroundColor: Colors.white, borderRadius: Radius.md, paddingHorizontal: 12, borderWidth: 1.5, borderColor: 'rgba(107,143,113,0.15)' },
-  searchIcon: { fontSize: 16, marginRight: 8 },
-  searchInput: { flex: 1, fontFamily: Fonts.body, fontSize: 14, color: Colors.text, paddingVertical: 12 },
+  heroSearch: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.12)', borderRadius: Radius.md, paddingHorizontal: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
+  heroSearchIcon: { fontSize: 15, marginRight: 6 },
+  heroSearchInput: { flex: 1, fontFamily: Fonts.body, fontSize: 14, color: Colors.white, paddingVertical: 10 },
   list: { paddingHorizontal: 20 },
 
   empty: { alignItems: 'center', paddingTop: 80 },

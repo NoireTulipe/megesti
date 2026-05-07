@@ -76,8 +76,9 @@ export const Radius = {
 // Gradients prédéfinis (rose→mauve pour caisse, sage pour sessions, gold pour bilan)
 export const Gradients = {
   caisse:   ['#C4847A', '#8B7BAB'] as [string, string],
-  sessions: ['#6B8F71', '#4A7058'] as [string, string],
-  bilan:    ['#C9933A', '#A07028'] as [string, string],
+  stock:    ['#6B8F71', '#2D4A38'] as [string, string],
+  sessions: ['#5F7B9C', '#2A3D58'] as [string, string],
+  bilan:    ['#C9933A', '#7A4E10'] as [string, string],
 }
 
 export const Shadow = {

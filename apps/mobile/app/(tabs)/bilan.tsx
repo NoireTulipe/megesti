@@ -299,8 +299,8 @@ function PeriodPicker({ mode, onMode, refDate, onRefDate, customFrom, customTo, 
   }
 
   return (
-    <View style={pp.wrap}>
-      {/* Onglets */}
+    <>
+      {/* Onglets (toujours visibles) */}
       <View style={pp.tabs}>
         {(['month', 'year', 'custom'] as PeriodMode[]).map(m => (
           <TouchableOpacity key={m} style={[pp.tab, mode === m && pp.tabActive]}
@@ -312,45 +312,50 @@ function PeriodPicker({ mode, onMode, refDate, onRefDate, customFrom, customTo, 
         ))}
       </View>
 
-      {/* Mode Mois : bouton qui ouvre le picker */}
+      {/* Mode Mois : sélecteur discret, pas de cadre */}
       {mode === 'month' && (
-        <TouchableOpacity style={pp.pickerBtn} onPress={() => setPickerFor('month')} activeOpacity={0.8}>
-          <Text style={pp.pickerBtnTxt}>{fmtMonthYear(refDate)}</Text>
+        <TouchableOpacity
+          style={[pp.pickerBtn, { backgroundColor: 'transparent', paddingVertical: 4 }]}
+          onPress={() => setPickerFor('month')} activeOpacity={0.7}>
+          <Text style={[pp.pickerBtnTxt, { fontSize: 14 }]}>{fmtMonthYear(refDate)}</Text>
           <Text style={pp.pickerBtnArrow}>▼</Text>
         </TouchableOpacity>
       )}
 
-      {/* Mode Année : flèches simples */}
-      {mode === 'year' && (
-        <View style={pp.nav}>
-          <TouchableOpacity onPress={() => shiftYear(-1)} style={pp.arrow} activeOpacity={0.6}>
-            <Text style={pp.arrowTxt}>‹</Text>
-          </TouchableOpacity>
-          <Text style={pp.navLabel}>{refDate.getFullYear()}</Text>
-          <TouchableOpacity onPress={() => shiftYear(1)} style={pp.arrow} activeOpacity={0.6}>
-            <Text style={pp.arrowTxt}>›</Text>
-          </TouchableOpacity>
-        </View>
-      )}
+      {/* Modes Année et Période : cadre avec contenu */}
+      {(mode === 'year' || mode === 'custom') && (
+        <View style={pp.wrap}>
+          {mode === 'year' && (
+            <View style={pp.nav}>
+              <TouchableOpacity onPress={() => shiftYear(-1)} style={pp.arrow} activeOpacity={0.6}>
+                <Text style={pp.arrowTxt}>‹</Text>
+              </TouchableOpacity>
+              <Text style={pp.navLabel}>{refDate.getFullYear()}</Text>
+              <TouchableOpacity onPress={() => shiftYear(1)} style={pp.arrow} activeOpacity={0.6}>
+                <Text style={pp.arrowTxt}>›</Text>
+              </TouchableOpacity>
+            </View>
+          )}
 
-      {/* Mode Période libre : deux pickers */}
-      {mode === 'custom' && (
-        <View style={pp.customWrap}>
-          <View style={pp.customRow}>
-            <Text style={pp.customLbl}>Du</Text>
-            <TouchableOpacity style={pp.pickerBtn} onPress={() => setPickerFor('from')} activeOpacity={0.8}>
-              <Text style={pp.pickerBtnTxt}>{fmtMonthYear(customFrom)}</Text>
-              <Text style={pp.pickerBtnArrow}>▼</Text>
-            </TouchableOpacity>
-            <Text style={pp.customLbl}>au</Text>
-            <TouchableOpacity style={pp.pickerBtn} onPress={() => setPickerFor('to')} activeOpacity={0.8}>
-              <Text style={pp.pickerBtnTxt}>{fmtMonthYear(customTo)}</Text>
-              <Text style={pp.pickerBtnArrow}>▼</Text>
-            </TouchableOpacity>
-          </View>
-          <TouchableOpacity style={pp.applyBtn} onPress={onApplyCustom} activeOpacity={0.8}>
-            <Text style={pp.applyTxt}>Appliquer</Text>
-          </TouchableOpacity>
+          {mode === 'custom' && (
+            <View style={pp.customWrap}>
+              <View style={pp.customRow}>
+                <Text style={pp.customLbl}>Du</Text>
+                <TouchableOpacity style={pp.pickerBtn} onPress={() => setPickerFor('from')} activeOpacity={0.8}>
+                  <Text style={pp.pickerBtnTxt}>{fmtMonthYear(customFrom)}</Text>
+                  <Text style={pp.pickerBtnArrow}>▼</Text>
+                </TouchableOpacity>
+                <Text style={pp.customLbl}>au</Text>
+                <TouchableOpacity style={pp.pickerBtn} onPress={() => setPickerFor('to')} activeOpacity={0.8}>
+                  <Text style={pp.pickerBtnTxt}>{fmtMonthYear(customTo)}</Text>
+                  <Text style={pp.pickerBtnArrow}>▼</Text>
+                </TouchableOpacity>
+              </View>
+              <TouchableOpacity style={pp.applyBtn} onPress={onApplyCustom} activeOpacity={0.8}>
+                <Text style={pp.applyTxt}>Appliquer</Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
       )}
 
@@ -373,27 +378,27 @@ function PeriodPicker({ mode, onMode, refDate, onRefDate, customFrom, customTo, 
         onSelect={onCustomTo}
         onClose={() => setPickerFor(null)}
       />
-    </View>
+    </>
   )
 }
 const pp = StyleSheet.create({
-  wrap:       { backgroundColor: Colors.white, marginHorizontal: 20, borderRadius: Radius.lg, padding: 14, marginBottom: 12, ...Shadow.card },
-  tabs:       { flexDirection: 'row', gap: 6, marginBottom: 12 },
-  tab:        { flex: 1, paddingVertical: 8, borderRadius: Radius.md, backgroundColor: Colors.cream, alignItems: 'center' },
-  tabActive:  { backgroundColor: Colors.gold },
-  tabTxt:     { fontFamily: Fonts.body, fontSize: 12, fontWeight: '600', color: Colors.textMid },
+  wrap:       { backgroundColor: 'transparent', borderRadius: Radius.lg, paddingVertical: 8, marginBottom: 0 },
+  tabs:       { flexDirection: 'row', gap: 6, marginBottom: 10 },
+  tab:        { flex: 1, paddingVertical: 8, borderRadius: Radius.md, backgroundColor: 'rgba(255,255,255,0.1)', alignItems: 'center' },
+  tabActive:  { backgroundColor: 'rgba(255,255,255,0.25)' },
+  tabTxt:     { fontFamily: Fonts.body, fontSize: 12, fontWeight: '600', color: 'rgba(255,255,255,0.55)' },
   tabTxtActive: { color: Colors.white },
   nav:        { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 20 },
-  arrow:      { width: 36, height: 36, justifyContent: 'center', alignItems: 'center', borderRadius: Radius.md, backgroundColor: Colors.goldLight },
-  arrowTxt:   { fontSize: 22, color: Colors.gold, fontWeight: '300' },
-  navLabel:   { fontFamily: Fonts.displayItalic, fontSize: 18, color: Colors.gold, fontStyle: 'italic', minWidth: 80, textAlign: 'center' },
-  pickerBtn:  { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.goldLight, borderRadius: Radius.md, paddingVertical: 10, paddingHorizontal: 14, gap: 6 },
-  pickerBtnTxt:   { fontFamily: Fonts.displayItalic, fontSize: 16, fontStyle: 'italic', color: Colors.gold },
-  pickerBtnArrow: { fontSize: 10, color: Colors.gold },
+  arrow:      { width: 36, height: 36, justifyContent: 'center', alignItems: 'center', borderRadius: Radius.md, backgroundColor: 'rgba(255,255,255,0.12)' },
+  arrowTxt:   { fontSize: 22, color: Colors.white, fontWeight: '300' },
+  navLabel:   { fontFamily: Fonts.displayItalic, fontSize: 18, color: Colors.white, fontStyle: 'italic', minWidth: 80, textAlign: 'center' },
+  pickerBtn:  { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.12)', borderRadius: Radius.md, paddingVertical: 10, paddingHorizontal: 14, gap: 6 },
+  pickerBtnTxt:   { fontFamily: Fonts.displayItalic, fontSize: 16, fontStyle: 'italic', color: Colors.white },
+  pickerBtnArrow: { fontSize: 10, color: 'rgba(255,255,255,0.6)' },
   customWrap: { gap: 10 },
   customRow:  { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  customLbl:  { fontFamily: Fonts.body, fontSize: 12, color: Colors.textSoft, width: 22 },
-  applyBtn:   { backgroundColor: Colors.gold, borderRadius: Radius.md, paddingVertical: 10, alignItems: 'center' },
+  customLbl:  { fontFamily: Fonts.body, fontSize: 12, color: 'rgba(255,255,255,0.6)', width: 22 },
+  applyBtn:   { backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: Radius.md, paddingVertical: 10, alignItems: 'center' },
   applyTxt:   { fontFamily: Fonts.body, fontSize: 13, fontWeight: '700', color: Colors.white },
 })
 
@@ -462,16 +467,13 @@ export default function BilanScreen() {
     <View style={styles.shell}>
       <LinearGradient colors={['#FBF5E6', Colors.cream, Colors.cream]} style={styles.bg} />
 
-      <View style={[styles.header, { paddingTop: 48 + insets.top }]}>
-        <Text style={styles.title}>Bilan</Text>
-      </View>
+      {/* En-tête dégradé */}
+      <LinearGradient
+        colors={Gradients.bilan}
+        start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+        style={[styles.heroGradient, { paddingTop: 48 + insets.top }]}>
+        <Text style={styles.heroTitle}>Bilan</Text>
 
-      <ScrollView
-        contentContainerStyle={{ paddingBottom: 120 + insets.bottom }}
-        showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.gold} />}>
-
-        {/* ── Sélecteur période ── */}
         <PeriodPicker
           mode={mode} onMode={setMode}
           refDate={refDate} onRefDate={setRefDate}
@@ -479,6 +481,12 @@ export default function BilanScreen() {
           customTo={customTo} onCustomTo={setCustomTo}
           onApplyCustom={applyCustom}
         />
+      </LinearGradient>
+
+      <ScrollView
+        contentContainerStyle={{ paddingBottom: 120 + insets.bottom }}
+        showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.gold} />}>
 
 
         {/* ── Carte résumé ── */}
@@ -599,8 +607,8 @@ export default function BilanScreen() {
 const styles = StyleSheet.create({
   shell: { flex: 1, backgroundColor: Colors.cream },
   bg:   { ...StyleSheet.absoluteFillObject },
-  header: { paddingHorizontal: 20, paddingBottom: 12 },
-  title:  { fontFamily: Fonts.displayItalic, fontSize: 28, color: Colors.gold, fontStyle: 'italic' },
+  heroGradient: { paddingHorizontal: 20, paddingBottom: 24, marginBottom: 16 },
+  heroTitle: { fontFamily: Fonts.displayItalic, fontSize: 22, color: Colors.white, fontStyle: 'italic' },
 
   // Résumé gradient
   summaryCard: { marginHorizontal: 20, borderRadius: Radius.xl, padding: 22, marginBottom: 12, ...Shadow.float },

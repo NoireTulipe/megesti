@@ -72,7 +72,7 @@ export function useLocalArticles(ids?: string[]) {
 
   useEffect(() => { refresh() }, [refresh])
 
-  async function pullFromServer(articleIds?: string[]): Promise<string[]> {
+  const pullFromServer = useCallback(async (articleIds?: string[]): Promise<string[]> => {
     try {
       const data = await api.get<ApiArticle[]>('/articles?actif=true&take=500')
       const db = await getDb()
@@ -80,7 +80,6 @@ export function useLocalArticles(ids?: string[]) {
 
       for (const a of filtered) {
         const imageUrl = fullUrl(a.imageUrl)
-        // Derive thumb_app_url from imageUrl (thumb_web → thumb_app convention)
         const thumbAppUrl = imageUrl?.replace('thumb_web', 'thumb_app') ?? null
 
         await db.runAsync(
@@ -101,16 +100,16 @@ export function useLocalArticles(ids?: string[]) {
       addLog('error', `Échec pull articles: ${e?.message}`)
       return []
     }
-  }
+  }, [refresh, addLog])
 
-  async function updateStock(articleId: string, stock: number) {
+  const updateStock = useCallback(async (articleId: string, stock: number) => {
     const db = await getDb()
     await db.runAsync('UPDATE articles SET stock_local = ? WHERE id = ?', [stock, articleId])
     await refresh()
     api.patch(`/articles/${articleId}`, { stock }).catch(() => {})
-  }
+  }, [refresh])
 
-  async function uploadImage(articleId: string, imageUri: string): Promise<string | null> {
+  const uploadImage = useCallback(async (articleId: string, imageUri: string): Promise<string | null> => {
     try {
       const filename = imageUri.split('/').pop() ?? 'photo.jpg'
       const formData = new FormData()
@@ -130,7 +129,7 @@ export function useLocalArticles(ids?: string[]) {
       addLog('error', `Échec upload image: ${e?.message}`)
       return null
     }
-  }
+  }, [refresh, addLog])
 
   return { articles, loading, refresh, pullFromServer, updateStock, uploadImage }
 }
