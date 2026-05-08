@@ -40,6 +40,49 @@ function MascotOnboarding() {
   )
 }
 
+function MascotCatalogueReady({ onAddArticle }: { onAddArticle: () => void }) {
+  return (
+    <div className={styles['ready-wrap']}>
+      <img src="/img/mascotte/m1.png" alt="" className={styles['ready-img']} />
+      <div className={styles['ready-bubbles']}>
+
+        <div className={styles['ready-bubble']}>
+          <p className={styles['ready-title']}>C'est parti ! 🎉</p>
+          <p className={styles['ready-text']}>
+            Ton catalogue est prêt. Ajoute maintenant ton{' '}
+            <strong>premier article</strong> — livre, goodie, affiche… tout
+            ce que tu vends !
+          </p>
+          <button className={styles['ready-btn']} onClick={onAddArticle}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            Ajouter mon premier article
+          </button>
+        </div>
+
+        <div className={styles['ready-bubble']}>
+          <p className={styles['ready-text']}>
+            L'onglet <strong>Catalogue</strong> affiche tous les produits
+            actuellement <strong>disponibles à la vente</strong>. C'est la
+            vitrine active de ta maison d'édition.
+          </p>
+        </div>
+
+        <div className={styles['ready-bubble']}>
+          <p className={styles['ready-text']}>
+            L'onglet <strong>Retirés</strong> accueille les articles que tu
+            as mis de côté. Ils ne sont plus en vente mais{' '}
+            <strong>ne sont pas supprimés</strong> — tu peux les réactiver
+            à tout moment.
+          </p>
+        </div>
+
+      </div>
+    </div>
+  )
+}
+
 export function CataloguePage() {
   const [search, setSearch]           = useState('')
   const [debouncedSearch, setDebounced] = useState('')
@@ -163,16 +206,15 @@ export function CataloguePage() {
       {!isLoading && !isError && articles.length === 0 && (
         rayons.length === 0 ? (
           <MascotOnboarding />
+        ) : !debouncedSearch && tab === 'actifs' ? (
+          <MascotCatalogueReady onAddArticle={() => setShowCreate(true)} />
         ) : (
           <div className={styles['empty-state']}>
             <div className={styles['empty-icon']}>📚</div>
             <div className={styles['empty-title']}>
               {debouncedSearch
                 ? `Aucun résultat pour « ${debouncedSearch} »`
-                : tab === 'retires' ? 'Aucun article retiré' : 'Votre catalogue est vide'}
-            </div>
-            <div className={styles['empty-desc']}>
-              {!debouncedSearch && tab === 'actifs' ? 'Ajoutez votre premier livre, goodie ou article.' : ''}
+                : 'Aucun article retiré'}
             </div>
           </div>
         )

@@ -74,7 +74,7 @@ export default function SettingsScreen() {
       </LinearGradient>
 
       {/* Onglets */}
-      <View style={[s.tabRow, isDark && s.tabRowDark]}>
+      <View style={[s.tabRow, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : Colors.white, shadowColor: isDark ? 'transparent' : Colors.text, elevation: isDark ? 0 : 3 }]}>
         {TABS.map(t => (
           <TouchableOpacity
             key={t.key}
@@ -96,7 +96,7 @@ export default function SettingsScreen() {
           <>
             <View style={s.section}>
               <Text style={[s.sectionTitle, isDark && s.sectionTitleDark]}>Profil</Text>
-              <View style={[s.sectionBody, isDark && s.sectionBodyDark]}>
+              <View style={[s.sectionBody, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : Colors.white, borderWidth: isDark ? 1 : 0, borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'transparent', shadowColor: isDark ? 'transparent' : Colors.text, elevation: isDark ? 0 : 3 }]}>
                 <SettingRow label={user?.firstName ? `${user.firstName} ${user.lastName}` : '—'} sub="Nom" isDark={isDark} />
                 <SettingRow label={user?.email ?? '—'} sub="Email" isDark={isDark} />
                 <SettingRow label={user?.role === 'ADMIN' ? 'Administrateur' : 'Éditeur'} sub="Rôle" last isDark={isDark} />
@@ -105,13 +105,13 @@ export default function SettingsScreen() {
 
             <View style={s.section}>
               <Text style={[s.sectionTitle, isDark && s.sectionTitleDark]}>Maison d'édition</Text>
-              <View style={[s.sectionBody, isDark && s.sectionBodyDark]}>
+              <View style={[s.sectionBody, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : Colors.white, borderWidth: isDark ? 1 : 0, borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'transparent', shadowColor: isDark ? 'transparent' : Colors.text, elevation: isDark ? 0 : 3 }]}>
                 <SettingRow label={user?.tenantName ?? '—'} sub="Nom de la structure" last isDark={isDark} />
               </View>
             </View>
 
             <TouchableOpacity
-              style={[s.logoutBtn, isDark && s.logoutBtnDark]}
+              style={[s.logoutBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : Colors.white, borderColor: isDark ? 'rgba(200,93,58,0.3)' : Colors.terraLight }]}
               onPress={handleLogout} activeOpacity={0.7}>
               <Text style={[s.logoutText, isDark && s.logoutTextDark]}>Se déconnecter</Text>
             </TouchableOpacity>
@@ -123,7 +123,7 @@ export default function SettingsScreen() {
           <>
             <View style={s.section}>
               <Text style={[s.sectionTitle, isDark && s.sectionTitleDark]}>Thème</Text>
-              <View style={[s.sectionBody, isDark && s.sectionBodyDark]}>
+              <View style={[s.sectionBody, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : Colors.white, borderWidth: isDark ? 1 : 0, borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'transparent', shadowColor: isDark ? 'transparent' : Colors.text, elevation: isDark ? 0 : 3 }]}>
                 <SettingRow
                   label="Mode sombre"
                   sub="Reprend le skin de la page de connexion"
@@ -141,10 +141,11 @@ export default function SettingsScreen() {
 
             <View style={s.section}>
               <Text style={[s.sectionTitle, isDark && s.sectionTitleDark]}>Couleurs des catégories</Text>
-              <View style={[s.sectionBody, isDark && s.sectionBodyDark]}>
+              <View style={[s.sectionBody, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : Colors.white, borderWidth: isDark ? 1 : 0, borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'transparent', shadowColor: isDark ? 'transparent' : Colors.text, elevation: isDark ? 0 : 3 }]}>
                 <SettingRow
                   label="Personnaliser"
                   sub="Associez une couleur à chaque catégorie de produit"
+                  onPress={() => router.push('/settings-categories')}
                   last
                   isDark={isDark}
                 />
@@ -158,14 +159,14 @@ export default function SettingsScreen() {
           <>
             <View style={s.section}>
               <Text style={[s.sectionTitle, isDark && s.sectionTitleDark]}>Mode de paiement</Text>
-              <View style={[s.sectionBody, isDark && s.sectionBodyDark]}>
+              <View style={[s.sectionBody, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : Colors.white, borderWidth: isDark ? 1 : 0, borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'transparent', shadowColor: isDark ? 'transparent' : Colors.text, elevation: isDark ? 0 : 3 }]}>
                 <SettingRow label="PayPal" sub="À configurer" last isDark={isDark} />
               </View>
             </View>
 
             <View style={s.section}>
               <Text style={[s.sectionTitle, isDark && s.sectionTitleDark]}>Terminal de paiement</Text>
-              <View style={[s.sectionBody, isDark && s.sectionBodyDark]}>
+              <View style={[s.sectionBody, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : Colors.white, borderWidth: isDark ? 1 : 0, borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'transparent', shadowColor: isDark ? 'transparent' : Colors.text, elevation: isDark ? 0 : 3 }]}>
                 <SettingRow label="SumUp" sub="Carte bancaire en salon" isDark={isDark} />
                 <SettingRow label="Stripe Reader" sub="Terminal physique connecté" last isDark={isDark} />
               </View>
@@ -203,7 +204,6 @@ const s = StyleSheet.create({
     flexDirection: 'row', marginHorizontal: 20, marginTop: 16, marginBottom: 8,
     backgroundColor: Colors.white, borderRadius: Radius.lg, padding: 4, ...Shadow.card,
   },
-  tabRowDark: { backgroundColor: 'rgba(255,255,255,0.06)', shadowColor: 'transparent', elevation: 0 },
   tab: {
     flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
     gap: 5, paddingVertical: 10, borderRadius: Radius.md,
@@ -225,10 +225,8 @@ const s = StyleSheet.create({
   },
   sectionTitleDark: { color: Dark.textSoft },
   sectionBody: {
-    backgroundColor: Colors.white, borderRadius: Radius.lg,
-    ...Shadow.card, overflow: 'hidden',
+    borderRadius: Radius.lg, ...Shadow.card, overflow: 'hidden',
   },
-  sectionBodyDark: { backgroundColor: 'rgba(255,255,255,0.08)', shadowColor: 'transparent', elevation: 0, borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)' },
 
   // Rows
   row: {
@@ -250,7 +248,7 @@ const s = StyleSheet.create({
     backgroundColor: Colors.white, borderRadius: Radius.lg, ...Shadow.card,
     borderWidth: 1, borderColor: Colors.terraLight,
   },
-  logoutBtnDark: { backgroundColor: Dark.surface, borderColor: 'rgba(200,93,58,0.3)' },
+  logoutBtnDark: {},
   logoutText: { fontFamily: Fonts.body, fontSize: 14, fontWeight: '700', color: Colors.terra },
   logoutTextDark: { color: Dark.terra },
 

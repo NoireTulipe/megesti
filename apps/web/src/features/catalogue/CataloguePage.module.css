@@ -66,6 +66,29 @@
 .empty-title { font-family:'DM Serif Display',serif; font-size:1.2rem; color:var(--ink); }
 .empty-desc  { font-size:0.85rem; color:var(--text-soft); max-width:340px; line-height:1.6; }
 
+/* ─── MASCOTTE CATALOGUE PRÊT (rayons OK, 0 article) ── */
+.ready-wrap    { display:flex; flex-direction:row; align-items:flex-start; gap:0; width:100%; padding: 32px 0; }
+.ready-img     { width:22%; height:auto; object-fit:contain; object-position:top center; flex-shrink:0; display:block; }
+.ready-bubbles { flex:1; display:flex; flex-direction:column; gap:12px; padding-top:22px; min-width:0; }
+.ready-bubble  {
+  position:relative; background:#fff; border:1.5px solid var(--cream-dark);
+  border-radius:14px; padding:16px 18px; box-shadow:0 3px 14px rgba(44,33,24,0.07);
+}
+/* Queue vers la mascotte (gauche) */
+.ready-bubble::before { content:''; position:absolute; left:-13px; top:16px; border-top:9px solid transparent; border-bottom:9px solid transparent; border-right:13px solid var(--cream-dark); }
+.ready-bubble::after  { content:''; position:absolute; left:-11px; top:17px; border-top:8px solid transparent; border-bottom:8px solid transparent; border-right:12px solid #fff; }
+.ready-title { font-family:'DM Serif Display',serif; font-style:italic; font-size:1rem; color:var(--rose,#C4847A); margin:0 0 7px; }
+.ready-text  { font-size:0.84rem; color:var(--text-mid); line-height:1.6; margin:0; }
+.ready-text strong { color:var(--ink); font-weight:700; }
+.ready-btn   {
+  display:inline-flex; align-items:center; gap:6px; margin-top:14px;
+  padding:9px 18px; background:linear-gradient(135deg,var(--rose,#C4847A),var(--mauve,#8B7BAB));
+  color:#fff; border:none; border-radius:10px; font-size:0.83rem; font-weight:700;
+  font-family:inherit; cursor:pointer; box-shadow:0 2px 10px rgba(196,132,122,0.25);
+  transition:opacity 0.15s;
+}
+.ready-btn:hover { opacity:0.87; }
+
 /* ─── MASCOTTE ONBOARDING ───────────────────────────── */
 
 /* Centrage de l'ensemble */
