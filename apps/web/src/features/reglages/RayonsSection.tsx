@@ -31,6 +31,7 @@ function MascotSidebar({ state, onCreateRayon }: {
     <div className={styles.mascotSidebar}>
       <img src="/img/mascotte/m1.png" alt="" className={styles.sidebarImg} />
 
+      <div className={styles.sidebarBubblesCol}>
       {state === 'empty' && <>
         <div className={styles.sidebarBubble}>
           <p className={styles.sidebarTitle}>Comment ça marche ? 🗂️</p>
@@ -84,6 +85,7 @@ function MascotSidebar({ state, onCreateRayon }: {
           </p>
         </div>
       </>}
+      </div>
     </div>
   )
 }

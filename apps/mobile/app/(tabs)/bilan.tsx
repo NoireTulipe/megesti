@@ -225,6 +225,7 @@ function MonthPickerModal({ visible, value, onSelect, onClose }: {
   visible: boolean; value: Date
   onSelect: (d: Date) => void; onClose: () => void
 }) {
+  const { isDark } = useAppTheme()
   const [year, setYear] = useState(value.getFullYear())
   useEffect(() => { if (visible) setYear(value.getFullYear()) }, [visible])
 
@@ -234,11 +235,11 @@ function MonthPickerModal({ visible, value, onSelect, onClose }: {
         <View style={[mp.card, isDark && { backgroundColor: '#1C2A3A' }]} onStartShouldSetResponder={() => true}>
           {/* Navigation année */}
           <View style={mp.yearRow}>
-            <TouchableOpacity onPress={() => setYear(y => y - 1)} style={mp.yearBtn} activeOpacity={0.6}>
-              <Text style={mp.arrow}>‹</Text>
+            <TouchableOpacity onPress={() => setYear(y => y - 1)} style={[mp.yearBtn, isDark && { backgroundColor: 'rgba(255,255,255,0.1)' }]} activeOpacity={0.6}>
+              <Text style={[mp.arrow, isDark && { color: Dark.accent }]}>‹</Text>
             </TouchableOpacity>
-            <Text style={mp.yearLabel}>{year}</Text>
-            <TouchableOpacity onPress={() => setYear(y => y + 1)} style={mp.yearBtn} activeOpacity={0.6}>
+            <Text style={[mp.yearLabel, isDark && { color: Dark.text }]}>{year}</Text>
+            <TouchableOpacity onPress={() => setYear(y => y + 1)} style={[mp.yearBtn, isDark && { backgroundColor: 'rgba(255,255,255,0.1)' }]} activeOpacity={0.6}>
               <Text style={mp.arrow}>›</Text>
             </TouchableOpacity>
           </View>
@@ -248,7 +249,7 @@ function MonthPickerModal({ visible, value, onSelect, onClose }: {
               const isActive = value.getMonth() === i && value.getFullYear() === year
               return (
                 <TouchableOpacity key={i}
-                  style={[mp.monthBtn, isActive && mp.monthBtnActive]}
+                  style={[mp.monthBtn, isActive && mp.monthBtnActive, isDark && !isActive && { backgroundColor: 'rgba(255,255,255,0.06)' }]}
                   onPress={() => { onSelect(new Date(year, i, 1)); onClose() }}
                   activeOpacity={0.7}>
                   <Text style={[mp.monthTxt, isActive && mp.monthTxtActive]}>{label}</Text>
@@ -256,8 +257,8 @@ function MonthPickerModal({ visible, value, onSelect, onClose }: {
               )
             })}
           </View>
-          <TouchableOpacity style={mp.closeBtn} onPress={onClose} activeOpacity={0.7}>
-            <Text style={mp.closeTxt}>Fermer</Text>
+          <TouchableOpacity style={[mp.closeBtn, isDark && { backgroundColor: 'rgba(255,255,255,0.08)' }]} onPress={onClose} activeOpacity={0.7}>
+            <Text style={[mp.closeTxt, isDark && { color: Dark.textSoft }]}>Fermer</Text>
           </TouchableOpacity>
         </View>
       </TouchableOpacity>
