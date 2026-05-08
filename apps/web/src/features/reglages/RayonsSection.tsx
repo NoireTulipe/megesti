@@ -14,95 +14,76 @@ import {
 import type { Rayon, Categorie } from '../catalogue/types'
 import styles from './RayonsSection.module.css'
 
-// ── Mascotte onboarding rayons ────────────────────────────────────────────────
+// ── Mascotte sidebar ─────────────────────────────────────────────────────────
 
-function MascotRayonsOnboarding({ onCreateRayon }: { onCreateRayon: () => void }) {
+const BookIcon = () => (
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" style={{ display:'inline', verticalAlign:'middle' }}>
+    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+    <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+  </svg>
+)
+
+function MascotSidebar({ state, onCreateRayon }: {
+  state: 'empty' | 'no-cats' | 'ready'
+  onCreateRayon: () => void
+}) {
   return (
-    <div className={styles['mascot-wrap']}>
-      <div className={styles['mascot-container']}>
-        <img src="/img/mascotte/m1.png" alt="" className={styles['mascot-img']} />
-        <div className={styles['mascot-bubbles']}>
+    <div className={styles.mascotSidebar}>
+      <img src="/img/mascotte/m1.png" alt="" className={styles.sidebarImg} />
 
-          {/* Bulle 1 — concept rayon */}
-          <div className={styles['mascot-bubble']}>
-            <p className={styles['mascot-bubble-title']}>Comment ça marche ? 🗂️</p>
-            <p className={styles['mascot-bubble-text']}>
-              Dans MeGesti, le catalogue est organisé en <strong>rayons</strong> —
-              ce sont les grandes familles de produits :{' '}
-              <em>Librairie, Goodies, Affiches, Cartes postales…</em>
-            </p>
-          </div>
-
-          {/* Bulle 2 — concept catégorie */}
-          <div className={styles['mascot-bubble']}>
-            <p className={styles['mascot-bubble-text']}>
-              À l'intérieur de chaque rayon, tu définis des <strong>catégories</strong> plus précises.
-              Par exemple : <em>Librairie → Romans, BD, Jeunesse, Essais.</em>
-            </p>
-          </div>
-
-          {/* Bulle 3 — CTA */}
-          <div className={`${styles['mascot-bubble']} ${styles['mascot-bubble-cta']}`}>
-            <p className={styles['mascot-bubble-text']}>
-              Commence par créer ton premier rayon —
-              les catégories et articles s'ajouteront ensuite !
-            </p>
-            <button className={styles['mascot-cta-btn']} onClick={onCreateRayon}>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-              </svg>
-              Créer mon premier rayon
-            </button>
-          </div>
-
+      {state === 'empty' && <>
+        <div className={styles.sidebarBubble}>
+          <p className={styles.sidebarTitle}>Comment ça marche ? 🗂️</p>
+          <p className={styles.sidebarText}>
+            Le catalogue est organisé en <strong>rayons</strong> puis en{' '}
+            <strong>catégories</strong>. Exemple : <em>Librairie → Romans, BD, Jeunesse…</em>
+          </p>
         </div>
-      </div>
-    </div>
-  )
-}
-
-function MascotRayonsStep2() {
-  return (
-    <div className={styles['mascot-wrap']}>
-      <div className={styles['mascot-container']}>
-        <img src="/img/mascotte/m1.png" alt="" className={styles['mascot-img']} />
-        <div className={styles['mascot-bubbles']}>
-
-          {/* Bulle 1 — catégories */}
-          <div className={styles['mascot-bubble']}>
-            <p className={styles['mascot-bubble-title']}>Super, ton premier rayon ! 🎉</p>
-            <p className={styles['mascot-bubble-text']}>
-              Pour ajouter des <strong>catégories</strong> à ce rayon, clique sur le{' '}
-              <strong>+</strong> dans son en-tête. Les catégories permettent de classer
-              tes articles plus finement.
-            </p>
-          </div>
-
-          {/* Bulle 2 — mode librairie */}
-          <div className={styles['mascot-bubble']}>
-            <p className={styles['mascot-bubble-text']}>
-              Ce rayon vend des <strong>livres</strong> ? Active le mode{' '}
-              <strong>Librairie</strong> en cliquant sur l'icône{' '}
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" style={{ display:'inline', verticalAlign:'middle' }}>
-                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
-                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
-              </svg>{' '}
-              dans l'en-tête. MeGesti activera automatiquement la{' '}
-              <strong>TVA livre 5,5 %</strong> et les champs spécifiques
-              (ISBN, auteurs…).
-            </p>
-          </div>
-
-          {/* Bulle 3 — TVA */}
-          <div className={styles['mascot-bubble']}>
-            <p className={styles['mascot-bubble-text']}>
-              Tu peux aussi ajuster la <strong>TVA</strong> de chaque rayon
-              manuellement en cliquant sur le badge <em>TVA x %</em> dans son en-tête.
-            </p>
-          </div>
-
+        <div className={styles.sidebarBubble}>
+          <p className={styles.sidebarText}>
+            Commence par créer ton premier rayon. Les catégories et articles s'ajouteront ensuite !
+          </p>
+          <button className={styles.sidebarCta} onClick={onCreateRayon}>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            Créer mon premier rayon
+          </button>
         </div>
-      </div>
+      </>}
+
+      {state === 'no-cats' && <>
+        <div className={styles.sidebarBubble}>
+          <p className={styles.sidebarTitle}>Super, ton rayon est là ! 🎉</p>
+          <p className={styles.sidebarText}>
+            Clique sur le <strong>+</strong> dans l'en-tête du rayon pour y ajouter des <strong>catégories</strong>.
+          </p>
+        </div>
+        <div className={styles.sidebarBubble}>
+          <p className={styles.sidebarText}>
+            Ce rayon vend des livres ? Clique sur <BookIcon /> pour activer le mode <strong>Librairie</strong> — TVA 5,5 % + ISBN + auteurs activés automatiquement.
+          </p>
+        </div>
+        <div className={styles.sidebarBubble}>
+          <p className={styles.sidebarText}>
+            Ajuste la <strong>TVA</strong> de chaque rayon en cliquant sur son badge <em>TVA x %</em>.
+          </p>
+        </div>
+      </>}
+
+      {state === 'ready' && <>
+        <div className={styles.sidebarBubble}>
+          <p className={styles.sidebarTitle}>Rappel rapide 💡</p>
+          <p className={styles.sidebarText}>
+            Ajoute un <strong>nouveau rayon</strong> via le bouton en bas. Clique sur <strong>+</strong> dans un rayon pour y ajouter des catégories.
+          </p>
+        </div>
+        <div className={styles.sidebarBubble}>
+          <p className={styles.sidebarText}>
+            N'oublie pas d'activer <BookIcon /> <strong>Librairie</strong> sur tes rayons qui vendent des livres — la TVA et les champs spécifiques se configurent automatiquement.
+          </p>
+        </div>
+      </>}
     </div>
   )
 }
@@ -238,93 +219,95 @@ export function RayonsSection() {
   const rayonIds   = rayons.map((r) => `rayon::${r.id}`)
   const totalCats  = rayons.reduce((n, r) => n + r.categories.length, 0)
 
+  const mascotState = rayons.length === 0 ? 'empty' as const
+    : totalCats === 0 ? 'no-cats' as const
+    : 'ready' as const
+
   return (
     <div className={styles.root}>
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragStart={({ active }) => setActiveId(active.id as string)}
-        onDragEnd={onDragEnd}
-      >
-        <SortableContext items={rayonIds} strategy={verticalListSortingStrategy}>
-          <div className={styles.list}>
-            {rayons.map((rayon) => (
-              <SortableRayon
-                key={rayon.id}
-                rayon={rayon}
-                isExpanded={expanded.has(rayon.id)}
-                onToggleExpand={() =>
-                  setExpanded((prev) => {
-                    const next = new Set(prev)
-                    next.has(rayon.id) ? next.delete(rayon.id) : next.add(rayon.id)
-                    return next
-                  })
-                }
-                onRename={handleRenameRayon}
-                onToggleLibrairie={handleToggleLibrairie}
-                onUpdateTVA={handleUpdateTVA}
-                onDelete={handleDeleteRayon}
-                onAddCategorie={handleAddCategorie}
-                onRenameCategorie={handleRenameCategorie}
-                onDeleteCategorie={handleDeleteCategorie}
-              />
-            ))}
 
-            {rayons.length === 0 && !showNewRayon && (
-              <MascotRayonsOnboarding onCreateRayon={() => setShowNewRayon(true)} />
-            )}
-          </div>
-        </SortableContext>
-
-        <DragOverlay>
-          {activeId && (
-            <div className={styles.dragGhost}>
-              {activeId.startsWith('rayon::')
-                ? rayons.find((r) => `rayon::${r.id}` === activeId)?.nom
-                : (() => {
-                    const [, rayonId, catId] = activeId.split('::')
-                    return rayons.find((r) => r.id === rayonId)
-                      ?.categories.find((c) => c.id === catId)?.nom
-                  })()
-              }
+      {/* ── Colonne gauche : liste + formulaire ── */}
+      <div className={styles.content}>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragStart={({ active }) => setActiveId(active.id as string)}
+          onDragEnd={onDragEnd}
+        >
+          <SortableContext items={rayonIds} strategy={verticalListSortingStrategy}>
+            <div className={styles.list}>
+              {rayons.map((rayon) => (
+                <SortableRayon
+                  key={rayon.id}
+                  rayon={rayon}
+                  isExpanded={expanded.has(rayon.id)}
+                  onToggleExpand={() =>
+                    setExpanded((prev) => {
+                      const next = new Set(prev)
+                      next.has(rayon.id) ? next.delete(rayon.id) : next.add(rayon.id)
+                      return next
+                    })
+                  }
+                  onRename={handleRenameRayon}
+                  onToggleLibrairie={handleToggleLibrairie}
+                  onUpdateTVA={handleUpdateTVA}
+                  onDelete={handleDeleteRayon}
+                  onAddCategorie={handleAddCategorie}
+                  onRenameCategorie={handleRenameCategorie}
+                  onDeleteCategorie={handleDeleteCategorie}
+                />
+              ))}
             </div>
-          )}
-        </DragOverlay>
-      </DndContext>
+          </SortableContext>
 
-      {/* ── Formulaire nouveau rayon ────────────────────────────── */}
-      {/* Mascotte step 2 — premier rayon créé mais aucune catégorie */}
-      {rayons.length > 0 && totalCats === 0 && !showNewRayon && (
-        <MascotRayonsStep2 />
-      )}
+          <DragOverlay>
+            {activeId && (
+              <div className={styles.dragGhost}>
+                {activeId.startsWith('rayon::')
+                  ? rayons.find((r) => `rayon::${r.id}` === activeId)?.nom
+                  : (() => {
+                      const [, rayonId, catId] = activeId.split('::')
+                      return rayons.find((r) => r.id === rayonId)
+                        ?.categories.find((c) => c.id === catId)?.nom
+                    })()
+                }
+              </div>
+            )}
+          </DragOverlay>
+        </DndContext>
 
-      {showNewRayon ? (
-        <div className={styles.newForm}>
-          <input
-            className={styles.newInput}
-            value={newRayonName}
-            onChange={(e) => setNewRayonName(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') handleAddRayon()
-              if (e.key === 'Escape') { setShowNewRayon(false); setNewRayonName('') }
-            }}
-            placeholder="Nom du rayon (ex : Goodies, Poster…)"
-            autoFocus
-          />
-          <button className={styles.btnConfirm} onClick={handleAddRayon}
-            disabled={!newRayonName.trim() || createRayon.isPending}>
-            {createRayon.isPending ? '…' : 'Créer'}
+        {showNewRayon ? (
+          <div className={styles.newForm}>
+            <input
+              className={styles.newInput}
+              value={newRayonName}
+              onChange={(e) => setNewRayonName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleAddRayon()
+                if (e.key === 'Escape') { setShowNewRayon(false); setNewRayonName('') }
+              }}
+              placeholder="Nom du rayon (ex : Goodies, Poster…)"
+              autoFocus
+            />
+            <button className={styles.btnConfirm} onClick={handleAddRayon}
+              disabled={!newRayonName.trim() || createRayon.isPending}>
+              {createRayon.isPending ? '…' : 'Créer'}
+            </button>
+            <button className={styles.btnCancel} onClick={() => { setShowNewRayon(false); setNewRayonName('') }}>✕</button>
+          </div>
+        ) : rayons.length > 0 ? (
+          <button className={styles.btnAddRayon} onClick={() => setShowNewRayon(true)}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            Nouveau rayon
           </button>
-          <button className={styles.btnCancel} onClick={() => { setShowNewRayon(false); setNewRayonName('') }}>✕</button>
-        </div>
-      ) : rayons.length > 0 ? (
-        <button className={styles.btnAddRayon} onClick={() => setShowNewRayon(true)}>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-          </svg>
-          Nouveau rayon
-        </button>
-      ) : null}
+        ) : null}
+      </div>
+
+      {/* ── Colonne droite : mascotte permanente ── */}
+      <MascotSidebar state={mascotState} onCreateRayon={() => setShowNewRayon(true)} />
+
     </div>
   )
 }

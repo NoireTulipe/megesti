@@ -323,7 +323,7 @@ export default function CaisseScreen() {
 
       {/* ── Header gradient rose→mauve ── */}
       <LinearGradient
-        colors={Gradients.caisse}
+        colors={isDark ? Gradients.caisseDark : Gradients.caisse}
         start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
         style={[styles.headerGradient, { paddingTop: 48 + insets.top }]}>
         <View style={styles.headerRow}>

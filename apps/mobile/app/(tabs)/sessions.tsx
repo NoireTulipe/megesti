@@ -11,6 +11,7 @@ import { useLocalVentes, LocalVente } from '@/hooks/useLocalVentes'
 import { useLocalFrais, LocalFrais, FRAIS_TYPES, fraisLabel, fraisEmoji } from '@/hooks/useLocalFrais'
 import { Colors, Dark, Fonts, Radius, Shadow, Gradients } from '@/constants/theme'
 import { useAppTheme } from '@/hooks/useAppTheme'
+import { useThemeStore } from '@/store/themeStore'
 
 const MODE_EMOJI: Record<string, string> = { CB: '💳', ESPECES: '💶', CHEQUE: '📝', SUMUP: '📱', VIREMENT: '🏦', PDV: '🏪' }
 
@@ -32,6 +33,7 @@ function SessionDetailSheet({
   session, onClose,
 }: { session: SessionWithStats; onClose: () => void }) {
   const insets = useSafeAreaInsets()
+  const isDark = useThemeStore(s => s.isDark)
   const [tab, setTab] = useState<'paniers' | 'articles' | 'frais'>('paniers')
 
   const { ventes } = useLocalVentes(session.id)
@@ -89,7 +91,7 @@ function SessionDetailSheet({
   return (
     <Modal visible transparent animationType="slide" onRequestClose={onClose}>
       <TouchableOpacity style={ss.overlay} activeOpacity={1} onPress={onClose}>
-        <View style={[ss.sheet, { paddingBottom: insets.bottom }]}
+        <View style={[ss.sheet, { paddingBottom: insets.bottom }, isDark && { backgroundColor: '#162030' }]}
           onStartShouldSetResponder={() => true}>
           <View style={ss.handle} />
 
@@ -303,8 +305,9 @@ function SessionDetailSheet({
 function ActiveSessionCard({ s, venteCount, ca, onDetail }: {
   s: SessionWithStats; venteCount: number; ca: number; onDetail: () => void
 }) {
+  const isDark = useThemeStore(s => s.isDark)
   return (
-    <LinearGradient colors={Gradients.sessions} style={styles.heroCard} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
+    <LinearGradient colors={isDark ? Gradients.sessionsDark : Gradients.sessions} style={styles.heroCard} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
       <View style={styles.heroTop}>
         <View style={styles.heroBadge}>
           <View style={styles.heroLiveDot} />
@@ -377,7 +380,7 @@ export default function SessionsScreen() {
 
       {/* En-tête dégradé */}
       <LinearGradient
-        colors={Gradients.sessions}
+        colors={isDark ? Gradients.sessionsDark : Gradients.sessions}
         start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
         style={[styles.heroGradient, { paddingTop: 48 + insets.top }]}>
         <Text style={styles.heroTitle}>Sessions</Text>
@@ -432,7 +435,7 @@ export default function SessionsScreen() {
           ) : (
             <>
               {history.map(s => (
-                <TouchableOpacity key={s.id} style={styles.histCard}
+                <TouchableOpacity key={s.id} style={[styles.histCard, isDark && { backgroundColor: Dark.surface, shadowColor: 'transparent', elevation: 0 }]}
                   onPress={() => setDetailSession(s)} activeOpacity={0.8}>
                   <View style={[styles.histAccent, { backgroundColor: s.ca > 0 ? Colors.sage : Colors.textSoft }]} />
                   <View style={styles.histBody}>
@@ -458,7 +461,7 @@ export default function SessionsScreen() {
               {/* Charger la suite */}
               {historyHasMore && (
                 <TouchableOpacity
-                  style={[styles.loadMoreBtn, loadingMore && styles.loadMoreBtnDisabled]}
+                  style={[styles.loadMoreBtn, loadingMore && styles.loadMoreBtnDisabled, isDark && { backgroundColor: Dark.surface }]}
                   onPress={loadMoreHistory}
                   activeOpacity={0.7}
                   disabled={loadingMore}>

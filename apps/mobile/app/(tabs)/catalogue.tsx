@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import {
   View, Text, TouchableOpacity, TextInput, ScrollView,
-  StyleSheet, RefreshControl, Modal, Alert, ActivityIndicator, Linking,
+  StyleSheet, RefreshControl, Modal, Alert, ActivityIndicator,
 } from 'react-native'
 import { useFocusEffect, router } from 'expo-router'
 import { BarcodeIcon } from '@/components/BarcodeIcon'
@@ -13,124 +13,6 @@ import { useLocalArticles, LocalArticle } from '@/hooks/useLocalArticles'
 import { useLocalSession } from '@/hooks/useLocalSession'
 import { Colors, Dark, Fonts, Radius, Shadow, Gradients } from '@/constants/theme'
 import { useAppTheme } from '@/hooks/useAppTheme'
-import { Config } from '@/constants/Config'
-
-const MASCOT = require('../../assets/images/mascotte/m1.png')
-
-// ── Mascotte état vide ───────────────────────────────────────────────
-
-function MascotEmpty({ isDark }: { isDark: boolean }) {
-  // Dérive l'URL du web depuis l'URL de l'API (port 3001 → port du web)
-  const webUrl = Config.uploadBaseUrl.replace(':3001', ':8080') + '/reglages'
-
-  return (
-    <View style={me.wrap}>
-      {/* Bulle de dialogue */}
-      <View style={[me.bubble, isDark && me.bubbleDark]}>
-        <Text style={[me.bubbleTitle, isDark && me.bubbleTitleDark]}>
-          Par ici ! 👋
-        </Text>
-        <Text style={[me.bubbleText, isDark && me.bubbleTextDark]}>
-          Avant d'ajouter ton premier article, crée au moins un{' '}
-          <Text style={me.bold}>rayon</Text> et une{' '}
-          <Text style={me.bold}>catégorie</Text> depuis l'interface web.
-        </Text>
-        <TouchableOpacity
-          style={[me.bubbleBtn, isDark && me.bubbleBtnDark]}
-          onPress={() => Linking.openURL(webUrl)}
-          activeOpacity={0.8}
-        >
-          <Text style={[me.bubbleBtnText, isDark && me.bubbleBtnTextDark]}>
-            Réglages → Rayons &amp; Catégories →
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Queue de bulle pointant vers la mascotte */}
-      <View style={[me.tail, isDark && me.tailDark]} />
-
-      {/* Mascotte */}
-      <Image
-        source={MASCOT}
-        style={me.mascot}
-        contentFit="cover"
-        contentPosition={{ top: '0%' }}
-        cachePolicy="memory-disk"
-      />
-    </View>
-  )
-}
-
-const me = StyleSheet.create({
-  wrap:  { alignItems: 'center', paddingTop: 32, paddingHorizontal: 32 },
-
-  // Bulle
-  bubble: {
-    backgroundColor: Colors.white,
-    borderRadius: Radius.xl,
-    padding: 20,
-    width: '100%',
-    shadowColor: Colors.text,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 16,
-    elevation: 4,
-  },
-  bubbleDark: { backgroundColor: '#1C2A3A', shadowColor: 'transparent' },
-
-  bubbleTitle: {
-    fontFamily: Fonts.displayItalic,
-    fontSize: 18,
-    color: Colors.rose,
-    fontStyle: 'italic',
-    marginBottom: 8,
-  },
-  bubbleTitleDark: { color: '#E0A090' },
-
-  bubbleText: {
-    fontFamily: Fonts.body,
-    fontSize: 13,
-    color: Colors.textMid,
-    lineHeight: 20,
-    marginBottom: 16,
-  },
-  bubbleTextDark: { color: 'rgba(255,255,255,0.65)' },
-
-  bold: { fontWeight: '700', color: Colors.sage },
-
-  bubbleBtn: {
-    backgroundColor: Colors.sageLight,
-    borderRadius: Radius.md,
-    paddingVertical: 11,
-    paddingHorizontal: 16,
-    alignItems: 'center',
-  },
-  bubbleBtnDark: { backgroundColor: 'rgba(107,143,113,0.2)' },
-
-  bubbleBtnText: {
-    fontFamily: Fonts.body,
-    fontSize: 13,
-    fontWeight: '700',
-    color: Colors.sage,
-  },
-  bubbleBtnTextDark: { color: '#8DB890' },
-
-  // Queue triangulaire vers le bas
-  tail: {
-    width: 0, height: 0,
-    borderLeftWidth: 14, borderRightWidth: 14, borderTopWidth: 16,
-    borderLeftColor: 'transparent', borderRightColor: 'transparent',
-    borderTopColor: Colors.white,
-    marginLeft: -30,   // décalée légèrement à gauche pour pointer vers la tête de la mascotte
-    alignSelf: 'flex-start',
-    marginStart: 60,
-  },
-  tailDark: { borderTopColor: '#1C2A3A' },
-
-  // Mascotte — ratio 1792:2400 ≈ 0.747 → à 160 large = 214 haut
-  mascot: { width: 160, height: 214, marginTop: -4 },
-})
-
 // ── Écran principal ──────────────────────────────────────────────────
 
 export default function StockScreen() {
@@ -206,7 +88,7 @@ export default function StockScreen() {
 
       {/* En-tête dégradé */}
       <LinearGradient
-        colors={Gradients.stock}
+        colors={isDark ? Gradients.stockDark : Gradients.stock}
         start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
         style={[styles.heroGradient, { paddingTop: 48 + insets.top }]}>
         <Text style={styles.heroTitle}>Stock</Text>
@@ -226,7 +108,11 @@ export default function StockScreen() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.sage} />}>
 
         {displayed.length === 0 && !refreshing ? (
-          <MascotEmpty isDark={isDark} />
+          <View style={styles.empty}>
+            <Text style={[styles.emptyEmoji, isDark && { color: Dark.textSoft }]}>📦</Text>
+            <Text style={[styles.emptyText, isDark && { color: Dark.textMid }]}>Aucun article</Text>
+            <Text style={[styles.emptySub, isDark && { color: Dark.textSoft }]}>Synchronisez le stock depuis l'interface web.</Text>
+          </View>
         ) : (
           displayed.map(a => (
             <TouchableOpacity key={a.id} style={[styles.card, isDark && { backgroundColor: Dark.surface, shadowColor: 'transparent', elevation: 0 }]} activeOpacity={0.7}
@@ -386,6 +272,10 @@ const styles = StyleSheet.create({
   heroSearchIcon: { fontSize: 15, marginRight: 6 },
   heroSearchInput: { flex: 1, fontFamily: Fonts.body, fontSize: 14, color: Colors.white, paddingVertical: 10 },
   list: { paddingHorizontal: 20 },
+  empty: { alignItems: 'center', paddingTop: 80 },
+  emptyEmoji: { fontSize: 48, marginBottom: 16 },
+  emptyText: { fontFamily: Fonts.displayItalic, fontSize: 18, color: Colors.textMid, fontStyle: 'italic' },
+  emptySub: { fontFamily: Fonts.body, fontSize: 13, color: Colors.textSoft, textAlign: 'center', marginTop: 6, lineHeight: 20 },
 
 
   card: { flexDirection: 'row', backgroundColor: Colors.white, borderRadius: Radius.lg, padding: 12, marginBottom: 8, ...Shadow.card, alignItems: 'center' },

@@ -75,10 +75,14 @@ export const Radius = {
 
 // Gradients prédéfinis (rose→mauve pour caisse, sage pour sessions, gold pour bilan)
 export const Gradients = {
-  caisse:   ['#C4847A', '#8B7BAB'] as [string, string],
-  stock:    ['#6B8F71', '#2D4A38'] as [string, string],
-  sessions: ['#5F7B9C', '#2A3D58'] as [string, string],
-  bilan:    ['#C9933A', '#7A4E10'] as [string, string],
+  caisse:      ['#C4847A', '#8B7BAB'] as [string, string],
+  caisseDark:  ['#A06050', '#6A5080'] as [string, string],
+  stock:       ['#6B8F71', '#2D4A38'] as [string, string],
+  stockDark:   ['#3A5540', '#1A2A20'] as [string, string],
+  sessions:    ['#5F7B9C', '#2A3D58'] as [string, string],
+  sessionsDark:['#354560', '#182230'] as [string, string],
+  bilan:       ['#C9933A', '#7A4E10'] as [string, string],
+  bilanDark:   ['#806020', '#4A2E08'] as [string, string],
 }
 
 // ── Thème sombre (mode nuit, inspiré du login) ──────────────────────────

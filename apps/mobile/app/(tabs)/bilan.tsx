@@ -231,7 +231,7 @@ function MonthPickerModal({ visible, value, onSelect, onClose }: {
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <TouchableOpacity style={mp.overlay} activeOpacity={1} onPress={onClose}>
-        <View style={mp.card} onStartShouldSetResponder={() => true}>
+        <View style={[mp.card, isDark && { backgroundColor: '#1C2A3A' }]} onStartShouldSetResponder={() => true}>
           {/* Navigation année */}
           <View style={mp.yearRow}>
             <TouchableOpacity onPress={() => setYear(y => y - 1)} style={mp.yearBtn} activeOpacity={0.6}>
@@ -471,7 +471,7 @@ export default function BilanScreen() {
 
       {/* En-tête dégradé */}
       <LinearGradient
-        colors={Gradients.bilan}
+        colors={isDark ? Gradients.bilanDark : Gradients.bilan}
         start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
         style={[styles.heroGradient, { paddingTop: 48 + insets.top }]}>
         <Text style={styles.heroTitle}>Bilan</Text>
@@ -492,7 +492,7 @@ export default function BilanScreen() {
 
 
         {/* ── Carte résumé ── */}
-        <LinearGradient colors={Gradients.bilan} style={styles.summaryCard} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
+        <LinearGradient colors={isDark ? Gradients.bilanDark : Gradients.bilan} style={styles.summaryCard} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
           <Text style={styles.summaryLbl}>Net estimé</Text>
           <Text style={styles.summaryNet}>{totaux.net.toFixed(2)} €</Text>
 
@@ -524,7 +524,7 @@ export default function BilanScreen() {
         </LinearGradient>
 
         {totaux.venteCount === 0 ? (
-          <View style={styles.emptyCard}>
+          <View style={[styles.emptyCard, isDark && { backgroundColor: Dark.surface, shadowColor: 'transparent', elevation: 0 }]}>
             <Text style={styles.emptyEmoji}>📊</Text>
             <Text style={styles.emptyTitle}>Aucune vente sur cette période</Text>
             <Text style={styles.emptySub}>Modifiez la période ou enregistrez des ventes.</Text>
