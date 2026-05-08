@@ -14,6 +14,53 @@ import {
 import type { Rayon, Categorie } from '../catalogue/types'
 import styles from './RayonsSection.module.css'
 
+// ── Mascotte onboarding rayons ────────────────────────────────────────────────
+
+function MascotRayonsOnboarding({ onCreateRayon }: { onCreateRayon: () => void }) {
+  return (
+    <div className={styles['mascot-wrap']}>
+      <div className={styles['mascot-container']}>
+        <img src="/img/mascotte/m1.png" alt="" className={styles['mascot-img']} />
+        <div className={styles['mascot-bubbles']}>
+
+          {/* Bulle 1 — concept rayon */}
+          <div className={styles['mascot-bubble']}>
+            <p className={styles['mascot-bubble-title']}>Comment ça marche ? 🗂️</p>
+            <p className={styles['mascot-bubble-text']}>
+              Dans MeGesti, le catalogue est organisé en <strong>rayons</strong> —
+              ce sont les grandes familles de produits :{' '}
+              <em>Librairie, Goodies, Affiches, Cartes postales…</em>
+            </p>
+          </div>
+
+          {/* Bulle 2 — concept catégorie */}
+          <div className={styles['mascot-bubble']}>
+            <p className={styles['mascot-bubble-text']}>
+              À l'intérieur de chaque rayon, tu définis des <strong>catégories</strong> plus précises.
+              Par exemple : <em>Librairie → Romans, BD, Jeunesse, Essais.</em>
+            </p>
+          </div>
+
+          {/* Bulle 3 — CTA */}
+          <div className={`${styles['mascot-bubble']} ${styles['mascot-bubble-cta']}`}>
+            <p className={styles['mascot-bubble-text']}>
+              Commence par créer ton premier rayon —
+              les catégories et articles s'ajouteront ensuite !
+            </p>
+            <button className={styles['mascot-cta-btn']} onClick={onCreateRayon}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              Créer mon premier rayon
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export function RayonsSection() {
   const { data: rayonsFromApi = [] } = useRayons()
   const createRayon    = useCreateRayon()
@@ -172,9 +219,7 @@ export function RayonsSection() {
             ))}
 
             {rayons.length === 0 && !showNewRayon && (
-              <div className={styles.empty}>
-                Aucun rayon — créez-en un pour organiser votre catalogue.
-              </div>
+              <MascotRayonsOnboarding onCreateRayon={() => setShowNewRayon(true)} />
             )}
           </div>
         </SortableContext>
