@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useArticles, useSetArticleActif } from './hooks/useArticles'
 import { useRayons } from './hooks/useRayons'
 import { ArticleCard }   from './ArticleCard'
@@ -9,6 +10,33 @@ import type { Article }  from './types'
 import styles from './CataloguePage.module.css'
 
 type CatalogueTab = 'actifs' | 'retires'
+
+function MascotOnboarding() {
+  const navigate = useNavigate()
+  return (
+    <div className={styles['mascot-wrap']}>
+      <img
+        src="/img/mascotte/m1.png"
+        alt="Mascotte Megesti"
+        className={styles['mascot-img']}
+      />
+      <div className={styles['mascot-bubble']}>
+        <p className={styles['mascot-title']}>Par ici ! 👋</p>
+        <p className={styles['mascot-text']}>
+          Avant d'ajouter ton premier article, crée au moins un{' '}
+          <strong>rayon</strong> et une <strong>catégorie</strong> pour
+          structurer ton catalogue.
+        </p>
+        <button
+          className={styles['mascot-btn']}
+          onClick={() => navigate('/reglages')}
+        >
+          Réglages → Rayons &amp; Catégories →
+        </button>
+      </div>
+    </div>
+  )
+}
 
 export function CataloguePage() {
   const [search, setSearch]           = useState('')
@@ -131,23 +159,21 @@ export function CataloguePage() {
       )}
 
       {!isLoading && !isError && articles.length === 0 && (
-        <div className={styles['empty-state']}>
-          <div className={styles['empty-icon']}>{rayons.length === 0 ? '⚙️' : '📚'}</div>
-          <div className={styles['empty-title']}>
-            {rayons.length === 0
-              ? 'Commencez par créer vos rayons'
-              : debouncedSearch
+        rayons.length === 0 ? (
+          <MascotOnboarding />
+        ) : (
+          <div className={styles['empty-state']}>
+            <div className={styles['empty-icon']}>📚</div>
+            <div className={styles['empty-title']}>
+              {debouncedSearch
                 ? `Aucun résultat pour « ${debouncedSearch} »`
                 : tab === 'retires' ? 'Aucun article retiré' : 'Votre catalogue est vide'}
+            </div>
+            <div className={styles['empty-desc']}>
+              {!debouncedSearch && tab === 'actifs' ? 'Ajoutez votre premier livre, goodie ou article.' : ''}
+            </div>
           </div>
-          <div className={styles['empty-desc']}>
-            {rayons.length === 0
-              ? 'Rendez-vous dans les Réglages → Rayons pour structurer votre catalogue.'
-              : !debouncedSearch && tab === 'actifs'
-                ? 'Ajoutez votre premier livre, goodie ou article.'
-                : ''}
-          </div>
-        </div>
+        )
       )}
 
       {!isLoading && !isError && articles.length > 0 && (
