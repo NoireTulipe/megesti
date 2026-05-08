@@ -18,7 +18,7 @@
 
 /* Colonne droite : mascotte + bulles côte à côte (sticky) */
 .mascotSidebar {
-  width: 360px;
+  width: 420px;
   flex-shrink: 0;
   position: sticky;
   top: 20px;
@@ -28,10 +28,10 @@
   gap: 0;
 }
 
-/* Mascotte dans la sidebar — haute */
+/* Mascotte — largeur fixe, hauteur déduite du ratio 1792:2400 */
 .sidebarImg {
-  height: min(55vh, 400px);
-  width: auto;
+  width: 130px;               /* → hauteur auto ≈ 174px */
+  height: auto;
   object-fit: contain;
   object-position: top center;
   flex-shrink: 0;
