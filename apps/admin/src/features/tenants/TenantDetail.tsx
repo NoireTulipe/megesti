@@ -3,7 +3,11 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { ArrowLeft, UserPlus } from 'lucide-react'
 import { apiFetch } from '../../api'
-import { PLAN_LABELS, type PlanTier } from '@megesti/shared'
+
+const PLAN_LABELS: Record<string, string> = {
+  TRIAL: 'Essai gratuit', AUTO_EDITION: 'Auto-édition',
+  EDITION: 'Edition', EDITION_PRO: 'Edition Pro',
+}
 
 interface TenantDetail {
   id: string; name: string; slug: string; plan: string; actif: boolean
@@ -72,7 +76,7 @@ export function TenantDetail() {
             <ArrowLeft size={14} /> Retour
           </button>
           <h1 className="page-title">{tenant.name}</h1>
-          <span className={`badge ${PLAN_BADGE[tenant.plan] ?? ''}`}>{PLAN_LABELS[tenant.plan as PlanTier] ?? tenant.plan}</span>
+          <span className={`badge ${PLAN_BADGE[tenant.plan] ?? ''}`}>{PLAN_LABELS[tenant.plan] ?? tenant.plan}</span>
           <span className={`badge ${tenant.actif ? 'badge-on' : 'badge-off'}`}>{tenant.actif ? 'Actif' : 'Suspendu'}</span>
         </div>
       </div>

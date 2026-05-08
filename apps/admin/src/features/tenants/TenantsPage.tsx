@@ -3,7 +3,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { Plus } from 'lucide-react'
 import { apiFetch } from '../../api'
-import { PLAN_LABELS, type PlanTier } from '@megesti/shared'
+
+const PLAN_LABELS: Record<string, string> = {
+  TRIAL: 'Essai gratuit', AUTO_EDITION: 'Auto-édition',
+  EDITION: 'Edition', EDITION_PRO: 'Edition Pro',
+}
 
 interface Tenant {
   id: string; name: string; slug: string; plan: string; actif: boolean
@@ -12,7 +16,7 @@ interface Tenant {
 
 interface CreateTenantForm {
   name: string; slug: string
-  plan: PlanTier
+  plan: string
   franchiseBaseVA: boolean
   adminEmail: string; adminPassword: string; adminPrenom: string; adminNom: string
 }
@@ -85,7 +89,7 @@ export function TenantsPage() {
                     <tr key={t.id} style={{ cursor: 'pointer' }} onClick={() => navigate(`/tenants/${t.id}`)}>
                       <td style={{ fontWeight: 600 }}>{t.name}</td>
                       <td className="text-muted">{t.slug}</td>
-                      <td><span className={`badge ${PLAN_BADGE[t.plan] ?? ''}`}>{PLAN_LABELS[t.plan as PlanTier] ?? t.plan}</span></td>
+                      <td><span className={`badge ${PLAN_BADGE[t.plan] ?? ''}`}>{PLAN_LABELS[t.plan] ?? t.plan}</span></td>
                       <td><span className={`badge ${t.actif ? 'badge-on' : 'badge-off'}`}>{t.actif ? 'Actif' : 'Suspendu'}</span></td>
                       <td>{t._count.users}</td>
                       <td>{t._count.ventes}</td>
