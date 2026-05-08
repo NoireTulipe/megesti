@@ -102,8 +102,21 @@ async function main() {
     })
   }
 
+  // ── AdminUser ─────────────────────────────────────────────────────────────
+  const superAdminHash = await bcrypt.hash('EC@fanfanlt678', 12)
+  await prisma.adminUser.upsert({
+    where:  { email: 'contact@echodeplumes.com' },
+    update: {},
+    create: {
+      email:        'contact@echodeplumes.com',
+      nom:          'François',
+      passwordHash: superAdminHash,
+    },
+  })
+
   console.log(`✓ Tenant   : ${tenant.name}`)
   console.log(`✓ Admin    : admin@demo.fr / demo1234`)
+  console.log(`✓ SuperAdmin: contact@echodeplumes.com`)
   console.log(`✓ Auteurs  : ${auteurs.length}`)
   console.log(`✓ Articles : ${articlesData.length}`)
 }
