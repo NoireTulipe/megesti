@@ -12,6 +12,7 @@ import { useCustomFields } from '@/features/reglages/hooks/useCustomFields'
 import { useCustomFieldValues, useSaveCustomFieldValues } from '@/features/reglages/hooks/useCustomFieldValues'
 import { validateCustomFields } from '@/lib/customFieldValidation'
 import { FIXED_SECTIONS } from '@/lib/fixedSections'
+import { usePlanFeatures } from '@/hooks/usePlanFeatures'
 import styles from './AuteurForm.module.css'
 
 const FIXED_CATEGORIES = FIXED_SECTIONS.auteur.map((s) => s.label)
@@ -32,6 +33,7 @@ interface Props {
 }
 
 export function AuteurForm({ onClose, auteur }: Props) {
+  const { features }       = usePlanFeatures()
   const isEdit             = Boolean(auteur)
   const createAuteur       = useCreateAuteur()
   const updateAuteur       = useUpdateAuteur()
@@ -198,10 +200,10 @@ export function AuteurForm({ onClose, auteur }: Props) {
       />
 
       {/* ── Contrats & barèmes DA ─────────────────────────────── */}
-      {isEdit && auteur && <ContratsAuteurSection auteur={auteur} />}
+      {isEdit && auteur && features.contratsAuteurs && <ContratsAuteurSection auteur={auteur} />}
 
       {/* ── Contrat ME à la création ──────────────────────────── */}
-      {!isEdit && (
+      {!isEdit && features.contratsAuteurs && (
         <div className={styles.section}>
           <p className={styles.sectionLabel}>Contrat ME</p>
           <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', userSelect: 'none' }}>
