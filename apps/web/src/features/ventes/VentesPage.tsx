@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { usePointsDeVente } from './hooks/usePointsDeVente'
 import { useSessionsCaisse, useOpenSessionCaisse, useCloseSessionCaisse } from './hooks/useSessionsCaisse'
 import { useVentes, useCreateVente, useAnnulerVente } from './hooks/useVentes'
@@ -13,6 +14,94 @@ import { useFranchiseTVA } from '@/hooks/useFranchiseTVA'
 import { useRayons } from '@/features/catalogue/hooks/useRayons'
 import { Modal } from '@/components/ui/Modal'
 import styles from './VentesPage.module.css'
+
+// ── Mascottes tutoriel caisse ─────────────────────────────────────────────────
+
+function MascotNoPDV() {
+  const navigate = useNavigate()
+  return (
+    <div className={styles['mascot-wrap']}>
+      <img src="/img/mascotte/m1.png" alt="" className={styles['mascot-img']} />
+      <div className={styles['mascot-bubbles']}>
+        <div className={styles['mascot-bubble']}>
+          <p className={styles['mascot-title']}>Bienvenue dans la Caisse ! 🏪</p>
+          <p className={styles['mascot-text']}>
+            C'est ici que tu centralises <strong>toutes tes ventes</strong> — lors d'un salon,
+            d'une expo, en boutique ou même ponctuellement en dehors de tout événement.
+            Chaque euro encaissé passe par ici.
+          </p>
+        </div>
+        <div className={styles['mascot-bubble']}>
+          <p className={styles['mascot-text']}>
+            Avant de commencer à vendre, il te faut au moins un{' '}
+            <strong>Point de vente</strong> — c'est le lieu où se déroulera ta vente :{' '}
+            ton stand au salon du livre, ta boutique en ligne, une librairie partenaire…
+            Tu peux en créer autant que tu veux et avoir{' '}
+            <strong>plusieurs sessions actives simultanément</strong>.
+          </p>
+          <button className={styles['mascot-btn']} onClick={() => navigate('/points-de-vente')}>
+            Créer mon premier point de vente →
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function MascotNeverSession({ onOpen }: { onOpen: () => void }) {
+  return (
+    <div className={styles['mascot-wrap']}>
+      <img src="/img/mascotte/m1.png" alt="" className={styles['mascot-img']} />
+      <div className={styles['mascot-bubbles']}>
+        <div className={styles['mascot-bubble']}>
+          <p className={styles['mascot-title']}>Tout est en place ! 🎉</p>
+          <p className={styles['mascot-text']}>
+            Pour enregistrer des ventes, deux modes s'offrent à toi :
+          </p>
+        </div>
+        <div className={styles['mascot-bubble']}>
+          <p className={styles['mascot-text']}>
+            📦 <strong>La session</strong> — tu l'ouvres au début d'une journée de vente ou
+            d'un événement, tu enregistres tous tes clients au fil de la journée, puis tu la
+            fermes en fin de journée. Idéal pour un salon, une expo, un marché…
+            Plusieurs sessions peuvent tourner en même temps sur différents points de vente.
+          </p>
+        </div>
+        <div className={styles['mascot-bubble']}>
+          <p className={styles['mascot-text']}>
+            ⚡ <strong>La vente hors session</strong> — pour le coup ponctuel et rapide :
+            un lecteur te contacte directement, tu enregistres sa commande en deux clics,
+            sans ouvrir de session. Parfait pour les ventes en dehors de tout événement.
+          </p>
+          <button className={styles['mascot-btn']} onClick={onOpen}>
+            Ouvrir ma première session →
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function MascotNoActiveSession({ onOpen }: { onOpen: () => void }) {
+  return (
+    <div className={styles['mascot-wrap']}>
+      <img src="/img/mascotte/m1.png" alt="" className={styles['mascot-img']} />
+      <div className={styles['mascot-bubbles']}>
+        <div className={styles['mascot-bubble']}>
+          <p className={styles['mascot-title']}>Prêt à reprendre ? 👋</p>
+          <p className={styles['mascot-text']}>
+            <strong>Ouvre une session</strong> pour démarrer une journée de vente dans un
+            point de vente. Pour une vente rapide et isolée, utilise le bouton{' '}
+            <strong>Vente hors session</strong> en haut de page.
+          </p>
+          <button className={styles['mascot-btn']} onClick={onOpen}>
+            Ouvrir une session →
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 type MainTab = 'caisse' | 'historique'
 type HistoriqueTab = 'sessions' | 'hors-session'
@@ -69,8 +158,9 @@ export function VentesPage() {
   const [fraisMontant,  setFraisMontant]  = useState('')
 
   // ── Data ─────────────────────────────────────────────────────────────
-  const { data: pdvList   = [] } = usePointsDeVente()
-  const { data: sessions  = [] } = useSessionsCaisse({ statut: 'OUVERTE' })
+  const { data: pdvList        = [] } = usePointsDeVente()
+  const { data: sessions       = [] } = useSessionsCaisse({ statut: 'OUVERTE' })
+  const { data: sessionsFermees = [] } = useSessionsCaisse({ statut: 'FERMEE' })
   const { data: rayons    = [] } = useRayons()
   const { data: articles  = [] } = useArticles()
   const { data: ventes    = [] } = useVentes(activeSessionId ?? undefined)
@@ -297,24 +387,23 @@ export function VentesPage() {
                 </div>
                 <p className={styles.sessionSelectOr}>— ou —</p>
               </>
+            ) : pdvList.length === 0 ? (
+              <MascotNoPDV />
+            ) : sessionsFermees.length === 0 ? (
+              <MascotNeverSession onOpen={() => setShowOpenModal(true)} />
             ) : (
-              <div className={styles.emptyState}>
-                <div className={styles.emptyIcon}>
-                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#C4907C" strokeWidth="1.8" strokeLinecap="round">
-                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-                    <polyline points="9 22 9 12 15 12 15 22"/>
-                  </svg>
-                </div>
-                <div className={styles.emptyTitle}>Aucune session active</div>
-                <div className={styles.emptyDesc}>Ouvrez une session pour commencer à vendre.</div>
-              </div>
+              <MascotNoActiveSession onOpen={() => setShowOpenModal(true)} />
             )}
-            <button className={styles.btnPrimary} onClick={() => setShowOpenModal(true)}>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-              </svg>
-              Ouvrir une nouvelle session
-            </button>
+
+            {/* Bouton "Ouvrir une session" — masqué si pas de PDV (la mascotte gère la navigation) */}
+            {pdvList.length > 0 && (
+              <button className={styles.btnPrimary} onClick={() => setShowOpenModal(true)}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                  <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+                Ouvrir une nouvelle session
+              </button>
+            )}
           </div>
         )}
 
