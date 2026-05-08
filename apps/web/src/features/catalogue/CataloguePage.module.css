@@ -67,24 +67,49 @@
 .empty-desc  { font-size:0.85rem; color:var(--text-soft); max-width:340px; line-height:1.6; }
 
 /* ─── MASCOTTE ONBOARDING ───────────────────────────── */
-.mascot-wrap  { display:flex; align-items:center; gap:0; padding:48px 32px; max-width:640px; }
-.mascot-img   { width:160px; height:214px; object-fit:cover; object-position:top center; flex-shrink:0; }
-.mascot-bubble {
-  position:relative; background:#fff; border:1.5px solid var(--cream-dark);
-  border-radius:16px; padding:20px 22px; box-shadow:0 4px 20px rgba(44,33,24,0.07); margin-left:18px;
+
+/* Centrage de l'ensemble */
+.mascot-wrap { display:flex; justify-content:center; align-items:flex-start; padding:40px 32px; }
+
+/* Conteneur relatif — la bulle sera positionnée en absolu par rapport à lui */
+.mascot-container { position:relative; display:inline-flex; align-items:flex-start; }
+
+/* Mascotte grande — hauteur max de l'espace disponible, largeur auto (ratio 1792:2400 préservé) */
+.mascot-img {
+  height: min(68vh, 520px);
+  width: auto;
+  object-fit: contain;
+  object-position: top center;
+  flex-shrink: 0;
+  display: block;
 }
-/* Queue pointant à gauche vers la mascotte — bord */
+
+/* Bulle positionnée en absolu à hauteur de tête (≈ top 3% de l'image = zone du visage) */
+.mascot-bubble {
+  position: absolute;
+  top: 2%;
+  left: calc(100% + 18px);
+  width: 260px;
+  background: #fff;
+  border: 1.5px solid var(--cream-dark);
+  border-radius: 16px;
+  padding: 18px 20px;
+  box-shadow: 0 4px 20px rgba(44,33,24,0.08);
+}
+
+/* Queue pointant vers la gauche (la tête de la mascotte) — bord */
 .mascot-bubble::before {
-  content:''; position:absolute; left:-15px; top:50%; transform:translateY(-50%);
+  content:''; position:absolute; left:-15px; top:28px;
   border-top:11px solid transparent; border-bottom:11px solid transparent;
   border-right:15px solid var(--cream-dark);
 }
-/* Queue pointant à gauche — remplissage blanc */
+/* Queue — remplissage blanc */
 .mascot-bubble::after {
-  content:''; position:absolute; left:-13px; top:50%; transform:translateY(-50%);
+  content:''; position:absolute; left:-13px; top:29px;
   border-top:10px solid transparent; border-bottom:10px solid transparent;
   border-right:14px solid #fff;
 }
+
 .mascot-title { font-family:'DM Serif Display',serif; font-size:1.1rem; font-style:italic; color:var(--rose,#C4847A); margin:0 0 8px; }
 .mascot-text  { font-size:0.87rem; color:var(--text-mid); line-height:1.65; margin:0 0 16px; }
 .mascot-text strong { color:var(--sage); font-weight:700; }

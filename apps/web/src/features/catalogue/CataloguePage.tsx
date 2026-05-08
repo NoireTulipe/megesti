@@ -15,24 +15,26 @@ function MascotOnboarding() {
   const navigate = useNavigate()
   return (
     <div className={styles['mascot-wrap']}>
-      <img
-        src="/img/mascotte/m1.png"
-        alt="Mascotte Megesti"
-        className={styles['mascot-img']}
-      />
-      <div className={styles['mascot-bubble']}>
-        <p className={styles['mascot-title']}>Par ici ! 👋</p>
-        <p className={styles['mascot-text']}>
-          Avant d'ajouter ton premier article, crée au moins un{' '}
-          <strong>rayon</strong> et une <strong>catégorie</strong> pour
-          structurer ton catalogue.
-        </p>
-        <button
-          className={styles['mascot-btn']}
-          onClick={() => navigate('/reglages')}
-        >
-          Réglages → Rayons &amp; Catégories →
-        </button>
+      <div className={styles['mascot-container']}>
+        <img
+          src="/img/mascotte/m1.png"
+          alt="Mascotte Megesti"
+          className={styles['mascot-img']}
+        />
+        <div className={styles['mascot-bubble']}>
+          <p className={styles['mascot-title']}>Par ici ! 👋</p>
+          <p className={styles['mascot-text']}>
+            Avant d'ajouter ton premier article, crée au moins un{' '}
+            <strong>rayon</strong> et une <strong>catégorie</strong> pour
+            structurer ton catalogue.
+          </p>
+          <button
+            className={styles['mascot-btn']}
+            onClick={() => navigate('/reglages')}
+          >
+            Réglages → Rayons &amp; Catégories →
+          </button>
+        </div>
       </div>
     </div>
   )
