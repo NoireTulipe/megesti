@@ -82,7 +82,7 @@ export default function SettingsScreen() {
             onPress={() => setTab(t.key)}
             activeOpacity={0.7}>
             <Text style={s.tabEmoji}>{t.emoji}</Text>
-            <Text style={[s.tabLabel, tab === t.key && s.tabLabelActive]}>{t.label}</Text>
+            <Text style={[s.tabLabel, { color: tab === t.key ? (isDark ? Dark.accent : Colors.ink) : (isDark ? Dark.textSoft : Colors.textSoft) }]}>{t.label}</Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -203,16 +203,16 @@ const s = StyleSheet.create({
     flexDirection: 'row', marginHorizontal: 20, marginTop: 16, marginBottom: 8,
     backgroundColor: Colors.white, borderRadius: Radius.lg, padding: 4, ...Shadow.card,
   },
-  tabRowDark: { backgroundColor: Dark.surface, shadowColor: 'transparent', elevation: 0 },
+  tabRowDark: { backgroundColor: 'rgba(255,255,255,0.06)', shadowColor: 'transparent', elevation: 0 },
   tab: {
     flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
     gap: 5, paddingVertical: 10, borderRadius: Radius.md,
   },
   tabActive: { backgroundColor: Colors.inkFaint },
-  tabActiveDark: { backgroundColor: Dark.inkFaint },
+  tabActiveDark: { backgroundColor: 'rgba(255,255,255,0.15)' },
   tabEmoji: { fontSize: 15 },
-  tabLabel: { fontFamily: Fonts.body, fontSize: 12, fontWeight: '600', color: Colors.textSoft },
-  tabLabelActive: { color: Colors.ink },
+  tabLabel: { fontFamily: Fonts.body, fontSize: 12, fontWeight: '600' },
+  tabLabelActive: {},
 
   scroll: { paddingTop: 12, paddingHorizontal: 20 },
 
@@ -228,7 +228,7 @@ const s = StyleSheet.create({
     backgroundColor: Colors.white, borderRadius: Radius.lg,
     ...Shadow.card, overflow: 'hidden',
   },
-  sectionBodyDark: { backgroundColor: Dark.surface, shadowColor: 'transparent', elevation: 0, borderWidth: 1, borderColor: Dark.surfaceBorder },
+  sectionBodyDark: { backgroundColor: 'rgba(255,255,255,0.08)', shadowColor: 'transparent', elevation: 0, borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)' },
 
   // Rows
   row: {

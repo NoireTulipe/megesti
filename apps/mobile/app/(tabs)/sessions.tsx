@@ -376,7 +376,7 @@ export default function SessionsScreen() {
 
   return (
     <View style={[styles.shell, isDark && { backgroundColor: Dark.bg }]}>
-      <LinearGradient colors={[Colors.sageLight, Colors.cream, Colors.cream]} style={styles.bg} />
+      <LinearGradient colors={isDark ? [Dark.bg, Dark.bg, Dark.bg] : [Colors.sageLight, Colors.cream, Colors.cream]} style={styles.bg} />
 
       {/* En-tête dégradé */}
       <LinearGradient

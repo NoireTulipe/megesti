@@ -1,10 +1,10 @@
-/* ── Layout deux colonnes : liste à gauche, mascotte à droite ── */
+/* ── Layout deux colonnes pleine largeur ── */
 .root {
   display: flex;
   flex-direction: row;
   align-items: flex-start;
   gap: 28px;
-  max-width: 980px;
+  width: 100%;               /* utilise toute la largeur disponible */
 }
 
 /* Colonne gauche : liste DnD + formulaire */
@@ -16,10 +16,9 @@
   min-width: 0;
 }
 
-/* Colonne droite : mascotte + bulles côte à côte (sticky) */
+/* Colonne droite : 40% de la largeur, sticky */
 .mascotSidebar {
-  width: 420px;
-  flex-shrink: 0;
+  flex: 0 0 40%;
   position: sticky;
   top: 20px;
   display: flex;
@@ -28,9 +27,9 @@
   gap: 0;
 }
 
-/* Mascotte — largeur fixe, hauteur déduite du ratio 1792:2400 */
+/* Mascotte — occupe ~40% de la sidebar, hauteur auto depuis ratio 1792:2400 */
 .sidebarImg {
-  width: 130px;               /* → hauteur auto ≈ 174px */
+  width: 40%;
   height: auto;
   object-fit: contain;
   object-position: top center;

@@ -468,7 +468,7 @@ export default function BilanScreen() {
 
   return (
     <View style={[styles.shell, isDark && { backgroundColor: Dark.bg }]}>
-      <LinearGradient colors={['#FBF5E6', Colors.cream, Colors.cream]} style={styles.bg} />
+      <LinearGradient colors={isDark ? [Dark.bg, Dark.bg, Dark.bg] : ['#FBF5E6', Colors.cream, Colors.cream]} style={styles.bg} />
 
       {/* En-tête dégradé */}
       <LinearGradient
