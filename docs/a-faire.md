@@ -98,6 +98,23 @@ Un auteur avec son propre compte (plan Auto-édition ou Edition) peut vendre des
 
 ---
 
+---
+
+## Migration URL tenant : `/t/:slug` → `slug.megesti.com`
+
+Actuellement : `http://IP:8080/t/echo-de-plumes` (path-based, en place)
+
+Quand le domaine `megesti.com` sera disponible :
+1. **DNS** : enregistrement wildcard `*.megesti.com` → serveur
+2. **SSL** : certificat wildcard `*.megesti.com` via Let's Encrypt + challenge DNS (nécessite domaine géré par Cloudflare ou équivalent)
+3. **Caddy** : directive `*.megesti.com` avec `tls { dns cloudflare {env.CF_API_TOKEN} }` + `header_down` pour extraire le sous-domaine
+4. **Web app** : remplacer la lecture du slug de `params.slug` (React Router) → `window.location.hostname.split('.')[0]`
+5. **Backend** : aucun changement — login accepte déjà le slug
+
+La migration est non-destructive : l'URL `/t/:slug` peut coexister avec les sous-domaines pendant la transition.
+
+---
+
 Pour ne pas oublier pour plus tard :
 - **Plateforme de réception des soumissions auteurs** : Depuis leur interface, les ME pourront ouvrir des recrutement d'auteurs en déposant une annonce (avec des critères comme public cible, style, etc...)
 - Des illustrateurs pourront également être recruté par annonce.

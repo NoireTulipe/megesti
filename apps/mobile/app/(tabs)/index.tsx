@@ -231,9 +231,9 @@ const styles = StyleSheet.create({
 
   // Logo megesti (branding appli)
   megestiLogo: {
-    width: 180,
-    height: 54,
-    marginBottom: 10,
+    width: 280,
+    height: 84,
+    marginBottom: 16,
   },
 
   // Logo ME — sans cercle, intégré naturellement sous le logo megesti

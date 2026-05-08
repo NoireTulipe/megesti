@@ -5,6 +5,7 @@ import bcrypt from 'bcryptjs'
 const LoginSchema = z.object({
   email:    z.string().email(),
   password: z.string().min(8),
+  slug:     z.string().optional(), // slug du tenant pour login scopé
 })
 
 const PatchMeSchema = z.object({
@@ -22,11 +23,37 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
   // Ping santé réseau pour le client mobile (hors auth)
   app.get('/ping', async () => ({ ok: true }))
 
+  // ── Info tenant publique (pour page de connexion par slug) ──
+  app.get('/tenant/:slug', async (request, reply) => {
+    const { slug } = request.params as { slug: string }
+    const tenant = await app.db.tenant.findUnique({
+      where:  { slug },
+      select: { name: true, slug: true, logo: true, actif: true },
+    })
+    if (!tenant || !tenant.actif) return reply.notFound('Espace non trouvé')
+    return { name: tenant.name, slug: tenant.slug, logo: tenant.logo }
+  })
+
   app.post('/login', async (request, reply) => {
     const body = LoginSchema.parse(request.body)
 
+    // Si slug fourni → login scopé au tenant (multi-tenant propre)
+    let tenantId: string | undefined
+    if (body.slug) {
+      const tenant = await app.db.tenant.findUnique({
+        where: { slug: body.slug },
+        select: { id: true, actif: true },
+      })
+      if (!tenant || !tenant.actif) return reply.unauthorized('Email ou mot de passe incorrect')
+      tenantId = tenant.id
+    }
+
     const user = await app.db.user.findFirst({
-      where:   { email: body.email, active: true },
+      where: {
+        email:  body.email,
+        active: true,
+        ...(tenantId ? { tenantId } : {}),
+      },
       include: { tenant: { select: { name: true } } },
     })
 
@@ -65,7 +92,6 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
     }
   })
 
-  // Mettre à jour son profil
   app.patch('/me', { preHandler: app.authenticate }, async (request) => {
     const { userId } = request.tenant
     const body = PatchMeSchema.parse(request.body)
@@ -76,18 +102,14 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
     })
   })
 
-  // Changer son mot de passe
   app.patch('/password', { preHandler: app.authenticate }, async (request, reply) => {
     const { userId } = request.tenant
     const body = PasswordSchema.parse(request.body)
-
     const user = await app.db.user.findUniqueOrThrow({ where: { id: userId } })
     const valid = await bcrypt.compare(body.current, user.passwordHash)
     if (!valid) return reply.status(403).send({ message: 'Mot de passe actuel incorrect' })
-
     const passwordHash = await bcrypt.hash(body.new, 12)
     await app.db.user.update({ where: { id: userId }, data: { passwordHash } })
-
     return { ok: true }
   })
 }

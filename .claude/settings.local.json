@@ -30,7 +30,22 @@
       "Bash(Select-Object FullName, Length, LastWriteTime)",
       "Bash(pnpm add *)",
       "Bash(pnpm typecheck *)",
-      "Bash(Select-Object Name)"
+      "Bash(Select-Object Name)",
+      "Bash(git commit *)",
+      "Bash(git push *)",
+      "Bash(git add *)",
+      "Bash(pnpm exec *)",
+      "Bash(PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION=\"oui\" pnpm exec prisma migrate reset --force)",
+      "Bash(pnpm db:seed)",
+      "Bash(psql -U postgres -d megesti_dev -c \"\\\\d \\\\\"Tenant\\\\\"\")",
+      "Bash(cat C:\\\\\\\\Users\\\\\\\\DCFM\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Temp\\\\\\\\claude\\\\\\\\C--Users-DCFM-Documents-Bobo-megesti\\\\\\\\bfa6a06b-d036-404b-bfcd-24c555c899e1\\\\\\\\tasks\\\\\\\\bkodylfht.output)",
+      "Bash(psql *)",
+      "Bash(rm -rf .metro-cache)",
+      "Bash(rm -rf node_modules/.cache)",
+      "Bash(git reset *)",
+      "Bash(node *)",
+      "PowerShell(Test-Connection *)",
+      "Bash(git check-ignore *)"
     ]
   }
 }

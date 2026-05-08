@@ -1,10 +1,13 @@
 import { useState } from 'react'
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native'
+import { Image } from 'expo-image'
 import { router } from 'expo-router'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useAuthStore } from '@/store/authStore'
 import { useDevStore } from '@/store/devStore'
 import { Colors, Fonts, Radius, Spacing, Shadow } from '@/constants/theme'
+
+const MEGESTI_LOGO = require('../assets/images/logo.png')
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('')
@@ -39,10 +42,8 @@ export default function LoginScreen() {
 
       <View style={styles.card}>
         {/* Logo / marque — appui long = menu dev */}
-        <TouchableOpacity style={styles.brand} onLongPress={showDevMenu} delayLongPress={1500} activeOpacity={0.8}>
-          <Text style={styles.brandIcon}>📚</Text>
-          <Text style={styles.brandName}>MeGesti</Text>
-          <Text style={styles.brandSub}>Maison d'édition</Text>
+        <TouchableOpacity onLongPress={showDevMenu} delayLongPress={1500} activeOpacity={0.8}>
+          <Image source={MEGESTI_LOGO} style={styles.logo} contentFit="contain" cachePolicy="memory-disk" />
         </TouchableOpacity>
 
         <View style={styles.form}>
@@ -113,24 +114,11 @@ const styles = StyleSheet.create({
     paddingVertical: 36,
     ...Shadow.float,
   },
-  brand: {
-    alignItems: 'center',
+  logo: {
+    width: 220,
+    height: 66,
+    alignSelf: 'center',
     marginBottom: 32,
-  },
-  brandIcon: {
-    fontSize: 48,
-    marginBottom: 8,
-  },
-  brandName: {
-    fontFamily: Fonts.displayItalic,
-    fontSize: 32,
-    color: Colors.ink,
-  },
-  brandSub: {
-    fontFamily: Fonts.body,
-    fontSize: 13,
-    color: Colors.textSoft,
-    marginTop: 2,
   },
   form: {
     gap: 12,

@@ -1,7 +1,8 @@
 import { Routes, Route } from 'react-router-dom'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
-import { LoginPage } from '@/features/auth/LoginPage'
+import { LoginPage }       from '@/features/auth/LoginPage'
+import { TenantLoginPage } from '@/features/auth/TenantLoginPage'
 import { DashboardPage } from '@/features/dashboard/DashboardPage'
 import { CataloguePage } from '@/features/catalogue/CataloguePage'
 import { AuteursPage }   from '@/features/auteurs/AuteursPage'
@@ -23,7 +24,8 @@ import { DroitsAuteurPage }   from '@/features/droitsAuteur/DroitsAuteurPage'
 export default function App() {
   return (
     <Routes>
-      <Route path="/login" element={<LoginPage />} />
+      <Route path="/login"   element={<LoginPage />} />
+      <Route path="/t/:slug" element={<TenantLoginPage />} />
 
       <Route path="/*" element={
         <ProtectedRoute>
