@@ -4,8 +4,26 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { ContratsAuteurSection } from './ContratsAuteurSection'
 import { useAuteurDetail } from './hooks/useAuteurs'
 import { useVentesStatsAuteur } from './hooks/useVentesStatsAuteur'
+import { usePlanFeatures } from '@/hooks/usePlanFeatures'
 import type { Auteur } from './hooks/useAuteurs'
 import sty from './AuteursPage.module.css'
+
+function UpgradeNotice({ message }: { message: string }) {
+  return (
+    <div style={{
+      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+      gap: 12, padding: '48px 24px', textAlign: 'center',
+    }}>
+      <span style={{ fontSize: 36 }}>🔒</span>
+      <p style={{ fontFamily: "'DM Serif Display',serif", fontSize: '1.1rem', color: 'var(--ink)', margin: 0 }}>
+        Disponible à partir du plan Edition
+      </p>
+      <p style={{ fontSize: '0.82rem', color: 'var(--text-soft)', maxWidth: 320, margin: 0, lineHeight: 1.6 }}>
+        {message}
+      </p>
+    </div>
+  )
+}
 
 const GRADIENTS = [
   'linear-gradient(135deg,#C4907C,#D4A070)',
@@ -45,6 +63,17 @@ interface Props {
 }
 
 export function AuteurDetail({ auteur, isOpen, onClose, onEdit }: Props) {
+  const { features }        = usePlanFeatures()
+  const reseauOnly          = features.auteurs === 'reseau'
+  const hasContrat          = auteur._count.contrats > 0
+
+  // Onglets visibles selon le contexte
+  const visibleTabs = TABS.filter(t => {
+    if (reseauOnly) return true                          // auto-édition : tout visible (contenu remplacé)
+    if (t.id === 'ventes' || t.id === 'livres') return hasContrat  // réseau sans contrat → cacher
+    return true
+  })
+
   const [tab, setTab]       = useState<TabId>('profil')
   const [period, setPeriod] = useState<Period>(12)
 
@@ -124,7 +153,7 @@ export function AuteurDetail({ auteur, isOpen, onClose, onEdit }: Props) {
 
           {/* Onglets */}
           <div className={sty['detail-tabs']}>
-            {TABS.map(t => (
+            {visibleTabs.map(t => (
               <button
                 key={t.id}
                 className={`${sty['detail-tab']} ${tab === t.id ? sty.active : ''}`}
@@ -172,7 +201,10 @@ export function AuteurDetail({ auteur, isOpen, onClose, onEdit }: Props) {
           )}
 
           {/* ── Ventes ── */}
-          {tab === 'ventes' && (
+          {tab === 'ventes' && reseauOnly && (
+            <UpgradeNotice message="Les statistiques de ventes par auteur sont disponibles à partir du plan Edition." />
+          )}
+          {tab === 'ventes' && !reseauOnly && (
             <div>
               <div className={sty['ventes-header']}>
                 <span style={{ fontFamily: "'DM Serif Display',serif", fontSize: '1rem', color: 'var(--ink)' }}>
@@ -264,7 +296,10 @@ export function AuteurDetail({ auteur, isOpen, onClose, onEdit }: Props) {
           )}
 
           {/* ── Contrats ── */}
-          {tab === 'contrats' && (
+          {tab === 'contrats' && reseauOnly && (
+            <UpgradeNotice message="La gestion des contrats et des droits d'auteur est disponible à partir du plan Edition." />
+          )}
+          {tab === 'contrats' && !reseauOnly && (
             <ContratsAuteurSection auteur={auteur} />
           )}
 
