@@ -1,3 +1,26 @@
+/* ── Bouton Catégories ───────────────────────────────────────── */
+.btn-categories {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 44px;
+  padding: 0 18px;
+  background: var(--cream, #FAF7F2);
+  border: 1.5px solid var(--cream-dark, #EDE7DC);
+  border-radius: 12px;
+  font-size: 0.83rem;
+  font-weight: 600;
+  font-family: inherit;
+  color: var(--text-mid, #6B5748);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+.btn-categories:hover {
+  border-color: var(--rose, #C4847A);
+  background: var(--rose-light, #F9EDE8);
+  color: var(--rose-dark, #A87060);
+}
+
 /* ── Mascottes Points de Vente ────────────────────────────────── */
 .mascot-wrap    { display:flex; flex-direction:row; align-items:flex-start; gap:0; width:100%; padding:24px 0; }
 .mascot-img     { width:22%; height:auto; object-fit:contain; object-position:top center; flex-shrink:0; display:block; }

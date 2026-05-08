@@ -139,20 +139,11 @@ export function PointsDeVentePage() {
           </div>
 
           {/* Bouton Catégories */}
-          <button
-            onClick={() => setShowCategories(true)}
-            style={{
-              height: 44, padding: '0 18px',
-              background: 'transparent',
-              border: '1.5px solid var(--cream-dark)',
-              borderRadius: 'var(--r-pill)',
-              fontSize: '0.875rem', fontWeight: 500,
-              color: 'var(--text-soft)', cursor: 'pointer',
-              transition: 'border-color var(--t), color var(--t)',
-            }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--terra-light)'; e.currentTarget.style.color = 'var(--terra-dark)' }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--cream-dark)'; e.currentTarget.style.color = 'var(--text-soft)' }}
-          >
+          <button className={mascot['btn-categories']} onClick={() => setShowCategories(true)}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+              <line x1="7" y1="7" x2="7.01" y2="7"/>
+            </svg>
             Catégories
           </button>
 
