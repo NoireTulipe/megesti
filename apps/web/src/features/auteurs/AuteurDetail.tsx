@@ -265,7 +265,10 @@ export function AuteurDetail({ auteur, isOpen, onClose, onEdit }: Props) {
           )}
 
           {/* ── Livres ── */}
-          {tab === 'livres' && (
+          {tab === 'livres' && reseauOnly && (
+            <UpgradeNotice message="Les livres liés aux contrats auteurs sont disponibles à partir du plan Edition." />
+          )}
+          {tab === 'livres' && !reseauOnly && (
             <div className={sty['livres-list']}>
               {loadingDetail ? (
                 [1, 2, 3].map(i => (
