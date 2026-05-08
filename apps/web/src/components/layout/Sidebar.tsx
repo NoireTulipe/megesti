@@ -20,6 +20,7 @@ const NAV_FEATURE_GATES: Partial<Record<NavKey, keyof PlanFeatures>> = {
   depotsLibraires: 'depotsLibraires',
   droitsAuteur:    'droitsAuteur',
   reversements:    'droitsAuteur',
+  charges:         'charges',
 }
 
 export function Sidebar({ active, onNav, collapsed, onToggle }: SidebarProps) {

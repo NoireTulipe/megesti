@@ -5,14 +5,18 @@ import { AuteurCard } from './AuteurCard'
 import { AuteurForm } from './AuteurForm'
 import { AuteurDetail } from './AuteurDetail'
 import { Modal } from '@/components/ui/Modal'
+import { usePlanFeatures } from '@/hooks/usePlanFeatures'
 import styles from './AuteursPage.module.css'
 
 type AuteurTab = 'me' | 'reseau'
 
 export function AuteursPage() {
+  const { features } = usePlanFeatures()
+  const reseauOnly   = features.auteurs === 'reseau'
+
   const [search, setSearch]             = useState('')
   const [debouncedSearch, setDebounced] = useState('')
-  const [tab, setTab]                   = useState<AuteurTab>('me')
+  const [tab, setTab]                   = useState<AuteurTab>(reseauOnly ? 'reseau' : 'me')
   const [showCreate, setShowCreate]     = useState(false)
   const [detailAuteur, setDetailAuteur] = useState<Auteur | null>(null)
   const [editAuteur, setEditAuteur]     = useState<Auteur | null>(null)
@@ -66,7 +70,10 @@ export function AuteursPage() {
         <div className={styles['tab-bar']}>
           <button
             className={`${styles['tab-btn']} ${tab === 'me' ? styles.active : ''}`}
-            onClick={() => setTab('me')}
+            onClick={() => !reseauOnly && setTab('me')}
+            disabled={reseauOnly}
+            title={reseauOnly ? 'La gestion complète des auteurs est disponible à partir du plan Edition.' : undefined}
+            style={reseauOnly ? { opacity: 0.35, cursor: 'not-allowed' } : undefined}
           >
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
               <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>

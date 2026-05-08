@@ -11,50 +11,39 @@ export interface PlanFeatures {
   contratsAuteurs:         boolean
   droitsAuteur:            boolean
   depotsLibraires:         boolean
+  charges:                 boolean
   facturationElectronique: boolean
   exportCsvPdf:            boolean
 }
 
 export const PLAN_FEATURES: Record<PlanTier, PlanFeatures> = {
   TRIAL: {
-    maxArticles:             40,
-    maxUsers:                3,
+    maxArticles:             40,    maxUsers:                3,
     auteurs:                 'complet',
-    contratsAuteurs:         true,
-    droitsAuteur:            true,
-    depotsLibraires:         true,
-    facturationElectronique: false,
-    exportCsvPdf:            true,
+    contratsAuteurs:         true,  droitsAuteur:            true,
+    depotsLibraires:         true,  charges:                 true,
+    facturationElectronique: false, exportCsvPdf:            true,
   },
   AUTO_EDITION: {
-    maxArticles:             20,
-    maxUsers:                1,
+    maxArticles:             20,    maxUsers:                1,
     auteurs:                 'reseau',
-    contratsAuteurs:         false,
-    droitsAuteur:            false,
-    depotsLibraires:         false,
-    facturationElectronique: false,
-    exportCsvPdf:            false,
+    contratsAuteurs:         false, droitsAuteur:            false,
+    depotsLibraires:         false, charges:                 false,
+    facturationElectronique: false, exportCsvPdf:            false,
   },
   EDITION: {
-    maxArticles:             40,
-    maxUsers:                3,
+    maxArticles:             40,    maxUsers:                3,
     auteurs:                 'complet',
-    contratsAuteurs:         true,
-    droitsAuteur:            true,
-    depotsLibraires:         true,
-    facturationElectronique: true,
-    exportCsvPdf:            true,
+    contratsAuteurs:         true,  droitsAuteur:            true,
+    depotsLibraires:         true,  charges:                 true,
+    facturationElectronique: true,  exportCsvPdf:            true,
   },
   EDITION_PRO: {
-    maxArticles:             null,
-    maxUsers:                10,
+    maxArticles:             null,  maxUsers:                10,
     auteurs:                 'complet',
-    contratsAuteurs:         true,
-    droitsAuteur:            true,
-    depotsLibraires:         true,
-    facturationElectronique: true,
-    exportCsvPdf:            true,
+    contratsAuteurs:         true,  droitsAuteur:            true,
+    depotsLibraires:         true,  charges:                 true,
+    facturationElectronique: true,  exportCsvPdf:            true,
   },
 }
 
@@ -72,6 +61,7 @@ export const UPGRADE_MESSAGE: Record<keyof PlanFeatures, string> = {
   contratsAuteurs:         'Les contrats auteurs sont disponibles à partir du plan Edition.',
   droitsAuteur:            'La gestion des droits d\'auteur est disponible à partir du plan Edition.',
   depotsLibraires:         'Les dépôts libraires sont disponibles à partir du plan Edition.',
+  charges:                 'La gestion des charges est disponible à partir du plan Edition.',
   facturationElectronique: 'La facturation électronique est disponible à partir du plan Edition.',
   exportCsvPdf:            'L\'export CSV/PDF est disponible à partir du plan Edition.',
 }

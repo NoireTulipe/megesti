@@ -10,37 +10,32 @@ import { Colors, Fonts, Radius } from '@/constants/theme'
 
 const MEGESTI_LOGO = require('../assets/images/logo.png')
 
-// ── Bulles fantomatiques (opacité pulsante + mouvement lent) ────────────
+// ── Bulles flottantes (mouvement lent, opacité constante) ─────────────
 
-function AnimatedBlob({ size, color, initialX, initialY, duration, delay, minOpacity = 0.03, maxOpacity = 0.10 }: {
-  size: number; color: string; initialX: number; initialY: number
-  duration: number; delay: number; minOpacity?: number; maxOpacity?: number
+function AnimatedBlob({ size, color, xRange, yRange, duration, delay, opacity }: {
+  size: number; color: string; xRange: [number, number]; yRange: [number, number]
+  duration: number; delay: number; opacity: number
 }) {
-  const posX = useRef(new Animated.Value(initialX)).current
-  const posY = useRef(new Animated.Value(initialY)).current
-  const opacity = useRef(new Animated.Value(0)).current
+  const posX = useRef(new Animated.Value(xRange[0])).current
+  const posY = useRef(new Animated.Value(yRange[0])).current
+  const fade = useRef(new Animated.Value(0)).current
 
   useEffect(() => {
-    const fadeIn = Animated.timing(opacity, { toValue: maxOpacity, duration: 1500, useNativeDriver: true, delay })
-    const loop = Animated.loop(
+    const appear = Animated.timing(fade, { toValue: opacity, duration: 2000, useNativeDriver: true, delay })
+    const float = Animated.loop(
       Animated.parallel([
         Animated.sequence([
-          Animated.timing(posX, { toValue: initialX + 60, duration: duration / 2, useNativeDriver: true }),
-          Animated.timing(posX, { toValue: initialX, duration: duration / 2, useNativeDriver: true }),
+          Animated.timing(posX, { toValue: xRange[1], duration, useNativeDriver: true }),
+          Animated.timing(posX, { toValue: xRange[0], duration: duration * 0.8, useNativeDriver: true }),
         ]),
         Animated.sequence([
-          Animated.timing(posY, { toValue: initialY - 40, duration: duration / 2, useNativeDriver: true }),
-          Animated.timing(posY, { toValue: initialY, duration: duration / 2, useNativeDriver: true }),
-        ]),
-        // Pulsation d'opacité → effet fantôme
-        Animated.sequence([
-          Animated.timing(opacity, { toValue: minOpacity, duration: duration / 2, useNativeDriver: true }),
-          Animated.timing(opacity, { toValue: maxOpacity, duration: duration / 2, useNativeDriver: true }),
+          Animated.timing(posY, { toValue: yRange[1], duration: duration * 1.2, useNativeDriver: true }),
+          Animated.timing(posY, { toValue: yRange[0], duration: duration, useNativeDriver: true }),
         ]),
       ]),
     )
-    fadeIn.start(() => loop.start())
-    return () => { fadeIn.stop(); loop.stop() }
+    appear.start(() => float.start())
+    return () => { appear.stop(); float.stop() }
   }, [])
 
   return (
@@ -48,7 +43,7 @@ function AnimatedBlob({ size, color, initialX, initialY, duration, delay, minOpa
       style={{
         position: 'absolute',
         width: size, height: size, borderRadius: size / 2,
-        backgroundColor: color, opacity,
+        backgroundColor: color, opacity: fade,
         transform: [{ translateX: posX }, { translateY: posY }],
       }}
     />
@@ -96,17 +91,15 @@ export default function LoginScreen() {
         style={styles.bg}
       />
 
-      {/* Halos fixes — évanescents, floutés par superposition */}
-      <View style={[styles.halo, { width: 340, height: 340, borderRadius: 170, top: -90, right: -70, backgroundColor: 'rgba(196,144,124,0.07)' }]} />
-      <View style={[styles.halo, { width: 200, height: 200, borderRadius: 100, top: -30, right: -50, backgroundColor: 'rgba(210,170,150,0.04)' }]} />
-      <View style={[styles.halo, { width: 260, height: 260, borderRadius: 130, bottom: '30%', left: -100, backgroundColor: 'rgba(201,147,58,0.06)' }]} />
-      <View style={[styles.halo, { width: 160, height: 160, borderRadius: 80, top: '50%', right: -30, backgroundColor: 'rgba(139,123,171,0.05)' }]} />
+      {/* Halos fixes — subtils */}
+      <View style={[styles.halo, { width: 300, height: 300, borderRadius: 150, top: -80, right: -80, backgroundColor: 'rgba(196,144,124,0.08)' }]} />
+      <View style={[styles.halo, { width: 200, height: 200, borderRadius: 100, bottom: '30%', left: -60, backgroundColor: 'rgba(201,147,58,0.06)' }]} />
 
-      {/* Bulles animées — pulsation lente, effet fantôme */}
-      <AnimatedBlob size={220} color="rgba(196,144,124,0.18)" initialX={-50} initialY={-70} duration={12000} delay={200}  minOpacity={0.05} maxOpacity={0.18} />
-      <AnimatedBlob size={150} color="rgba(201,147,58,0.15)"  initialX={60}  initialY={50}  duration={9000}  delay={600}  minOpacity={0.04} maxOpacity={0.15} />
-      <AnimatedBlob size={180} color="rgba(139,123,171,0.14)" initialX={-70} initialY={90}  duration={10000} delay={400}  minOpacity={0.03} maxOpacity={0.14} />
-      <AnimatedBlob size={120} color="rgba(196,144,124,0.13)" initialX={40}  initialY={-100} duration={8000}  delay={900}  minOpacity={0.04} maxOpacity={0.13} />
+      {/* Bulles animées — flottement lent, tailles modestes */}
+      <AnimatedBlob size={100} color="rgba(196,144,124,0.14)" xRange={[-20, 40]} yRange={[-30, 50]}  duration={10000} delay={300}  opacity={0.14} />
+      <AnimatedBlob size={80}  color="rgba(201,147,58,0.11)" xRange={[30, -20]} yRange={[20, -40]}  duration={8000}  delay={700}  opacity={0.11} />
+      <AnimatedBlob size={110} color="rgba(139,123,171,0.10)" xRange={[-30, 30]} yRange={[50, -20]} duration={9000}  delay={500}  opacity={0.10} />
+      <AnimatedBlob size={70}  color="rgba(196,144,124,0.12)" xRange={[20, -30]} yRange={[-50, 30]} duration={7000}  delay={1000} opacity={0.12} />
 
       {/* Contenu */}
       <View style={[styles.content, { paddingTop: insets.top + 40, paddingBottom: insets.bottom + 20 }]}>
@@ -189,8 +182,8 @@ const styles = StyleSheet.create({
   },
 
   logo: {
-    width: 320,
-    height: 96,
+    width: 360,
+    height: 108,
     marginBottom: 4,
   },
 
