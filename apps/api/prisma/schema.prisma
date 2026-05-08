@@ -76,6 +76,10 @@ enum UserRole {
 
 enum PlanType {
   TRIAL
+  AUTO_EDITION
+  EDITION
+  EDITION_PRO
+  // Deprecated — conservés pour compatibilité base existante
   STARTER
   PRO
 }
@@ -389,6 +393,7 @@ model Auteur {
   pseudonyme String?
   email      String?
   bio        String?
+  isVirtuel  Boolean  @default(false) // auteur virtuel créé pour plan Auto-édition
   actif      Boolean  @default(true)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt

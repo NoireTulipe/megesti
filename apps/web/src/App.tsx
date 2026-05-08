@@ -39,7 +39,8 @@ export default function App() {
               <Route path="/depots-libraires" element={<DepotsLibrairesPage />} />
               <Route path="/salons"           element={<SalonsPage />} />
               <Route path="/imprimeurs"       element={<ImprimeurPage />} />
-              <Route path="/comptabilite"     element={<ComptabilitePage />} />
+              <Route path="/statistiques_de_vente" element={<ComptabilitePage />} />
+              <Route path="/comptabilite"          element={<ComptabilitePage />} />{/* redirect legacy */}
               <Route path="/bilan"           element={<BilanPage />} />
               <Route path="/charges"         element={<ChargesPage />} />
               <Route path="/reversements"     element={<ReversementsPage />} />

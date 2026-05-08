@@ -10,6 +10,10 @@ export type {
   CustomFieldValue,
 } from './types/custom-fields'
 
+// Plan features
+export type { PlanTier, PlanFeatures } from './planFeatures'
+export { PLAN_FEATURES, PLAN_LABELS, UPGRADE_MESSAGE, getPlanFeatures, canUseFeature } from './planFeatures'
+
 // Constants
 export { ENTITY_TYPES } from './constants/entity-types'
 export type { EntityType } from './constants/entity-types'

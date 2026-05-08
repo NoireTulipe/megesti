@@ -26,7 +26,7 @@ const PatchPaiementSchema = z.object({
 
 export const droitsAuteurRoutes: FastifyPluginAsync = async (app) => {
   const auth       = { preHandler: app.authenticate }
-  const authEditor = { preHandler: [app.authenticate, app.requireRole('ADMIN', 'EDITOR')] }
+  const authEditor = { preHandler: [app.authenticate, app.requireRole('ADMIN', 'EDITOR'), app.requireFeature('droitsAuteur')] }
 
   // ── Tableau de bord : tous les contrats actifs avec solde calculé ──
   app.get('/', auth, async (request) => {

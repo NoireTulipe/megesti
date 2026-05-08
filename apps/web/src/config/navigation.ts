@@ -35,7 +35,7 @@ export const NAV_RESEAU: NavItem[] = [
 
 export const NAV_ADMIN: NavItem[] = [
   { key: 'droitsAuteur',  label: 'Droits auteur',  Icon: Coins,           route: '/droits-auteur' },
-  { key: 'comptabilite',  label: 'Statistiques de ventes', Icon: FileText, route: '/comptabilite' },
+  { key: 'comptabilite',  label: 'Statistiques de ventes', Icon: FileText, route: '/statistiques_de_vente' },
   { key: 'bilan',         label: 'Bilan',         Icon: Scale,           route: '/bilan' },
   { key: 'charges',       label: 'Charges',       Icon: Receipt,         route: '/charges' },
   { key: 'reversements',  label: 'Reversements',  Icon: ArrowDownToLine, route: '/reversements' },

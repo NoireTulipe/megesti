@@ -5,6 +5,7 @@ import {
 } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useDevStore, DevLog } from '@/store/devStore'
+import { useAuthStore } from '@/store/authStore'
 import { getDb } from '@/lib/db'
 import { syncEngine } from '@/lib/sync'
 import { Colors, Fonts, Radius, Spacing, Shadow } from '@/constants/theme'
@@ -58,6 +59,40 @@ export function DevMenu() {
         },
       },
     ])
+  }
+
+  const logout = useAuthStore(s => s.logout)
+
+  async function handleLogout() {
+    Alert.alert('Déconnexion', 'Voulez-vous vraiment vous déconnecter ?', [
+      { text: 'Annuler', style: 'cancel' },
+      { text: 'Déconnexion', style: 'destructive', onPress: () => logout() },
+    ])
+  }
+
+  async function handleClearStorage() {
+    Alert.alert(
+      'Vider le stockage',
+      'Tout le cache local (base SQLite + token) sera supprimé. Vous serez déconnecté.',
+      [
+        { text: 'Annuler', style: 'cancel' },
+        {
+          text: 'Tout vider', style: 'destructive',
+          onPress: async () => {
+            const db = await getDb()
+            await db.execAsync(`
+              DELETE FROM ventes_locales;
+              DELETE FROM frais_locaux;
+              DELETE FROM sync_queue;
+              DELETE FROM sessions;
+              DELETE FROM articles;
+            `)
+            await logout()
+            addLog('warn', 'Stockage local vidé, déconnecté')
+          },
+        },
+      ],
+    )
   }
 
   async function handleForceSync() {
@@ -149,9 +184,24 @@ export function DevMenu() {
                 <Text style={styles.btnText}>Vider la base locale</Text>
               </TouchableOpacity>
               <Text style={styles.dbHint}>
-                Supprime toutes les ventes, frais et sessions locales non synchronisées.{'\n\n'}
+                Supprime toutes les ventes, frais et sessions locales non synchronisées.{'\n'}
                 Les données déjà synchronisées sur le serveur ne sont pas affectées.
               </Text>
+
+              <View style={{ height: 16 }} />
+
+              <TouchableOpacity style={[styles.btn, { backgroundColor: '#C03030' }]} onPress={handleClearStorage}>
+                <Text style={styles.btnText}>Vider le stockage (cache)</Text>
+              </TouchableOpacity>
+              <Text style={styles.dbHint}>
+                Supprime la base locale ET le token. L'app revient à l'écran de connexion.
+              </Text>
+
+              <View style={{ height: 16 }} />
+
+              <TouchableOpacity style={[styles.btn, { backgroundColor: Colors.terra }]} onPress={handleLogout}>
+                <Text style={styles.btnText}>Déconnexion</Text>
+              </TouchableOpacity>
             </View>
           )}
         </View>

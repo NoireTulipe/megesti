@@ -21,6 +21,7 @@ pnpm-debug.log*
 # Éditeur
 .vscode/settings.json
 .idea/
+.claude/settings.local.json
 
 # OS
 .DS_Store
@@ -37,3 +38,4 @@ coverage/
 
 # Exemples de référence pour Claude (non versionnés)
 Exemple-pour-Claude/
+.claude/settings.local.json

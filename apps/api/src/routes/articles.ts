@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { mkdir } from 'node:fs/promises'
 import path from 'node:path'
 import sharp from 'sharp'
+import { getPlanFeatures } from '@megesti/shared'
 
 const CreateArticleSchema = z.object({
   id:              z.string().uuid(),
@@ -99,13 +100,44 @@ export const articleRoutes: FastifyPluginAsync = async (app) => {
   })
 
   app.post('/', authEditor, async (request, reply) => {
-    const { tenantId } = request.tenant
+    const { tenantId, plan } = request.tenant
+    const features = getPlanFeatures(plan)
+
+    // ── Quota articles actifs ──
+    if (features.maxArticles !== null) {
+      const count = await app.db.article.count({ where: { tenantId, actif: true } })
+      if (count >= features.maxArticles) {
+        return reply.status(402).send({
+          error:   'ArticleQuotaReached',
+          message: `Quota atteint : ${features.maxArticles} articles actifs maximum pour votre plan. Archivez des articles ou passez au plan supérieur.`,
+          max:     features.maxArticles,
+          current: count,
+        })
+      }
+    }
+
     const { auteurIds, ...rest } = CreateArticleSchema.parse(request.body)
+
+    // ── Auteur virtuel (plan Auto-édition) ──
+    let resolvedAuteurIds = auteurIds
+    if (features.auteurs === 'reseau' && auteurIds.length === 0) {
+      let auteurVirtuel = await app.db.auteur.findFirst({
+        where: { tenantId, isVirtuel: true },
+      })
+      if (!auteurVirtuel) {
+        const tenant = await app.db.tenant.findUnique({ where: { id: tenantId }, select: { name: true } })
+        auteurVirtuel = await app.db.auteur.create({
+          data: { tenantId, prenom: '', nom: tenant?.name ?? 'Auteur', isVirtuel: true } as any,
+        })
+      }
+      resolvedAuteurIds = [auteurVirtuel.id]
+    }
+
     const article = await app.db.article.create({
       data: {
         ...rest,
         tenantId,
-        auteurs: { create: auteurIds.map((auteurId, ordre) => ({ auteurId, ordre })) },
+        auteurs: { create: resolvedAuteurIds.map((auteurId, ordre) => ({ auteurId, ordre })) },
       } as any,
       include: ARTICLE_INCLUDE,
     })

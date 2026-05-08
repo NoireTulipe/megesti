@@ -37,8 +37,8 @@ const ConfirmerVenteSchema = z.object({
 
 export const depotLibraireRoutes: FastifyPluginAsync = async (app) => {
   const auth       = { preHandler: app.authenticate }
-  const authEditor = { preHandler: [app.authenticate, app.requireRole('ADMIN', 'EDITOR')] }
-  const authAdmin  = { preHandler: [app.authenticate, app.requireRole('ADMIN')] }
+  const authEditor = { preHandler: [app.authenticate, app.requireRole('ADMIN', 'EDITOR'), app.requireFeature('depotsLibraires')] }
+  const authAdmin  = { preHandler: [app.authenticate, app.requireRole('ADMIN'),            app.requireFeature('depotsLibraires')] }
 
   const withRelations = {
     include: {

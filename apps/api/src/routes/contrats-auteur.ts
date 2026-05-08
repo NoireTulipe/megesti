@@ -52,8 +52,8 @@ const SimulerSchema = z.object({
 
 export const contratAuteurRoutes: FastifyPluginAsync = async (app) => {
   const auth       = { preHandler: app.authenticate }
-  const authEditor = { preHandler: [app.authenticate, app.requireRole('ADMIN', 'EDITOR')] }
-  const authAdmin  = { preHandler: [app.authenticate, app.requireRole('ADMIN')] }
+  const authEditor = { preHandler: [app.authenticate, app.requireRole('ADMIN', 'EDITOR'), app.requireFeature('contratsAuteurs')] }
+  const authAdmin  = { preHandler: [app.authenticate, app.requireRole('ADMIN'),            app.requireFeature('contratsAuteurs')] }
 
   app.get('/', auth, async (request) => {
     const { tenantId } = request.tenant
