@@ -61,6 +61,52 @@ function MascotRayonsOnboarding({ onCreateRayon }: { onCreateRayon: () => void }
   )
 }
 
+function MascotRayonsStep2() {
+  return (
+    <div className={styles['mascot-wrap']}>
+      <div className={styles['mascot-container']}>
+        <img src="/img/mascotte/m1.png" alt="" className={styles['mascot-img']} />
+        <div className={styles['mascot-bubbles']}>
+
+          {/* Bulle 1 — catégories */}
+          <div className={styles['mascot-bubble']}>
+            <p className={styles['mascot-bubble-title']}>Super, ton premier rayon ! 🎉</p>
+            <p className={styles['mascot-bubble-text']}>
+              Pour ajouter des <strong>catégories</strong> à ce rayon, clique sur le{' '}
+              <strong>+</strong> dans son en-tête. Les catégories permettent de classer
+              tes articles plus finement.
+            </p>
+          </div>
+
+          {/* Bulle 2 — mode librairie */}
+          <div className={styles['mascot-bubble']}>
+            <p className={styles['mascot-bubble-text']}>
+              Ce rayon vend des <strong>livres</strong> ? Active le mode{' '}
+              <strong>Librairie</strong> en cliquant sur l'icône{' '}
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" style={{ display:'inline', verticalAlign:'middle' }}>
+                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+              </svg>{' '}
+              dans l'en-tête. MeGesti activera automatiquement la{' '}
+              <strong>TVA livre 5,5 %</strong> et les champs spécifiques
+              (ISBN, auteurs…).
+            </p>
+          </div>
+
+          {/* Bulle 3 — TVA */}
+          <div className={styles['mascot-bubble']}>
+            <p className={styles['mascot-bubble-text']}>
+              Tu peux aussi ajuster la <strong>TVA</strong> de chaque rayon
+              manuellement en cliquant sur le badge <em>TVA x %</em> dans son en-tête.
+            </p>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export function RayonsSection() {
   const { data: rayonsFromApi = [] } = useRayons()
   const createRayon    = useCreateRayon()
@@ -136,8 +182,13 @@ export function RayonsSection() {
   }
 
   async function handleToggleLibrairie(id: string, current: boolean) {
-    setRayons((prev) => prev.map((r) => r.id === id ? { ...r, isLibrairie: !current } : r))
-    await updateRayon.mutateAsync({ id, isLibrairie: !current })
+    const newIsLibrairie = !current
+    // TVA auto : 5.5 % mode librairie, 20 % mode général
+    const newTVA = newIsLibrairie ? 5.5 : 20
+    setRayons((prev) => prev.map((r) =>
+      r.id === id ? { ...r, isLibrairie: newIsLibrairie, tauxTVA: String(newTVA) } : r
+    ))
+    await updateRayon.mutateAsync({ id, isLibrairie: newIsLibrairie, tauxTVA: newTVA })
   }
 
   async function handleUpdateTVA(id: string, taux: number) {
@@ -184,7 +235,8 @@ export function RayonsSection() {
 
   // ── Render ───────────────────────────────────────────────────────────────────
 
-  const rayonIds = rayons.map((r) => `rayon::${r.id}`)
+  const rayonIds   = rayons.map((r) => `rayon::${r.id}`)
+  const totalCats  = rayons.reduce((n, r) => n + r.categories.length, 0)
 
   return (
     <div className={styles.root}>
@@ -241,6 +293,11 @@ export function RayonsSection() {
       </DndContext>
 
       {/* ── Formulaire nouveau rayon ────────────────────────────── */}
+      {/* Mascotte step 2 — premier rayon créé mais aucune catégorie */}
+      {rayons.length > 0 && totalCats === 0 && !showNewRayon && (
+        <MascotRayonsStep2 />
+      )}
+
       {showNewRayon ? (
         <div className={styles.newForm}>
           <input
@@ -260,11 +317,14 @@ export function RayonsSection() {
           </button>
           <button className={styles.btnCancel} onClick={() => { setShowNewRayon(false); setNewRayonName('') }}>✕</button>
         </div>
-      ) : (
+      ) : rayons.length > 0 ? (
         <button className={styles.btnAddRayon} onClick={() => setShowNewRayon(true)}>
-          + Nouveau rayon
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          Nouveau rayon
         </button>
-      )}
+      ) : null}
     </div>
   )
 }
@@ -379,9 +439,12 @@ function SortableRayon({
         <button
           className={`${styles.btnLibrairie} ${rayon.isLibrairie ? styles.btnLibrairieActive : ''}`}
           onClick={() => onToggleLibrairie(rayon.id, rayon.isLibrairie)}
-          title={rayon.isLibrairie ? 'Mode librairie actif (ISBN, auteurs…)' : 'Activer le mode librairie'}
+          title={rayon.isLibrairie ? 'Mode librairie actif — TVA 5,5 % · ISBN · Auteurs' : 'Activer le mode librairie (livres)'}
         >
-          📚
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+          </svg>
         </button>
 
         <button
