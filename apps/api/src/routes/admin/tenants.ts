@@ -2,10 +2,12 @@ import type { FastifyPluginAsync } from 'fastify'
 import { z } from 'zod'
 import bcrypt from 'bcryptjs'
 
+const PlanEnum = z.enum(['TRIAL', 'AUTO_EDITION', 'EDITION', 'EDITION_PRO'])
+
 const CreateTenantSchema = z.object({
   name:          z.string().min(1),
   slug:          z.string().min(2).regex(/^[a-z0-9-]+$/),
-  plan:          z.enum(['TRIAL', 'STARTER', 'PRO']).default('TRIAL'),
+  plan:          PlanEnum.default('AUTO_EDITION'),
   franchiseBaseVA: z.boolean().default(false),
   adminEmail:    z.string().email(),
   adminPassword: z.string().min(8),
@@ -14,7 +16,7 @@ const CreateTenantSchema = z.object({
 })
 
 const PatchTenantSchema = z.object({
-  plan:  z.enum(['TRIAL', 'STARTER', 'PRO']).optional(),
+  plan:  PlanEnum.optional(),
   actif: z.boolean().optional(),
   name:  z.string().min(1).optional(),
 })

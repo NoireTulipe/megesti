@@ -14,7 +14,7 @@ model Tenant {
   name      String
   slug      String   @unique
   theme                Json?
-  plan                 PlanType @default(TRIAL)
+  plan                 PlanType @default(AUTO_EDITION)
   stripeCustomerId     String?
   stripeSubscriptionId String?
   stripePriceId        String?

@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Tenant" ALTER COLUMN "plan" SET DEFAULT 'AUTO_EDITION';

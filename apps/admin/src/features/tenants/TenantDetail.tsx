@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { ArrowLeft, UserPlus } from 'lucide-react'
 import { apiFetch } from '../../api'
+import { PLAN_LABELS, type PlanTier } from '@megesti/shared'
 
 interface TenantDetail {
   id: string; name: string; slug: string; plan: string; actif: boolean
@@ -16,7 +17,11 @@ interface UserRow {
   role: string; active: boolean; createdAt: string
 }
 
-const PLAN_BADGE: Record<string, string> = { TRIAL: 'badge-trial', STARTER: 'badge-starter', PRO: 'badge-pro' }
+const PLAN_BADGE: Record<string, string> = {
+  TRIAL: 'badge-trial', AUTO_EDITION: 'badge-auto',
+  EDITION: 'badge-starter', EDITION_PRO: 'badge-pro',
+  STARTER: 'badge-starter', PRO: 'badge-pro',
+}
 const ROLE_LABEL: Record<string, string> = { ADMIN: 'Admin', EDITOR: 'Éditeur', AUTHOR: 'Auteur' }
 
 export function TenantDetail() {
@@ -67,7 +72,7 @@ export function TenantDetail() {
             <ArrowLeft size={14} /> Retour
           </button>
           <h1 className="page-title">{tenant.name}</h1>
-          <span className={`badge ${PLAN_BADGE[tenant.plan] ?? ''}`}>{tenant.plan}</span>
+          <span className={`badge ${PLAN_BADGE[tenant.plan] ?? ''}`}>{PLAN_LABELS[tenant.plan as PlanTier] ?? tenant.plan}</span>
           <span className={`badge ${tenant.actif ? 'badge-on' : 'badge-off'}`}>{tenant.actif ? 'Actif' : 'Suspendu'}</span>
         </div>
       </div>
@@ -96,9 +101,10 @@ export function TenantDetail() {
               onChange={e => patchTenant.mutate({ plan: e.target.value })}
               style={{ width: 'auto', padding: '6px 10px' }}
             >
-              <option value="TRIAL">Trial</option>
-              <option value="STARTER">Starter</option>
-              <option value="PRO">Pro</option>
+              <option value="AUTO_EDITION">Auto-édition</option>
+              <option value="EDITION">Edition</option>
+              <option value="EDITION_PRO">Edition Pro</option>
+              <option value="TRIAL">Essai gratuit</option>
             </select>
 
             {/* Suspendre / réactiver */}

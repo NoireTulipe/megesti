@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { Plus } from 'lucide-react'
 import { apiFetch } from '../../api'
+import { PLAN_LABELS, type PlanTier } from '@megesti/shared'
 
 interface Tenant {
   id: string; name: string; slug: string; plan: string; actif: boolean
@@ -10,19 +11,27 @@ interface Tenant {
 }
 
 interface CreateTenantForm {
-  name: string; slug: string; plan: 'TRIAL' | 'STARTER' | 'PRO'
+  name: string; slug: string
+  plan: PlanTier
   franchiseBaseVA: boolean
   adminEmail: string; adminPassword: string; adminPrenom: string; adminNom: string
 }
 
-const PLAN_BADGE: Record<string, string> = { TRIAL: 'badge-trial', STARTER: 'badge-starter', PRO: 'badge-pro' }
+const PLAN_BADGE: Record<string, string> = {
+  TRIAL:        'badge-trial',
+  AUTO_EDITION: 'badge-auto',
+  EDITION:      'badge-starter',
+  EDITION_PRO:  'badge-pro',
+  STARTER:      'badge-starter',  // legacy
+  PRO:          'badge-pro',      // legacy
+}
 
 export function TenantsPage() {
   const navigate      = useNavigate()
   const qc            = useQueryClient()
   const [showModal, setShowModal] = useState(false)
   const [form, setForm] = useState<CreateTenantForm>({
-    name: '', slug: '', plan: 'TRIAL', franchiseBaseVA: false,
+    name: '', slug: '', plan: 'AUTO_EDITION', franchiseBaseVA: false,
     adminEmail: '', adminPassword: '', adminPrenom: '', adminNom: '',
   })
   const [err, setErr] = useState('')
@@ -39,7 +48,7 @@ export function TenantsPage() {
   })
 
   function resetForm() {
-    setForm({ name: '', slug: '', plan: 'TRIAL', franchiseBaseVA: false, adminEmail: '', adminPassword: '', adminPrenom: '', adminNom: '' })
+    setForm({ name: '', slug: '', plan: 'AUTO_EDITION', franchiseBaseVA: false, adminEmail: '', adminPassword: '', adminPrenom: '', adminNom: '' })
     setErr('')
   }
 
@@ -76,7 +85,7 @@ export function TenantsPage() {
                     <tr key={t.id} style={{ cursor: 'pointer' }} onClick={() => navigate(`/tenants/${t.id}`)}>
                       <td style={{ fontWeight: 600 }}>{t.name}</td>
                       <td className="text-muted">{t.slug}</td>
-                      <td><span className={`badge ${PLAN_BADGE[t.plan] ?? ''}`}>{t.plan}</span></td>
+                      <td><span className={`badge ${PLAN_BADGE[t.plan] ?? ''}`}>{PLAN_LABELS[t.plan as PlanTier] ?? t.plan}</span></td>
                       <td><span className={`badge ${t.actif ? 'badge-on' : 'badge-off'}`}>{t.actif ? 'Actif' : 'Suspendu'}</span></td>
                       <td>{t._count.users}</td>
                       <td>{t._count.ventes}</td>
@@ -101,17 +110,18 @@ export function TenantsPage() {
                 <input value={form.name} onChange={set('name')} required />
               </div>
               <div className="form-group">
-                <label>Slug (URL)</label>
+                <label>Slug (URL → /t/mon-slug)</label>
                 <input value={form.slug} onChange={set('slug')} placeholder="ex: editions-dupont" required />
               </div>
             </div>
             <div className="form-row">
               <div className="form-group">
-                <label>Plan</label>
+                <label>Plan d'abonnement</label>
                 <select value={form.plan} onChange={set('plan')}>
-                  <option value="TRIAL">Trial</option>
-                  <option value="STARTER">Starter</option>
-                  <option value="PRO">Pro</option>
+                  <option value="AUTO_EDITION">Auto-édition (20 articles, 1 user)</option>
+                  <option value="EDITION">Edition (40 articles, 3 users)</option>
+                  <option value="EDITION_PRO">Edition Pro (illimité, 10 users)</option>
+                  <option value="TRIAL">Essai gratuit (Edition, 30 jours)</option>
                 </select>
               </div>
               <div className="form-group" style={{ justifyContent: 'flex-end', paddingBottom: 4 }}>
