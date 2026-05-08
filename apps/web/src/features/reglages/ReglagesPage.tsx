@@ -5,6 +5,7 @@ import { RayonsSection }    from './RayonsSection'
 import { TypesDASection }   from './TypesDASection'
 import { useRayons }        from '../catalogue/hooks/useRayons'
 import { useMonTenant, useUpdateMonTenant } from './hooks/useMonTenant'
+import { usePlanFeatures } from '@/hooks/usePlanFeatures'
 import styles from './ReglagesPage.module.css'
 import type { EntityType } from '@megesti/shared'
 
@@ -35,6 +36,7 @@ type ActiveScope =
   | { kind: 'rayon';  rayonId: string; isLibrairie: boolean }
 
 export function ReglagesPage() {
+  const { features }          = usePlanFeatures()
   const [niveau, setNiveau]   = useState<Niveau>('classique')
   const [tab, setTab]         = useState<Tab>('rayons')
   const [scope, setScope]     = useState<ActiveScope>({ kind: 'entity', entityType: 'auteur' })
@@ -73,17 +75,23 @@ export function ReglagesPage() {
 
       {/* ── Cartes de navigation ── */}
       <div className={styles.tabCards}>
-        {(niveau === 'classique' ? CLASSIQUE : AVANCE).map(t => (
-          <button
-            key={t.key}
-            className={`${styles.tabCard} ${tab === t.key ? styles.tabCardActive : ''}`}
-            onClick={() => setTab(t.key)}
-          >
-            <span className={styles.tabCardEmoji}>{t.emoji}</span>
-            <span className={styles.tabCardLabel}>{t.label}</span>
-            <span className={styles.tabCardDesc}>{t.desc}</span>
-          </button>
-        ))}
+        {(niveau === 'classique' ? CLASSIQUE : AVANCE).map(t => {
+          const locked = t.key === 'droits' && !features.contratsAuteurs
+          return (
+            <button
+              key={t.key}
+              className={`${styles.tabCard} ${tab === t.key ? styles.tabCardActive : ''}`}
+              onClick={() => !locked && setTab(t.key)}
+              disabled={locked}
+              title={locked ? "Les barèmes de droits d'auteur sont disponibles à partir du plan Edition." : undefined}
+              style={locked ? { opacity: 0.4, cursor: 'not-allowed' } : undefined}
+            >
+              <span className={styles.tabCardEmoji}>{locked ? '🔒' : t.emoji}</span>
+              <span className={styles.tabCardLabel}>{t.label}</span>
+              <span className={styles.tabCardDesc}>{t.desc}</span>
+            </button>
+          )
+        })}
       </div>
 
       <div className={styles.content}>
@@ -92,7 +100,14 @@ export function ReglagesPage() {
         {tab === 'rayons' && <RayonsSection />}
 
         {/* ── Barèmes DA ── */}
-        {tab === 'droits' && <TypesDASection />}
+        {tab === 'droits' && !features.contratsAuteurs && (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, padding: '48px 24px', textAlign: 'center' }}>
+            <span style={{ fontSize: 36 }}>🔒</span>
+            <p style={{ fontFamily: "'DM Serif Display',serif", fontSize: '1.1rem', color: 'var(--ink)', margin: 0 }}>Disponible à partir du plan Edition</p>
+            <p style={{ fontSize: '0.82rem', color: 'var(--text-soft)', maxWidth: 320, margin: 0, lineHeight: 1.6 }}>Les barèmes de droits d'auteur sont disponibles à partir du plan Edition.</p>
+          </div>
+        )}
+        {tab === 'droits' && features.contratsAuteurs && <TypesDASection />}
 
         {/* ── Champs personnalisés ── */}
         {tab === 'champs' && (
