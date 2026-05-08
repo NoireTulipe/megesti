@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import {
   View, Text, TouchableOpacity, TextInput, ScrollView,
-  StyleSheet, RefreshControl, Modal, Alert, ActivityIndicator,
+  StyleSheet, RefreshControl, Modal, Alert, ActivityIndicator, Linking,
 } from 'react-native'
 import { useFocusEffect, router } from 'expo-router'
 import { BarcodeIcon } from '@/components/BarcodeIcon'
@@ -11,10 +11,131 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useLocalArticles, LocalArticle } from '@/hooks/useLocalArticles'
 import { useLocalSession } from '@/hooks/useLocalSession'
-import { Colors, Fonts, Radius, Shadow, Gradients } from '@/constants/theme'
+import { Colors, Dark, Fonts, Radius, Shadow, Gradients } from '@/constants/theme'
+import { useAppTheme } from '@/hooks/useAppTheme'
+import { Config } from '@/constants/Config'
+
+const MASCOT = require('../../assets/images/mascotte/m1.png')
+
+// ── Mascotte état vide ───────────────────────────────────────────────
+
+function MascotEmpty({ isDark }: { isDark: boolean }) {
+  // Dérive l'URL du web depuis l'URL de l'API (port 3001 → port du web)
+  const webUrl = Config.uploadBaseUrl.replace(':3001', ':8080') + '/reglages'
+
+  return (
+    <View style={me.wrap}>
+      {/* Bulle de dialogue */}
+      <View style={[me.bubble, isDark && me.bubbleDark]}>
+        <Text style={[me.bubbleTitle, isDark && me.bubbleTitleDark]}>
+          Par ici ! 👋
+        </Text>
+        <Text style={[me.bubbleText, isDark && me.bubbleTextDark]}>
+          Avant d'ajouter ton premier article, crée au moins un{' '}
+          <Text style={me.bold}>rayon</Text> et une{' '}
+          <Text style={me.bold}>catégorie</Text> depuis l'interface web.
+        </Text>
+        <TouchableOpacity
+          style={[me.bubbleBtn, isDark && me.bubbleBtnDark]}
+          onPress={() => Linking.openURL(webUrl)}
+          activeOpacity={0.8}
+        >
+          <Text style={[me.bubbleBtnText, isDark && me.bubbleBtnTextDark]}>
+            Réglages → Rayons &amp; Catégories →
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Queue de bulle pointant vers la mascotte */}
+      <View style={[me.tail, isDark && me.tailDark]} />
+
+      {/* Mascotte */}
+      <Image
+        source={MASCOT}
+        style={me.mascot}
+        contentFit="cover"
+        contentPosition={{ top: '0%' }}
+        cachePolicy="memory-disk"
+      />
+    </View>
+  )
+}
+
+const me = StyleSheet.create({
+  wrap:  { alignItems: 'center', paddingTop: 32, paddingHorizontal: 32 },
+
+  // Bulle
+  bubble: {
+    backgroundColor: Colors.white,
+    borderRadius: Radius.xl,
+    padding: 20,
+    width: '100%',
+    shadowColor: Colors.text,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
+    elevation: 4,
+  },
+  bubbleDark: { backgroundColor: '#1C2A3A', shadowColor: 'transparent' },
+
+  bubbleTitle: {
+    fontFamily: Fonts.displayItalic,
+    fontSize: 18,
+    color: Colors.rose,
+    fontStyle: 'italic',
+    marginBottom: 8,
+  },
+  bubbleTitleDark: { color: '#E0A090' },
+
+  bubbleText: {
+    fontFamily: Fonts.body,
+    fontSize: 13,
+    color: Colors.textMid,
+    lineHeight: 20,
+    marginBottom: 16,
+  },
+  bubbleTextDark: { color: 'rgba(255,255,255,0.65)' },
+
+  bold: { fontWeight: '700', color: Colors.sage },
+
+  bubbleBtn: {
+    backgroundColor: Colors.sageLight,
+    borderRadius: Radius.md,
+    paddingVertical: 11,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+  },
+  bubbleBtnDark: { backgroundColor: 'rgba(107,143,113,0.2)' },
+
+  bubbleBtnText: {
+    fontFamily: Fonts.body,
+    fontSize: 13,
+    fontWeight: '700',
+    color: Colors.sage,
+  },
+  bubbleBtnTextDark: { color: '#8DB890' },
+
+  // Queue triangulaire vers le bas
+  tail: {
+    width: 0, height: 0,
+    borderLeftWidth: 14, borderRightWidth: 14, borderTopWidth: 16,
+    borderLeftColor: 'transparent', borderRightColor: 'transparent',
+    borderTopColor: Colors.white,
+    marginLeft: -30,   // décalée légèrement à gauche pour pointer vers la tête de la mascotte
+    alignSelf: 'flex-start',
+    marginStart: 60,
+  },
+  tailDark: { borderTopColor: '#1C2A3A' },
+
+  // Mascotte — ratio 1792:2400 ≈ 0.747 → à 160 large = 214 haut
+  mascot: { width: 160, height: 214, marginTop: -4 },
+})
+
+// ── Écran principal ──────────────────────────────────────────────────
 
 export default function StockScreen() {
   const insets = useSafeAreaInsets()
+  const { isDark } = useAppTheme()
   const [search, setSearch] = useState('')
   const [selected, setSelected] = useState<string | null>(null)
   const [editingStock, setEditingStock] = useState<string | null>(null)
@@ -80,8 +201,8 @@ export default function StockScreen() {
   }
 
   return (
-    <View style={styles.shell}>
-      <LinearGradient colors={[Colors.sageLight, Colors.cream]} style={styles.bg} />
+    <View style={[styles.shell, isDark && { backgroundColor: Dark.bg }]}>
+      <LinearGradient colors={isDark ? [Dark.bg, Dark.bg] : [Colors.sageLight, Colors.cream]} style={styles.bg} />
 
       {/* En-tête dégradé */}
       <LinearGradient
@@ -105,14 +226,10 @@ export default function StockScreen() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.sage} />}>
 
         {displayed.length === 0 && !refreshing ? (
-          <View style={styles.empty}>
-            <Text style={styles.emptyEmoji}>📦</Text>
-            <Text style={styles.emptyText}>Aucun article</Text>
-            <Text style={styles.emptySub}>Ouvrez une session ou synchronisez le stock depuis l'interface web.</Text>
-          </View>
+          <MascotEmpty isDark={isDark} />
         ) : (
           displayed.map(a => (
-            <TouchableOpacity key={a.id} style={styles.card} activeOpacity={0.7}
+            <TouchableOpacity key={a.id} style={[styles.card, isDark && { backgroundColor: Dark.surface, shadowColor: 'transparent', elevation: 0 }]} activeOpacity={0.7}
               onPress={() => setSelected(selected === a.id ? null : a.id)}>
 
               {/* Thumbnail ou placeholder */}
@@ -139,8 +256,8 @@ export default function StockScreen() {
 
               {/* Infos article */}
               <View style={styles.cardBody}>
-                <Text style={styles.cardTitle} numberOfLines={2}>{a.nom}</Text>
-                <Text style={styles.cardMeta}>{a.rayon_nom ?? 'Sans rayon'}{a.categorie_nom ? ` · ${a.categorie_nom}` : ''}</Text>
+                <Text style={[styles.cardTitle, isDark && { color: Dark.text }]} numberOfLines={2}>{a.nom}</Text>
+                <Text style={[styles.cardMeta, isDark && { color: Dark.textSoft }]}>{a.rayon_nom ?? 'Sans rayon'}{a.categorie_nom ? ` · ${a.categorie_nom}` : ''}</Text>
 
                 {selected === a.id && (
                   <View style={styles.cardDetail}>
@@ -166,7 +283,7 @@ export default function StockScreen() {
 
               {/* Stock éditable */}
               <View style={styles.cardRight}>
-                <Text style={styles.cardPrice}>{a.prix_vente_ht.toFixed(2)} €</Text>
+                <Text style={[styles.cardPrice, isDark && { color: Dark.text }]}>{a.prix_vente_ht.toFixed(2)} €</Text>
                 {editingStock === a.id ? (
                   <TextInput
                     style={styles.stockInput}
@@ -270,10 +387,6 @@ const styles = StyleSheet.create({
   heroSearchInput: { flex: 1, fontFamily: Fonts.body, fontSize: 14, color: Colors.white, paddingVertical: 10 },
   list: { paddingHorizontal: 20 },
 
-  empty: { alignItems: 'center', paddingTop: 80 },
-  emptyEmoji: { fontSize: 48, marginBottom: 16 },
-  emptyText: { fontFamily: Fonts.displayItalic, fontSize: 18, color: Colors.textMid, fontStyle: 'italic' },
-  emptySub: { fontFamily: Fonts.body, fontSize: 13, color: Colors.textSoft, textAlign: 'center', marginTop: 6, lineHeight: 20 },
 
   card: { flexDirection: 'row', backgroundColor: Colors.white, borderRadius: Radius.lg, padding: 12, marginBottom: 8, ...Shadow.card, alignItems: 'center' },
 

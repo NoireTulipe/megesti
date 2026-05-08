@@ -9,7 +9,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useLocalSession, useAllSessions, SessionWithStats } from '@/hooks/useLocalSession'
 import { useLocalVentes, LocalVente } from '@/hooks/useLocalVentes'
 import { useLocalFrais, LocalFrais, FRAIS_TYPES, fraisLabel, fraisEmoji } from '@/hooks/useLocalFrais'
-import { Colors, Fonts, Radius, Shadow, Gradients } from '@/constants/theme'
+import { Colors, Dark, Fonts, Radius, Shadow, Gradients } from '@/constants/theme'
+import { useAppTheme } from '@/hooks/useAppTheme'
 
 const MODE_EMOJI: Record<string, string> = { CB: '💳', ESPECES: '💶', CHEQUE: '📝', SUMUP: '📱', VIREMENT: '🏦', PDV: '🏪' }
 
@@ -349,6 +350,7 @@ function ActiveSessionCard({ s, venteCount, ca, onDetail }: {
 
 export default function SessionsScreen() {
   const insets = useSafeAreaInsets()
+  const { isDark } = useAppTheme()
   const [tab, setTab] = useState<'active' | 'history'>('active')
   const [refreshing, setRefreshing] = useState(false)
   const [detailSession, setDetailSession] = useState<SessionWithStats | null>(null)
@@ -370,7 +372,7 @@ export default function SessionsScreen() {
   const ca = ventes.reduce((sum, v) => sum + v.total_ttc, 0)
 
   return (
-    <View style={styles.shell}>
+    <View style={[styles.shell, isDark && { backgroundColor: Dark.bg }]}>
       <LinearGradient colors={[Colors.sageLight, Colors.cream, Colors.cream]} style={styles.bg} />
 
       {/* En-tête dégradé */}
@@ -406,7 +408,7 @@ export default function SessionsScreen() {
             <ActiveSessionCard s={activeSession} venteCount={ventesCount} ca={ca}
               onDetail={() => setDetailSession(activeSession)} />
           ) : (
-            <View style={styles.emptyCard}>
+            <View style={[styles.emptyCard, isDark && { backgroundColor: Dark.surface, shadowColor: 'transparent', elevation: 0 }]}>
               <Text style={styles.emptyEmoji}>🏪</Text>
               <Text style={styles.emptyTitle}>Aucune session active</Text>
               <Text style={styles.emptySub}>Ouvrez une session de caisse pour commencer à vendre.</Text>
@@ -422,7 +424,7 @@ export default function SessionsScreen() {
 
         {tab === 'history' && (
           history.length === 0 ? (
-            <View style={styles.emptyCard}>
+            <View style={[styles.emptyCard, isDark && { backgroundColor: Dark.surface, shadowColor: 'transparent', elevation: 0 }]}>
               <Text style={styles.emptyEmoji}>📋</Text>
               <Text style={styles.emptyTitle}>Aucune session passée</Text>
               <Text style={styles.emptySub}>L'historique apparaîtra ici une fois vos sessions fermées.</Text>

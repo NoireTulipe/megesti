@@ -7,7 +7,8 @@ import { useFocusEffect } from 'expo-router'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { getDb } from '@/lib/db'
-import { Colors, Fonts, Radius, Shadow, Gradients } from '@/constants/theme'
+import { Colors, Dark, Fonts, Radius, Shadow, Gradients } from '@/constants/theme'
+import { useAppTheme } from '@/hooks/useAppTheme'
 
 // ─── Types ────────────────────────────────────────────────────────────
 
@@ -404,10 +405,10 @@ const pp = StyleSheet.create({
 
 // ─── Carte section ────────────────────────────────────────────────────
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({ title, children, isDark }: { title: string; children: React.ReactNode; isDark: boolean }) {
   return (
-    <View style={sc.wrap}>
-      <Text style={sc.title}>{title}</Text>
+    <View style={[sc.wrap, isDark && { backgroundColor: Dark.surface, shadowColor: 'transparent', elevation: 0 }]}>
+      <Text style={[sc.title, isDark && { color: Dark.textSoft }]}>{title}</Text>
       {children}
     </View>
   )
@@ -426,6 +427,7 @@ const EMPTY: BilanData = {
 
 export default function BilanScreen() {
   const insets = useSafeAreaInsets()
+  const { isDark } = useAppTheme()
 
   const [mode,       setMode]      = useState<PeriodMode>('month')
   const [refDate,    setRefDate]   = useState(() => new Date())
@@ -464,7 +466,7 @@ export default function BilanScreen() {
   const maxModeCa = parMode.length > 0 ? Math.max(...parMode.map(m => m.ca)) : 1
 
   return (
-    <View style={styles.shell}>
+    <View style={[styles.shell, isDark && { backgroundColor: Dark.bg }]}>
       <LinearGradient colors={['#FBF5E6', Colors.cream, Colors.cream]} style={styles.bg} />
 
       {/* En-tête dégradé */}
@@ -531,14 +533,14 @@ export default function BilanScreen() {
           <>
             {/* ── Évolution mensuelle (vue annuelle) ── */}
             {mode === 'year' && parMois.length > 0 && (
-              <Section title="Évolution mensuelle">
+              <Section isDark={isDark} title="Évolution mensuelle">
                 <MonthBars data={parMois} />
               </Section>
             )}
 
             {/* ── Modes de paiement ── */}
             {parMode.length > 0 && (
-              <Section title="Modes de paiement">
+              <Section isDark={isDark} title="Modes de paiement">
                 {parMode.map(item => (
                   <ModeBar key={item.mode} item={item} maxCa={maxModeCa} />
                 ))}
@@ -547,7 +549,7 @@ export default function BilanScreen() {
 
             {/* ── Top articles ── */}
             {topArticles.length > 0 && (
-              <Section title={`Top articles (${topArticles.length})`}>
+              <Section isDark={isDark} title={`Top articles (${topArticles.length})`}>
                 {topArticles.map((a, i) => (
                   <View key={i} style={styles.artRow}>
                     <View style={styles.artRank}>
@@ -565,7 +567,7 @@ export default function BilanScreen() {
 
             {/* ── Top points de vente ── */}
             {parPdv.length > 0 && (
-              <Section title={`Top points de vente (${parPdv.length})`}>
+              <Section isDark={isDark} title={`Top points de vente (${parPdv.length})`}>
                 {parPdv.map((p, i) => (
                   <View key={i} style={styles.pdvRow}>
                     <Text style={styles.pdvNom} numberOfLines={1}>{p.nom}</Text>
@@ -578,7 +580,7 @@ export default function BilanScreen() {
 
             {/* ── Top sessions ── */}
             {sessions.length > 0 && (
-              <Section title={`Top sessions (${sessions.length})`}>
+              <Section isDark={isDark} title={`Top sessions (${sessions.length})`}>
                 {sessions.map((s, i) => (
                   <View key={s.session_id} style={[styles.sesRow, i < sessions.length - 1 && styles.sesRowBorder]}>
                     <View style={styles.sesLeft}>

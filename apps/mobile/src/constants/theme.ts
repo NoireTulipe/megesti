@@ -81,6 +81,38 @@ export const Gradients = {
   bilan:    ['#C9933A', '#7A4E10'] as [string, string],
 }
 
+// ── Thème sombre (mode nuit, inspiré du login) ──────────────────────────
+
+export const Dark = {
+  bg:         '#101D33',
+  bgGradient: ['#1E1A2E', '#1A2744', '#101D33'] as [string, string, string],
+  surface:    'rgba(255,255,255,0.06)',
+  surfaceBorder: 'rgba(255,255,255,0.08)',
+  text:       '#FFFFFF',
+  textMid:    'rgba(255,255,255,0.65)',
+  textSoft:   'rgba(255,255,255,0.40)',
+  accent:     '#C4847A',
+  accentGlow: 'rgba(196,144,124,0.25)',
+  ink:        '#F0EDF8',
+  inkLight:   'rgba(255,255,255,0.55)',
+  inkFaint:   'rgba(255,255,255,0.08)',
+  rose:       '#D4A090',
+  roseLight:  'rgba(196,144,124,0.12)',
+  terra:      '#E08060',
+  terraLight: 'rgba(200,93,58,0.15)',
+  sage:       '#7BA382',
+  sageLight:  'rgba(107,143,113,0.12)',
+  gold:       '#D4A54A',
+  goldLight:  'rgba(201,147,58,0.12)',
+  cream:      '#1A2235',
+  creamDark:  'rgba(255,255,255,0.08)',
+  white:      'rgba(255,255,255,0.07)',
+  overlay:    'rgba(0,0,0,0.55)',
+  shadow:     'rgba(0,0,0,0.30)',
+}
+
+// ── Ombres ──────────────────────────────────────────────────────────────
+
 export const Shadow = {
   card: {
     shadowColor: Colors.text,

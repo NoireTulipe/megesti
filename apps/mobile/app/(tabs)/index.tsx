@@ -12,7 +12,8 @@ import { SyncBadge } from '@/components/SyncBadge'
 import { BarcodeIcon } from '@/components/BarcodeIcon'
 import { api } from '@/lib/api'
 import { Config } from '@/constants/Config'
-import { Colors, Fonts, Radius, Shadow, Gradients } from '@/constants/theme'
+import { Colors, Dark, Fonts, Radius, Shadow, Gradients } from '@/constants/theme'
+import { useAppTheme } from '@/hooks/useAppTheme'
 
 // Logo megesti (branding appli fixe)
 const MEGESTI_LOGO = require('../../assets/images/logo.png')
@@ -20,8 +21,8 @@ const MEGESTI_LOGO = require('../../assets/images/logo.png')
 const QUICK_ACTIONS = [
   { emoji: '📖', label: 'Scanner',  accent: '#6C5CE7',    bg: '#F0EEFA',        route: null, icon: 'barcode' },
   { emoji: '📦', label: 'Stock',    accent: Colors.sage,  bg: Colors.sageLight, route: '/catalogue' as any },
-  { emoji: '🏪', label: 'Sessions', accent: '#4A7058',    bg: '#EDF4EE',        route: '/sessions'  as any },
   { emoji: '📊', label: 'Bilan',    accent: Colors.gold,  bg: Colors.goldLight, route: '/bilan'     as any },
+  { emoji: '⚙️', label: 'Réglages', accent: Colors.inkLight, bg: Colors.inkFaint, route: '/settings' as any },
 ]
 
 function buildUrl(path: string | null): string | null {
@@ -35,6 +36,7 @@ export default function DashboardScreen() {
   const insets    = useSafeAreaInsets()
   const TAB_BAR_H = 68 + insets.bottom
 
+  const { isDark, colors } = useAppTheme()
   const user        = useAuthStore(s => s.user)
   const refreshUser = useAuthStore(s => s.refreshUser)
   const showDevMenu = useDevStore(s => s.showDevMenu)
@@ -66,10 +68,12 @@ export default function DashboardScreen() {
 
   // ────────────────────────────────────────────────────────────────────
   return (
-    <View style={styles.shell}>
+    <View style={[styles.shell, isDark && { backgroundColor: Dark.bg }]}>
 
       <LinearGradient
-        colors={['#F6EAE6', '#FBF5F0', Colors.cream, Colors.cream]}
+        colors={isDark
+          ? [Dark.bgGradient[0], Dark.bgGradient[1], Dark.bg, Dark.bg]
+          : ['#F6EAE6', '#FBF5F0', Colors.cream, Colors.cream]}
         locations={[0, 0.3, 0.6, 1]}
         style={styles.bg}
       />
@@ -91,11 +95,11 @@ export default function DashboardScreen() {
         </TouchableOpacity>
 
         {/* Bonjour + nom ME */}
-        <Text style={styles.greeting} numberOfLines={1}>
+        <Text style={[styles.greeting, isDark && { color: Dark.text }]} numberOfLines={1}>
           Bonjour,{'  '}
-          <Text style={styles.greetingName}>{user?.firstName ?? ''}</Text>
+          <Text style={[styles.greetingName, isDark && { color: Dark.accent }]}>{user?.firstName ?? ''}</Text>
         </Text>
-        <Text style={styles.tenantName} numberOfLines={1}>
+        <Text style={[styles.tenantName, isDark && { color: Dark.textSoft }]} numberOfLines={1}>
           {user?.tenantName ?? ''}
         </Text>
 
@@ -190,14 +194,14 @@ export default function DashboardScreen() {
             return (
               <TouchableOpacity
                 key={a.label}
-                style={[styles.actionBtn, { backgroundColor: a.bg }, disabled && styles.actionBtnDisabled]}
+                style={[styles.actionBtn, { backgroundColor: isDark ? Dark.surface : a.bg }, disabled && styles.actionBtnDisabled]}
                 onPress={disabled ? undefined : onPress}
                 activeOpacity={disabled ? 1 : 0.75}>
                 {isScanner
                   ? <BarcodeIcon size={22} color={disabled ? Colors.textSoft : '#6C5CE7'} />
                   : <Text style={styles.actionEmoji}>{a.emoji}</Text>
                 }
-                <Text style={[styles.actionLabel, { color: a.accent }, disabled && styles.actionLabelDisabled]}>
+                <Text style={[styles.actionLabel, { color: isDark && isScanner ? '#B8A6FF' : a.accent }, disabled && styles.actionLabelDisabled]}>
                   {a.label}
                 </Text>
               </TouchableOpacity>

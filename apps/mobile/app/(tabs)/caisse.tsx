@@ -13,7 +13,8 @@ import { useLocalArticles, LocalArticle } from '@/hooks/useLocalArticles'
 import { useLocalVentes } from '@/hooks/useLocalVentes'
 import { useDevStore } from '@/store/devStore'
 import { useScannerStore } from '@/store/scannerStore'
-import { Colors, Fonts, Radius, Shadow, Gradients } from '@/constants/theme'
+import { Colors, Dark, Fonts, Radius, Shadow, Gradients } from '@/constants/theme'
+import { useAppTheme } from '@/hooks/useAppTheme'
 
 type PaymentMode = 'CB' | 'ESPECES' | 'CHEQUE' | 'VIREMENT' | 'SUMUP' | 'PDV'
 
@@ -57,6 +58,7 @@ const CARD_IMG_H = 96  // hauteur de la zone image/contenu sous la barre accent
 
 export default function CaisseScreen() {
   const insets = useSafeAreaInsets()
+  const { isDark } = useAppTheme()
   const { width: screenW } = useWindowDimensions()
   const TAB_BAR_H = 68 + insets.bottom
 
@@ -225,8 +227,8 @@ export default function CaisseScreen() {
   // ════════════════════════════════════════════════════════════════
   if (!hasSession) {
     return (
-      <View style={styles.shell}>
-        <LinearGradient colors={[Colors.roseLight, Colors.cream]} style={styles.bg} />
+      <View style={[styles.shell, isDark && { backgroundColor: Dark.bg }]}>
+        <LinearGradient colors={isDark ? [Dark.bg, Dark.bg] : [Colors.roseLight, Colors.cream]} style={styles.bg} />
         <View style={styles.centerCard}>
           <Text style={styles.emptyEmoji}>📖</Text>
           <Text style={styles.emptyTitle}>Session de caisse</Text>
@@ -316,8 +318,8 @@ export default function CaisseScreen() {
   const rayonIdx = rayons.findIndex(r => r.nom === selectedRayon)
 
   return (
-    <View style={styles.shell}>
-      <LinearGradient colors={['#FAF0EC', Colors.cream, Colors.cream]} style={styles.bg} />
+    <View style={[styles.shell, isDark && { backgroundColor: Dark.bg }]}>
+      <LinearGradient colors={isDark ? [Dark.bg, Dark.bg, Dark.bg] : ['#FAF0EC', Colors.cream, Colors.cream]} style={styles.bg} />
 
       {/* ── Header gradient rose→mauve ── */}
       <LinearGradient

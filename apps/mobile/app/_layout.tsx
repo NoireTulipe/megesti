@@ -7,9 +7,10 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useAuthStore } from '@/store/authStore'
 import { useDevStore } from '@/store/devStore'
+import { useThemeStore } from '@/store/themeStore'
 import { DevMenu } from '@/components/DevMenu'
 import { initDb } from '@/lib/db'
-import { Colors, Fonts } from '@/constants/theme'
+import { Colors, Dark, Fonts } from '@/constants/theme'
 import '@/i18n'
 
 const queryClient = new QueryClient({
@@ -22,18 +23,21 @@ function AuthGate({ children }: { children: React.ReactNode }) {
   const [dbReady, setDbReady] = useState(false)
 
   const hydrateDevUrl = useDevStore(s => s.hydrateApiUrl)
+  const hydrateTheme  = useThemeStore(s => s.hydrate)
+  const isDark = useThemeStore(s => s.isDark)
 
   useEffect(() => {
     initDb().then(() => setDbReady(true))
     hydrate()
     hydrateDevUrl()
+    hydrateTheme()
   }, [])
 
   if (isLoading || !dbReady) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: Colors.cream }}>
-        <ActivityIndicator size="large" color={Colors.rose} />
-        <Text style={{ marginTop: 16, fontFamily: Fonts.body, fontSize: 13, color: Colors.textSoft }}>
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: isDark ? Dark.bg : Colors.cream }}>
+        <ActivityIndicator size="large" color={isDark ? Dark.accent : Colors.rose} />
+        <Text style={{ marginTop: 16, fontFamily: Fonts.body, fontSize: 13, color: isDark ? Dark.textSoft : Colors.textSoft }}>
           Préparation de votre espace…
         </Text>
       </View>

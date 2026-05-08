@@ -10,27 +10,29 @@ import { Colors, Fonts, Radius } from '@/constants/theme'
 
 const MEGESTI_LOGO = require('../assets/images/logo.png')
 
-// ── Bulles flottantes (mouvement lent, opacité constante) ─────────────
+// ── Bulle flottante ──────────────────────────────────────────────────────
 
-function AnimatedBlob({ size, color, xRange, yRange, duration, delay, opacity }: {
-  size: number; color: string; xRange: [number, number]; yRange: [number, number]
-  duration: number; delay: number; opacity: number
+function Blob({ size, color, left, top, drift, duration, delay }: {
+  size: number; color: string; left: string; top: string
+  drift: number; duration: number; delay: number
 }) {
-  const posX = useRef(new Animated.Value(xRange[0])).current
-  const posY = useRef(new Animated.Value(yRange[0])).current
+  const dx = useRef(new Animated.Value(0)).current
+  const dy = useRef(new Animated.Value(0)).current
   const fade = useRef(new Animated.Value(0)).current
 
   useEffect(() => {
-    const appear = Animated.timing(fade, { toValue: opacity, duration: 2000, useNativeDriver: true, delay })
+    const appear = Animated.timing(fade, { toValue: 1, duration: 2000, useNativeDriver: true, delay })
     const float = Animated.loop(
       Animated.parallel([
         Animated.sequence([
-          Animated.timing(posX, { toValue: xRange[1], duration, useNativeDriver: true }),
-          Animated.timing(posX, { toValue: xRange[0], duration: duration * 0.8, useNativeDriver: true }),
+          Animated.timing(dx, { toValue: drift, duration, useNativeDriver: true }),
+          Animated.timing(dx, { toValue: -drift, duration: duration * 0.7, useNativeDriver: true }),
+          Animated.timing(dx, { toValue: 0, duration: duration * 0.5, useNativeDriver: true }),
         ]),
         Animated.sequence([
-          Animated.timing(posY, { toValue: yRange[1], duration: duration * 1.2, useNativeDriver: true }),
-          Animated.timing(posY, { toValue: yRange[0], duration: duration, useNativeDriver: true }),
+          Animated.timing(dy, { toValue: -drift * 0.7, duration: duration * 0.8, useNativeDriver: true }),
+          Animated.timing(dy, { toValue: drift * 0.6, duration: duration * 0.6, useNativeDriver: true }),
+          Animated.timing(dy, { toValue: 0, duration: duration * 0.7, useNativeDriver: true }),
         ]),
       ]),
     )
@@ -41,10 +43,10 @@ function AnimatedBlob({ size, color, xRange, yRange, duration, delay, opacity }:
   return (
     <Animated.View
       style={{
-        position: 'absolute',
+        position: 'absolute', left: left as any, top: top as any,
         width: size, height: size, borderRadius: size / 2,
         backgroundColor: color, opacity: fade,
-        transform: [{ translateX: posX }, { translateY: posY }],
+        transform: [{ translateX: dx }, { translateY: dy }],
       }}
     />
   )
@@ -85,26 +87,27 @@ export default function LoginScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.wrapper}>
 
-      {/* Fond nuit profonde (comme le web) */}
+      {/* Fond nuit profonde */}
       <LinearGradient
         colors={['#1E1A2E', '#1A2744', '#101D33']}
         style={styles.bg}
       />
 
-      {/* Halos fixes — subtils */}
-      <View style={[styles.halo, { width: 300, height: 300, borderRadius: 150, top: -80, right: -80, backgroundColor: 'rgba(196,144,124,0.08)' }]} />
-      <View style={[styles.halo, { width: 200, height: 200, borderRadius: 100, bottom: '30%', left: -60, backgroundColor: 'rgba(201,147,58,0.06)' }]} />
+      {/* Halos fixes décoratifs */}
+      <View style={[styles.halo, { width: 280, height: 280, borderRadius: 140, top: '-10%', right: '-15%', backgroundColor: 'rgba(196,144,124,0.10)' }]} />
+      <View style={[styles.halo, { width: 180, height: 180, borderRadius: 90, bottom: '25%', left: '-10%', backgroundColor: 'rgba(201,147,58,0.08)' }]} />
 
-      {/* Bulles animées — flottement lent, tailles modestes */}
-      <AnimatedBlob size={100} color="rgba(196,144,124,0.14)" xRange={[-20, 40]} yRange={[-30, 50]}  duration={10000} delay={300}  opacity={0.14} />
-      <AnimatedBlob size={80}  color="rgba(201,147,58,0.11)" xRange={[30, -20]} yRange={[20, -40]}  duration={8000}  delay={700}  opacity={0.11} />
-      <AnimatedBlob size={110} color="rgba(139,123,171,0.10)" xRange={[-30, 30]} yRange={[50, -20]} duration={9000}  delay={500}  opacity={0.10} />
-      <AnimatedBlob size={70}  color="rgba(196,144,124,0.12)" xRange={[20, -30]} yRange={[-50, 30]} duration={7000}  delay={1000} opacity={0.12} />
+      {/* Bulles animées — réparties sur tout l'écran */}
+      <Blob size={120} color="rgba(196,144,124,0.20)" left="70%" top="12%"  drift={27} duration={9000}  delay={200} />
+      <Blob size={90}  color="rgba(201,147,58,0.16)" left="15%" top="55%"  drift={22} duration={7500}  delay={600} />
+      <Blob size={105} color="rgba(139,123,171,0.17)" left="60%" top="72%"  drift={25} duration={8500}  delay={400} />
+      <Blob size={80}  color="rgba(196,144,124,0.15)" left="25%" top="22%"  drift={20} duration={7000}  delay={900} />
+      <Blob size={95}  color="rgba(201,147,58,0.13)" left="80%" top="42%"  drift={23} duration={8000}  delay={700} />
 
       {/* Contenu */}
       <View style={[styles.content, { paddingTop: insets.top + 40, paddingBottom: insets.bottom + 20 }]}>
 
-        {/* Logo — grand et fier */}
+        {/* Logo */}
         <TouchableOpacity onLongPress={showDevMenu} delayLongPress={1500} activeOpacity={0.9}>
           <Image
             source={MEGESTI_LOGO}
@@ -181,11 +184,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
 
-  logo: {
-    width: 360,
-    height: 108,
-    marginBottom: 4,
-  },
+  logo: { width: 360, height: 108, marginBottom: 4 },
 
   tagline: {
     fontFamily: Fonts.body,
@@ -196,7 +195,6 @@ const styles = StyleSheet.create({
     marginBottom: 28,
   },
 
-  // Carte
   card: {
     width: '100%',
     maxWidth: 380,
@@ -240,28 +238,14 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.1)',
   },
 
-  btn: {
-    marginTop: 10,
-    borderRadius: Radius.md,
-    overflow: 'hidden',
-  },
+  btn: { marginTop: 10, borderRadius: Radius.md, overflow: 'hidden' },
   btnDisabled: { opacity: 0.5 },
   btnBg: { paddingVertical: 16, alignItems: 'center' },
-  btnText: {
-    fontFamily: Fonts.body,
-    fontSize: 15,
-    fontWeight: '700',
-    color: Colors.white,
-  },
+  btnText: { fontFamily: Fonts.body, fontSize: 15, fontWeight: '700', color: Colors.white },
 
   error: {
-    fontFamily: Fonts.body,
-    fontSize: 12,
-    color: '#F4A0A0',
-    backgroundColor: 'rgba(200,80,80,0.15)',
-    borderRadius: Radius.sm,
-    padding: 10,
-    overflow: 'hidden',
-    textAlign: 'center',
+    fontFamily: Fonts.body, fontSize: 12, color: '#F4A0A0',
+    backgroundColor: 'rgba(200,80,80,0.15)', borderRadius: Radius.sm,
+    padding: 10, overflow: 'hidden', textAlign: 'center',
   },
 })
