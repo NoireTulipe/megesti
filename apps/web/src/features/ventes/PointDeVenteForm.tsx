@@ -185,6 +185,11 @@ export function PointDeVenteForm({ onClose, pointDeVente }: Props) {
           </button>
         </div>
         <input type="hidden" {...register('encaissementDirect')} />
+        <p style={{ fontSize: '0.78rem', color: 'var(--text-soft)', lineHeight: 1.55, margin: '8px 0 0', padding: '10px 12px', background: 'var(--cream)', borderRadius: 8 }}>
+          {encaissementDirect
+            ? '🏪 Vous encaissez directement les paiements (CB, espèces, chèque…) lors de vos ventes. MeGesti enregistre chaque règlement en temps réel.'
+            : '🏬 Le point de vente encaisse à votre place (ex : librairie partenaire). Vous recevrez un reversement par la suite. MeGesti suit les commissions et les reversements dus.'}
+        </p>
         <CustomFieldsRenderer entityType="pointDeVente" onlyCategory="Encaissement" register={register} errors={errors} />
       </div>
 

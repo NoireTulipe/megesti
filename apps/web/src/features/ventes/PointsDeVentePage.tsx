@@ -1,13 +1,96 @@
 import { useState, useEffect, useRef } from 'react'
 import { usePointsDeVente } from './hooks/usePointsDeVente'
 import type { PointDeVente } from './hooks/usePointsDeVente'
-import { PointDeVenteCard }   from './PointDeVenteCard'
-import { PointDeVenteDetail } from './PointDeVenteDetail'
-import { PointDeVenteForm }   from './PointDeVenteForm'
+import { useCategoriesPointDeVente } from './hooks/useCategoriesPointDeVente'
+import { PointDeVenteCard }    from './PointDeVenteCard'
+import { PointDeVenteDetail }  from './PointDeVenteDetail'
+import { PointDeVenteForm }    from './PointDeVenteForm'
 import { CategoriesPDVManager } from './CategoriesPDVManager'
-import { Modal } from '@/components/ui/Modal'
-import { getFormWidth } from '@/lib/formWidth'
-import sty from '@/features/auteurs/AuteursPage.module.css'
+import { Modal }               from '@/components/ui/Modal'
+import { getFormWidth }        from '@/lib/formWidth'
+import sty    from '@/features/auteurs/AuteursPage.module.css'
+import mascot from './PointsDeVentePage.module.css'
+
+// ── Mascottes tutoriel ────────────────────────────────────────────────────────
+
+function MascotNoCategorie({ onOpenCategories }: { onOpenCategories: () => void }) {
+  return (
+    <div className={mascot['mascot-wrap']}>
+      <img src="/img/mascotte/m1.png" alt="" className={mascot['mascot-img']} />
+      <div className={mascot['mascot-bubbles']}>
+
+        <div className={mascot['mascot-bubble']}>
+          <p className={mascot['mascot-title']}>Les points de vente, c'est quoi ? 🏪</p>
+          <p className={mascot['mascot-text']}>
+            Un <strong>point de vente</strong> est un lieu ou un canal où tu vas vendre tes
+            produits — un stand dans un salon du livre, une librairie partenaire, ta propre
+            boutique, un marché… Chaque point de vente a ses propres sessions de caisse,
+            ses statistiques et son mode d'encaissement.
+          </p>
+        </div>
+
+        <div className={mascot['mascot-bubble']}>
+          <p className={mascot['mascot-text']}>
+            Pour s'y retrouver, MeGesti organise tes points de vente en{' '}
+            <strong>catégories</strong> — par exemple :{' '}
+            <em>Salon littéraire, Librairie indépendante, Centre culturel, Festival, En ligne…</em>{' '}
+            C'est toi qui les définis selon ton activité.
+          </p>
+          <p className={mascot['mascot-text']} style={{ marginTop: 8 }}>
+            Commence par créer ta première catégorie, puis tu pourras y rattacher tes points de vente.
+          </p>
+          <button className={mascot['mascot-btn']} onClick={onOpenCategories}>
+            Créer ma première catégorie →
+          </button>
+        </div>
+
+      </div>
+    </div>
+  )
+}
+
+function MascotNoPDV({ onOpenCreate }: { onOpenCreate: () => void }) {
+  return (
+    <div className={mascot['mascot-wrap']}>
+      <img src="/img/mascotte/m1.png" alt="" className={mascot['mascot-img']} />
+      <div className={mascot['mascot-bubbles']}>
+
+        <div className={mascot['mascot-bubble']}>
+          <p className={mascot['mascot-title']}>La première catégorie est là ! 🎉</p>
+          <p className={mascot['mascot-text']}>
+            Maintenant, ajoute ton <strong>premier point de vente</strong>. C'est lui que
+            tu sélectionneras à chaque ouverture de session de caisse — MeGesti saura ainsi
+            où se sont déroulées tes ventes et pourra te donner des{' '}
+            <strong>statistiques par lieu</strong>, comparer tes performances d'un salon à
+            l'autre et suivre tes encaissements avec précision.
+          </p>
+        </div>
+
+        <div className={mascot['mascot-bubble']}>
+          <p className={mascot['mascot-text']}>
+            💡 <strong>Un détail important</strong> — lors de la création, tu devras choisir
+            le mode d'encaissement :
+          </p>
+          <p className={mascot['mascot-text']} style={{ marginTop: 8 }}>
+            🏪 <strong>Tu encaisses toi-même</strong> — tu prends directement les paiements
+            (CB, espèces, chèque) lors du salon ou de l'événement.
+          </p>
+          <p className={mascot['mascot-text']} style={{ marginTop: 6 }}>
+            🏬 <strong>Le point de vente encaisse</strong> — c'est le cas d'une librairie
+            partenaire qui vend tes livres à ta place et te reverse ensuite ta part.
+            MeGesti gère alors les commissions et les reversements.
+          </p>
+          <button className={mascot['mascot-btn']} onClick={onOpenCreate}>
+            Ajouter mon premier point de vente →
+          </button>
+        </div>
+
+      </div>
+    </div>
+  )
+}
+
+// ── Page principale ───────────────────────────────────────────────────────────
 
 export function PointsDeVentePage() {
   const [search, setSearch]           = useState('')
@@ -18,7 +101,8 @@ export function PointsDeVentePage() {
   const [showCategories, setShowCategories] = useState(false)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const { data: items = [], isLoading, isError } = usePointsDeVente(debounced || undefined)
+  const { data: items      = [], isLoading, isError } = usePointsDeVente(debounced || undefined)
+  const { data: categories = [] }                     = useCategoriesPointDeVente()
 
   useEffect(() => {
     if (timerRef.current) clearTimeout(timerRef.current)
@@ -72,7 +156,14 @@ export function PointsDeVentePage() {
             Catégories
           </button>
 
-          <button className={sty['btn-primary']} onClick={() => setShowCreate(true)}>
+          {/* Bouton Nouveau PDV — désactivé si aucune catégorie */}
+          <button
+            className={sty['btn-primary']}
+            onClick={() => setShowCreate(true)}
+            disabled={categories.length === 0}
+            title={categories.length === 0 ? 'Créez d\'abord une catégorie de point de vente' : undefined}
+            style={categories.length === 0 ? { opacity: 0.45, cursor: 'not-allowed' } : undefined}
+          >
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
               <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
             </svg>
@@ -81,7 +172,7 @@ export function PointsDeVentePage() {
         </div>
       </header>
 
-      {/* ── Grille ── */}
+      {/* ── Grille / Mascottes ── */}
       {isLoading && (
         <div className={sty.grid}>
           {Array.from({ length: 4 }).map((_, i) => <div key={i} className={sty.skeleton} />)}
@@ -95,28 +186,23 @@ export function PointsDeVentePage() {
         </div>
       )}
 
-      {!isLoading && !isError && items.length === 0 && (
-        <div className={sty['empty-state']}>
-          <div className={sty['empty-icon']}>🏪</div>
-          <div className={sty['empty-title']}>
-            {debounced ? `Aucun résultat pour « ${debounced} »` : 'Aucun point de vente'}
+      {!isLoading && !isError && (
+        items.length > 0 ? (
+          <div className={sty.grid}>
+            {items.map(item => (
+              <PointDeVenteCard key={item.id} pdv={item} onClick={() => setDetail(item)} />
+            ))}
           </div>
-          <div className={sty['empty-desc']}>
-            {!debounced && 'Ajoutez vos points de vente partenaires : salons, librairies, boutiques…'}
+        ) : debounced ? (
+          <div className={sty['empty-state']}>
+            <div className={sty['empty-icon']}>🏪</div>
+            <div className={sty['empty-title']}>Aucun résultat pour « {debounced} »</div>
           </div>
-        </div>
-      )}
-
-      {!isLoading && !isError && items.length > 0 && (
-        <div className={sty.grid}>
-          {items.map(item => (
-            <PointDeVenteCard
-              key={item.id}
-              pdv={item}
-              onClick={() => setDetail(item)}
-            />
-          ))}
-        </div>
+        ) : categories.length === 0 ? (
+          <MascotNoCategorie onOpenCategories={() => setShowCategories(true)} />
+        ) : (
+          <MascotNoPDV onOpenCreate={() => setShowCreate(true)} />
+        )
       )}
 
       {/* ── Fiche PDV ── */}

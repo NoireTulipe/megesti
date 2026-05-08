@@ -63,7 +63,7 @@ export default function CategoryColorsScreen() {
             const selected = colors[cat.id]
             return (
               <View key={cat.id} style={[s.row, isDark && { backgroundColor: 'rgba(255,255,255,0.06)', borderColor: 'rgba(255,255,255,0.06)' }]}>
-                <Text style={[s.rowLabel, isDark && { color: Dark.text }]} numberOfLines={1}>
+                <Text style={[s.rowLabel, { color: selected || (isDark ? Dark.text : Colors.text) }]} numberOfLines={1}>
                   {cat.nom}
                 </Text>
 
@@ -77,7 +77,10 @@ export default function CategoryColorsScreen() {
                     return (
                       <TouchableOpacity
                         key={color}
-                        style={[s.dot, { backgroundColor: color }, isSelected && s.dotSelected]}
+                        style={[
+                          s.dot, { backgroundColor: color },
+                          isSelected && [s.dotSelected, { borderColor: isDark ? Colors.white : Colors.ink }],
+                        ]}
                         activeOpacity={0.7}
                         onPress={() => setColor(cat.id, color)}
                       />
@@ -86,7 +89,7 @@ export default function CategoryColorsScreen() {
                   {/* Bouton reset */}
                   {selected && (
                     <TouchableOpacity
-                      style={[s.dot, s.dotReset]}
+                      style={[s.dot, s.dotReset, isDark && { borderColor: Dark.textSoft }]}
                       activeOpacity={0.7}
                       onPress={() => {
                         Alert.alert('Réinitialiser', `Retirer la couleur de « ${cat.nom} » ?`, [
@@ -94,7 +97,7 @@ export default function CategoryColorsScreen() {
                           { text: 'Retirer', onPress: () => setColor(cat.id, '') },
                         ])
                       }}>
-                      <Text style={s.dotResetIcon}>✕</Text>
+                      <Text style={[s.dotResetIcon, isDark && { color: Dark.textSoft }]}>✕</Text>
                     </TouchableOpacity>
                   )}
                 </ScrollView>
@@ -150,7 +153,6 @@ const s = StyleSheet.create({
     borderWidth: 3, borderColor: 'transparent',
   },
   dotSelected: {
-    borderColor: Colors.ink,
     width: 32, height: 32, borderRadius: 16,
   },
   dotReset: {
