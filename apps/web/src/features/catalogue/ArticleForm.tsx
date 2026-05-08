@@ -12,6 +12,8 @@ import { CustomFieldsRenderer } from '@/components/CustomFieldsRenderer'
 import { validateCustomFields } from '@/lib/customFieldValidation'
 import { DualRangeSlider } from '@/components/DualRangeSlider'
 import { useFranchiseTVA } from '@/hooks/useFranchiseTVA'
+import { usePlanFeatures } from '@/hooks/usePlanFeatures'
+import { useMonTenant } from '@/features/reglages/hooks/useMonTenant'
 import type { Article } from './types'
 import styles from './ArticleForm.module.css'
 
@@ -61,7 +63,10 @@ export function ArticleForm({ onClose, article }: Props) {
   const { data: imprimeurs = [] }  = useImprimeurs()
   const { data: customValues = {} } = useCustomFieldValues(article?.id, { enabled: !!article?.id })
 
-  const franchiseTVA    = useFranchiseTVA()
+  const franchiseTVA      = useFranchiseTVA()
+  const { features }      = usePlanFeatures()
+  const { data: tenant }  = useMonTenant()
+  const reseauOnly        = features.auteurs === 'reseau'
   const [prixTTC, setPrixTTC] = useState<string>('')
   const ttcInitialized  = useRef(false)
 
@@ -432,32 +437,45 @@ export function ArticleForm({ onClose, article }: Props) {
             </div>
           </div>
           <div className={styles.field}>
-            <label className={styles.label}>Auteurs</label>
-            <input
-              className={styles.auteurSearch}
-              placeholder="Rechercher un auteur…"
-              value={auteurSearch}
-              onChange={(e) => setAuteurSearch(e.target.value)}
-            />
-            <div className={styles.auteurList}>
-              {filteredAuteurs.length === 0 && (
-                <p className={styles.auteurEmpty}>Aucun auteur trouvé.</p>
-              )}
-              {filteredAuteurs.map((a) => {
-                const selected = auteurIds.includes(a.id)
-                return (
-                  <label key={a.id} className={`${styles.auteurRow} ${selected ? styles.auteurRowSelected : ''}`}>
-                    <input
-                      type="checkbox"
-                      className={styles.auteurCheck}
-                      checked={selected}
-                      onChange={() => toggleAuteur(a.id)}
-                    />
-                    <span>{a.pseudonyme ?? `${a.prenom} ${a.nom}`}</span>
-                  </label>
-                )
-              })}
-            </div>
+            <label className={styles.label}>Auteur{!reseauOnly ? 's' : ''}</label>
+            {reseauOnly ? (
+              /* Auto-édition : auteur virtuel assigné automatiquement */
+              <div className={styles.auteurVirtuel}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, color: 'var(--sage)' }}>
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                </svg>
+                <span className={styles.auteurVirtuelNom}>{tenant?.name ?? 'Votre maison d\'édition'}</span>
+                <span className={styles.auteurVirtuelBadge}>Auteur assigné automatiquement</span>
+              </div>
+            ) : (
+              <>
+                <input
+                  className={styles.auteurSearch}
+                  placeholder="Rechercher un auteur…"
+                  value={auteurSearch}
+                  onChange={(e) => setAuteurSearch(e.target.value)}
+                />
+                <div className={styles.auteurList}>
+                  {filteredAuteurs.length === 0 && (
+                    <p className={styles.auteurEmpty}>Aucun auteur trouvé.</p>
+                  )}
+                  {filteredAuteurs.map((a) => {
+                    const selected = auteurIds.includes(a.id)
+                    return (
+                      <label key={a.id} className={`${styles.auteurRow} ${selected ? styles.auteurRowSelected : ''}`}>
+                        <input
+                          type="checkbox"
+                          className={styles.auteurCheck}
+                          checked={selected}
+                          onChange={() => toggleAuteur(a.id)}
+                        />
+                        <span>{a.pseudonyme ?? `${a.prenom} ${a.nom}`}</span>
+                      </label>
+                    )
+                  })}
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}

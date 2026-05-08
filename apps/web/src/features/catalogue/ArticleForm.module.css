@@ -179,6 +179,21 @@
 .auteurCheck  { width: 16px; height: 16px; accent-color: var(--terra); cursor: pointer; flex-shrink: 0; }
 .auteurEmpty  { font-size: 0.8rem; color: var(--text-soft); font-style: italic; padding: 8px; margin: 0; }
 
+/* Auteur virtuel (plan Auto-édition) */
+.auteurVirtuel {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  padding: 10px 14px;
+  background: var(--sage-light, #EDF4EE);
+  border: 1.5px solid var(--sage, #6B8F71);
+  border-radius: 10px;
+  font-size: 0.85rem;
+}
+.auteurVirtuelNom   { font-weight: 600; color: var(--ink); }
+.auteurVirtuelBadge {
+  font-size: 0.74rem; color: var(--sage); font-style: italic;
+  background: rgba(107,143,113,0.12); border-radius: 6px; padding: 2px 8px;
+}
+
 /* ── Feedback ───────────────────────────────────────────────────── */
 .error {
   font-size: 0.78rem;
