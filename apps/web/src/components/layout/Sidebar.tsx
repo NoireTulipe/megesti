@@ -21,6 +21,7 @@ const NAV_FEATURE_GATES: Partial<Record<NavKey, keyof PlanFeatures>> = {
   droitsAuteur:    'droitsAuteur',
   reversements:    'droitsAuteur',
   charges:         'charges',
+  imprimeurs:      'imprimeurs',
 }
 
 export function Sidebar({ active, onNav, collapsed, onToggle }: SidebarProps) {

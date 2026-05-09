@@ -11,6 +11,7 @@ export interface PlanFeatures {
   contratsAuteurs:         boolean
   droitsAuteur:            boolean
   depotsLibraires:         boolean
+  imprimeurs:              boolean
   charges:                 boolean
   facturationElectronique: boolean
   exportCsvPdf:            boolean
@@ -21,29 +22,33 @@ export const PLAN_FEATURES: Record<PlanTier, PlanFeatures> = {
     maxArticles:             40,    maxUsers:                3,
     auteurs:                 'complet',
     contratsAuteurs:         true,  droitsAuteur:            true,
-    depotsLibraires:         true,  charges:                 true,
-    facturationElectronique: false, exportCsvPdf:            true,
+    depotsLibraires:         true,  imprimeurs:              true,
+    charges:                 true,  facturationElectronique: false,
+    exportCsvPdf:            true,
   },
   AUTO_EDITION: {
     maxArticles:             20,    maxUsers:                1,
     auteurs:                 'reseau',
     contratsAuteurs:         false, droitsAuteur:            false,
-    depotsLibraires:         false, charges:                 false,
-    facturationElectronique: false, exportCsvPdf:            false,
+    depotsLibraires:         false, imprimeurs:              false,
+    charges:                 false, facturationElectronique: false,
+    exportCsvPdf:            false,
   },
   EDITION: {
     maxArticles:             40,    maxUsers:                3,
     auteurs:                 'complet',
     contratsAuteurs:         true,  droitsAuteur:            true,
-    depotsLibraires:         true,  charges:                 true,
-    facturationElectronique: true,  exportCsvPdf:            true,
+    depotsLibraires:         true,  imprimeurs:              true,
+    charges:                 true,  facturationElectronique: true,
+    exportCsvPdf:            true,
   },
   EDITION_PRO: {
     maxArticles:             null,  maxUsers:                10,
     auteurs:                 'complet',
     contratsAuteurs:         true,  droitsAuteur:            true,
-    depotsLibraires:         true,  charges:                 true,
-    facturationElectronique: true,  exportCsvPdf:            true,
+    depotsLibraires:         true,  imprimeurs:              true,
+    charges:                 true,  facturationElectronique: true,
+    exportCsvPdf:            true,
   },
 }
 
@@ -55,6 +60,7 @@ export const PLAN_LABELS: Record<PlanTier, string> = {
 }
 
 export const UPGRADE_MESSAGE: Record<keyof PlanFeatures, string> = {
+  imprimeurs: 'La gestion des imprimeurs est disponible à partir du plan Edition.',
   maxArticles:             'Augmentez votre quota en passant au plan Edition.',
   maxUsers:                'Ajoutez des collaborateurs en passant au plan Edition.',
   auteurs:                 'La gestion complète des auteurs est disponible à partir du plan Edition.',
