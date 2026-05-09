@@ -72,60 +72,6 @@ function CustomTooltip({ active, payload, label }: { active?: boolean; payload?:
 
 import { MascoteBlock } from '@/components/MascoteBlock'
 
-// ── Mascotte onboarding ───────────────────────────────────────────────────────
-
-function MascotNoBilan() {
-  const navigate = useNavigate()
-  return (
-    <div className={styles['mascot-wrap']}>
-      <img src="/img/mascotte/m1.png" alt="" className={styles['mascot-img']} />
-      <div className={styles['mascot-bubbles']}>
-
-        <div className={styles['mascot-bubble']}>
-          <p className={styles['mascot-title']}>Ton bilan financier 💼</p>
-          <p className={styles['mascot-text']}>
-            C'est ta <strong>boussole comptable</strong>. En un seul regard, tu vois la
-            santé financière réelle de ta maison d'édition : ce que tu as vendu, encaissé,
-            dépensé — et surtout ce qu'il te reste vraiment.
-          </p>
-        </div>
-
-        <div className={styles['mascot-bubble']}>
-          <p className={styles['mascot-text']}>
-            Tu suis tes <strong>entrées</strong> (ventes en session, dépôts libraires,
-            reversements PDV…) et tes <strong>sorties</strong> (frais de salon, droits
-            d'auteurs versés, charges, coût des ventes…) avec un comparatif{' '}
-            <strong>effectif vs prévisionnel</strong> pour anticiper sans jamais être
-            surpris en fin d'exercice.
-          </p>
-        </div>
-
-        <div className={styles['mascot-bubble']}>
-          <p className={styles['mascot-text']}>
-            Au programme : un <strong>compte de résultat</strong> simplifié du CA au
-            résultat net, une estimation de la <strong>valeur de ton stock</strong>, et
-            des alertes sur les <strong>charges à venir</strong> pour piloter ta
-            trésorerie en temps réel.
-          </p>
-        </div>
-
-        <div className={styles['mascot-bubble']}>
-          <p className={styles['mascot-text']}>
-            Pour que tout s'affiche, il te faut au moins une{' '}
-            <strong>session de caisse clôturée</strong> avec des ventes enregistrées.
-            Lance ta première session et reviens ici — les chiffres t'en apprendront
-            plus sur ton activité que n'importe quel tableur !
-          </p>
-          <button className={styles['mascot-btn']} onClick={() => navigate('/ventes')}>
-            Aller à la Caisse →
-          </button>
-        </div>
-
-      </div>
-    </div>
-  )
-}
-
 // ── Composant principal ───────────────────────────────────────────────────────
 export function BilanPage() {
   const navigate = useNavigate()
