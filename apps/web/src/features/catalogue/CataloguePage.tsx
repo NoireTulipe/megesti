@@ -112,7 +112,7 @@ export function CataloguePage() {
               onChange={e => setSearch(e.target.value)}
             />
             {search && (
-              <button className={styles['search-clear']} onClick={() => setSearch('')} aria-label="Effacer">
+              <button className={styles['search-clear']} onClick={() => { setSearch(''); setDebounced('') }} aria-label="Effacer">
                 ✕
               </button>
             )}
