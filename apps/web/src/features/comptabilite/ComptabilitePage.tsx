@@ -1,54 +1,12 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import {
   AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
 } from 'recharts'
 import { useRapportVentes, type Period } from './hooks/useRapports'
 import { EmptyState } from '@/components/ui/EmptyState'
+import { MascoteBlock } from '@/components/MascoteBlock'
 import styles from './ComptabilitePage.module.css'
-
-function MascotNoStats() {
-  const navigate = useNavigate()
-  return (
-    <div className={styles['mascot-wrap']}>
-      <img src="/img/mascotte/m1.png" alt="" className={styles['mascot-img']} />
-      <div className={styles['mascot-bubbles']}>
-
-        <div className={styles['mascot-bubble']}>
-          <p className={styles['mascot-title']}>Tes statistiques de ventes 📊</p>
-          <p className={styles['mascot-text']}>
-            C'est ici que se trouvent tes <strong>performances commerciales</strong> en un
-            coup d'œil : chiffre d'affaires, progression dans le temps, articles les plus
-            vendus et les plus rentables, points de vente les plus performants, modes de
-            paiement préférés de tes clients… tout est centralisé.
-          </p>
-        </div>
-
-        <div className={styles['mascot-bubble']}>
-          <p className={styles['mascot-text']}>
-            Tu peux filtrer par <strong>période</strong> — 7 jours, 30 jours, 3 mois, un an
-            ou depuis le tout début — pour suivre tes tendances, comparer tes résultats d'un
-            salon à l'autre, identifier tes bestsellers et affiner ta stratégie éditoriale.
-          </p>
-        </div>
-
-        <div className={styles['mascot-bubble']}>
-          <p className={styles['mascot-text']}>
-            Pour que les données apparaissent, il te faut au moins une{' '}
-            <strong>session de caisse clôturée</strong> avec des ventes enregistrées. Si tu
-            viens de changer la période, essaie d'élargir l'intervalle — tes stats sont
-            peut-être sur une autre plage de dates !
-          </p>
-          <button className={styles['mascot-btn']} onClick={() => navigate('/ventes')}>
-            Aller à la Caisse →
-          </button>
-        </div>
-
-      </div>
-    </div>
-  )
-}
 
 // ── Palette harmonisée avec le design system ──────────────────────
 const COLORS = {
@@ -177,7 +135,7 @@ export function ComptabilitePage() {
       </div>
 
       {!hasData ? (
-        <MascotNoStats />
+        <MascoteBlock slug="stats-no-data" />
       ) : (
         <div className={styles.content}>
 

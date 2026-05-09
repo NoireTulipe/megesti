@@ -11,77 +11,7 @@ import styles from './CataloguePage.module.css'
 
 type CatalogueTab = 'actifs' | 'retires'
 
-function MascotOnboarding() {
-  const navigate = useNavigate()
-  return (
-    <div className={styles['mascot-wrap']}>
-      <div className={styles['mascot-container']}>
-        <img
-          src="/img/mascotte/m1.png"
-          alt="Mascotte Megesti"
-          className={styles['mascot-img']}
-        />
-        <div className={styles['mascot-bubble']}>
-          <p className={styles['mascot-title']}>Par ici ! 👋</p>
-          <p className={styles['mascot-text']}>
-            Avant d'ajouter ton premier article, crée au moins un{' '}
-            <strong>rayon</strong> et une <strong>catégorie</strong> pour
-            structurer ton catalogue.
-          </p>
-          <button
-            className={styles['mascot-btn']}
-            onClick={() => navigate('/reglages')}
-          >
-            Réglages → Rayons &amp; Catégories →
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function MascotCatalogueReady({ onAddArticle }: { onAddArticle: () => void }) {
-  return (
-    <div className={styles['ready-wrap']}>
-      <img src="/img/mascotte/m1.png" alt="" className={styles['ready-img']} />
-      <div className={styles['ready-bubbles']}>
-
-        <div className={styles['ready-bubble']}>
-          <p className={styles['ready-title']}>C'est parti ! 🎉</p>
-          <p className={styles['ready-text']}>
-            Ton catalogue est prêt. Ajoute maintenant ton{' '}
-            <strong>premier article</strong> — livre, goodie, affiche… tout
-            ce que tu vends !
-          </p>
-          <button className={styles['ready-btn']} onClick={onAddArticle}>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-            </svg>
-            Ajouter mon premier article
-          </button>
-        </div>
-
-        <div className={styles['ready-bubble']}>
-          <p className={styles['ready-text']}>
-            L'onglet <strong>Catalogue</strong> affiche tous les produits
-            actuellement <strong>disponibles à la vente</strong>. C'est la
-            vitrine active de ta maison d'édition.
-          </p>
-        </div>
-
-        <div className={styles['ready-bubble']}>
-          <p className={styles['ready-text']}>
-            L'onglet <strong>Retirés</strong> accueille les articles que tu
-            as mis de côté. Ils ne sont plus en vente mais{' '}
-            <strong>ne sont pas supprimés</strong> — tu peux les réactiver
-            à tout moment.
-          </p>
-        </div>
-
-      </div>
-    </div>
-  )
-}
+import { MascoteBlock } from '@/components/MascoteBlock'
 
 export function CataloguePage() {
   const [search, setSearch]           = useState('')
@@ -205,9 +135,9 @@ export function CataloguePage() {
 
       {!isLoading && !isError && articles.length === 0 && (
         rayons.length === 0 ? (
-          <MascotOnboarding />
+          <MascoteBlock slug="catalogue-no-rayon" />
         ) : !debouncedSearch && tab === 'actifs' ? (
-          <MascotCatalogueReady onAddArticle={() => setShowCreate(true)} />
+          <MascoteBlock slug="catalogue-no-article" onCta={() => setShowCreate(true)} />
         ) : (
           <div className={styles['empty-state']}>
             <div className={styles['empty-icon']}>📚</div>

@@ -10,6 +10,7 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useLocalSession, usePointsDeVente } from '@/hooks/useLocalSession'
 import { useLocalArticles, LocalArticle } from '@/hooks/useLocalArticles'
+import { getDb } from '@/lib/db'
 import { useLocalVentes } from '@/hooks/useLocalVentes'
 import { useDevStore } from '@/store/devStore'
 import { useScannerStore } from '@/store/scannerStore'
@@ -130,8 +131,16 @@ export default function CaisseScreen() {
   const total = cart.reduce((s, i) => s + i.prix * i.quantite, 0)
   const flatListRef = useRef<FlatList<any>>(null)
 
-  useEffect(() => { if (hasSession) pullFromServer() }, [hasSession])
-  useFocusEffect(useCallback(() => { if (hasSession) pullFromServer() }, [hasSession, pullFromServer]))
+  // Pull articles et mettre à jour la liste d'exposés de la session
+  async function pullAndUpdateSession() {
+    const ids = await pullFromServer()
+    if (session && ids.length > 0) {
+      const db = await getDb()
+      await db.runAsync('UPDATE sessions SET articles_exposes = ? WHERE id = ?', [JSON.stringify(ids), session.id])
+    }
+  }
+  useEffect(() => { if (hasSession) pullAndUpdateSession() }, [hasSession])
+  useFocusEffect(useCallback(() => { if (hasSession) pullAndUpdateSession() }, [hasSession, pullFromServer]))
 
   // ── Navigation rayons (swipe + flèches) ──
   function goNextRayon() {

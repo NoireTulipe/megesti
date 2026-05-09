@@ -10,85 +10,7 @@ import { Modal }               from '@/components/ui/Modal'
 import { getFormWidth }        from '@/lib/formWidth'
 import sty    from '@/features/auteurs/AuteursPage.module.css'
 import mascot from './PointsDeVentePage.module.css'
-
-// ── Mascottes tutoriel ────────────────────────────────────────────────────────
-
-function MascotNoCategorie({ onOpenCategories }: { onOpenCategories: () => void }) {
-  return (
-    <div className={mascot['mascot-wrap']}>
-      <img src="/img/mascotte/m1.png" alt="" className={mascot['mascot-img']} />
-      <div className={mascot['mascot-bubbles']}>
-
-        <div className={mascot['mascot-bubble']}>
-          <p className={mascot['mascot-title']}>Les points de vente, c'est quoi ? 🏪</p>
-          <p className={mascot['mascot-text']}>
-            Un <strong>point de vente</strong> est un lieu ou un canal où tu vas vendre tes
-            produits — un stand dans un salon du livre, une librairie partenaire, ta propre
-            boutique, un marché… Chaque point de vente a ses propres sessions de caisse,
-            ses statistiques et son mode d'encaissement.
-          </p>
-        </div>
-
-        <div className={mascot['mascot-bubble']}>
-          <p className={mascot['mascot-text']}>
-            Pour s'y retrouver, MeGesti organise tes points de vente en{' '}
-            <strong>catégories</strong> — par exemple :{' '}
-            <em>Salon littéraire, Librairie indépendante, Centre culturel, Festival, En ligne…</em>{' '}
-            C'est toi qui les définis selon ton activité.
-          </p>
-          <p className={mascot['mascot-text']} style={{ marginTop: 8 }}>
-            Commence par créer ta première catégorie, puis tu pourras y rattacher tes points de vente.
-          </p>
-          <button className={mascot['mascot-btn']} onClick={onOpenCategories}>
-            Créer ma première catégorie →
-          </button>
-        </div>
-
-      </div>
-    </div>
-  )
-}
-
-function MascotNoPDV({ onOpenCreate }: { onOpenCreate: () => void }) {
-  return (
-    <div className={mascot['mascot-wrap']}>
-      <img src="/img/mascotte/m1.png" alt="" className={mascot['mascot-img']} />
-      <div className={mascot['mascot-bubbles']}>
-
-        <div className={mascot['mascot-bubble']}>
-          <p className={mascot['mascot-title']}>La première catégorie est là ! 🎉</p>
-          <p className={mascot['mascot-text']}>
-            Maintenant, ajoute ton <strong>premier point de vente</strong>. C'est lui que
-            tu sélectionneras à chaque ouverture de session de caisse — MeGesti saura ainsi
-            où se sont déroulées tes ventes et pourra te donner des{' '}
-            <strong>statistiques par lieu</strong>, comparer tes performances d'un salon à
-            l'autre et suivre tes encaissements avec précision.
-          </p>
-        </div>
-
-        <div className={mascot['mascot-bubble']}>
-          <p className={mascot['mascot-text']}>
-            💡 <strong>Un détail important</strong> — lors de la création, tu devras choisir
-            le mode d'encaissement :
-          </p>
-          <p className={mascot['mascot-text']} style={{ marginTop: 8 }}>
-            🏪 <strong>Tu encaisses toi-même</strong> — tu prends directement les paiements
-            (CB, espèces, chèque) lors du salon ou de l'événement.
-          </p>
-          <p className={mascot['mascot-text']} style={{ marginTop: 6 }}>
-            🏬 <strong>Le point de vente encaisse</strong> — c'est le cas d'une librairie
-            partenaire qui vend tes livres à ta place et te reverse ensuite ta part.
-            MeGesti gère alors les commissions et les reversements.
-          </p>
-          <button className={mascot['mascot-btn']} onClick={onOpenCreate}>
-            Ajouter mon premier point de vente →
-          </button>
-        </div>
-
-      </div>
-    </div>
-  )
-}
+import { MascoteBlock } from '@/components/MascoteBlock'
 
 // ── Page principale ───────────────────────────────────────────────────────────
 
@@ -190,9 +112,9 @@ export function PointsDeVentePage() {
             <div className={sty['empty-title']}>Aucun résultat pour « {debounced} »</div>
           </div>
         ) : categories.length === 0 ? (
-          <MascotNoCategorie onOpenCategories={() => setShowCategories(true)} />
+          <MascoteBlock slug="pdv-no-categorie" onCta={() => setShowCategories(true)} />
         ) : (
-          <MascotNoPDV onOpenCreate={() => setShowCreate(true)} />
+          <MascoteBlock slug="pdv-no-pdv" onCta={() => setShowCreate(true)} />
         )
       )}
 

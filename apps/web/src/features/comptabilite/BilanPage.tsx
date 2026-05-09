@@ -69,6 +69,8 @@ function CustomTooltip({ active, payload, label }: { active?: boolean; payload?:
 }
 
 
+import { MascoteBlock } from '@/components/MascoteBlock'
+
 // ── Mascotte onboarding ───────────────────────────────────────────────────────
 
 function MascotNoBilan() {
@@ -267,7 +269,7 @@ export function BilanPage() {
         )}
       </div>
 
-      {noData ? <MascotNoBilan /> : (
+      {noData ? <MascoteBlock slug="bilan-no-data" /> : (
       <div className={styles.content}>
 
         {/* ── KPI ROW ──────────────────────────────────────────────────────── */}

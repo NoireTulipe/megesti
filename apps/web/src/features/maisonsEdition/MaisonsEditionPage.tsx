@@ -4,57 +4,8 @@ import type { MaisonEdition } from './hooks/useMaisonsEdition'
 import { MaisonEditionCard } from './MaisonEditionCard'
 import { MaisonEditionForm } from './MaisonEditionForm'
 import { Modal } from '@/components/ui/Modal'
+import { MascoteBlock } from '@/components/MascoteBlock'
 import styles from './MaisonsEditionPage.module.css'
-
-function MascotNoMaison({ onAdd }: { onAdd: () => void }) {
-  return (
-    <div className={styles['mascot-wrap']}>
-      <img src="/img/mascotte/m1.png" alt="" className={styles['mascot-img']} />
-      <div className={styles['mascot-bubbles']}>
-
-        <div className={styles['mascot-bubble']}>
-          <p className={styles['mascot-title']}>Ton carnet de maisons d'édition ! 📚</p>
-          <p className={styles['mascot-text']}>
-            Ici, tu recenses les <strong>maisons d'édition partenaires</strong> ou celles
-            que tu surveilles de près — concurrentes, complémentaires, distributeurs
-            communs, coéditrices potentielles… C'est la mémoire de ton{' '}
-            <strong>réseau professionnel éditorial</strong>.
-          </p>
-          <p className={styles['mascot-text']} style={{ marginTop: 8 }}>
-            Et pourquoi pas y noter la maison d'édition qui te fait de l'œil… ou celle
-            qui pourrait bien te faire signe un jour ? 😉
-          </p>
-        </div>
-
-        <div className={styles['mascot-bubble']}>
-          <p className={styles['mascot-text']}>
-            Pour chaque maison, tu notes ses <strong>contacts clés</strong>, son
-            adresse, son site, ses spécialités… Plus besoin de chercher un numéro
-            de téléphone en plein salon quand on n'a pas le temps. Tout est là,
-            à portée de clic.
-          </p>
-        </div>
-
-        <div className={styles['mascot-bubble']}>
-          <p className={styles['mascot-text']}>
-            Ce carnet prend de la valeur avec le temps. Un bon{' '}
-            <strong>réseau éditorial</strong> ouvre des portes : coéditions,
-            co-stands en salon, échanges de bons procédés, recommandations
-            croisées… Commence à le constituer dès maintenant, même avec
-            une seule fiche.
-          </p>
-          <button className={styles['mascot-btn']} onClick={onAdd}>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-            </svg>
-            Ajouter une maison d'édition →
-          </button>
-        </div>
-
-      </div>
-    </div>
-  )
-}
 
 export function MaisonsEditionPage() {
   const [search, setSearch]       = useState('')
@@ -142,7 +93,7 @@ export function MaisonsEditionPage() {
             <div className={styles.emptyTitle}>Aucun résultat pour « {debounced} »</div>
           </div>
         ) : (
-          <MascotNoMaison onAdd={() => setShowCreate(true)} />
+          <MascoteBlock slug="maisons-vide" onCta={() => setShowCreate(true)} />
         )
       )}
 

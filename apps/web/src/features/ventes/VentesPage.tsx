@@ -14,6 +14,7 @@ import { useFranchiseTVA } from '@/hooks/useFranchiseTVA'
 import { useRayons } from '@/features/catalogue/hooks/useRayons'
 import { Modal } from '@/components/ui/Modal'
 import styles from './VentesPage.module.css'
+import { MascoteBlock } from '@/components/MascoteBlock'
 
 // ── Mascottes tutoriel caisse ─────────────────────────────────────────────────
 
@@ -388,11 +389,11 @@ export function VentesPage() {
                 <p className={styles.sessionSelectOr}>— ou —</p>
               </>
             ) : pdvList.length === 0 ? (
-              <MascotNoPDV />
+              <MascoteBlock slug="caisse-no-pdv" />
             ) : sessionsFermees.length === 0 ? (
-              <MascotNeverSession onOpen={() => setShowOpenModal(true)} />
+              <MascoteBlock slug="caisse-premiere-session" onCta={() => setShowOpenModal(true)} />
             ) : (
-              <MascotNoActiveSession onOpen={() => setShowOpenModal(true)} />
+              <MascoteBlock slug="caisse-no-active" onCta={() => setShowOpenModal(true)} />
             )}
 
             {/* Bouton "Ouvrir une session" — masqué si pas de PDV (la mascotte gère la navigation) */}
