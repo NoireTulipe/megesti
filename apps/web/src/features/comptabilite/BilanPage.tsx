@@ -11,6 +11,7 @@ import {
   CATEGORIE_CHARGE_LABELS, CATEGORIE_CHARGE_COLORS,
   type TypeCharge, type Periodicite, type CategorieCharge,
 } from './hooks/useCharges'
+import { usePlanFeatures } from '@/hooks/usePlanFeatures'
 import styles from './BilanPage.module.css'
 
 // ── Palette ─────────────────────────────────────────────────────────────────
@@ -133,6 +134,7 @@ export function BilanPage() {
   const [customTo,   setCustomTo]   = useState(isoToInput(new Date().toISOString()))
   const [showDetail, setShowDetail] = useState<string | null>(null)
 
+  const { features } = usePlanFeatures()
   const { data: charges = [] } = useCharges()
 
   const { from, to } = useMemo(() => {
@@ -619,19 +621,29 @@ export function BilanPage() {
         {/* ── CHARGES & ABONNEMENTS (aperçu) ──────────────────────────────── */}
         <div className={styles.section}>
           <div className={styles.sectionHeader}>
-            <span className={styles.sectionEmoji}>🔄</span>
+            <span className={styles.sectionEmoji}>{features.charges ? '🔄' : '🔒'}</span>
             <h2 className={styles.sectionTitle}>Charges & abonnements</h2>
-            <button className={styles.btnManage} onClick={() => navigate('/charges')}>
-              Gérer →
-            </button>
+            {features.charges && (
+              <button className={styles.btnManage} onClick={() => navigate('/charges')}>
+                Gérer →
+              </button>
+            )}
           </div>
 
-          {charges.length === 0 ? (
+          {!features.charges && (
+            <div style={{ padding: '24px', textAlign: 'center', background: 'var(--cream)', borderRadius: 12, border: '1.5px dashed var(--cream-dark)' }}>
+              <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-soft)' }}>
+                La gestion des charges est disponible à partir du plan Edition.
+              </p>
+            </div>
+          )}
+
+          {features.charges && charges.length === 0 ? (
             <div className={styles.chargesEmptyRow}>
               <p className={styles.empty}>Aucune charge enregistrée</p>
               <button className={styles.btnAdd} onClick={() => navigate('/charges')}>+ Ajouter</button>
             </div>
-          ) : (
+          ) : features.charges ? (
             <div className={styles.chargeGrid}>
               {charges.slice(0, 6).map(c => {
                 const jours    = c.prochaineEcheance ? Math.ceil((new Date(c.prochaineEcheance).getTime() - Date.now()) / 86_400_000) : null

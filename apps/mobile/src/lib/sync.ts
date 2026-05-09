@@ -110,6 +110,15 @@ async function processQueue() {
         )
         await db.runAsync('DELETE FROM sync_queue WHERE id = ?', [item.id])
       } catch (e: any) {
+        // 400 "Session déjà fermée" → c'est OK, on marque comme synced
+        if (item.entity_type === 'session_close' && (e?.message?.includes('déjà fermée') || e?.status === 400)) {
+          await db.runAsync(
+            `UPDATE sessions SET synced = 1, synced_at = datetime('now') WHERE id = ?`,
+            [item.entity_id],
+          )
+          await db.runAsync('DELETE FROM sync_queue WHERE id = ?', [item.id])
+          continue
+        }
         const retryCount = item.retry_count + 1
         await db.runAsync(
           'UPDATE sync_queue SET retry_count = ?, last_error = ? WHERE id = ?',

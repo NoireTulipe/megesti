@@ -53,7 +53,7 @@ const PatchSchema = CreateSchema.omit({ id: true }).partial()
 
 export const chargeRoutes: FastifyPluginAsync = async (app) => {
   const auth      = { preHandler: app.authenticate }
-  const authAdmin = { preHandler: [app.authenticate, app.requireRole('ADMIN', 'EDITOR')] }
+  const authAdmin = { preHandler: [app.authenticate, app.requireRole('ADMIN', 'EDITOR'), app.requireFeature('charges')] }
 
   app.get('/', auth, async (request) => {
     const { tenantId } = request.tenant

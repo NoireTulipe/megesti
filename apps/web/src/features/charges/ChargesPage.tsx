@@ -8,6 +8,7 @@ import {
   occurrencesDansPeriode, chargeEstDansPeriode,
   type TypeCharge, type Periodicite, type CategorieCharge, type Charge,
 } from '@/features/comptabilite/hooks/useCharges'
+import { usePlanFeatures } from '@/hooks/usePlanFeatures'
 import styles from './ChargesPage.module.css'
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -280,6 +281,27 @@ function ChargeCard({ charge: c, occurrences, onEdit, onDelete }: CardProps) {
 // ── Page principale ───────────────────────────────────────────────────────────
 export function ChargesPage() {
   const navigate = useNavigate()
+  const { features, upgradeMessage } = usePlanFeatures()
+
+  // Garde plan — affiche un écran verrouillé si la feature n'est pas disponible
+  if (!features.charges) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, padding: '80px 32px', textAlign: 'center' }}>
+        <span style={{ fontSize: 44 }}>🔒</span>
+        <p style={{ fontFamily: "'DM Serif Display',serif", fontSize: '1.3rem', color: 'var(--ink)', margin: 0 }}>
+          Disponible à partir du plan Edition
+        </p>
+        <p style={{ fontSize: '0.85rem', color: 'var(--text-soft)', maxWidth: 340, margin: 0, lineHeight: 1.65 }}>
+          {upgradeMessage('charges')}
+        </p>
+        <button onClick={() => navigate(-1)}
+          style={{ marginTop: 8, padding: '9px 20px', borderRadius: 10, border: '1.5px solid var(--cream-dark)', background: 'var(--cream)', color: 'var(--text-mid)', fontSize: '0.83rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+          ← Retour
+        </button>
+      </div>
+    )
+  }
+
   const { data: charges = [], isLoading } = useCharges()
   const deleteCharge = useDeleteCharge()
 
