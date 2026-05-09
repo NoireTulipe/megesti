@@ -13,6 +13,7 @@ import { useLocalArticles, LocalArticle } from '@/hooks/useLocalArticles'
 import { useLocalVentes } from '@/hooks/useLocalVentes'
 import { useDevStore } from '@/store/devStore'
 import { useScannerStore } from '@/store/scannerStore'
+import { useCategoryColorsStore, CAT_PALETTE } from '@/store/categoryColorsStore'
 import { Colors, Dark, Fonts, Radius, Shadow, Gradients } from '@/constants/theme'
 import { useAppTheme } from '@/hooks/useAppTheme'
 
@@ -33,17 +34,7 @@ const PAYMENT_MODES: { mode: PaymentMode; label: string; emoji: string }[] = [
   { mode: 'SUMUP',   label: 'SumUp',   emoji: '📱' },
 ]
 
-// Palette catégories — teintes douces mais distinctes
-const CAT_PALETTE = [
-  '#C4847A', // rose
-  '#8B7BAB', // mauve
-  '#6B8F71', // sage
-  '#C9933A', // gold
-  '#5A8BAF', // bleu ardoise
-  '#AF6B8B', // rose foncé
-  '#5A8B8F', // teal
-  '#AF8B5A', // brun chaud
-]
+const CARD_IMG_H = 96  // hauteur de la zone image/contenu sous la barre accent
 
 function catColor(key: string): string {
   if (!key) return CAT_PALETTE[0]
@@ -52,8 +43,6 @@ function catColor(key: string): string {
   return CAT_PALETTE[Math.abs(h) % CAT_PALETTE.length]
 }
 
-const CARD_IMG_H = 96  // hauteur de la zone image/contenu sous la barre accent
-
 // ── Composant principal ──────────────────────────────────────────────
 
 export default function CaisseScreen() {
@@ -61,6 +50,9 @@ export default function CaisseScreen() {
   const { isDark } = useAppTheme()
   const { width: screenW } = useWindowDimensions()
   const TAB_BAR_H = 68 + insets.bottom
+
+  const catColors = useCategoryColorsStore(s => s.colors)
+  function getCatColor(catId: string): string { return catColors[catId] || catColor(catId) }
 
   const { session, openSession, closeSession, refresh: refreshSession } = useLocalSession()
   const { pdvs, loading: pdvsLoading, error: pdvsError } = usePointsDeVente()
@@ -139,6 +131,7 @@ export default function CaisseScreen() {
   const flatListRef = useRef<FlatList<any>>(null)
 
   useEffect(() => { if (hasSession) pullFromServer() }, [hasSession])
+  useFocusEffect(useCallback(() => { if (hasSession) pullFromServer() }, [hasSession, pullFromServer]))
 
   // ── Navigation rayons (swipe + flèches) ──
   function goNextRayon() {
@@ -235,7 +228,7 @@ export default function CaisseScreen() {
           <Text style={styles.emptySub}>Ouvrez une session pour commencer à enregistrer vos ventes.</Text>
           <TouchableOpacity style={styles.openBtn} activeOpacity={0.85}
             onPress={() => setShowSessionModal(true)}>
-            <LinearGradient colors={Gradients.caisse} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+            <LinearGradient colors={isDark ? Gradients.caisseDark : Gradients.caisse} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
               style={styles.openBtnBg}>
               <Text style={styles.openBtnText}>Ouvrir une session</Text>
             </LinearGradient>
@@ -373,7 +366,7 @@ export default function CaisseScreen() {
       </LinearGradient>
 
       {/* ── Catégories (chips fixes, hauteur constante) ── */}
-      <View style={styles.catBarFixed}>
+      <View style={[styles.catBarFixed, isDark && { backgroundColor: Dark.bg, borderBottomColor: 'rgba(255,255,255,0.06)' }]}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.catRowContent}>
           <TouchableOpacity
@@ -382,7 +375,7 @@ export default function CaisseScreen() {
             <Text style={[styles.catChipText, enabledCats.size === 0 && styles.catChipTextActive]}>Tous</Text>
           </TouchableOpacity>
           {categories.map(c => {
-            const color = catColor(c.id)
+            const color = getCatColor(c.id)
             const active = enabledCats.has(c.id)
             return (
               <TouchableOpacity key={c.id}
@@ -408,11 +401,11 @@ export default function CaisseScreen() {
         renderItem={({ item: a }) => {
           const rupture = a.stock_local <= 0
           const stockLow = a.stock_local > 0 && a.stock_local <= (a.stock_alerte || 3)
-          const accent = catColor(a.categorie_id ?? a.rayon_nom ?? a.nom)
+          const accent = getCatColor(a.categorie_id ?? a.rayon_nom ?? a.nom)
           const inCart = cart.find(i => i.articleId === a.id)
           return (
             <TouchableOpacity
-              style={[styles.productCard, inCart && { borderColor: accent, borderWidth: 2 }]}
+              style={[styles.productCard, isDark && { backgroundColor: Dark.surface, shadowColor: 'transparent', elevation: 0 }, inCart && { borderColor: accent, borderWidth: 2 }]}
               activeOpacity={rupture ? 1 : 0.75}
               onPress={() => addToCart(a)}>
               {/* Barre accent colorée */}
@@ -420,7 +413,7 @@ export default function CaisseScreen() {
               {/* Corps : texte gauche + image droite */}
               <View style={styles.productInner}>
                 <View style={styles.productLeft}>
-                  <Text style={styles.productName} numberOfLines={3}>{a.nom}</Text>
+                  <Text style={[styles.productName, isDark && { color: Dark.text }]} numberOfLines={3}>{a.nom}</Text>
                   <Text style={[styles.productPrice, { color: accent }]}>
                     {a.prix_vente_ht.toFixed(2)} €
                   </Text>

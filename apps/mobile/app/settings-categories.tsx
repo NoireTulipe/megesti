@@ -1,6 +1,6 @@
-import { useMemo } from 'react'
+import { useMemo, useCallback } from 'react'
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Alert } from 'react-native'
-import { router } from 'expo-router'
+import { router, useFocusEffect } from 'expo-router'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useLocalArticles } from '@/hooks/useLocalArticles'
@@ -27,8 +27,7 @@ export default function CategoryColorsScreen() {
       .sort((a, b) => a.nom.localeCompare(b.nom))
   }, [articles])
 
-  // Pull au focus (géré par l'écran parent)
-  useMemo(() => { pullFromServer() }, [])
+  useFocusEffect(useCallback(() => { pullFromServer() }, [pullFromServer]))
 
   return (
     <View style={[s.shell, isDark && { backgroundColor: Dark.bg }]}>

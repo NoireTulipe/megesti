@@ -2,9 +2,10 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuthStore } from './store'
 import { LoginPage }    from './features/auth/LoginPage'
 import { AdminLayout }  from './features/layout/AdminLayout'
-import { StatsPage }    from './features/stats/StatsPage'
-import { TenantsPage }  from './features/tenants/TenantsPage'
-import { TenantDetail } from './features/tenants/TenantDetail'
+import { StatsPage }          from './features/stats/StatsPage'
+import { TenantsPage }        from './features/tenants/TenantsPage'
+import { TenantDetail }       from './features/tenants/TenantDetail'
+import { MascoteDialogsPage } from './features/mascote/MascoteDialogsPage'
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
   const token = useAuthStore(s => s.token)
@@ -23,6 +24,7 @@ export default function App() {
               <Route path="/"                   element={<StatsPage />} />
               <Route path="/tenants"            element={<TenantsPage />} />
               <Route path="/tenants/:id"        element={<TenantDetail />} />
+              <Route path="/megestine"          element={<MascoteDialogsPage />} />
               <Route path="*"                   element={<Navigate to="/" replace />} />
             </Routes>
           </AdminLayout>

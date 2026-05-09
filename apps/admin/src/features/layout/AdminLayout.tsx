@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, Building2, LogOut } from 'lucide-react'
+import { LayoutDashboard, Building2, LogOut, MessageCircle } from 'lucide-react'
 import { useAuthStore } from '../../store'
 
 export function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -21,6 +21,9 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
           </NavLink>
           <NavLink to="/tenants" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
             <Building2 size={16} /> Tenants
+          </NavLink>
+          <NavLink to="/megestine" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
+            <MessageCircle size={16} /> MeGestine
           </NavLink>
         </nav>
         <div className="sidebar-footer">
