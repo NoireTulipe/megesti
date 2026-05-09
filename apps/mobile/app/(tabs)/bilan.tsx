@@ -6,7 +6,6 @@ import {
 import { useFocusEffect } from 'expo-router'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { api } from '@/lib/api'
 import { getDb } from '@/lib/db'
 import { Colors, Dark, Fonts, Radius, Shadow, Gradients } from '@/constants/theme'
 import { useAppTheme } from '@/hooks/useAppTheme'
@@ -446,16 +445,6 @@ export default function BilanScreen() {
 
   const [data,       setData]       = useState<BilanData>(EMPTY)
   const [refreshing, setRefreshing] = useState(false)
-  const [showFrais, setShowFrais] = useState(false)
-
-  async function deleteFrais(frais: FraisRow) {
-    const db = await getDb()
-    await db.runAsync(`DELETE FROM frais_locaux WHERE id = ?`, [frais.id])
-    if (frais.synced) {
-      api.delete(`/frais/${frais.id}`).catch(() => {})
-    }
-    await load()
-  }
 
   const load = useCallback(async () => {
     const result = await loadBilan(activeRange[0], activeRange[1], mode)
@@ -481,7 +470,7 @@ export default function BilanScreen() {
     setRefreshing(false)
   }, [load])
 
-  const { totaux, parMode, topArticles, parPdv, parMois, sessions, fraisRows } = data
+  const { totaux, parMode, topArticles, parPdv, parMois, sessions } = data
   const maxModeCa = parMode.length > 0 ? Math.max(...parMode.map(m => m.ca)) : 1
 
   return (
@@ -541,50 +530,6 @@ export default function BilanScreen() {
             <Text style={styles.sfTxt}>{totaux.sessionCount} session{totaux.sessionCount > 1 ? 's' : ''}</Text>
           </View>
         </LinearGradient>
-
-        {/* ── Frais de la période (toujours visible si présents) ── */}
-        {fraisRows.length > 0 && (
-          <TouchableOpacity
-            style={[styles.accordion, isDark && { backgroundColor: Dark.surface }]}
-            activeOpacity={0.8}
-            onPress={() => setShowFrais(!showFrais)}>
-            <View style={styles.accordionHeader}>
-              <Text style={[styles.accordionTitle, isDark && { color: Dark.text }]}>
-                🧾 Frais ({fraisRows.length})
-              </Text>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                <Text style={{ fontFamily: Fonts.body, fontSize: 13, fontWeight: '700', color: Colors.terra }}>
-                  −{totaux.fraisTotal.toFixed(0)} €
-                </Text>
-                <Text style={[styles.accordionArrow, isDark && { color: Dark.textSoft }]}>
-                  {showFrais ? '▲' : '▼'}
-                </Text>
-              </View>
-            </View>
-            {showFrais && (
-              <View style={[styles.accordionBody, isDark && { borderTopColor: 'rgba(255,255,255,0.06)' }]}>
-                {fraisRows.map(f => (
-                  <View key={f.id} style={styles.fraisRow}>
-                    <View style={styles.fraisInfo}>
-                      <Text style={[styles.fraisMotif, isDark && { color: Dark.text }]}>{f.motif}</Text>
-                      <Text style={[styles.fraisMeta, isDark && { color: Dark.textSoft }]}>
-                        {f.type} · {fmtDate(f.date)}
-                      </Text>
-                    </View>
-                    <Text style={[styles.fraisMontant, isDark && { color: Dark.text }]}>
-                      {f.montant_ht.toFixed(2)} €
-                    </Text>
-                    <TouchableOpacity
-                      style={[styles.fraisDelete, isDark && { backgroundColor: 'rgba(200,80,80,0.15)' }]}
-                      onPress={() => deleteFrais(f)} activeOpacity={0.6}>
-                      <Text style={styles.fraisDeleteIcon}>✕</Text>
-                    </TouchableOpacity>
-                  </View>
-                ))}
-              </View>
-            )}
-          </TouchableOpacity>
-        )}
 
         {totaux.venteCount === 0 ? (
           <View style={[styles.emptyCard, isDark && { backgroundColor: Dark.surface, shadowColor: 'transparent', elevation: 0 }]}>

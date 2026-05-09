@@ -63,7 +63,7 @@ export default function SessionDetailScreen() {
         )
       }
       await db.runAsync(
-        `INSERT INTO frais_locaux (id, session_id, type, motif, montant_ht, date) VALUES (?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO frais_locaux (id, session_id, type, motif, montant_ht, date, actif) VALUES (?, ?, ?, ?, ?, ?, 1)`,
         [fraisId, id, fraisType, fraisMotif.trim(), parseFloat(fraisMontant) || 0, date],
       )
       // Envoyer au serveur
@@ -74,11 +74,15 @@ export default function SessionDetailScreen() {
       setShowFraisForm(false)
       setFraisMotif('')
       setFraisMontant('')
-      // Recharger le total
+      // Recharger total + liste
       const f = await db.getFirstAsync<{ total: number }>(
-        'SELECT COALESCE(SUM(montant_ht),0) as total FROM frais_locaux WHERE session_id = ?', [id],
+        'SELECT COALESCE(SUM(montant_ht),0) as total FROM frais_locaux WHERE session_id = ? AND actif = 1', [id],
       )
       setFraisSession(f?.total ?? 0)
+      const fl = await db.getAllAsync<any>(
+        'SELECT id, type, motif, montant_ht, date, synced, actif FROM frais_locaux WHERE session_id = ? ORDER BY date DESC', [id],
+      )
+      setFraisList(fl)
     } finally { setFraisSaving(false) }
   }
 
@@ -114,7 +118,9 @@ export default function SessionDetailScreen() {
 
   const [coutVentes, setCoutVentes] = useState(0)
   const [fraisSession, setFraisSession] = useState(0)
+  const [fraisList, setFraisList] = useState<any[]>([])
   const [showResultat, setShowResultat] = useState(false)
+  const [showFrais, setShowFrais] = useState(true)
 
   // Charger les prix d'achat locaux + frais (local + serveur)
   useEffect(() => {
@@ -147,21 +153,25 @@ export default function SessionDetailScreen() {
         } else {
           await db.runAsync(`DELETE FROM frais_locaux WHERE session_id = ? AND synced = 1`, [id])
         }
-        // Insérer/mettre à jour les frais du serveur
+        // Insérer/mettre à jour les frais du serveur (avec actif)
         for (const f of remote) {
           await db.runAsync(
-            `INSERT OR REPLACE INTO frais_locaux (id, session_id, type, motif, montant_ht, date, synced)
-             VALUES (?, ?, ?, ?, ?, ?, 1)`,
-            [f.id, f.sessionId, f.type, f.motif, Number(f.montantHT) || 0, f.date],
+            `INSERT OR REPLACE INTO frais_locaux (id, session_id, type, motif, montant_ht, date, synced, actif)
+             VALUES (?, ?, ?, ?, ?, ?, 1, ?)`,
+            [f.id, f.sessionId, f.type, f.motif, Number(f.montantHT) || 0, f.date, f.actif !== false ? 1 : 0],
           )
         }
       } catch {}
 
-      // Total frais local
+      // Total + liste frais local (actifs seulement)
       const f = await db.getFirstAsync<{ total: number }>(
-        'SELECT COALESCE(SUM(montant_ht),0) as total FROM frais_locaux WHERE session_id = ?', [id],
+        'SELECT COALESCE(SUM(montant_ht),0) as total FROM frais_locaux WHERE session_id = ? AND actif = 1', [id],
       )
       setFraisSession(f?.total ?? 0)
+      const fl = await db.getAllAsync<any>(
+        'SELECT id, type, motif, montant_ht, date, synced, actif FROM frais_locaux WHERE session_id = ? ORDER BY date DESC', [id],
+      )
+      setFraisList(fl)
     })()
   }, [data, id])
 
@@ -233,6 +243,55 @@ export default function SessionDetailScreen() {
           <Text style={[s.summaryLbl, isDark && { color: 'rgba(255,255,255,0.5)' }]}>fond</Text>
         </View>
       </View>
+
+      {/* ── Frais de la session ── */}
+      {fraisList.length > 0 && (
+        <TouchableOpacity
+          style={[s.fraisAccordion, isDark && { backgroundColor: Dark.surface }]}
+          activeOpacity={0.8}
+          onPress={() => setShowFrais(!showFrais)}>
+          <View style={s.fraisAccordionHeader}>
+            <Text style={[s.fraisAccordionTitle, isDark && { color: Dark.text }]}>
+              🧾 Frais ({fraisList.length})
+            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <Text style={{ fontFamily: Fonts.body, fontSize: 13, fontWeight: '700', color: Colors.terra }}>
+                −{fraisSession.toFixed(0)} €
+              </Text>
+              <Text style={[s.fraisAccordionArrow, isDark && { color: Dark.textSoft }]}>
+                {showFrais ? '▲' : '▼'}
+              </Text>
+            </View>
+          </View>
+          {showFrais && (
+            <View style={s.fraisList}>
+              {fraisList.map((f: any) => (
+                <View key={f.id} style={[s.fraisRow, isDark && { borderBottomColor: 'rgba(255,255,255,0.04)' }]}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[s.fraisMotif, isDark && { color: Dark.text }]}>{f.motif}</Text>
+                    <Text style={[s.fraisMeta, isDark && { color: Dark.textSoft }]}>{f.type} · {new Date(f.date).toLocaleDateString('fr-FR')}</Text>
+                  </View>
+                  <Text style={[s.fraisMontant, isDark && { color: Dark.text }]}>{Number(f.montant_ht).toFixed(2)} €</Text>
+                  <TouchableOpacity
+                    style={s.fraisDeleteBtn}
+                    onPress={async () => {
+                      const db = await getDb()
+                      await db.runAsync(`UPDATE frais_locaux SET actif = 0 WHERE id = ?`, [f.id])
+                      if (f.synced) api.delete(`/frais/${f.id}`).catch(() => {})
+                      const fl = await db.getAllAsync<any>('SELECT id, type, motif, montant_ht, date, synced, actif FROM frais_locaux WHERE session_id = ? ORDER BY date DESC', [id])
+                      setFraisList(fl)
+                      const ft = await db.getFirstAsync<{ total: number }>('SELECT COALESCE(SUM(montant_ht),0) as total FROM frais_locaux WHERE session_id = ? AND actif = 1', [id])
+                      setFraisSession(ft?.total ?? 0)
+                    }}
+                    activeOpacity={0.5}>
+                    <Text style={s.fraisDeleteIcon}>✕</Text>
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </View>
+          )}
+        </TouchableOpacity>
+      )}
 
       {/* Tabs */}
       <View style={[s.tabRow, isDark && { backgroundColor: Dark.surface }]}>
@@ -453,6 +512,25 @@ const s = StyleSheet.create({
   summaryVal: { fontFamily: Fonts.body, fontSize: 18, fontWeight: '700' },
   summaryLbl: { fontFamily: Fonts.body, fontSize: 10, color: Colors.textSoft, marginTop: 2 },
   summaryDiv: { width: 1, height: 30, backgroundColor: Colors.creamDark, alignSelf: 'center' },
+
+  // Frais
+  fraisAccordion: {
+    backgroundColor: Colors.white, borderRadius: Radius.lg, marginBottom: 12,
+    padding: 14, ...Shadow.card, marginHorizontal: 20,
+  },
+  fraisAccordionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  fraisAccordionTitle: { fontFamily: Fonts.body, fontSize: 14, fontWeight: '700', color: Colors.text },
+  fraisAccordionArrow: { fontFamily: Fonts.body, fontSize: 11, color: Colors.textSoft },
+  fraisList: { marginTop: 10 },
+  fraisRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: Colors.cream },
+  fraisMotif: { fontFamily: Fonts.body, fontSize: 13, fontWeight: '600', color: Colors.text },
+  fraisMeta: { fontFamily: Fonts.body, fontSize: 10, color: Colors.textSoft, marginTop: 1 },
+  fraisMontant: { fontFamily: Fonts.body, fontSize: 13, fontWeight: '600', color: Colors.text, marginRight: 8 },
+  fraisDeleteBtn: {
+    width: 26, height: 26, borderRadius: 13,
+    backgroundColor: Colors.terraLight, justifyContent: 'center', alignItems: 'center', marginLeft: 6,
+  },
+  fraisDeleteIcon: { fontSize: 10, color: Colors.terra, fontWeight: '700' },
 
   // Tabs
   tabRow: {

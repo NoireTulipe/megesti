@@ -75,6 +75,30 @@ async function main() {
       { text: 'Ce carnet prend de la valeur avec le temps. Un bon réseau éditorial ouvre des portes : coéditions, co-stands en salon, échanges de bons procédés, recommandations croisées… Commence dès maintenant.', cta: { label: 'Ajouter une maison d\'édition →', href: '' } },
     ]},
 
+    // ── Bilan session — aides métriques ──────────────────────────────────────
+
+    { slug: 'bilan-metric-ca-ttc', description: 'Bilan session — CA total TTC', bulles: [
+      { title: 'Chiffre d\'affaires total TTC', text: 'Somme de toutes les ventes validées de cette session, taxes comprises. Le montant HT affiché dessous est la base de calcul pour la TVA et les droits d\'auteurs.' },
+    ]},
+    { slug: 'bilan-metric-en-caisse', description: 'Bilan session — montant en caisse', bulles: [
+      { title: 'Montant encaissé directement', text: 'Part du CA que tu as encaissée toi-même (CB, espèces, chèque…). Le montant "+ X € PDV" correspond aux ventes réglées par le point de vente partenaire — il te sera reversé selon les modalités convenues.' },
+    ]},
+    { slug: 'bilan-metric-ticket-moyen', description: 'Bilan session — ticket moyen', bulles: [
+      { title: 'Ticket moyen', text: 'CA total TTC ÷ nombre de ventes validées. Un bon indicateur pour évaluer si les clients achètent plusieurs articles ou un seul à chaque passage.' },
+    ]},
+    { slug: 'bilan-metric-frais', description: 'Bilan session — frais de session', bulles: [
+      { title: 'Frais de session', text: 'Total des dépenses liées à cette session : stand, déplacement, repas, hébergement… Déduits du bénéfice estimé mais n\'affectent pas le CA. Les frais annulés (rayés) ne sont pas comptabilisés.' },
+    ]},
+    { slug: 'bilan-metric-cout-ventes', description: 'Bilan session — coût des ventes', bulles: [
+      { title: 'Coût des ventes', text: 'Estimation du coût d\'achat des articles vendus, calculée à partir du prix d\'achat unitaire renseigné sur chaque article. Sert à estimer la marge brute. Affiché uniquement si au moins un article a un prix d\'achat configuré.' },
+    ]},
+    { slug: 'bilan-metric-droits', description: 'Bilan session — droits d\'auteurs', bulles: [
+      { title: 'Droits d\'auteurs', text: 'Total des droits dus aux auteurs pour les ventes de cette session, calculé selon les barèmes de leurs contrats (% du HT ou du TTC, avec déduction des à-valoirs déjà versés). Ce montant est à reverser aux auteurs concernés.' },
+    ]},
+    { slug: 'bilan-metric-benefice', description: 'Bilan session — bénéfice estimé', bulles: [
+      { title: 'Bénéfice estimé HT', text: 'Calcul indicatif : CA HT − coût des ventes − frais de session − droits d\'auteurs. Uniquement calculé si les prix d\'achat sont renseignés sur les articles. Il ne s\'agit pas d\'un résultat comptable certifié.' },
+    ]},
+
     // ── Réglages ──────────────────────────────────────────────────────────────
 
     { slug: 'reglages-fiscal', description: 'Réglages / Paramètres fiscaux — mascotte permanente sidebar', bulles: [
