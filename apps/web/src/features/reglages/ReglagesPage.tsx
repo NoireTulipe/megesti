@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { FormBuilder }      from '@/components/FormBuilder'
 import { ThesaurusSection } from './ThesaurusSection'
 import { RayonsSection }    from './RayonsSection'
@@ -35,6 +35,61 @@ type ActiveScope =
   | { kind: 'entity'; entityType: EntityType }
   | { kind: 'rayon';  rayonId: string; isLibrairie: boolean }
 
+// ── Mascotte paramètres fiscaux ───────────────────────────────────────────────
+
+function MascotFiscal() {
+  return (
+    <div className={styles.fiscalMascotWrap}>
+      <img src="/img/mascotte/m1.png" alt="" className={styles.fiscalMascotImg} />
+      <div className={styles.fiscalMascotBubbles}>
+
+        <div className={styles.fiscalMascotBubble}>
+          <p className={styles.fiscalMascotTitle}>TVA : le bon régime dès le départ 🧾</p>
+          <p className={styles.fiscalMascotText}>
+            Ce réglage indique à MeGesti comment traiter fiscalement vos ventes. C'est
+            l'un des paramètres les plus importants — mal configuré, vos prix et
+            exports comptables seraient faux.
+          </p>
+        </div>
+
+        <div className={styles.fiscalMascotBubble}>
+          <p className={styles.fiscalMascotText}>
+            🟢 <strong>Franchise en base de TVA</strong> — si vous êtes
+            micro-entreprise ou auto-entrepreneur sous le seuil légal (~91 900 € de
+            CA annuel pour la vente), vous n'avez <strong>ni à collecter ni à
+            reverser la TVA</strong>. Vos prix hors taxe sont vos prix toutes taxes
+            comprises. MeGesti applique automatiquement la mention légale obligatoire :{' '}
+            <em>« TVA non applicable, art. 293 B du CGI »</em>.
+          </p>
+        </div>
+
+        <div className={styles.fiscalMascotBubble}>
+          <p className={styles.fiscalMascotText}>
+            🔵 <strong>Assujetti à la TVA</strong> — si vous avez dépassé le seuil,
+            opté pour un statut avec TVA (SARL, SAS, association avec activité
+            lucrative…), vous collectez la TVA sur vos ventes et la reversez à
+            l'administration. MeGesti applique alors les taux configurés par rayon
+            (5,5 % pour les livres, 20 % pour les autres produits).
+          </p>
+        </div>
+
+        <div className={styles.fiscalMascotBubble}>
+          <p className={styles.fiscalMascotText}>
+            💡 Une fois configuré selon votre statut,{' '}
+            <strong>vous n'aurez plus à y toucher</strong> — sauf en cas de
+            changement de situation : franchissement du seuil, transformation
+            juridique de la structure, ou option volontaire pour la TVA. En dehors
+            de ces cas, oubliez ce réglage, MeGesti s'en occupe.
+          </p>
+        </div>
+
+      </div>
+    </div>
+  )
+}
+
+// ── Page principale ───────────────────────────────────────────────────────────
+
 export function ReglagesPage() {
   const { features }          = usePlanFeatures()
   const [niveau, setNiveau]   = useState<Niveau>('classique')
@@ -43,6 +98,14 @@ export function ReglagesPage() {
   const { data: rayons = [] } = useRayons()
   const { data: tenant }      = useMonTenant()
   const updateTenant          = useUpdateMonTenant()
+
+  // Forcer retour en classique si le plan ne permet plus l'avancé
+  useEffect(() => {
+    if (!features.reglagesAvances && niveau === 'avance') {
+      setNiveau('classique')
+      setTab('rayons')
+    }
+  }, [features.reglagesAvances, niveau])
 
   function handleNiveau(n: Niveau) {
     setNiveau(n)
@@ -66,9 +129,12 @@ export function ReglagesPage() {
           </button>
           <button
             className={`${styles.niveauBtn} ${niveau === 'avance' ? styles.niveauBtnActive : ''}`}
-            onClick={() => handleNiveau('avance')}
+            onClick={() => features.reglagesAvances && handleNiveau('avance')}
+            disabled={!features.reglagesAvances}
+            title={!features.reglagesAvances ? 'Les réglages avancés sont disponibles à partir du plan Edition.' : undefined}
+            style={!features.reglagesAvances ? { opacity: 0.4, cursor: 'not-allowed' } : undefined}
           >
-            🔬 Avancé
+            {!features.reglagesAvances ? '🔒' : '🔬'} Avancé
           </button>
         </div>
       </header>
@@ -150,73 +216,77 @@ export function ReglagesPage() {
           </>
         )}
 
-        {/* ── Paramètres fiscaux ── */}
+        {/* ── Paramètres fiscaux — deux colonnes : form + mascotte ── */}
         {tab === 'fiscal' && (
-          <div className={styles.fiscalWrap}>
-            {/* Franchise en base de TVA */}
-            <div className={styles.fiscalCard}>
-              <div className={styles.fiscalCardHeader}>
-                <span className={styles.fiscalEmoji}>🧾</span>
-                <div>
-                  <h3 className={styles.fiscalTitle}>Régime fiscal de TVA</h3>
-                  <p className={styles.fiscalSub}>
-                    Définit comment la TVA est calculée sur vos ventes.
-                  </p>
+          <div className={styles.fiscalPageLayout}>
+
+            {/* Colonne gauche : formulaire */}
+            <div className={styles.fiscalFormCol}>
+              <div className={styles.fiscalCard}>
+                <div className={styles.fiscalCardHeader}>
+                  <span className={styles.fiscalEmoji}>🧾</span>
+                  <div>
+                    <h3 className={styles.fiscalTitle}>Régime fiscal de TVA</h3>
+                    <p className={styles.fiscalSub}>
+                      Définit comment la TVA est calculée sur vos ventes.
+                    </p>
+                  </div>
+                </div>
+
+                <div className={styles.fiscalOptions}>
+                  <label className={`${styles.fiscalOption} ${!tenant?.franchiseBaseVA ? styles.fiscalOptionActive : ''}`}>
+                    <input
+                      type="radio"
+                      checked={!tenant?.franchiseBaseVA}
+                      onChange={() => updateTenant.mutate({ franchiseBaseVA: false })}
+                      className={styles.fiscalRadio}
+                    />
+                    <div>
+                      <p className={styles.fiscalOptionTitle}>Assujetti à la TVA</p>
+                      <p className={styles.fiscalOptionDesc}>
+                        TVA collectée et reversée. Taux configurés par rayon (ex. 5,5 % livres, 20 % goodies).
+                      </p>
+                    </div>
+                  </label>
+
+                  <label className={`${styles.fiscalOption} ${tenant?.franchiseBaseVA ? styles.fiscalOptionActive : ''}`}>
+                    <input
+                      type="radio"
+                      checked={!!tenant?.franchiseBaseVA}
+                      onChange={() => updateTenant.mutate({ franchiseBaseVA: true })}
+                      className={styles.fiscalRadio}
+                    />
+                    <div>
+                      <p className={styles.fiscalOptionTitle}>Franchise en base de TVA</p>
+                      <p className={styles.fiscalOptionDesc}>
+                        Micro-entreprise ou EI sous le seuil de franchise (art. 293 B CGI).
+                        TVA non collectée — les prix HT = TTC, mention légale automatique.
+                      </p>
+                      {tenant?.franchiseBaseVA && (
+                        <p className={styles.fiscalMention}>
+                          Mention appliquée : <em>« TVA non applicable, art. 293 B du CGI »</em>
+                        </p>
+                      )}
+                    </div>
+                  </label>
                 </div>
               </div>
 
-              <div className={styles.fiscalOptions}>
-                {/* Option : assujetti TVA */}
-                <label className={`${styles.fiscalOption} ${!tenant?.franchiseBaseVA ? styles.fiscalOptionActive : ''}`}>
-                  <input
-                    type="radio"
-                    checked={!tenant?.franchiseBaseVA}
-                    onChange={() => updateTenant.mutate({ franchiseBaseVA: false })}
-                    className={styles.fiscalRadio}
-                  />
-                  <div>
-                    <p className={styles.fiscalOptionTitle}>Assujetti à la TVA</p>
-                    <p className={styles.fiscalOptionDesc}>
-                      TVA collectée et reversée. Taux configurés par rayon (ex. 5,5 % livres, 20 % goodies).
-                    </p>
-                  </div>
-                </label>
-
-                {/* Option : franchise en base */}
-                <label className={`${styles.fiscalOption} ${tenant?.franchiseBaseVA ? styles.fiscalOptionActive : ''}`}>
-                  <input
-                    type="radio"
-                    checked={!!tenant?.franchiseBaseVA}
-                    onChange={() => updateTenant.mutate({ franchiseBaseVA: true })}
-                    className={styles.fiscalRadio}
-                  />
-                  <div>
-                    <p className={styles.fiscalOptionTitle}>Franchise en base de TVA</p>
-                    <p className={styles.fiscalOptionDesc}>
-                      Micro-entreprise ou EI sous le seuil de franchise (art. 293 B CGI).
-                      TVA non collectée — les prix HT = TTC, mention légale automatique.
-                    </p>
-                    {tenant?.franchiseBaseVA && (
-                      <p className={styles.fiscalMention}>
-                        Mention appliquée : <em>« TVA non applicable, art. 293 B du CGI »</em>
-                      </p>
-                    )}
-                  </div>
-                </label>
+              <div className={styles.fiscalInfo}>
+                <span style={{ fontSize: '1.1rem' }}>📚</span>
+                <div>
+                  <p className={styles.fiscalInfoTitle}>TVA livres : 5,5 %</p>
+                  <p className={styles.fiscalInfoDesc}>
+                    Le taux réduit livres (5,5 %) est configuré automatiquement à la création d'un rayon Librairie.
+                    Vous pouvez ajuster le taux de chaque rayon dans l'onglet <strong>Rayons & Catégories</strong>.
+                  </p>
+                </div>
               </div>
             </div>
 
-            {/* Info taux TVA livres */}
-            <div className={styles.fiscalInfo}>
-              <span style={{ fontSize: '1.1rem' }}>📚</span>
-              <div>
-                <p className={styles.fiscalInfoTitle}>TVA livres : 5,5 %</p>
-                <p className={styles.fiscalInfoDesc}>
-                  Le taux réduit livres (5,5 %) est configuré automatiquement à la création d'un rayon Librairie.
-                  Vous pouvez ajuster le taux de chaque rayon dans l'onglet <strong>Rayons & Catégories</strong>.
-                </p>
-              </div>
-            </div>
+            {/* Colonne droite : mascotte */}
+            <MascotFiscal />
+
           </div>
         )}
 
