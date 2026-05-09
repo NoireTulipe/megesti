@@ -596,21 +596,61 @@
   display: flex; align-items: center; justify-content: space-between; gap: 16px;
   padding: 16px 20px; background: var(--white);
   border: 1.5px solid var(--cream-dark); border-radius: var(--r-card);
-  box-shadow: var(--shadow-card); cursor: pointer;
-  transition: border-color var(--t), box-shadow var(--t) var(--ease), transform var(--t) var(--ease);
+  box-shadow: var(--shadow-card);
+  transition: border-color var(--t), box-shadow var(--t) var(--ease);
 }
-.historiqueCard:hover {
-  border-color: rgba(196,144,124,0.5); box-shadow: var(--shadow-hover);
-  transform: translateY(-3px);
-}
-.historiqueCardLeft  { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.historiqueCardRight { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
-.historiqueCardPDV   { font-size: 0.92rem; font-weight: 700; color: var(--ink); }
-.historiqueCardNom   { font-size: 0.78rem; color: var(--text-soft); font-style: italic; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.historiqueCardDates { font-size: 0.75rem; color: var(--text-soft); }
+.historiqueCard:hover { border-color: rgba(196,144,124,0.4); box-shadow: var(--shadow-hover); }
+.historiqueCardLeft    { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+.historiqueCardActions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.historiqueCardRight   { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
+.historiqueCardPDV    { font-size: 0.92rem; font-weight: 700; color: var(--ink); }
+.historiqueCardNom    { font-size: 0.78rem; color: var(--text-soft); font-style: italic; }
+.historiqueCardDates  { font-size: 0.75rem; color: var(--text-soft); }
 .historiqueCardVentes { font-size: 0.78rem; color: var(--text-soft); }
 .historiqueCardAction { font-size: 0.78rem; color: var(--terra); font-weight: 600; }
 .historiqueCardAmount { font-size: 0.95rem; color: var(--ink); font-weight: 700; }
+
+/* ── Bouton Voir le bilan ── */
+.bilanBtn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 14px; border-radius: 10px; border: none;
+  background: linear-gradient(135deg, var(--rose, #C4907C), var(--mauve, #8B7BAB));
+  color: #fff; font-size: 0.78rem; font-weight: 700; font-family: inherit;
+  cursor: pointer; white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(196,144,124,0.3);
+  transition: opacity 0.15s;
+}
+.bilanBtn:hover { opacity: 0.87; }
+
+/* ── Bouton Rouvrir ── */
+.reopenBtn {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 7px 12px; border-radius: 10px;
+  border: 1.5px solid var(--cream-dark); background: var(--white);
+  color: var(--text-soft); font-size: 0.75rem; font-weight: 600; font-family: inherit;
+  cursor: pointer; white-space: nowrap; transition: border-color 0.15s, color 0.15s;
+}
+.reopenBtn:hover { border-color: var(--gold, #C9933A); color: var(--gold, #C9933A); }
+
+/* ── Confirmation rouvrir (inline) ── */
+.reopenConfirm {
+  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+  padding: 6px 10px; border-radius: 10px;
+  background: var(--gold-light, #FBF5E6); border: 1.5px solid var(--gold, #C9933A);
+}
+.reopenConfirmTxt { font-size: 0.75rem; color: var(--gold-dark, #A07028); font-weight: 600; }
+.reopenConfirmYes {
+  padding: 4px 10px; border-radius: 7px; border: none;
+  background: var(--gold, #C9933A); color: #fff;
+  font-size: 0.73rem; font-weight: 700; font-family: inherit; cursor: pointer;
+}
+.reopenConfirmYes:disabled { opacity: 0.5; }
+.reopenConfirmNo {
+  padding: 4px 8px; border-radius: 7px;
+  border: 1px solid var(--gold, #C9933A); background: transparent;
+  color: var(--gold, #C9933A); font-size: 0.73rem; font-weight: 600;
+  font-family: inherit; cursor: pointer;
+}
 
 .horsSessionStats { display: flex; gap: 20px; padding: 14px 16px; background: var(--ink-faint); border-radius: var(--radius-md); }
 .horsSessionStat  { display: flex; flex-direction: column; gap: 2px; font-size: 0.78rem; color: var(--text-soft); }

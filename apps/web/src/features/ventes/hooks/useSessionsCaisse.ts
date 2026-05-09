@@ -62,3 +62,11 @@ export function useCloseSessionCaisse() {
     onSuccess: () => qc.invalidateQueries({ queryKey: KEYS.all() }),
   })
 }
+
+export function useReopenSessionCaisse() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => api.patch<SessionCaisse>(`/sessions-caisse/${id}/rouvrir`, {}),
+    onSuccess:  () => qc.invalidateQueries({ queryKey: KEYS.all() }),
+  })
+}

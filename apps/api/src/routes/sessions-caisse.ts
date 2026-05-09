@@ -123,6 +123,20 @@ export const sessionCaisseRoutes: FastifyPluginAsync = async (app) => {
     return session
   })
 
+  // Rouvrir une session fermée par erreur
+  app.patch('/:id/rouvrir', authEditor, async (request, reply) => {
+    const { tenantId } = request.tenant
+    const { id } = request.params as { id: string }
+    const existing = await app.db.sessionCaisse.findFirst({ where: { id, tenantId } })
+    if (!existing) return reply.notFound()
+    if (existing.statut === 'OUVERTE') return reply.badRequest('La session est déjà ouverte')
+    return app.db.sessionCaisse.update({
+      where: { id },
+      data:  { statut: 'OUVERTE', dateFermeture: null, fondFermeture: null },
+      include: { pointDeVente: { include: { categorie: true } } },
+    })
+  })
+
   // Calcul des droits d'auteurs pour toutes les ventes validées d'une session
   app.get('/:id/droits', auth, async (request, reply) => {
     const { tenantId } = request.tenant
