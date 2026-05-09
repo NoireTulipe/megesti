@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator } from 'react-native'
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, Modal, TextInput } from 'react-native'
 import { router, useLocalSearchParams } from 'expo-router'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -32,12 +32,54 @@ interface SessionDetail {
 export default function SessionDetailScreen() {
   const insets = useSafeAreaInsets()
   const { isDark } = useAppTheme()
-  const { id } = useLocalSearchParams<{ id: string }>()
+  const { id, openFrais } = useLocalSearchParams<{ id: string; openFrais?: string }>()
 
   const [data, setData] = useState<SessionDetail | null>(null)
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState<'paniers' | 'articles'>('paniers')
   const [expanded, setExpanded] = useState<string | null>(null)
+
+  // Frais
+  const [showFraisForm, setShowFraisForm] = useState(openFrais === '1')
+  const [fraisType, setFraisType] = useState('DEPLACEMENT')
+  const [fraisMotif, setFraisMotif] = useState('')
+  const [fraisMontant, setFraisMontant] = useState('')
+  const [fraisSaving, setFraisSaving] = useState(false)
+
+  async function saveFrais() {
+    if (!id || !fraisMotif.trim()) return
+    setFraisSaving(true)
+    try {
+      const fraisId = generateUUID()
+      const date = new Date().toISOString()
+      // Sauvegarder en local
+      const db = await getDb()
+      await db.runAsync(
+        `INSERT INTO frais_locaux (id, session_id, type, motif, montant_ht, date) VALUES (?, ?, ?, ?, ?, ?)`,
+        [fraisId, id, fraisType, fraisMotif.trim(), parseFloat(fraisMontant) || 0, date],
+      )
+      // Envoyer au serveur
+      api.post('/frais', {
+        id: fraisId, sessionId: id, type: fraisType,
+        motif: fraisMotif.trim(), montantHT: parseFloat(fraisMontant) || 0, date,
+      }).catch(() => {})
+      setShowFraisForm(false)
+      setFraisMotif('')
+      setFraisMontant('')
+      // Recharger le total
+      const f = await db.getFirstAsync<{ total: number }>(
+        'SELECT COALESCE(SUM(montant_ht),0) as total FROM frais_locaux WHERE session_id = ?', [id],
+      )
+      setFraisSession(f?.total ?? 0)
+    } finally { setFraisSaving(false) }
+  }
+
+  function generateUUID(): string {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+      const r = (Math.random() * 16) | 0
+      return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16)
+    })
+  }
 
   useEffect(() => {
     if (!id) return
@@ -138,7 +180,9 @@ export default function SessionDetailScreen() {
           <Text style={s.headerPdv} numberOfLines={1}>{data.pointDeVente?.nom ?? 'Session'}</Text>
           <Text style={s.headerDate}>{fmtDate(data.dateOuverture)}</Text>
         </View>
-        <View style={{ width: 36 }} />
+        <TouchableOpacity onPress={() => setShowFraisForm(true)} style={s.headerBtn} activeOpacity={0.7}>
+          <Text style={s.headerBtnText}>🧾 +</Text>
+        </TouchableOpacity>
       </LinearGradient>
 
       {/* Résumé */}
@@ -274,6 +318,46 @@ export default function SessionDetailScreen() {
           )}
         </TouchableOpacity>
       </ScrollView>
+
+      {/* ═══ MODAL FRAIS ═══ */}
+      <Modal visible={showFraisForm} transparent animationType="fade" onRequestClose={() => setShowFraisForm(false)}>
+        <TouchableOpacity style={s.modalOverlay} activeOpacity={1} onPress={() => setShowFraisForm(false)}>
+          <View style={[s.modalCard, isDark && { backgroundColor: '#1C2A3A' }]} onStartShouldSetResponder={() => true}>
+            <Text style={[s.modalTitle, isDark && { color: Dark.text }]}>Ajouter un frais</Text>
+
+            <Text style={s.modalLabel}>Type</Text>
+            <View style={s.typeRow}>
+              {(['DEPLACEMENT', 'REPAS', 'HEBERGEMENT', 'STAND', 'AUTRE'] as const).map(t => (
+                <TouchableOpacity key={t}
+                  style={[s.typeChip, fraisType === t && s.typeChipActive]}
+                  onPress={() => setFraisType(t)} activeOpacity={0.7}>
+                  <Text style={[s.typeChipText, fraisType === t && s.typeChipTextActive]}>{t}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <Text style={s.modalLabel}>Motif</Text>
+            <TextInput style={[s.modalInput, isDark && { backgroundColor: 'rgba(255,255,255,0.08)', color: Colors.white, borderColor: 'rgba(255,255,255,0.1)' }]}
+              value={fraisMotif} onChangeText={setFraisMotif} placeholder="Ex: Transport salon Paris" placeholderTextColor={Colors.textSoft} />
+
+            <Text style={s.modalLabel}>Montant HT (€)</Text>
+            <TextInput style={[s.modalInput, isDark && { backgroundColor: 'rgba(255,255,255,0.08)', color: Colors.white, borderColor: 'rgba(255,255,255,0.1)' }]}
+              value={fraisMontant} onChangeText={setFraisMontant} placeholder="0.00" placeholderTextColor={Colors.textSoft} keyboardType="decimal-pad" />
+
+            <View style={s.modalActions}>
+              <TouchableOpacity onPress={() => setShowFraisForm(false)} style={s.modalBtnCancel} activeOpacity={0.7}>
+                <Text style={s.modalBtnCancelText}>Annuler</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={saveFrais} disabled={fraisSaving || !fraisMotif.trim()}
+                style={[s.modalBtnSave, (fraisSaving || !fraisMotif.trim()) && { opacity: 0.5 }]} activeOpacity={0.85}>
+                <LinearGradient colors={[Colors.sage, '#3A7D63']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.modalBtnSaveBg}>
+                  <Text style={s.modalBtnSaveText}>{fraisSaving ? '…' : 'Ajouter'}</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </View>
   )
 }
@@ -322,6 +406,8 @@ const s = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.12)', justifyContent: 'center', alignItems: 'center',
   },
   backBtnText: { color: Colors.white, fontSize: 18, fontWeight: '600' },
+  headerBtn: { width: 36, height: 36, borderRadius: Radius.full, backgroundColor: 'rgba(255,255,255,0.15)', justifyContent: 'center', alignItems: 'center' },
+  headerBtnText: { color: Colors.white, fontSize: 14 },
   headerInfo: { flex: 1, alignItems: 'center' },
   headerPdv: { fontFamily: Fonts.displayItalic, fontSize: 18, color: Colors.white, fontStyle: 'italic' },
   headerDate: { fontFamily: Fonts.body, fontSize: 11, color: 'rgba(255,255,255,0.55)', marginTop: 2 },
@@ -389,6 +475,24 @@ const s = StyleSheet.create({
   accordionArrow: { fontFamily: Fonts.body, fontSize: 11, color: Colors.textSoft },
   accordionBody: { marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: Colors.cream },
   resultSep: { borderTopWidth: 1, borderTopColor: Colors.cream, marginVertical: 4 },
+
+  // Modal frais
+  modalOverlay: { flex: 1, backgroundColor: Colors.overlay, justifyContent: 'center', alignItems: 'center', padding: 24 },
+  modalCard: { backgroundColor: Colors.white, borderRadius: Radius.xl, padding: 24, width: '100%', maxWidth: 360, ...Shadow.float },
+  modalTitle: { fontFamily: Fonts.displayItalic, fontSize: 20, color: Colors.ink, fontStyle: 'italic', marginBottom: 16 },
+  modalLabel: { fontFamily: Fonts.body, fontSize: 10, fontWeight: '700', color: Colors.textSoft, textTransform: 'uppercase', letterSpacing: 0.6, marginTop: 12, marginBottom: 6 },
+  modalInput: { fontFamily: Fonts.body, fontSize: 14, color: Colors.text, backgroundColor: Colors.cream, borderRadius: Radius.md, paddingHorizontal: 14, paddingVertical: 12, borderWidth: 1.5, borderColor: 'rgba(36,51,71,0.08)' },
+  typeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+  typeChip: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: Radius.full, backgroundColor: Colors.cream, borderWidth: 1.5, borderColor: 'transparent' },
+  typeChipActive: { borderColor: Colors.sage, backgroundColor: Colors.sageLight },
+  typeChipText: { fontFamily: Fonts.body, fontSize: 11, fontWeight: '600', color: Colors.textMid },
+  typeChipTextActive: { color: Colors.sage },
+  modalActions: { flexDirection: 'row', gap: 10, marginTop: 20 },
+  modalBtnCancel: { flex: 1, paddingVertical: 14, alignItems: 'center', borderRadius: Radius.md, backgroundColor: Colors.cream },
+  modalBtnCancelText: { fontFamily: Fonts.body, fontSize: 14, fontWeight: '600', color: Colors.textMid },
+  modalBtnSave: { flex: 1.5, borderRadius: Radius.md, overflow: 'hidden' },
+  modalBtnSaveBg: { paddingVertical: 14, alignItems: 'center' },
+  modalBtnSaveText: { fontFamily: Fonts.body, fontSize: 14, fontWeight: '700', color: Colors.white },
 
   emptyWrap: { alignItems: 'center', paddingTop: 40 },
   emptyText: { fontFamily: Fonts.body, fontSize: 13, color: Colors.textSoft },

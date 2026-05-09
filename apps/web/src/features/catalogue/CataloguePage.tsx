@@ -62,6 +62,7 @@ function ArticleQuota({ used, max }: { used: number; max: number | null }) {
         </span>
         <span className={styles['quota-total']}>sur {max} articles</span>
       </div>
+      <HelpButton slug="aide-auteur-quota" className={styles['tab-help']} />
     </div>
   )
 }

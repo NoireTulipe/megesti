@@ -172,9 +172,13 @@ export default function SessionsScreen() {
                     </TouchableOpacity>
                     <TouchableOpacity style={[styles.heroBtn, styles.heroBtnDetail]} activeOpacity={0.85}
                       onPress={() => router.push(`/session-detail?id=${session!.id}`)}>
-                      <Text style={styles.heroBtnText}>📋 Détail ventes</Text>
+                      <Text style={styles.heroBtnText}>📋 Détail</Text>
                     </TouchableOpacity>
                   </View>
+                  <TouchableOpacity style={[styles.heroBtn, { marginTop: 8 }]} activeOpacity={0.85}
+                    onPress={() => router.push(`/session-detail?id=${session!.id}&openFrais=1`)}>
+                    <Text style={styles.heroBtnText}>🧾 Frais de session</Text>
+                  </TouchableOpacity>
                 </LinearGradient>
               )}
 
