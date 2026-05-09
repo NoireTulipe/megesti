@@ -81,15 +81,16 @@ export default function CaisseScreen() {
     }
   }, [hasSession]))
 
-  // Adopter une session distante (la rapatrier en local avec le même ID)
+  // Adopter une session distante (ferme l'éventuelle session locale d'abord)
   async function adoptSession(remote: any) {
-    const articleIds = await pullFromServer()
     const db = await getDb()
-    const id = remote.id // réutiliser l'ID serveur
+    // Fermer toute session locale encore ouverte
+    await db.runAsync(`UPDATE sessions SET statut = 'FERMEE' WHERE statut = 'OUVERTE'`)
+    const articleIds = await pullFromServer()
     await db.runAsync(
       `INSERT INTO sessions (id, point_de_vente_id, point_de_vente_nom, date_ouverture, fond_ouverture, debiter_stock, statut, articles_exposes, synced)
        VALUES (?, ?, ?, datetime('now'), ?, 1, 'OUVERTE', ?, 1)`,
-      [id, remote.pointDeVenteId, remote.pointDeVente?.nom ?? 'Session', remote.fondOuverture ?? 0, JSON.stringify(articleIds)],
+      [remote.id, remote.pointDeVenteId, remote.pointDeVente?.nom ?? 'Session', remote.fondOuverture ?? 0, JSON.stringify(articleIds)],
     )
     addLog('info', `Session reprise: ${remote.pointDeVente?.nom}`)
     await refreshSession()
@@ -392,7 +393,12 @@ export default function CaisseScreen() {
           </View>
           <View style={{ flexDirection: 'row', gap: 8 }}>
             <TouchableOpacity
-              onPress={() => { closeSession(0); setRemoteSessions([]) }}
+              onPress={async () => {
+                const db = await getDb()
+                await db.runAsync(`UPDATE sessions SET statut = 'FERMEE' WHERE statut = 'OUVERTE'`)
+                await refreshSession()
+                setRemoteSessions([])
+              }}
               style={styles.changeBtn} activeOpacity={0.7}>
               <Text style={styles.changeBtnText}>Changer</Text>
             </TouchableOpacity>

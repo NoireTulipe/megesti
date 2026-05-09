@@ -79,6 +79,44 @@ model MascoteDialog {
   updatedAt   DateTime @updatedAt
 }
 
+// ─── Popups ───────────────────────────────────────────────────────────────────
+
+enum PopupMode {
+  SHOW_ONCE        // visible une seule fois puis disparaît automatiquement
+  DISMISSIBLE      // "Ne plus afficher ce message" — le user choisit
+  ALWAYS_CLOSABLE  // revient à chaque fois, fermable (alerte non bloquante)
+  ALWAYS_BLOCKING  // aucune fermeture possible (maintenance, message critique)
+}
+
+model Popup {
+  id          String    @id @default(uuid())
+  titre       String                         // libellé interne admin
+  mode        PopupMode @default(DISMISSIBLE)
+  dismissText String    @default("Ne plus afficher ce message")
+  slides      Json                           // PopupSlide[] { imageName, title?, text, ctaLabel?, ctaHref? }
+  targetPages Json      @default("[]")       // string[] — routes ciblées, [] = toutes
+  actif       Boolean   @default(true)
+  dateDebut   DateTime?
+  dateFin     DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  vus         PopupVu[]
+}
+
+model PopupVu {
+  id      String   @id @default(uuid())
+  userId  String
+  popupId String
+  vuLe    DateTime @default(now())
+
+  user  User  @relation(fields: [userId],  references: [id], onDelete: Cascade)
+  popup Popup @relation(fields: [popupId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, popupId])
+  @@index([userId])
+}
+
 // ─── User ─────────────────────────────────────────────────────────────────────
 
 enum UserRole {
@@ -109,7 +147,8 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant    Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  popupsVus PopupVu[]
 
   @@unique([tenantId, email])
   @@index([tenantId])

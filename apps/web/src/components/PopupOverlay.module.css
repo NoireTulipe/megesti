@@ -1,0 +1,92 @@
+/* ── Overlay ────────────────────────────────────────────────── */
+.overlay {
+  position: fixed; inset: 0;
+  background: rgba(28, 22, 16, 0.55);
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px; z-index: 950;
+  animation: fadeIn 0.2s ease;
+}
+@keyframes fadeIn { from { opacity:0 } to { opacity:1 } }
+
+/* ── Modale ─────────────────────────────────────────────────── */
+.modal {
+  position: relative; background: var(--cream, #FAF7F2);
+  border-radius: 22px; padding: 28px 28px 20px; max-width: 620px; width: 100%;
+  box-shadow: 0 24px 70px rgba(28,22,16,0.22);
+  animation: slideUp 0.25s cubic-bezier(0.22,1,0.36,1);
+}
+@keyframes slideUp { from { transform:translateY(16px); opacity:0 } to { transform:translateY(0); opacity:1 } }
+
+.close {
+  position: absolute; top: 14px; right: 14px;
+  width: 28px; height: 28px; border-radius: 50%;
+  border: none; background: var(--cream-dark,#EDE7DC);
+  color: var(--text-soft); font-size: 12px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s;
+}
+.close:hover { background: var(--terra-light,#FCF0EC); color: var(--terra,#C85D3A); }
+
+/* ── Indicateur slides ──────────────────────────────────────── */
+.dots { display: flex; justify-content: center; gap: 6px; margin-bottom: 18px; }
+.dot  { width: 7px; height: 7px; border-radius: 50%; background: var(--cream-dark); transition: background 0.2s, transform 0.2s; }
+.dotActive { background: var(--rose,#C4847A); transform: scale(1.3); }
+
+/* ── Contenu : mascotte + bulle ─────────────────────────────── */
+.content { display: flex; flex-direction: row; align-items: flex-start; gap: 0; }
+
+.mascot {
+  width: 32%; height: auto;
+  object-fit: contain; object-position: top center;
+  flex-shrink: 0; display: block;
+}
+
+.bubble {
+  flex: 1; position: relative;
+  background: #fff; border: 1.5px solid var(--cream-dark,#EDE7DC);
+  border-radius: 16px; padding: 16px 18px;
+  box-shadow: 0 4px 16px rgba(44,33,24,0.07);
+  margin-top: 24px;
+}
+.bubble::before {
+  content:''; position:absolute; left:-13px; top:20px;
+  border-top:10px solid transparent; border-bottom:10px solid transparent;
+  border-right:13px solid var(--cream-dark,#EDE7DC);
+}
+.bubble::after {
+  content:''; position:absolute; left:-11px; top:21px;
+  border-top:9px solid transparent; border-bottom:9px solid transparent;
+  border-right:12px solid #fff;
+}
+
+.title { font-family:'DM Serif Display',serif; font-style:italic; font-size:1.05rem; color:var(--rose,#C4847A); margin:0 0 8px; }
+.text  { font-size:0.87rem; color:var(--text-mid); line-height:1.65; margin:0; white-space:pre-wrap; }
+
+.cta {
+  display:inline-flex; align-items:center; gap:5px; margin-top:12px;
+  padding:9px 16px; background:linear-gradient(135deg,var(--rose,#C4847A),var(--mauve,#8B7BAB));
+  color:#fff; border:none; border-radius:10px; font-size:0.82rem; font-weight:700;
+  font-family:inherit; cursor:pointer; transition:opacity 0.15s;
+}
+.cta:hover { opacity:0.87; }
+
+/* ── Footer ─────────────────────────────────────────────────── */
+.footer {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 18px; padding-top: 14px;
+  border-top: 1px solid var(--cream-dark,#EDE7DC);
+  gap: 12px; flex-wrap: wrap;
+}
+
+.dismissWrap { display:flex; align-items:center; gap:8px; cursor:pointer; flex:1; }
+.dismissCheck { width:15px; height:15px; cursor:pointer; accent-color:var(--rose,#C4847A); flex-shrink:0; }
+.dismissText  { font-size:0.8rem; color:var(--text-soft); user-select:none; }
+
+.nextBtn {
+  margin-left: auto;
+  padding: 9px 22px; background: var(--ink,#243347); color:#fff;
+  border: none; border-radius: 10px; font-size:0.83rem; font-weight:700;
+  font-family:inherit; cursor:pointer; white-space:nowrap;
+  transition: background 0.15s;
+}
+.nextBtn:hover { background: var(--ink-light,#3D5470); }

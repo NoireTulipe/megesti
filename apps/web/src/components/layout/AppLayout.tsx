@@ -4,6 +4,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { Sidebar } from './Sidebar'
 import { Header } from './Header'
 import { PageBlobs } from '@/components/PageBlobs'
+import { PopupOverlay } from '@/components/PopupOverlay'
 import { ALL_NAV, type NavKey } from '@/config/navigation'
 
 interface AppLayoutProps {
@@ -48,6 +49,7 @@ export function AppLayout({ children }: AppLayoutProps) {
           {children}
         </main>
       </div>
+      <PopupOverlay />
     </div>
   )
 }
