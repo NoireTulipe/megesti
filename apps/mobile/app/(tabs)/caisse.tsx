@@ -83,17 +83,20 @@ export default function CaisseScreen() {
 
   // Adopter une session distante (ferme l'éventuelle session locale d'abord)
   async function adoptSession(remote: any) {
-    const db = await getDb()
-    // Fermer toute session locale encore ouverte
-    await db.runAsync(`UPDATE sessions SET statut = 'FERMEE' WHERE statut = 'OUVERTE'`)
-    const articleIds = await pullFromServer()
-    await db.runAsync(
-      `INSERT INTO sessions (id, point_de_vente_id, point_de_vente_nom, date_ouverture, fond_ouverture, debiter_stock, statut, articles_exposes, synced)
-       VALUES (?, ?, ?, datetime('now'), ?, 1, 'OUVERTE', ?, 1)`,
-      [remote.id, remote.pointDeVenteId, remote.pointDeVente?.nom ?? 'Session', remote.fondOuverture ?? 0, JSON.stringify(articleIds)],
-    )
-    addLog('info', `Session reprise: ${remote.pointDeVente?.nom}`)
-    await refreshSession()
+    try {
+      const db = await getDb()
+      await db.runAsync(`UPDATE sessions SET statut = 'FERMEE' WHERE statut = 'OUVERTE'`)
+      const articleIds = await pullFromServer()
+      await db.runAsync(
+        `INSERT OR REPLACE INTO sessions (id, point_de_vente_id, point_de_vente_nom, date_ouverture, fond_ouverture, debiter_stock, statut, articles_exposes, synced)
+         VALUES (?, ?, ?, datetime('now'), ?, 1, 'OUVERTE', ?, 1)`,
+        [remote.id, remote.pointDeVenteId, remote.pointDeVente?.nom ?? 'Session', remote.fondOuverture ?? 0, JSON.stringify(articleIds)],
+      )
+      await refreshSession()
+      addLog('info', `Session reprise: ${remote.pointDeVente?.nom}`)
+    } catch (e: any) {
+      addLog('error', `Échec reprise session: ${e?.message}`)
+    }
   }
 
   // Récupérer les scans du scanner
@@ -274,7 +277,7 @@ export default function CaisseScreen() {
               </Text>
               {remoteSessions.map((rs: any) => (
                 <TouchableOpacity key={rs.id} style={[styles.remoteCard, isDark && { backgroundColor: Dark.surface, borderColor: 'rgba(255,255,255,0.08)' }]}
-                  activeOpacity={0.8} onPress={() => adoptSession(rs)}>
+                  activeOpacity={0.8} onPress={() => { adoptSession(rs).catch(() => {}) }}>
                   <View style={styles.remoteInfo}>
                     <Text style={[styles.remoteName, isDark && { color: Dark.text }]}>{rs.pointDeVente?.nom ?? 'Sans nom'}</Text>
                     <Text style={[styles.remoteDate, isDark && { color: Dark.textSoft }]}>

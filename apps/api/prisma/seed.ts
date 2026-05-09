@@ -68,6 +68,31 @@ async function main() {
       { text: 'Pour chaque maison, tu notes ses contacts clés, son adresse, son site, ses spécialités… Plus besoin de chercher un numéro de téléphone en plein salon quand on n\'a pas le temps.' },
       { text: 'Ce carnet prend de la valeur avec le temps. Un bon réseau éditorial ouvre des portes : coéditions, co-stands en salon, échanges de bons procédés, recommandations croisées… Commence dès maintenant.', cta: { label: 'Ajouter une maison d\'édition →', href: '' } },
     ]},
+
+    // ── Réglages ──────────────────────────────────────────────────────────────
+
+    { slug: 'reglages-fiscal', description: 'Réglages / Paramètres fiscaux — mascotte permanente sidebar', bulles: [
+      { title: 'TVA : le bon régime dès le départ 🧾', text: 'Ce réglage indique à MeGesti comment traiter fiscalement vos ventes. C\'est l\'un des paramètres les plus importants — mal configuré, vos prix et exports comptables seraient faux.' },
+      { text: '🟢 Franchise en base de TVA — si vous êtes micro-entreprise ou auto-entrepreneur sous le seuil légal (~91 900 € de CA annuel), vous n\'avez ni à collecter ni à reverser la TVA. Vos prix HT = prix TTC. MeGesti applique automatiquement la mention légale obligatoire : « TVA non applicable, art. 293 B du CGI ».' },
+      { text: '🔵 Assujetti à la TVA — si vous avez dépassé le seuil ou opté pour un statut avec TVA (SARL, SAS…), vous collectez la TVA sur vos ventes et la reversez à l\'administration. MeGesti applique alors les taux configurés par rayon (5,5 % livres, 20 % autres).' },
+      { text: '💡 Une fois configuré selon votre statut, vous n\'aurez plus à y toucher — sauf en cas de changement de situation : franchissement du seuil, transformation juridique, ou option volontaire pour la TVA. En dehors de ces cas, oubliez ce réglage, MeGesti s\'en occupe.' },
+    ]},
+
+    { slug: 'reglages-rayons-vide', description: 'Réglages / Rayons — sidebar, aucun rayon créé', bulles: [
+      { title: 'Comment ça marche ? 🗂️', text: 'Le catalogue est organisé en rayons puis en catégories. Exemple : Librairie → Romans, BD, Jeunesse…' },
+      { text: 'Commence par créer ton premier rayon. Les catégories et articles s\'ajouteront ensuite !', cta: { label: 'Créer mon premier rayon', href: '' } },
+    ]},
+
+    { slug: 'reglages-rayons-sans-categories', description: 'Réglages / Rayons — sidebar, rayon(s) créé(s) sans catégorie', bulles: [
+      { title: 'Super, ton premier rayon ! 🎉', text: 'Clique sur le + dans l\'en-tête du rayon pour y ajouter des catégories. Les catégories permettent de classer tes articles plus finement.' },
+      { text: 'Ce rayon vend des livres ? Clique sur l\'icône livre dans l\'en-tête pour activer le mode Librairie — TVA 5,5 % + ISBN + auteurs activés automatiquement.' },
+      { text: 'Ajuste la TVA de chaque rayon manuellement en cliquant sur son badge TVA x % dans l\'en-tête.' },
+    ]},
+
+    { slug: 'reglages-rayons-pret', description: 'Réglages / Rayons — sidebar, tout configuré (rappel)', bulles: [
+      { title: 'Rappel rapide 💡', text: 'Pour ajouter un nouveau rayon, utilise le bouton Nouveau rayon. Clique sur + dans un rayon pour y ajouter des catégories.' },
+      { text: 'N\'oublie pas d\'activer le mode Librairie sur tes rayons qui vendent des livres — la TVA et les champs spécifiques se configurent automatiquement.' },
+    ]},
   ]
 
   let created = 0

@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useMascoteDialog } from '@/hooks/useMascoteDialog'
 import {
   DndContext, DragOverlay, closestCenter, PointerSensor, useSensor, useSensors,
   type DragEndEvent,
@@ -27,64 +29,33 @@ function MascotSidebar({ state, onCreateRayon }: {
   state: 'empty' | 'no-cats' | 'ready'
   onCreateRayon: () => void
 }) {
+  const slugMap = { empty: 'reglages-rayons-vide', 'no-cats': 'reglages-rayons-sans-categories', ready: 'reglages-rayons-pret' }
+  const { data } = useMascoteDialog(slugMap[state])
+  const navigate = useNavigate()
+
+  if (!data) return null
+
   return (
     <div className={styles.mascotSidebar}>
-      <img src="/img/mascotte/m1.png" alt="" className={styles.sidebarImg} />
-
+      <img src={`/img/mascotte/${data.imageName}`} alt="" className={styles.sidebarImg} />
       <div className={styles.sidebarBubblesCol}>
-      {state === 'empty' && <>
-        <div className={styles.sidebarBubble}>
-          <p className={styles.sidebarTitle}>Comment ça marche ? 🗂️</p>
-          <p className={styles.sidebarText}>
-            Le catalogue est organisé en <strong>rayons</strong> puis en{' '}
-            <strong>catégories</strong>. Exemple : <em>Librairie → Romans, BD, Jeunesse…</em>
-          </p>
-        </div>
-        <div className={styles.sidebarBubble}>
-          <p className={styles.sidebarText}>
-            Commence par créer ton premier rayon. Les catégories et articles s'ajouteront ensuite !
-          </p>
-          <button className={styles.sidebarCta} onClick={onCreateRayon}>
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-            </svg>
-            Créer mon premier rayon
-          </button>
-        </div>
-      </>}
-
-      {state === 'no-cats' && <>
-        <div className={styles.sidebarBubble}>
-          <p className={styles.sidebarTitle}>Super, ton rayon est là ! 🎉</p>
-          <p className={styles.sidebarText}>
-            Clique sur le <strong>+</strong> dans l'en-tête du rayon pour y ajouter des <strong>catégories</strong>.
-          </p>
-        </div>
-        <div className={styles.sidebarBubble}>
-          <p className={styles.sidebarText}>
-            Ce rayon vend des livres ? Clique sur <BookIcon /> pour activer le mode <strong>Librairie</strong> — TVA 5,5 % + ISBN + auteurs activés automatiquement.
-          </p>
-        </div>
-        <div className={styles.sidebarBubble}>
-          <p className={styles.sidebarText}>
-            Ajuste la <strong>TVA</strong> de chaque rayon en cliquant sur son badge <em>TVA x %</em>.
-          </p>
-        </div>
-      </>}
-
-      {state === 'ready' && <>
-        <div className={styles.sidebarBubble}>
-          <p className={styles.sidebarTitle}>Rappel rapide 💡</p>
-          <p className={styles.sidebarText}>
-            Ajoute un <strong>nouveau rayon</strong> via le bouton en bas. Clique sur <strong>+</strong> dans un rayon pour y ajouter des catégories.
-          </p>
-        </div>
-        <div className={styles.sidebarBubble}>
-          <p className={styles.sidebarText}>
-            N'oublie pas d'activer <BookIcon /> <strong>Librairie</strong> sur tes rayons qui vendent des livres — la TVA et les champs spécifiques se configurent automatiquement.
-          </p>
-        </div>
-      </>}
+        {data.bulles.map((b, i) => (
+          <div key={i} className={styles.sidebarBubble}>
+            {b.title && <p className={styles.sidebarTitle}>{b.title}</p>}
+            <p className={styles.sidebarText}>{b.text}</p>
+            {b.cta && (
+              <button className={styles.sidebarCta} onClick={() => {
+                if (b.cta!.href) navigate(b.cta!.href)
+                else onCreateRayon()
+              }}>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                  <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+                {b.cta!.label}
+              </button>
+            )}
+          </div>
+        ))}
       </div>
     </div>
   )
