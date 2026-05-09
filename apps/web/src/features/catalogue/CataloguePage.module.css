@@ -7,15 +7,54 @@
 .page-subtitle { font-size:0.83rem; color:var(--text-soft); font-style:italic; }
 .header-actions { display:flex; align-items:center; gap:10px; }
 
-.search-wrap { position:relative; }
-.search-icon { position:absolute; left:14px; top:50%; transform:translateY(-50%); color:var(--text-soft); pointer-events:none; display:flex; }
-.search-input {
-  height:44px; padding:0 18px 0 42px; border:1.5px solid var(--cream-dark); border-radius:var(--r-pill);
-  font-size:0.875rem; background:var(--white); color:var(--text); outline:none; width:230px;
-  transition:border-color var(--t), box-shadow var(--t), width var(--t) var(--ease);
+.search-wrap {
+  position: relative;
+  display: flex; align-items: center;
 }
-.search-input:focus { border-color:var(--terra); box-shadow:0 0 0 3.5px var(--terra-glow); width:280px; }
-.search-input::placeholder { color:var(--text-soft); font-style:italic; }
+.search-icon {
+  position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+  color: var(--text-soft); pointer-events: none; display: flex;
+  transition: color 0.2s;
+}
+.search-wrap:focus-within .search-icon { color: var(--rose, #C4847A); }
+
+.search-input {
+  height: 42px;
+  padding: 0 36px 0 40px;   /* droite pour le bouton clear */
+  border: 1.5px solid var(--cream-dark);
+  border-radius: 12px;
+  font-size: 0.865rem;
+  font-family: inherit;
+  background: var(--cream, #FAF7F2);
+  color: var(--text);
+  outline: none;
+  width: 220px;
+  -webkit-appearance: none;   /* supprime l'UI native search */
+  appearance: none;
+  transition: border-color 0.2s, box-shadow 0.2s, width 0.3s cubic-bezier(0.4,0,0.2,1), background 0.2s;
+}
+.search-input:focus {
+  border-color: var(--rose, #C4847A);
+  box-shadow: 0 0 0 3px rgba(196,144,124,0.15);
+  background: var(--white);
+  width: 270px;
+}
+.search-input::placeholder { color: var(--text-soft); font-style: normal; }
+/* Supprime le bouton X natif des navigateurs Webkit */
+.search-input::-webkit-search-cancel-button,
+.search-input::-webkit-search-decoration { display: none; }
+
+/* Bouton clear custom */
+.search-clear {
+  position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+  width: 20px; height: 20px; border-radius: 50%;
+  border: none; background: var(--cream-dark, #EDE7DC);
+  color: var(--text-soft); font-size: 11px; font-weight: 700;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s, color 0.15s;
+  line-height: 1;
+}
+.search-clear:hover { background: var(--rose-light, #F9EDE8); color: var(--rose, #C4847A); }
 
 .btn-primary {
   height:44px; padding:0 22px; background:linear-gradient(135deg,var(--terra),var(--terra-dark));
