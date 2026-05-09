@@ -6,12 +6,64 @@ import { ArticleCard }   from './ArticleCard'
 import { ArticleDetail } from './ArticleDetail'
 import { ArticleForm }   from './ArticleForm'
 import { Modal }         from '@/components/ui/Modal'
+import { usePlanFeatures } from '@/hooks/usePlanFeatures'
 import type { Article }  from './types'
 import styles from './CataloguePage.module.css'
 
+import { MascoteBlock } from '@/components/MascoteBlock'
+
 type CatalogueTab = 'actifs' | 'retires'
 
-import { MascoteBlock } from '@/components/MascoteBlock'
+// ── Compteur de quota articles ────────────────────────────────────────────────
+
+function ArticleQuota({ used, max }: { used: number; max: number | null }) {
+  if (max === null) {
+    return (
+      <div className={styles['quota-unlimited']}>
+        <span className={styles['quota-inf']}>∞</span>
+        <span className={styles['quota-inf-label']}>illimité</span>
+      </div>
+    )
+  }
+
+  const pct       = Math.min(used / max, 1)
+  const remaining = max - used
+  const r         = 14
+  const circ      = 2 * Math.PI * r
+  const offset    = circ * (1 - pct)
+  const color     = pct >= 0.9 ? '#C85D3A' : pct >= 0.7 ? '#C9933A' : '#6B8F71'
+  const bgColor   = pct >= 0.9 ? '#FCF0EC' : pct >= 0.7 ? '#FBF5E6' : '#EDF4EE'
+
+  return (
+    <div className={styles['quota-ring']} style={{ background: bgColor, borderColor: color + '40' }}>
+      <svg width="40" height="40" viewBox="0 0 40 40" style={{ flexShrink: 0 }}>
+        {/* Piste de fond */}
+        <circle cx="20" cy="20" r={r} fill="none" stroke={color + '22'} strokeWidth="4" />
+        {/* Arc de progression */}
+        <circle
+          cx="20" cy="20" r={r} fill="none"
+          stroke={color} strokeWidth="4"
+          strokeDasharray={circ}
+          strokeDashoffset={offset}
+          strokeLinecap="round"
+          transform="rotate(-90 20 20)"
+          style={{ transition: 'stroke-dashoffset 0.7s cubic-bezier(0.4,0,0.2,1), stroke 0.3s' }}
+        />
+        {/* Chiffre central */}
+        <text x="20" y="20" textAnchor="middle" dominantBaseline="central"
+          fontSize="9.5" fontWeight="800" fill={color} fontFamily="inherit">
+          {used}
+        </text>
+      </svg>
+      <div className={styles['quota-info']}>
+        <span className={styles['quota-remaining']} style={{ color }}>
+          {remaining > 0 ? `${remaining} restant${remaining > 1 ? 's' : ''}` : 'Quota atteint'}
+        </span>
+        <span className={styles['quota-total']}>sur {max} articles</span>
+      </div>
+    </div>
+  )
+}
 
 export function CataloguePage() {
   const [search, setSearch]           = useState('')
@@ -23,8 +75,10 @@ export function CataloguePage() {
   const [editArticle, setEditArticle] = useState<Article | null>(null)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
+  const { features }                                = usePlanFeatures()
   const { data: rayons = [] }                       = useRayons()
   const { data: articles = [], isLoading, isError } = useArticles(activeRayon, debouncedSearch || undefined, tab === 'actifs')
+  const { data: allActifs = [] }                    = useArticles(undefined, undefined, true) // pour le quota
   const setActif = useSetArticleActif()
 
   useEffect(() => {
@@ -46,6 +100,9 @@ export function CataloguePage() {
           </p>
         </div>
         <div className={styles['header-actions']}>
+          {tab === 'actifs' && (
+            <ArticleQuota used={allActifs.length} max={features.maxArticles} />
+          )}
           <div className={styles['search-wrap']}>
             <span className={styles['search-icon']}>
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">

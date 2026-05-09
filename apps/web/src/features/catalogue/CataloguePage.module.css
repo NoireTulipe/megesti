@@ -66,6 +66,28 @@
 .empty-title { font-family:'DM Serif Display',serif; font-size:1.2rem; color:var(--ink); }
 .empty-desc  { font-size:0.85rem; color:var(--text-soft); max-width:340px; line-height:1.6; }
 
+/* ─── QUOTA ARTICLES ────────────────────────────────── */
+.quota-ring {
+  display: flex; align-items: center; gap: 10px;
+  padding: 6px 16px 6px 8px;
+  border: 1.5px solid; border-radius: 100px;
+  box-shadow: 0 2px 8px rgba(44,33,24,0.07);
+  flex-shrink: 0;
+}
+.quota-info     { display: flex; flex-direction: column; gap: 1px; }
+.quota-remaining { font-size: 0.8rem; font-weight: 800; line-height: 1.2; }
+.quota-total    { font-size: 0.68rem; color: var(--text-soft); }
+
+.quota-unlimited {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 18px;
+  background: linear-gradient(135deg, #8B7BAB 0%, #C4847A 100%);
+  color: white; border-radius: 100px; flex-shrink: 0;
+  box-shadow: 0 3px 12px rgba(139,123,171,0.35);
+}
+.quota-inf       { font-size: 1.4rem; font-weight: 900; line-height: 1; }
+.quota-inf-label { font-size: 0.72rem; font-weight: 700; opacity: 0.9; }
+
 /* ─── MASCOTTE CATALOGUE PRÊT (rayons OK, 0 article) ── */
 .ready-wrap    { display:flex; flex-direction:row; align-items:flex-start; gap:0; width:100%; padding: 32px 0; }
 .ready-img     { width:22%; height:auto; object-fit:contain; object-position:top center; flex-shrink:0; display:block; }
