@@ -20,6 +20,10 @@ function MascotNoMaison({ onAdd }: { onAdd: () => void }) {
             communs, coéditrices potentielles… C'est la mémoire de ton{' '}
             <strong>réseau professionnel éditorial</strong>.
           </p>
+          <p className={styles['mascot-text']} style={{ marginTop: 8 }}>
+            Et pourquoi pas y noter la maison d'édition qui te fait de l'œil… ou celle
+            qui pourrait bien te faire signe un jour ? 😉
+          </p>
         </div>
 
         <div className={styles['mascot-bubble']}>
