@@ -6,6 +6,7 @@ import { AuteurForm } from './AuteurForm'
 import { AuteurDetail } from './AuteurDetail'
 import { Modal } from '@/components/ui/Modal'
 import { usePlanFeatures } from '@/hooks/usePlanFeatures'
+import { HelpButton } from '@/components/HelpButton'
 import styles from './AuteursPage.module.css'
 
 type AuteurTab = 'me' | 'reseau'
@@ -67,33 +68,36 @@ export function AuteursPage() {
           </div>
         </header>
 
-        <div className={styles['tab-bar']}>
-          <button
-            className={`${styles['tab-btn']} ${tab === 'me' ? styles.active : ''}`}
-            onClick={() => !reseauOnly && setTab('me')}
-            disabled={reseauOnly}
-            title={reseauOnly ? 'La gestion complète des auteurs est disponible à partir du plan Edition.' : undefined}
-            style={reseauOnly ? { opacity: 0.35, cursor: 'not-allowed' } : undefined}
-          >
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-              <circle cx="9" cy="7" r="4"/>
-              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-            </svg>
-            Auteurs ME
-          </button>
-          <button
-            className={`${styles['tab-btn']} ${tab === 'reseau' ? styles.active : ''}`}
-            onClick={() => setTab('reseau')}
-          >
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-              <circle cx="12" cy="12" r="10"/>
-              <line x1="2" y1="12" x2="22" y2="12"/>
-              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-            </svg>
-            Réseau
-          </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div className={styles['tab-bar']}>
+            <button
+              className={`${styles['tab-btn']} ${tab === 'me' ? styles.active : ''}`}
+              onClick={() => !reseauOnly && setTab('me')}
+              disabled={reseauOnly}
+              title={reseauOnly ? 'La gestion complète des auteurs est disponible à partir du plan Edition.' : undefined}
+              style={reseauOnly ? { opacity: 0.35, cursor: 'not-allowed' } : undefined}
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+              Auteurs ME
+            </button>
+            <button
+              className={`${styles['tab-btn']} ${tab === 'reseau' ? styles.active : ''}`}
+              onClick={() => setTab('reseau')}
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="2" y1="12" x2="22" y2="12"/>
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1-4-10z"/>
+              </svg>
+              Réseau
+            </button>
+          </div>
+          <HelpButton slug="aide-auteur-switch" size="sm" />
         </div>
 
         {isLoading && (
