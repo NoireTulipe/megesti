@@ -10,6 +10,7 @@ export interface LocalArticle {
   reference: string | null
   image_url: string | null
   thumb_app_url: string | null
+  prix_achat_ht: number | null
   prix_vente_ht: number
   taux_tva: number
   stock_local: number
@@ -27,6 +28,7 @@ interface ApiArticle {
   reference: string | null
   imageUrl: string | null
   prixVenteHT: number
+  prixAchatHT: number | null
   rayon: { nom: string; tauxTVA: number }
   categorie: { id: string; nom: string } | null
   isbn: string | null
@@ -84,11 +86,11 @@ export function useLocalArticles(ids?: string[]) {
 
         await db.runAsync(
           `INSERT OR REPLACE INTO articles
-            (id, nom, reference, image_url, thumb_app_url, prix_vente_ht, taux_tva,
+            (id, nom, reference, image_url, thumb_app_url, prix_vente_ht, prix_achat_ht, taux_tva,
              stock_local, stock_alerte, rayon_nom, categorie_id, categorie_nom, isbn, actif)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`,
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`,
           [a.id, a.nom, a.reference, imageUrl, thumbAppUrl,
-           Number(a.prixVenteHT), Number(a.rayon.tauxTVA),
+           Number(a.prixVenteHT), a.prixAchatHT != null ? Number(a.prixAchatHT) : null, Number(a.rayon.tauxTVA),
            a.stock, a.stockAlerte ?? 0,
            a.rayon.nom, a.categorie?.id ?? null, a.categorie?.nom ?? null, a.isbn],
         )

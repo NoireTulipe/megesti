@@ -85,6 +85,10 @@ export default function CaisseScreen() {
   async function adoptSession(remote: any) {
     try {
       const db = await getDb()
+      // Récupérer l'ID de l'ancienne session locale pour migrer les ventes
+      const oldSession = await db.getFirstAsync<{ id: string }>(
+        'SELECT id FROM sessions WHERE statut = ? LIMIT 1', ['OUVERTE'],
+      )
       await db.runAsync(`UPDATE sessions SET statut = 'FERMEE' WHERE statut = 'OUVERTE'`)
       const articleIds = await pullFromServer()
       await db.runAsync(
@@ -92,6 +96,11 @@ export default function CaisseScreen() {
          VALUES (?, ?, ?, datetime('now'), ?, 1, 'OUVERTE', ?, 1)`,
         [remote.id, remote.pointDeVenteId, remote.pointDeVente?.nom ?? 'Session', remote.fondOuverture ?? 0, JSON.stringify(articleIds)],
       )
+      // Migrer les ventes de l'ancienne session vers la nouvelle, puis supprimer l'orpheline
+      if (oldSession && oldSession.id !== remote.id) {
+        await db.runAsync(`UPDATE ventes_locales SET session_id = ? WHERE session_id = ?`, [remote.id, oldSession.id])
+        await db.runAsync(`DELETE FROM sessions WHERE id = ?`, [oldSession.id])
+      }
       await refreshSession()
       addLog('info', `Session reprise: ${remote.pointDeVente?.nom}`)
     } catch (e: any) {

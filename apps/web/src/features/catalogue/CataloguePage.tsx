@@ -11,6 +11,7 @@ import type { Article }  from './types'
 import styles from './CataloguePage.module.css'
 
 import { MascoteBlock } from '@/components/MascoteBlock'
+import { HelpButton } from '@/components/HelpButton'
 
 type CatalogueTab = 'actifs' | 'retires'
 
@@ -134,7 +135,7 @@ export function CataloguePage() {
       </header>
 
       {/* ── Onglets ── */}
-      <div className={styles['tab-bar']}>
+      <div className={styles['tab-bar']}  style={{ alignItems: 'center' }}>
         <button
           className={`${styles['tab-btn']} ${tab === 'actifs' ? styles.active : ''}`}
           onClick={() => setTab('actifs')}
@@ -153,6 +154,7 @@ export function CataloguePage() {
           </svg>
           Retirés
         </button>
+        <HelpButton slug="aide-catalogue-switch" className={styles['tab-help']} />
       </div>
 
       {/* ── Filtres rayons ── */}
@@ -195,13 +197,13 @@ export function CataloguePage() {
           <MascoteBlock slug="catalogue-no-rayon" />
         ) : !debouncedSearch && tab === 'actifs' ? (
           <MascoteBlock slug="catalogue-no-article" onCta={() => setShowCreate(true)} />
+        ) : !debouncedSearch && tab === 'retires' ? (
+          <MascoteBlock slug="catalogue-retires-vide" />
         ) : (
           <div className={styles['empty-state']}>
             <div className={styles['empty-icon']}>📚</div>
             <div className={styles['empty-title']}>
-              {debouncedSearch
-                ? `Aucun résultat pour « ${debouncedSearch} »`
-                : 'Aucun article retiré'}
+              Aucun résultat pour « {debouncedSearch} »
             </div>
           </div>
         )

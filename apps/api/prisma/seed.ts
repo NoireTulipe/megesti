@@ -27,6 +27,12 @@ async function main() {
       { text: 'L\'onglet Catalogue affiche tous les produits actuellement disponibles à la vente. C\'est la vitrine active de ta maison d\'édition.' },
       { text: 'L\'onglet Retirés accueille les articles mis de côté. Ils ne sont plus en vente mais ne sont pas supprimés — tu peux les réactiver à tout moment.' },
     ]},
+    { slug: 'catalogue-retires-vide', description: 'Catalogue / onglet Retirés — aucun article retiré', bulles: [
+      { title: 'Vos articles retirés atterrissent ici 📦', text: 'Cet espace accueille les articles que vous avez mis de côté — produits épuisés, éditions terminées, références que vous ne souhaitez plus proposer pour l\'instant.\n\nUne fois retirés, ils disparaissent de la caisse, de l\'application mobile, et ne sont plus proposés à la vente.' },
+      { text: 'Ils ne disparaissent pas de vos statistiques ni de votre historique de ventes — votre bilan reste intact. Et ils ne consomment plus de crédits dans votre quota d\'articles actifs.' },
+      { text: 'Un article retiré peut être réintégré en un seul clic : il revient immédiatement dans l\'onglet Catalogue et redevient disponible à la vente. Aucune donnée n\'est perdue.' },
+    ]},
+
     { slug: 'pdv-no-categorie', description: 'Points de vente — aucune catégorie', bulles: [
       { title: 'Les points de vente, c\'est quoi ? 🏪', text: 'Un point de vente est un lieu ou canal où tu vends tes produits — un stand en salon, une librairie partenaire, ta boutique… Chaque PDV a ses propres sessions, statistiques et mode d\'encaissement.' },
       { text: 'Pour s\'y retrouver, MeGesti organise tes points de vente en catégories — Salon littéraire, Librairie indépendante, Centre culturel… C\'est toi qui les définis. Commence par créer ta première catégorie.', cta: { label: 'Créer ma première catégorie →', href: '' } },
