@@ -97,7 +97,7 @@ export function AuteursPage() {
               Réseau
             </button>
           </div>
-          <HelpButton slug="aide-auteur-switch" size="sm" />
+          <HelpButton slug="aide-auteur-switch" />
         </div>
 
         {isLoading && (

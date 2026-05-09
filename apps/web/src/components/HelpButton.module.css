@@ -4,24 +4,27 @@
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  border: 1.5px solid var(--cream-dark);
-  background: var(--cream);
-  color: var(--text-soft);
-  font-weight: 700;
+  border: 1.5px solid #93C5FD;       /* bleu clair */
+  background: #EFF6FF;               /* fond bleu très doux */
+  color: #2563EB;                    /* bleu lisible */
+  font-weight: 800;
   font-family: inherit;
   cursor: pointer;
   flex-shrink: 0;
-  transition: border-color 0.15s, color 0.15s, background 0.15s;
+  align-self: center;                /* centrage vertical dans un flex parent */
+  transition: border-color 0.15s, color 0.15s, background 0.15s, box-shadow 0.15s;
   line-height: 1;
+  box-shadow: 0 1px 4px rgba(37,99,235,0.15);
 }
 .btn:hover {
-  border-color: var(--rose, #C4847A);
-  color: var(--rose, #C4847A);
-  background: var(--rose-light, #F9EDE8);
+  border-color: #2563EB;
+  color: #1D4ED8;
+  background: #DBEAFE;
+  box-shadow: 0 2px 8px rgba(37,99,235,0.25);
 }
 
-.sm { width: 18px; height: 18px; font-size: 10px; }
-.md { width: 22px; height: 22px; font-size: 12px; }
+.sm { width: 20px; height: 20px; font-size: 11px; }
+.md { width: 24px; height: 24px; font-size: 13px; }
 
 /* ── Overlay ────────────────────────────────────────────────── */
 .overlay {
