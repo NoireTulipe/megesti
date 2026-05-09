@@ -63,7 +63,7 @@ export function BilanSession({ sessionId, ventes: ventesProp, frais: fraisProp, 
   const caEnCaisse = ventesDirectes.reduce((s, v) => s + parseFloat(v.totalTTC), 0)
   const nbVentes   = ventesValidees.length
   const ticketMoyen = nbVentes > 0 ? caTTC / nbVentes : 0
-  const totalFrais  = frais.reduce((s, f) => s + (f.montantHT ? parseFloat(f.montantHT) : 0), 0)
+  const totalFrais  = frais.filter(f => f.actif !== false).reduce((s, f) => s + (f.montantHT ? parseFloat(f.montantHT) : 0), 0)
 
   const produits = useMemo(() => {
     const map = new Map<string, { nom: string; quantite: number; caTTC: number; caHT: number; articleId: string }>()

@@ -245,9 +245,9 @@ export const rapportRoutes: FastifyPluginAsync = async (app) => {
         where:   { tenantId, statut: 'ENCAISSE', dateEncaissement: { gte: from, lte: to } },
         include: { pointDeVente: { select: { nom: true, commissionFixe: true, commissionPourcent: true } } },
       }),
-      // Frais sur la période (avec montant)
+      // Frais sur la période (avec montant, non annulés)
       app.db.frais.findMany({
-        where: { tenantId, date: { gte: from, lte: to }, montantHT: { not: null } },
+        where: { tenantId, actif: true, date: { gte: from, lte: to }, montantHT: { not: null } },
         orderBy: { date: 'asc' },
       }),
       // Charges ponctuelles payées dans la période (DEPENSE/PERTE seulement)

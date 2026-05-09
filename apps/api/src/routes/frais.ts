@@ -20,6 +20,7 @@ export const fraisRoutes: FastifyPluginAsync = async (app) => {
   app.get('/', auth, async (request) => {
     const { tenantId } = request.tenant
     const { sessionId } = request.query as { sessionId?: string }
+    // Retourne TOUS les frais (actif et inactifs) — le frontend gère l'affichage rayé
     return app.db.frais.findMany({
       where: { tenantId, ...(sessionId ? { sessionId } : {}) },
       orderBy: { date: 'desc' },
@@ -44,10 +45,12 @@ export const fraisRoutes: FastifyPluginAsync = async (app) => {
     return app.db.frais.update({ where: { id }, data: body })
   })
 
-  app.delete('/:id', authAdmin, async (request, reply) => {
+  app.delete('/:id', authEditor, async (request, reply) => {
     const { tenantId } = request.tenant
     const { id } = request.params as { id: string }
-    await app.db.frais.deleteMany({ where: { id, tenantId } })
+    const existing = await app.db.frais.findFirst({ where: { id, tenantId, actif: true } })
+    if (!existing) return reply.notFound()
+    await app.db.frais.update({ where: { id }, data: { actif: false } })
     return reply.status(204).send()
   })
 }

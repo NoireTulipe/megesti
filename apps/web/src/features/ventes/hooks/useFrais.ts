@@ -30,6 +30,7 @@ export interface Frais {
   motif:     string
   montantHT: string | null
   date:      string
+  actif:     boolean
 }
 
 export interface CreateFraisPayload {

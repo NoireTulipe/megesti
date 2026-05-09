@@ -52,8 +52,16 @@ export default function SessionDetailScreen() {
     try {
       const fraisId = generateUUID()
       const date = new Date().toISOString()
-      // Sauvegarder en local
+      // Sauvegarder en local (créer un stub session si FK manquante)
       const db = await getDb()
+      const ses = await db.getFirstAsync<{ id: string }>('SELECT id FROM sessions WHERE id = ?', [id])
+      if (!ses) {
+        await db.runAsync(
+          `INSERT INTO sessions (id, point_de_vente_id, point_de_vente_nom, date_ouverture, fond_ouverture, debiter_stock, statut, articles_exposes, synced)
+           VALUES (?, ?, ?, datetime('now'), 0, 1, 'OUVERTE', '[]', 1)`,
+          [id, generateUUID(), data?.pointDeVente?.nom ?? 'Session distante'],
+        )
+      }
       await db.runAsync(
         `INSERT INTO frais_locaux (id, session_id, type, motif, montant_ht, date) VALUES (?, ?, ?, ?, ?, ?)`,
         [fraisId, id, fraisType, fraisMotif.trim(), parseFloat(fraisMontant) || 0, date],
@@ -108,25 +116,48 @@ export default function SessionDetailScreen() {
   const [fraisSession, setFraisSession] = useState(0)
   const [showResultat, setShowResultat] = useState(false)
 
-  // Charger les prix d'achat locaux + frais
+  // Charger les prix d'achat locaux + frais (local + serveur)
   useEffect(() => {
     if (!data || !id) return
     ;(async () => {
       const db = await getDb()
-      // Coût des ventes : chercher prixAchatHT pour chaque article vendu
+      // Coût des ventes
       let cout = 0
       for (const v of data.ventes) {
         for (const l of v.lignes) {
           const art = await db.getFirstAsync<{ prix_achat_ht: number | null }>(
             'SELECT prix_achat_ht FROM articles WHERE id = ?', [l.articleId],
           )
-          if (art?.prix_achat_ht != null) {
-            cout += art.prix_achat_ht * l.quantite
-          }
+          if (art?.prix_achat_ht != null) cout += art.prix_achat_ht * l.quantite
         }
       }
       setCoutVentes(cout)
-      // Frais de session
+
+      // Rapatrier les frais du serveur → synchro complète
+      try {
+        const remote = await api.get<any[]>(`/frais?sessionId=${id}`)
+        const remoteIds = remote.map((f: any) => f.id)
+        // Supprimer les frais locaux déjà sync qui ne sont plus sur le serveur
+        if (remoteIds.length > 0) {
+          const placeholders = remoteIds.map(() => '?').join(',')
+          await db.runAsync(
+            `DELETE FROM frais_locaux WHERE session_id = ? AND synced = 1 AND id NOT IN (${placeholders})`,
+            [id, ...remoteIds],
+          )
+        } else {
+          await db.runAsync(`DELETE FROM frais_locaux WHERE session_id = ? AND synced = 1`, [id])
+        }
+        // Insérer/mettre à jour les frais du serveur
+        for (const f of remote) {
+          await db.runAsync(
+            `INSERT OR REPLACE INTO frais_locaux (id, session_id, type, motif, montant_ht, date, synced)
+             VALUES (?, ?, ?, ?, ?, ?, 1)`,
+            [f.id, f.sessionId, f.type, f.motif, Number(f.montantHT) || 0, f.date],
+          )
+        }
+      } catch {}
+
+      // Total frais local
       const f = await db.getFirstAsync<{ total: number }>(
         'SELECT COALESCE(SUM(montant_ht),0) as total FROM frais_locaux WHERE session_id = ?', [id],
       )

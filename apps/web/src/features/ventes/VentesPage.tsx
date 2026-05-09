@@ -13,6 +13,7 @@ import { useArticles } from '@/features/catalogue/hooks/useArticles'
 import { useFranchiseTVA } from '@/hooks/useFranchiseTVA'
 import { useRayons } from '@/features/catalogue/hooks/useRayons'
 import { Modal } from '@/components/ui/Modal'
+import { HelpButton } from '@/components/HelpButton'
 import styles from './VentesPage.module.css'
 import { MascoteBlock } from '@/components/MascoteBlock'
 
@@ -95,7 +96,7 @@ export function VentesPage() {
     const validees = ventes.filter(v => v.statut === 'VALIDEE')
     const caTTC    = validees.reduce((s, v) => s + parseFloat(v.totalTTC), 0)
     const caHT     = validees.reduce((s, v) => s + parseFloat(v.totalHT),  0)
-    const totalFrais = fraisSession.reduce((s, f) => s + (f.montantHT ? parseFloat(f.montantHT) : 0), 0)
+    const totalFrais = fraisSession.filter(f => f.actif).reduce((s, f) => s + (f.montantHT ? parseFloat(f.montantHT) : 0), 0)
 
     // Quantités vendues par article
     const qteMap = new Map<string, number>()
@@ -247,6 +248,7 @@ export function VentesPage() {
               </svg>
               Vente hors session
             </button>
+            <HelpButton slug="aide-ventespage-switch" className={styles['tab-help']} />
             {mainTab === 'caisse' && (
               <button className={styles.btnPrimary} onClick={() => setShowOpenModal(true)}>
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
@@ -259,7 +261,7 @@ export function VentesPage() {
         </div>
 
         {/* Onglets principaux */}
-        <div className={styles.mainTabBar}>
+        <div className={styles.mainTabBar}  style={{ alignItems: 'center' }}>
           <button className={`${styles.mainTab} ${mainTab === 'caisse' ? styles.mainTabActive : ''}`}
             onClick={() => setMainTab('caisse')}>
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
@@ -275,6 +277,7 @@ export function VentesPage() {
             </svg>
             Historique
           </button>
+          <HelpButton slug="aide-ventespage-historique" className={styles['tab-help']} />
         </div>
 
         {mainTab === 'caisse' && (
@@ -664,24 +667,31 @@ export function VentesPage() {
         {fraisSession.length > 0 && (
           <div className={styles.fraisList}>
             {fraisSession.map(f => (
-              <div key={f.id} className={styles.fraisRow}>
+              <div
+                key={f.id}
+                className={`${styles.fraisRow} ${!f.actif ? styles.fraisRowDeleted : ''}`}
+              >
                 <span className={styles.fraisEmoji}>{TYPE_FRAIS_EMOJI[f.type]}</span>
                 <span className={styles.fraisMotif}>{f.motif}</span>
                 <span className={styles.fraisType}>{TYPE_FRAIS_LABELS[f.type]}</span>
                 <span className={styles.fraisMontant}>
                   {f.montantHT ? `${parseFloat(f.montantHT).toFixed(2)} € HT` : '—'}
                 </span>
-                <button
-                  className={styles.btnDeleteFrais}
-                  onClick={() => deleteFrais.mutate(f.id)}
-                  title="Supprimer"
-                >✕</button>
+                {f.actif ? (
+                  <button
+                    className={styles.btnDeleteFrais}
+                    onClick={() => deleteFrais.mutate(f.id)}
+                    title="Supprimer"
+                  >✕</button>
+                ) : (
+                  <span className={styles.fraisAnnule}>annulé</span>
+                )}
               </div>
             ))}
             <div className={styles.fraisTotal}>
               Total frais :&nbsp;
               <strong>
-                {fraisSession.reduce((s, f) => s + (f.montantHT ? parseFloat(f.montantHT) : 0), 0).toFixed(2)} € HT
+                {fraisSession.filter(f => f.actif).reduce((s, f) => s + (f.montantHT ? parseFloat(f.montantHT) : 0), 0).toFixed(2)} € HT
               </strong>
             </div>
           </div>

@@ -859,6 +859,7 @@ model Frais {
   montantHT  Decimal?  @db.Decimal(10, 2)
   date       DateTime  @default(now())
   createdAt  DateTime  @default(now())
+  actif      Boolean   @default(true)
 
   tenant  Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   session SessionCaisse? @relation(fields: [sessionId], references: [id])

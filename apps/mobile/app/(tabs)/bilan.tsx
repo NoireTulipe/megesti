@@ -6,6 +6,7 @@ import {
 import { useFocusEffect } from 'expo-router'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { api } from '@/lib/api'
 import { getDb } from '@/lib/db'
 import { Colors, Dark, Fonts, Radius, Shadow, Gradients } from '@/constants/theme'
 import { useAppTheme } from '@/hooks/useAppTheme'
@@ -24,6 +25,7 @@ interface TopArticle   { nom: string; qty: number; ca: number }
 interface ParPdv       { nom: string; ca: number; count: number }
 interface ParMois      { label: string; moisKey: string; ca: number; count: number }
 interface SessionRow   { session_id: string; pdv: string; date: string; venteCount: number; ca: number; frais: number }
+interface FraisRow     { id: string; type: string; motif: string; montant_ht: number; date: string; session_id: string | null; synced: number }
 
 interface BilanData {
   totaux: Totaux
@@ -32,6 +34,7 @@ interface BilanData {
   parPdv: ParPdv[]
   parMois: ParMois[]
   sessions: SessionRow[]
+  fraisRows: FraisRow[]
 }
 
 const MODE_EMOJI: Record<string, string> = { CB: '💳', ESPECES: '💶', CHEQUE: '📝', SUMUP: '📱', VIREMENT: '🏦', PDV: '🏪' }
@@ -61,7 +64,7 @@ function isoRangeForYear(y: number): [string, string] {
 async function loadBilan(from: string, to: string, mode: PeriodMode): Promise<BilanData> {
   const db = await getDb()
 
-  const [ventesRows, fraisRow, sessionsRows] = await Promise.all([
+  const [ventesRows, fraisRow, sessionsRows, fraisRows] = await Promise.all([
     db.getAllAsync<{ id: string; mode_paiement: string; total_ttc: number; lignes_json: string; session_id: string | null; date_vente: string }>(
       `SELECT id, mode_paiement, total_ttc, lignes_json, session_id, date_vente
        FROM ventes_locales WHERE date_vente BETWEEN ? AND ? ORDER BY date_vente`,
@@ -77,6 +80,11 @@ async function loadBilan(from: string, to: string, mode: PeriodMode): Promise<Bi
        FROM sessions s
        WHERE s.date_ouverture BETWEEN ? AND ?
        ORDER BY s.date_ouverture DESC`,
+      [from, to],
+    ),
+    db.getAllAsync<FraisRow>(
+      `SELECT id, type, motif, montant_ht, date, session_id, synced
+       FROM frais_locaux WHERE date BETWEEN ? AND ? ORDER BY date DESC`,
       [from, to],
     ),
   ])
@@ -160,7 +168,7 @@ async function loadBilan(from: string, to: string, mode: PeriodMode): Promise<Bi
       sessionCount: sessionsRows.length,
       panierMoyen: ventesRows.length > 0 ? ca / ventesRows.length : 0,
     },
-    parMode, topArticles, parPdv, parMois, sessions,
+    parMode, topArticles, parPdv, parMois, sessions, fraisRows,
   }
 }
 
@@ -423,7 +431,7 @@ const sc = StyleSheet.create({
 
 const EMPTY: BilanData = {
   totaux: { ca: 0, venteCount: 0, fraisTotal: 0, net: 0, sessionCount: 0, panierMoyen: 0 },
-  parMode: [], topArticles: [], parPdv: [], parMois: [], sessions: [],
+  parMode: [], topArticles: [], parPdv: [], parMois: [], sessions: [], fraisRows: [],
 }
 
 export default function BilanScreen() {
@@ -438,6 +446,16 @@ export default function BilanScreen() {
 
   const [data,       setData]       = useState<BilanData>(EMPTY)
   const [refreshing, setRefreshing] = useState(false)
+  const [showFrais, setShowFrais] = useState(false)
+
+  async function deleteFrais(frais: FraisRow) {
+    const db = await getDb()
+    await db.runAsync(`DELETE FROM frais_locaux WHERE id = ?`, [frais.id])
+    if (frais.synced) {
+      api.delete(`/frais/${frais.id}`).catch(() => {})
+    }
+    await load()
+  }
 
   const load = useCallback(async () => {
     const result = await loadBilan(activeRange[0], activeRange[1], mode)
@@ -463,7 +481,7 @@ export default function BilanScreen() {
     setRefreshing(false)
   }, [load])
 
-  const { totaux, parMode, topArticles, parPdv, parMois, sessions } = data
+  const { totaux, parMode, topArticles, parPdv, parMois, sessions, fraisRows } = data
   const maxModeCa = parMode.length > 0 ? Math.max(...parMode.map(m => m.ca)) : 1
 
   return (
@@ -523,6 +541,50 @@ export default function BilanScreen() {
             <Text style={styles.sfTxt}>{totaux.sessionCount} session{totaux.sessionCount > 1 ? 's' : ''}</Text>
           </View>
         </LinearGradient>
+
+        {/* ── Frais de la période (toujours visible si présents) ── */}
+        {fraisRows.length > 0 && (
+          <TouchableOpacity
+            style={[styles.accordion, isDark && { backgroundColor: Dark.surface }]}
+            activeOpacity={0.8}
+            onPress={() => setShowFrais(!showFrais)}>
+            <View style={styles.accordionHeader}>
+              <Text style={[styles.accordionTitle, isDark && { color: Dark.text }]}>
+                🧾 Frais ({fraisRows.length})
+              </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <Text style={{ fontFamily: Fonts.body, fontSize: 13, fontWeight: '700', color: Colors.terra }}>
+                  −{totaux.fraisTotal.toFixed(0)} €
+                </Text>
+                <Text style={[styles.accordionArrow, isDark && { color: Dark.textSoft }]}>
+                  {showFrais ? '▲' : '▼'}
+                </Text>
+              </View>
+            </View>
+            {showFrais && (
+              <View style={[styles.accordionBody, isDark && { borderTopColor: 'rgba(255,255,255,0.06)' }]}>
+                {fraisRows.map(f => (
+                  <View key={f.id} style={styles.fraisRow}>
+                    <View style={styles.fraisInfo}>
+                      <Text style={[styles.fraisMotif, isDark && { color: Dark.text }]}>{f.motif}</Text>
+                      <Text style={[styles.fraisMeta, isDark && { color: Dark.textSoft }]}>
+                        {f.type} · {fmtDate(f.date)}
+                      </Text>
+                    </View>
+                    <Text style={[styles.fraisMontant, isDark && { color: Dark.text }]}>
+                      {f.montant_ht.toFixed(2)} €
+                    </Text>
+                    <TouchableOpacity
+                      style={[styles.fraisDelete, isDark && { backgroundColor: 'rgba(200,80,80,0.15)' }]}
+                      onPress={() => deleteFrais(f)} activeOpacity={0.6}>
+                      <Text style={styles.fraisDeleteIcon}>✕</Text>
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </View>
+            )}
+          </TouchableOpacity>
+        )}
 
         {totaux.venteCount === 0 ? (
           <View style={[styles.emptyCard, isDark && { backgroundColor: Dark.surface, shadowColor: 'transparent', elevation: 0 }]}>
@@ -597,6 +659,7 @@ export default function BilanScreen() {
                 ))}
               </Section>
             )}
+
           </>
         )}
       </ScrollView>
@@ -656,4 +719,24 @@ const styles = StyleSheet.create({
   sesRight:     { alignItems: 'flex-end' },
   sesCa:        { fontFamily: Fonts.body, fontSize: 15, fontWeight: '800', color: Colors.gold },
   sesVentes:    { fontFamily: Fonts.body, fontSize: 11, color: Colors.textSoft, marginTop: 2 },
+
+  // Accordéon frais
+  accordion: {
+    backgroundColor: Colors.white, borderRadius: Radius.lg, marginBottom: 12, padding: 14,
+    ...Shadow.card, marginHorizontal: 20,
+  },
+  accordionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  accordionTitle: { fontFamily: Fonts.body, fontSize: 14, fontWeight: '700', color: Colors.text },
+  accordionArrow: { fontFamily: Fonts.body, fontSize: 11, color: Colors.textSoft },
+  accordionBody: { marginTop: 10, paddingTop: 10, borderTopWidth: 1, borderTopColor: Colors.cream },
+  fraisRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 6 },
+  fraisInfo: { flex: 1, marginRight: 8 },
+  fraisMotif: { fontFamily: Fonts.body, fontSize: 13, fontWeight: '600', color: Colors.text },
+  fraisMeta: { fontFamily: Fonts.body, fontSize: 10, color: Colors.textSoft, marginTop: 1 },
+  fraisMontant: { fontFamily: Fonts.body, fontSize: 13, fontWeight: '600', color: Colors.text, marginRight: 10 },
+  fraisDelete: {
+    width: 28, height: 28, borderRadius: 14,
+    backgroundColor: Colors.terraLight, justifyContent: 'center', alignItems: 'center',
+  },
+  fraisDeleteIcon: { fontSize: 11, color: Colors.terra, fontWeight: '700' },
 })

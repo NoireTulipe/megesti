@@ -516,13 +516,24 @@
   display: flex; align-items: center; gap: 10px;
   padding: 8px 12px; background: var(--cream); border: 1px solid var(--cream-dark);
   border-radius: var(--radius-md); font-size: 0.82rem;
-  transition: border-color var(--t);
+  transition: border-color var(--t), opacity var(--t);
 }
 .fraisRow:hover { border-color: var(--cream-mid); }
+
+/* Frais supprimé en soft delete */
+.fraisRowDeleted {
+  opacity: 0.45;
+  background: transparent;
+  border-style: dashed;
+}
+.fraisRowDeleted .fraisMotif  { text-decoration: line-through; color: var(--text-soft); }
+.fraisRowDeleted .fraisMontant { text-decoration: line-through; }
+
 .fraisEmoji   { font-size: 1rem; flex-shrink: 0; }
 .fraisMotif   { flex: 1; color: var(--ink); font-weight: 500; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .fraisType    { font-size: 0.7rem; color: var(--text-soft); text-transform: uppercase; letter-spacing: 0.05em; }
 .fraisMontant { font-size: 0.82rem; font-weight: 600; color: var(--ink); white-space: nowrap; }
+
 .btnDeleteFrais {
   width: 24px; height: 24px; border-radius: 50%; border: none;
   background: transparent; color: var(--text-soft); cursor: pointer;
@@ -530,8 +541,10 @@
   transition: background var(--t), color var(--t);
 }
 .btnDeleteFrais:hover { background: #FEF2F2; color: #DC2626; }
-.fraisTotal  { text-align: right; font-size: 0.82rem; color: var(--text-mid); padding-top: 6px; }
-.fraisEmpty  { font-size: 0.8rem; color: var(--text-soft); font-style: italic; margin: 0; }
+
+.fraisAnnule  { font-size: 0.68rem; color: var(--text-soft); font-style: italic; white-space: nowrap; }
+.fraisTotal   { text-align: right; font-size: 0.82rem; color: var(--text-mid); padding-top: 6px; }
+.fraisEmpty   { font-size: 0.8rem; color: var(--text-soft); font-style: italic; margin: 0; }
 
 /* ── BILAN OVERLAY ─────────────────────────────────── */
 .bilanOverlay {
