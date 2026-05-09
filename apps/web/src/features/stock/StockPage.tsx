@@ -121,7 +121,7 @@ export function StockPage() {
           {activeTab === 'stocks' && (
             <div className={styles['sort-switch']}>
               <button
-                className={`${styles['sort-btn']} ${sortBy === 'critique' ? styles.active : ''}`}
+                className={`${styles['sort-btn']} ${sortBy === 'critique' ? styles['sort-btn-active'] : ''}`}
                 onClick={() => setSortBy('critique')}
               >
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
@@ -130,7 +130,7 @@ export function StockPage() {
                 Critiques d'abord
               </button>
               <button
-                className={`${styles['sort-btn']} ${sortBy === 'alpha' ? styles.active : ''}`}
+                className={`${styles['sort-btn']} ${sortBy === 'alpha' ? styles['sort-btn-active'] : ''}`}
                 onClick={() => setSortBy('alpha')}
               >
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
