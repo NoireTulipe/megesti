@@ -68,8 +68,7 @@ export function AuteursPage() {
           </div>
         </header>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div className={styles['tab-bar']}>
+        <div className={styles['tab-bar']} style={{ alignItems: 'center' }}>
             <button
               className={`${styles['tab-btn']} ${tab === 'me' ? styles.active : ''}`}
               onClick={() => !reseauOnly && setTab('me')}
@@ -96,7 +95,6 @@ export function AuteursPage() {
               </svg>
               Réseau
             </button>
-          </div>
           <HelpButton slug="aide-auteur-switch" />
         </div>
 
