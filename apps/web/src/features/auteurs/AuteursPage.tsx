@@ -95,7 +95,7 @@ export function AuteursPage() {
               </svg>
               Réseau
             </button>
-          <HelpButton slug="aide-auteur-switch" />
+          <HelpButton slug="aide-auteur-switch" className={styles['tab-help']} />
         </div>
 
         {isLoading && (
