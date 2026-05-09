@@ -5,18 +5,20 @@ const KEY = 'megesti_cat_colors'
 
 // Palette de 12 couleurs prédéfinies
 export const CAT_PALETTE = [
-  '#6C5CE7', // violet
+  '#FF66B2', // pink fluo
+  '#C4847A', // rose MeGesti
+  '#E91E63', // rose vif
   '#E74C3C', // rouge
   '#E67E22', // orange
   '#F1C40F', // jaune
+  '#8BC34A', // lime
   '#2ECC71', // vert
   '#1ABC9C', // turquoise
-  '#3498DB', // bleu
-  '#9B59B6', // mauve
-  '#E91E63', // rose
-  '#FF6F00', // ambre
   '#00BCD4', // cyan
-  '#8BC34A', // lime
+  '#3498DB', // bleu
+  '#6C5CE7', // violet
+  '#9B59B6', // mauve
+  '#FF6F00', // ambre
 ]
 
 interface CatColorState {

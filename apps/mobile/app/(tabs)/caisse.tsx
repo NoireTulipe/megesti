@@ -12,6 +12,7 @@ import { useLocalSession, usePointsDeVente } from '@/hooks/useLocalSession'
 import { useLocalArticles, LocalArticle } from '@/hooks/useLocalArticles'
 import { getDb } from '@/lib/db'
 import { useLocalVentes } from '@/hooks/useLocalVentes'
+import { api } from '@/lib/api'
 import { useDevStore } from '@/store/devStore'
 import { useScannerStore } from '@/store/scannerStore'
 import { useCategoryColorsStore, CAT_PALETTE } from '@/store/categoryColorsStore'
@@ -64,6 +65,35 @@ export default function CaisseScreen() {
   const hasSession = !!session
   const sessionPdv = hasSession ? pdvs.find(p => p.id === session!.point_de_vente_id) : null
   const encaissementDirect = sessionPdv?.encaissementDirect ?? false
+
+  // Sessions ouvertes sur le serveur (quand pas de session locale)
+  const [remoteSessions, setRemoteSessions] = useState<any[]>([])
+  const [loadingRemote, setLoadingRemote] = useState(false)
+  useFocusEffect(useCallback(() => {
+    if (!hasSession) {
+      setLoadingRemote(true)
+      api.get<any[]>('/sessions-caisse?statut=OUVERTE')
+        .then(data => setRemoteSessions(data))
+        .catch(() => setRemoteSessions([]))
+        .finally(() => setLoadingRemote(false))
+    } else {
+      setRemoteSessions([])
+    }
+  }, [hasSession]))
+
+  // Adopter une session distante (la rapatrier en local avec le même ID)
+  async function adoptSession(remote: any) {
+    const articleIds = await pullFromServer()
+    const db = await getDb()
+    const id = remote.id // réutiliser l'ID serveur
+    await db.runAsync(
+      `INSERT INTO sessions (id, point_de_vente_id, point_de_vente_nom, date_ouverture, fond_ouverture, debiter_stock, statut, articles_exposes, synced)
+       VALUES (?, ?, ?, datetime('now'), ?, 1, 'OUVERTE', ?, 1)`,
+      [id, remote.pointDeVenteId, remote.pointDeVente?.nom ?? 'Session', remote.fondOuverture ?? 0, JSON.stringify(articleIds)],
+    )
+    addLog('info', `Session reprise: ${remote.pointDeVente?.nom}`)
+    await refreshSession()
+  }
 
   // Récupérer les scans du scanner
   const scannedItems = useScannerStore(s => s.items)
@@ -231,18 +261,43 @@ export default function CaisseScreen() {
     return (
       <View style={[styles.shell, isDark && { backgroundColor: Dark.bg }]}>
         <LinearGradient colors={isDark ? [Dark.bg, Dark.bg] : [Colors.roseLight, Colors.cream]} style={styles.bg} />
-        <View style={styles.centerCard}>
+        <ScrollView contentContainerStyle={styles.centerCard} showsVerticalScrollIndicator={false}>
           <Text style={styles.emptyEmoji}>📖</Text>
           <Text style={styles.emptyTitle}>Session de caisse</Text>
-          <Text style={styles.emptySub}>Ouvrez une session pour commencer à enregistrer vos ventes.</Text>
+
+          {/* Sessions distantes trouvées */}
+          {remoteSessions.length > 0 && (
+            <View style={styles.remoteWrap}>
+              <Text style={[styles.remoteTitle, isDark && { color: Dark.textSoft }]}>
+                {remoteSessions.length} session{remoteSessions.length > 1 ? 's' : ''} ouverte{remoteSessions.length > 1 ? 's' : ''} sur le serveur
+              </Text>
+              {remoteSessions.map((rs: any) => (
+                <TouchableOpacity key={rs.id} style={[styles.remoteCard, isDark && { backgroundColor: Dark.surface, borderColor: 'rgba(255,255,255,0.08)' }]}
+                  activeOpacity={0.8} onPress={() => adoptSession(rs)}>
+                  <View style={styles.remoteInfo}>
+                    <Text style={[styles.remoteName, isDark && { color: Dark.text }]}>{rs.pointDeVente?.nom ?? 'Sans nom'}</Text>
+                    <Text style={[styles.remoteDate, isDark && { color: Dark.textSoft }]}>
+                      Ouverte le {new Date(rs.dateOuverture).toLocaleDateString('fr-FR')} · {rs._count?.ventes ?? 0} vente{rs._count?.ventes !== 1 ? 's' : ''}
+                    </Text>
+                  </View>
+                  <Text style={styles.remoteArrow}>→</Text>
+                </TouchableOpacity>
+              ))}
+              <Text style={[styles.remoteOr, isDark && { color: Dark.textSoft }]}>— ou —</Text>
+            </View>
+          )}
+
+          <Text style={[styles.emptySub, isDark && { color: Dark.textSoft }]}>
+            {remoteSessions.length > 0 ? 'Ou démarrez une nouvelle session.' : 'Ouvrez une session pour commencer à enregistrer vos ventes.'}
+          </Text>
           <TouchableOpacity style={styles.openBtn} activeOpacity={0.85}
             onPress={() => setShowSessionModal(true)}>
             <LinearGradient colors={isDark ? Gradients.caisseDark : Gradients.caisse} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
               style={styles.openBtnBg}>
-              <Text style={styles.openBtnText}>Ouvrir une session</Text>
+              <Text style={styles.openBtnText}>Ouvrir une nouvelle session</Text>
             </LinearGradient>
           </TouchableOpacity>
-        </View>
+        </ScrollView>
 
         <Modal visible={showSessionModal} transparent animationType="fade">
           <TouchableOpacity style={styles.modalOverlay} activeOpacity={1}
@@ -335,9 +390,16 @@ export default function CaisseScreen() {
               {filtered.length} articles · {cart.length > 0 ? `${cart.length} au panier` : 'Session ouverte'}
             </Text>
           </View>
-          <TouchableOpacity onPress={handleCloseSession} style={styles.closeBtn} activeOpacity={0.7}>
-            <Text style={styles.closeBtnText}>Fermer</Text>
-          </TouchableOpacity>
+          <View style={{ flexDirection: 'row', gap: 8 }}>
+            <TouchableOpacity
+              onPress={() => { closeSession(0); setRemoteSessions([]) }}
+              style={styles.changeBtn} activeOpacity={0.7}>
+              <Text style={styles.changeBtnText}>Changer</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={handleCloseSession} style={styles.closeBtn} activeOpacity={0.7}>
+              <Text style={styles.closeBtnText}>Fermer</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Recherche */}
@@ -619,6 +681,22 @@ const styles = StyleSheet.create({
   headerSub: { fontFamily: Fonts.body, fontSize: 12, color: 'rgba(255,255,255,0.65)', marginTop: 3 },
   closeBtn: { backgroundColor: 'rgba(255,255,255,0.2)', paddingHorizontal: 14, paddingVertical: 8, borderRadius: Radius.full },
   closeBtnText: { fontFamily: Fonts.body, fontSize: 12, fontWeight: '700', color: Colors.white },
+  changeBtn: { backgroundColor: 'rgba(255,255,255,0.12)', paddingHorizontal: 14, paddingVertical: 8, borderRadius: Radius.full },
+  changeBtnText: { fontFamily: Fonts.body, fontSize: 12, fontWeight: '600', color: 'rgba(255,255,255,0.7)' },
+
+  // Sessions distantes
+  remoteWrap: { width: '100%', marginBottom: 16 },
+  remoteTitle: { fontFamily: Fonts.body, fontSize: 12, fontWeight: '700', color: Colors.textSoft, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 10, textAlign: 'center' },
+  remoteCard: {
+    flexDirection: 'row', alignItems: 'center',
+    backgroundColor: Colors.white, borderRadius: Radius.lg, padding: 16, marginBottom: 8,
+    borderWidth: 1.5, borderColor: Colors.sageLight, ...Shadow.card,
+  },
+  remoteInfo: { flex: 1 },
+  remoteName: { fontFamily: Fonts.body, fontSize: 14, fontWeight: '700', color: Colors.text },
+  remoteDate: { fontFamily: Fonts.body, fontSize: 11, color: Colors.textSoft, marginTop: 3 },
+  remoteArrow: { fontFamily: Fonts.body, fontSize: 18, color: Colors.sage, fontWeight: '600' },
+  remoteOr: { fontFamily: Fonts.body, fontSize: 12, color: Colors.textSoft, textAlign: 'center', marginBottom: 8, fontStyle: 'italic' },
 
   searchRow: { flexDirection: 'row', paddingHorizontal: 20, marginBottom: 12 },
   searchWrap: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: Radius.md, paddingHorizontal: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)' },

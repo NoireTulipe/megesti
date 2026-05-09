@@ -1,0 +1,181 @@
+/* ── Bouton (?) ─────────────────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1.5px solid var(--cream-dark);
+  background: var(--cream);
+  color: var(--text-soft);
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+  line-height: 1;
+}
+.btn:hover {
+  border-color: var(--rose, #C4847A);
+  color: var(--rose, #C4847A);
+  background: var(--rose-light, #F9EDE8);
+}
+
+.sm { width: 18px; height: 18px; font-size: 10px; }
+.md { width: 22px; height: 22px; font-size: 12px; }
+
+/* ── Overlay ────────────────────────────────────────────────── */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(44, 33, 24, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 900;
+  animation: fadeIn 0.15s ease;
+}
+
+@keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
+
+/* ── Modale ─────────────────────────────────────────────────── */
+.modal {
+  position: relative;
+  background: var(--cream, #FAF7F2);
+  border-radius: 20px;
+  padding: 28px;
+  max-width: 680px;
+  width: 100%;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(44, 33, 24, 0.18);
+  animation: slideUp 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes slideUp { from { transform: translateY(12px); opacity: 0 } to { transform: translateY(0); opacity: 1 } }
+
+.close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: var(--cream-dark, #EDE7DC);
+  color: var(--text-soft);
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+.close:hover { background: var(--terra-light, #FCF0EC); color: var(--terra, #C85D3A); }
+
+/* ── Contenu : mascotte + bulles ────────────────────────────── */
+.content {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 0;
+}
+
+.mascot {
+  width: 30%;
+  height: auto;
+  object-fit: contain;
+  object-position: top center;
+  flex-shrink: 0;
+}
+
+.bubbles {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 20px;
+  min-width: 0;
+}
+
+.bubble {
+  position: relative;
+  background: #fff;
+  border: 1.5px solid var(--cream-dark, #EDE7DC);
+  border-radius: 14px;
+  padding: 14px 16px;
+  box-shadow: 0 3px 12px rgba(44, 33, 24, 0.06);
+}
+.bubble::before {
+  content: '';
+  position: absolute;
+  left: -13px; top: 16px;
+  border-top: 9px solid transparent;
+  border-bottom: 9px solid transparent;
+  border-right: 13px solid var(--cream-dark, #EDE7DC);
+}
+.bubble::after {
+  content: '';
+  position: absolute;
+  left: -11px; top: 17px;
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+  border-right: 12px solid #fff;
+}
+
+.title {
+  font-family: 'DM Serif Display', serif;
+  font-style: italic;
+  font-size: 0.92rem;
+  color: var(--rose, #C4847A);
+  margin: 0 0 6px;
+}
+.text {
+  font-size: 0.82rem;
+  color: var(--text-mid);
+  line-height: 1.6;
+  margin: 0;
+  white-space: pre-wrap;
+}
+.cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 10px;
+  padding: 8px 14px;
+  background: linear-gradient(135deg, var(--rose, #C4847A), var(--mauve, #8B7BAB));
+  color: #fff;
+  border: none;
+  border-radius: 9px;
+  font-size: 0.79rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.cta:hover { opacity: 0.87; }
+
+/* ── États ──────────────────────────────────────────────────── */
+.loading {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  padding: 32px;
+}
+.loadingDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--rose, #C4847A);
+  animation: bounce 0.8s infinite alternate;
+}
+.loadingDot:nth-child(2) { animation-delay: 0.15s; }
+.loadingDot:nth-child(3) { animation-delay: 0.3s; }
+@keyframes bounce { from { transform: translateY(0); opacity: 0.4 } to { transform: translateY(-6px); opacity: 1 } }
+
+.notFound {
+  text-align: center;
+  color: var(--text-soft);
+  font-size: 0.85rem;
+  padding: 24px;
+}
