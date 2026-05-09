@@ -228,6 +228,8 @@ export function BilanPage() {
     )
   }
 
+  const noData = !data || (data.pnl.caHT === 0 && data.entreesEffectives.total === 0)
+
   return (
     <div className={styles.page}>
 
@@ -265,15 +267,11 @@ export function BilanPage() {
         )}
       </div>
 
+      {noData ? <MascotNoBilan /> : (
       <div className={styles.content}>
 
-        {/* ── Mascotte si aucune donnée ─────────────────────────────────── */}
-        {!isLoading && data && data.pnl.caHT === 0 && data.entreesEffectives.total === 0 && (
-          <MascotNoBilan />
-        )}
-
         {/* ── KPI ROW ──────────────────────────────────────────────────────── */}
-        {data && data.pnl.caHT === 0 && data.entreesEffectives.total === 0 ? null : data && (
+        {data && (
           <div className={styles.kpiRow}>
             <div className={`${styles.kpiCard} ${styles.kpiResult}`}
               style={{ '--accent': data.pnl.resultatNet >= 0 ? C.green : C.red } as React.CSSProperties}>
@@ -829,6 +827,7 @@ export function BilanPage() {
         )}
 
       </div>
+      )}
     </div>
   )
 }
