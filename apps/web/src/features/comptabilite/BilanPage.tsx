@@ -638,12 +638,12 @@ export function BilanPage() {
             </div>
           )}
 
-          {features.charges && charges.length === 0 ? (
+          {features.charges && (charges.length === 0 ? (
             <div className={styles.chargesEmptyRow}>
               <p className={styles.empty}>Aucune charge enregistrée</p>
               <button className={styles.btnAdd} onClick={() => navigate('/charges')}>+ Ajouter</button>
             </div>
-          ) : features.charges ? (
+          ) : (
             <div className={styles.chargeGrid}>
               {charges.slice(0, 6).map(c => {
                 const jours    = c.prochaineEcheance ? Math.ceil((new Date(c.prochaineEcheance).getTime() - Date.now()) / 86_400_000) : null
@@ -670,8 +670,8 @@ export function BilanPage() {
                 )
               })}
             </div>
-          )}
-          {charges.length > 6 && (
+          ))}
+          {features.charges && charges.length > 6 && (
             <button className={styles.btnSeeAll} onClick={() => navigate('/charges')}>
               Voir les {charges.length} charges →
             </button>
