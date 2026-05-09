@@ -66,6 +66,19 @@ model AdminUser {
   updatedAt    DateTime @updatedAt
 }
 
+// ─── MeGestine dialogs (CMS) ─────────────────────────────────────────────────
+
+model MascoteDialog {
+  id          String   @id @default(uuid())
+  slug        String   @unique          // identifiant technique ex: catalogue-vide
+  description String                    // note interne : où s'affiche ce dialog
+  imageName   String   @default("m1.png") // fichier PNG dans /img/mascotte/
+  bulles      Json                      // Bulle[] { title?, text, cta?: { label, href? } }
+  actif       Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
 // ─── User ─────────────────────────────────────────────────────────────────────
 
 enum UserRole {

@@ -28,6 +28,7 @@ import { chargeRoutes }          from './charges.js'
 import { motifVenteRoutes }      from './motifs-vente.js'
 import { droitsAuteurRoutes }    from './droits-auteur.js'
 import { contactsTenantRoutes }  from './contacts-tenant.js'
+import { mascoteDialogRoutes }   from './mascote-dialogs.js'
 
 export const routes: FastifyPluginAsync = async (app) => {
   await app.register(authRoutes,        { prefix: '/auth' })
@@ -59,4 +60,5 @@ export const routes: FastifyPluginAsync = async (app) => {
   await app.register(motifVenteRoutes,     { prefix: '/motifs-vente' })
   await app.register(droitsAuteurRoutes,   { prefix: '/droits-auteur' })
   await app.register(contactsTenantRoutes, { prefix: '/contacts-tenant' })
+  await app.register(mascoteDialogRoutes,  { prefix: '/mascote-dialogs' })
 }
