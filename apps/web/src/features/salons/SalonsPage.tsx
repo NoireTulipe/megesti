@@ -6,6 +6,52 @@ import { SalonCard }   from './SalonCard'
 import { SalonDetail } from './SalonDetail'
 import styles from './SalonsPage.module.css'
 
+function MascotNoSalon({ onAdd }: { onAdd: () => void }) {
+  return (
+    <div className={styles['mascot-wrap']}>
+      <img src="/img/mascotte/m1.png" alt="" className={styles['mascot-img']} />
+      <div className={styles['mascot-bubbles']}>
+
+        <div className={styles['mascot-bubble']}>
+          <p className={styles['mascot-title']}>Ton carnet de salons ! 📅</p>
+          <p className={styles['mascot-text']}>
+            Ici, tu références tous les <strong>salons et événements</strong> qui t'intéressent
+            — salons du livre, festivals, marchés de créateurs, foires… Passés ou à venir,
+            garde-les tous ici pour construire ton <strong>calendrier annuel</strong> et ne
+            jamais rater une opportunité.
+          </p>
+        </div>
+
+        <div className={styles['mascot-bubble']}>
+          <p className={styles['mascot-text']}>
+            Pour chaque salon : les <strong>dates et le lieu</strong>, les coordonnées de
+            l'organisateur, le coût du stand, tes impressions… Et surtout, MeGesti conserve
+            le <strong>CA des éditions précédentes</strong> pour t'aider à décider si
+            l'événement vaut le déplacement — et comparer tes performances d'une année sur
+            l'autre.
+          </p>
+        </div>
+
+        <div className={styles['mascot-bubble']}>
+          <p className={styles['mascot-text']}>
+            Depuis la fiche d'un salon, une option te permet de{' '}
+            <strong>créer directement un Point de vente associé</strong>. Tes sessions de
+            caisse seront automatiquement liées au salon et tes statistiques classées par
+            événement — sans aucune ressaisie.
+          </p>
+          <button className={styles['mascot-btn']} onClick={onAdd}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            Référencer mon premier salon →
+          </button>
+        </div>
+
+      </div>
+    </div>
+  )
+}
+
 export function SalonsPage() {
   const [search, setSearch]       = useState('')
   const [debounced, setDebounced] = useState('')
@@ -96,21 +142,20 @@ export function SalonsPage() {
 
       {/* ── Vide ── */}
       {!isLoading && salons.length === 0 && (
-        <div className={styles.emptyState}>
-          <div className={styles.emptyIcon}>
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#C4907C" strokeWidth="1.8" strokeLinecap="round">
-              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-              <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
-              <line x1="3" y1="10" x2="21" y2="10"/>
-            </svg>
+        debounced ? (
+          <div className={styles.emptyState}>
+            <div className={styles.emptyIcon}>
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#C4907C" strokeWidth="1.8" strokeLinecap="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
+                <line x1="3" y1="10" x2="21" y2="10"/>
+              </svg>
+            </div>
+            <div className={styles.emptyTitle}>Aucun résultat pour « {debounced} »</div>
           </div>
-          <div className={styles.emptyTitle}>
-            {debounced ? `Aucun résultat pour « ${debounced} »` : 'Votre calendrier est vide'}
-          </div>
-          <div className={styles.emptyDesc}>
-            {!debounced && 'Ajoutez votre premier salon ou événement.'}
-          </div>
-        </div>
+        ) : (
+          <MascotNoSalon onAdd={() => setShowCreate(true)} />
+        )
       )}
 
       {/* ── Grille ── */}
