@@ -11,16 +11,10 @@
   position: relative;
   display: flex; align-items: center;
 }
-.search-icon {
-  position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
-  color: var(--text-soft); pointer-events: none; display: flex;
-  transition: color 0.2s;
-}
-.search-wrap:focus-within .search-icon { color: var(--rose, #C4847A); }
 
 .search-input {
   height: 42px;
-  padding: 0 36px 0 40px;   /* droite pour le bouton clear */
+  padding: 0 36px 0 16px;
   border: 1.5px solid var(--cream-dark);
   border-radius: 12px;
   font-size: 0.865rem;
