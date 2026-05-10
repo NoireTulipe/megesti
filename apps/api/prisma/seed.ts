@@ -77,26 +77,29 @@ async function main() {
 
     // ── Bilan session — aides métriques ──────────────────────────────────────
 
-    { slug: 'bilan-metric-ca-ttc', description: 'Bilan session — CA total TTC', bulles: [
-      { title: 'Chiffre d\'affaires total TTC', text: 'Somme de toutes les ventes validées de cette session, taxes comprises. Le montant HT affiché dessous est la base de calcul pour la TVA et les droits d\'auteurs.' },
+    { slug: 'bilan-metric-ca-ttc', description: "Bilan — chiffre d'affaires total", bulles: [
+      { title: "Chiffre d'affaires total", text: "Somme de toutes les ventes validées de cette session, toutes taxes comprises. Le montant hors taxe affiché dessous sert de base au calcul de la TVA et des droits d'auteurs." },
     ]},
-    { slug: 'bilan-metric-en-caisse', description: 'Bilan session — montant en caisse', bulles: [
-      { title: 'Montant encaissé directement', text: 'Part du CA que tu as encaissée toi-même (CB, espèces, chèque…). Le montant "+ X € PDV" correspond aux ventes réglées par le point de vente partenaire — il te sera reversé selon les modalités convenues.' },
+    { slug: 'bilan-metric-en-caisse', description: "Bilan — montant encaissé directement", bulles: [
+      { title: "Montant encaissé directement", text: "Part du chiffre d'affaires que tu as encaissée toi-même (carte, espèces, chèque…). Le montant « + X € PDV » correspond aux ventes réglées par le point de vente partenaire — il te sera reversé selon les modalités convenues." },
     ]},
-    { slug: 'bilan-metric-ticket-moyen', description: 'Bilan session — ticket moyen', bulles: [
-      { title: 'Ticket moyen', text: 'CA total TTC ÷ nombre de ventes validées. Un bon indicateur pour évaluer si les clients achètent plusieurs articles ou un seul à chaque passage.' },
+    { slug: 'bilan-metric-ticket-moyen', description: "Bilan — ticket moyen", bulles: [
+      { title: "Ticket moyen", text: "Chiffre d'affaires total ÷ nombre de ventes validées. Un bon indicateur pour évaluer si les clients achètent plusieurs articles ou un seul à chaque passage." },
     ]},
-    { slug: 'bilan-metric-frais', description: 'Bilan session — frais de session', bulles: [
-      { title: 'Frais de session', text: 'Total des dépenses liées à cette session : stand, déplacement, repas, hébergement… Déduits du bénéfice estimé mais n\'affectent pas le CA. Les frais annulés (rayés) ne sont pas comptabilisés.' },
+    { slug: 'bilan-metric-frais', description: "Bilan — frais de session", bulles: [
+      { title: "Frais de session", text: "Total des dépenses liées à cette session : stand, déplacement, repas, hébergement… Déduits du bénéfice estimé mais sans impact sur le chiffre d'affaires. Les frais annulés (rayés) ne sont pas comptabilisés." },
     ]},
-    { slug: 'bilan-metric-cout-ventes', description: 'Bilan session — coût des ventes', bulles: [
-      { title: 'Coût des ventes', text: 'Estimation du coût d\'achat des articles vendus, calculée à partir du prix d\'achat unitaire renseigné sur chaque article. Sert à estimer la marge brute. Affiché uniquement si au moins un article a un prix d\'achat configuré.' },
+    { slug: 'bilan-metric-commission-pdv', description: "Bilan — commission du point de vente", bulles: [
+      { title: "Commission du point de vente", text: "Frais prélevés par le point de vente partenaire sur les ventes qu'il encaisse pour toi. Il peut être forfaitaire (montant fixe) ou proportionnel (pourcentage du chiffre d'affaires encaissé par le PDV).\n\nCe montant est déduit du bénéfice estimé affiché dans ce bilan." },
     ]},
-    { slug: 'bilan-metric-droits', description: 'Bilan session — droits d\'auteurs', bulles: [
-      { title: 'Droits d\'auteurs', text: 'Total des droits dus aux auteurs pour les ventes de cette session, calculé selon les barèmes de leurs contrats (% du HT ou du TTC, avec déduction des à-valoirs déjà versés). Ce montant est à reverser aux auteurs concernés.' },
+    { slug: 'bilan-metric-cout-ventes', description: "Bilan — coût des ventes", bulles: [
+      { title: "Coût des ventes", text: "Estimation du coût d'achat des articles vendus, calculée à partir du prix d'achat unitaire renseigné sur chaque article. Sert à estimer la marge brute. Affiché uniquement si au moins un article a un prix d'achat configuré." },
     ]},
-    { slug: 'bilan-metric-benefice', description: 'Bilan session — bénéfice estimé', bulles: [
-      { title: 'Bénéfice estimé HT', text: 'Calcul indicatif : CA HT − coût des ventes − frais de session − droits d\'auteurs. Uniquement calculé si les prix d\'achat sont renseignés sur les articles. Il ne s\'agit pas d\'un résultat comptable certifié.' },
+    { slug: 'bilan-metric-droits', description: "Bilan — droits d'auteurs", bulles: [
+      { title: "Droits d'auteurs", text: "Total des droits dus aux auteurs pour les ventes de cette session, calculé selon les barèmes de leurs contrats (pourcentage du hors taxe ou du toutes taxes comprises, avec déduction des à-valoirs déjà versés). Ce montant est à reverser aux auteurs concernés." },
+    ]},
+    { slug: 'bilan-metric-benefice', description: "Bilan — bénéfice estimé", bulles: [
+      { title: "Bénéfice estimé hors taxe", text: "Calcul indicatif : chiffre d'affaires hors taxe − coût des ventes − frais de session − commission PDV − droits d'auteurs. Uniquement calculé si les prix d'achat sont renseignés sur les articles. Il ne s'agit pas d'un résultat comptable certifié." },
     ]},
 
     // ── Réglages ──────────────────────────────────────────────────────────────

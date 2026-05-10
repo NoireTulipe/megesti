@@ -15,6 +15,7 @@
   "dependencies": {
     "@expo/metro-runtime": "~6.1.2",
     "@megesti/business": "workspace:*",
+    "@megesti/react-native-sumup": "workspace:*",
     "@megesti/shared": "workspace:*",
     "@react-navigation/bottom-tabs": "^7.0.0",
     "@react-navigation/native": "^7.0.0",

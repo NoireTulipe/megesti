@@ -63,7 +63,7 @@ export default function SessionDetailScreen() {
         )
       }
       await db.runAsync(
-        `INSERT INTO frais_locaux (id, session_id, type, motif, montant_ht, date, actif) VALUES (?, ?, ?, ?, ?, ?, 1)`,
+        `INSERT INTO frais_locaux (id, session_id, type, motif, montant_ht, date, actif, synced) VALUES (?, ?, ?, ?, ?, ?, 1, 0)`,
         [fraisId, id, fraisType, fraisMotif.trim(), parseFloat(fraisMontant) || 0, date],
       )
       // Envoyer au serveur
@@ -245,14 +245,14 @@ export default function SessionDetailScreen() {
       </View>
 
       {/* ── Frais de la session ── */}
-      {fraisList.length > 0 && (
+      {fraisList.filter((f: any) => f.actif !== 0).length > 0 && (
         <TouchableOpacity
           style={[s.fraisAccordion, isDark && { backgroundColor: Dark.surface }]}
           activeOpacity={0.8}
           onPress={() => setShowFrais(!showFrais)}>
           <View style={s.fraisAccordionHeader}>
             <Text style={[s.fraisAccordionTitle, isDark && { color: Dark.text }]}>
-              🧾 Frais ({fraisList.length})
+              🧾 Frais ({fraisList.filter((f: any) => f.actif !== 0).length})
             </Text>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
               <Text style={{ fontFamily: Fonts.body, fontSize: 13, fontWeight: '700', color: Colors.terra }}>
@@ -266,18 +266,18 @@ export default function SessionDetailScreen() {
           {showFrais && (
             <View style={s.fraisList}>
               {fraisList.map((f: any) => (
-                <View key={f.id} style={[s.fraisRow, isDark && { borderBottomColor: 'rgba(255,255,255,0.04)' }]}>
+                <View key={f.id} style={[s.fraisRow, isDark && { borderBottomColor: 'rgba(255,255,255,0.04)' }, f.actif === 0 && { opacity: 0.45 }]}>
                   <View style={{ flex: 1 }}>
-                    <Text style={[s.fraisMotif, isDark && { color: Dark.text }]}>{f.motif}</Text>
-                    <Text style={[s.fraisMeta, isDark && { color: Dark.textSoft }]}>{f.type} · {new Date(f.date).toLocaleDateString('fr-FR')}</Text>
+                    <Text style={[s.fraisMotif, isDark && { color: Dark.text }, f.actif === 0 && { textDecorationLine: 'line-through' as const }]}>{f.motif}</Text>
+                    <Text style={[s.fraisMeta, isDark && { color: Dark.textSoft }]}>{f.type} · {new Date(f.date).toLocaleDateString('fr-FR')}{f.actif === 0 ? ' · Annulé' : ''}</Text>
                   </View>
-                  <Text style={[s.fraisMontant, isDark && { color: Dark.text }]}>{Number(f.montant_ht).toFixed(2)} €</Text>
+                  <Text style={[s.fraisMontant, isDark && { color: Dark.text }, f.actif === 0 && { textDecorationLine: 'line-through' as const }]}>{Number(f.montant_ht).toFixed(2)} €</Text>
                   <TouchableOpacity
                     style={s.fraisDeleteBtn}
                     onPress={async () => {
                       const db = await getDb()
                       await db.runAsync(`UPDATE frais_locaux SET actif = 0 WHERE id = ?`, [f.id])
-                      if (f.synced) api.delete(`/frais/${f.id}`).catch(() => {})
+                      api.delete(`/frais/${f.id}`).catch(() => {})
                       const fl = await db.getAllAsync<any>('SELECT id, type, motif, montant_ht, date, synced, actif FROM frais_locaux WHERE session_id = ? ORDER BY date DESC', [id])
                       setFraisList(fl)
                       const ft = await db.getFirstAsync<{ total: number }>('SELECT COALESCE(SUM(montant_ht),0) as total FROM frais_locaux WHERE session_id = ? AND actif = 1', [id])

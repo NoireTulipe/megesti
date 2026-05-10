@@ -1,13 +1,13 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useMascoteDialog } from '@/hooks/useMascoteDialog'
+import { useHelp } from './HelpContext'
 import styles from './HelpButton.module.css'
 
 interface Props {
-  slug:    string
-  /** Taille du bouton (défaut: md) */
-  size?:   'sm' | 'md'
-  /** Classe CSS supplémentaire */
+  slug:       string
+  size?:      'sm' | 'md'
+  variant?:   'default' | 'ghost'
   className?: string
 }
 
@@ -15,13 +15,16 @@ interface Props {
  * Bouton (?) contextuel — ouvre MeGestine en modale avec le dialog CMS identifié par `slug`.
  * Usage : <HelpButton slug="mon-dialog" />
  */
-export function HelpButton({ slug, size = 'md', className }: Props) {
+export function HelpButton({ slug, size = 'md', variant = 'default', className }: Props) {
+  const { showHelp } = useHelp()
   const [open, setOpen] = useState(false)
+
+  if (!showHelp) return null
 
   return (
     <>
       <button
-        className={`${styles.btn} ${styles[size]} ${className ?? ''}`}
+        className={`${styles.btn} ${styles[size]} ${variant === 'ghost' ? styles.ghost : ''} ${className ?? ''}`}
         onClick={() => setOpen(true)}
         aria-label="Aide MeGestine"
         title="Aide"

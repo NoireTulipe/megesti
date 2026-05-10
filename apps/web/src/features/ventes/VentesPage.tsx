@@ -27,6 +27,15 @@ const MODES: { key: ModePaiement; label: string }[] = [
   { key: 'VIREMENT', label: 'Virement' },
 ]
 
+const MODE_META: Record<string, { label: string; color: string }> = {
+  CB:       { label: 'CB',       color: '#3D5470' },
+  ESPECES:  { label: 'Espèces',  color: '#6B8F71' },
+  CHEQUE:   { label: 'Chèque',   color: '#C9933A' },
+  VIREMENT: { label: 'Virement', color: '#8B7BAB' },
+  SUMUP:    { label: 'SumUp',    color: '#C4907C' },
+  PDV:      { label: 'PDV',      color: '#C85D3A' },
+}
+
 function fmtTime(d: string) {
   return new Date(d).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
 }
@@ -64,6 +73,13 @@ export function VentesPage() {
 
   // ── Bilan ─────────────────────────────────────────────────────────────
   const [showBilan, setShowBilan] = useState(false)
+
+  // ── Annulation vente ───────────────────────────────────────────────────
+  const [annulerConfirmId, setAnnulerConfirmId] = useState<string | null>(null)
+
+  // ── Accordéons ─────────────────────────────────────────────────────────
+  const [fraisOpen,  setFraisOpen]  = useState(false)
+  const [ventesOpen, setVentesOpen] = useState(false)
 
   // ── Frais ─────────────────────────────────────────────────────────────
   const [showFraisForm, setShowFraisForm] = useState(false)
@@ -284,7 +300,7 @@ export function VentesPage() {
           <div className={styles.sessionSelectPage}>
             {sessions.length > 0 ? (
               <>
-                <p className={styles.sessionSelectLabel}>Sessions en cours</p>
+                <p className={styles.sessionSelectLabel}>Sessions en cours <HelpButton slug="aide-caisse-session" className={styles['tab-help']} /></p>
                 <div className={styles.sessionCards}>
                   {sessions.map((s) => (
                     <button key={s.id} className={styles.sessionCard} onClick={() => setActiveSessionId(s.id)}>
@@ -600,105 +616,186 @@ export function VentesPage() {
 
       {/* ── Frais de session ─────────────────────────────────────────── */}
       <div className={styles.fraisSection}>
-        <div className={styles.fraisHeader}>
-          <p className={styles.fraisTitle}>Frais de la session</p>
-          <button className={styles.btnAddFrais} onClick={() => setShowFraisForm(v => !v)}>
-            {showFraisForm ? '✕ Annuler' : '+ Enregistrer un frais'}
-          </button>
-        </div>
+        <button
+          className={styles.sectionAccHead}
+          onClick={() => { setFraisOpen(o => !o); if (fraisOpen) setShowFraisForm(false) }}
+        >
+          <span className={styles.sectionAccTitle}>Frais de la session</span>
+          {fraisSession.filter(f => f.actif).length > 0 && (
+            <span className={styles.sectionAccCount}>{fraisSession.filter(f => f.actif).length}</span>
+          )}
+          {fraisSession.filter(f => f.actif).length > 0 && (
+            <span className={styles.sectionAccTotal}>
+              {fraisSession.filter(f => f.actif).reduce((s, f) => s + (f.montantHT ? parseFloat(f.montantHT) : 0), 0).toFixed(2)} € HT
+            </span>
+          )}
+          <span className={styles.sectionAccChevron} style={{ transform: fraisOpen ? 'rotate(180deg)' : undefined }}>▾</span>
+        </button>
 
-        {showFraisForm && (
-          <div className={styles.fraisForm}>
-            {/* Type */}
-            <div className={styles.fraisTypeGrid}>
-              {(Object.keys(TYPE_FRAIS_LABELS) as TypeFrais[]).filter(t => t !== 'DON' && t !== 'PERTE_STOCK').map(t => (
-                <button
-                  key={t}
-                  className={`${styles.fraisTypeBtn} ${fraisType === t ? styles.fraisTypeBtnActive : ''}`}
-                  onClick={() => setFraisType(t)}
-                >
-                  <span>{TYPE_FRAIS_EMOJI[t]}</span>
-                  <span>{TYPE_FRAIS_LABELS[t]}</span>
-                </button>
-              ))}
-            </div>
-            {/* Motif + montant */}
-            <div className={styles.fraisInputRow}>
-              <input
-                className={styles.fraisMotifInput}
-                placeholder="Motif (ex : A7 → salle, péage retour)"
-                value={fraisMotif}
-                onChange={e => setFraisMotif(e.target.value)}
-              />
-              <div className={styles.fraisMontantWrap}>
-                <input
-                  className={styles.fraisMontantInput}
-                  type="text"
-                  inputMode="decimal"
-                  placeholder="0.00"
-                  value={fraisMontant}
-                  onChange={e => setFraisMontant(e.target.value)}
-                />
-                <span className={styles.fraisMontantUnit}>€ HT</span>
-              </div>
-              <button
-                className={styles.btnFraisValider}
-                disabled={!fraisMotif.trim() || createFrais.isPending}
-                onClick={async () => {
-                  if (!fraisMotif.trim() || !activeSessionId) return
-                  await createFrais.mutateAsync({
-                    id: crypto.randomUUID(),
-                    sessionId: activeSessionId,
-                    type: fraisType,
-                    motif: fraisMotif,
-                    montantHT: fraisMontant ? parseFloat(fraisMontant.replace(',', '.')) : undefined,
-                  })
-                  setFraisMotif('')
-                  setFraisMontant('')
-                  setShowFraisForm(false)
-                }}
-              >
-                {createFrais.isPending ? '…' : 'Ajouter'}
+        {fraisOpen && (
+          <div className={styles.sectionAccBody}>
+            <div className={styles.fraisBodyHeader}>
+              <button className={styles.btnAddFrais} onClick={() => setShowFraisForm(v => !v)}>
+                {showFraisForm ? '✕ Annuler' : '+ Enregistrer un frais'}
               </button>
+              <HelpButton slug="aide-caisse-frais" className={styles['tab-help']} />
             </div>
-          </div>
-        )}
 
-        {fraisSession.length > 0 && (
-          <div className={styles.fraisList}>
-            {fraisSession.map(f => (
-              <div
-                key={f.id}
-                className={`${styles.fraisRow} ${!f.actif ? styles.fraisRowDeleted : ''}`}
-              >
-                <span className={styles.fraisEmoji}>{TYPE_FRAIS_EMOJI[f.type]}</span>
-                <span className={styles.fraisMotif}>{f.motif}</span>
-                <span className={styles.fraisType}>{TYPE_FRAIS_LABELS[f.type]}</span>
-                <span className={styles.fraisMontant}>
-                  {f.montantHT ? `${parseFloat(f.montantHT).toFixed(2)} € HT` : '—'}
-                </span>
-                {f.actif ? (
+            {showFraisForm && (
+              <div className={styles.fraisForm}>
+                <div className={styles.fraisTypeGrid}>
+                  {(Object.keys(TYPE_FRAIS_LABELS) as TypeFrais[]).filter(t => t !== 'DON' && t !== 'PERTE_STOCK').map(t => (
+                    <button
+                      key={t}
+                      className={`${styles.fraisTypeBtn} ${fraisType === t ? styles.fraisTypeBtnActive : ''}`}
+                      onClick={() => setFraisType(t)}
+                    >
+                      <span>{TYPE_FRAIS_EMOJI[t]}</span>
+                      <span>{TYPE_FRAIS_LABELS[t]}</span>
+                    </button>
+                  ))}
+                </div>
+                <div className={styles.fraisInputRow}>
+                  <input
+                    className={styles.fraisMotifInput}
+                    placeholder="Motif (ex : A7 → salle, péage retour)"
+                    value={fraisMotif}
+                    onChange={e => setFraisMotif(e.target.value)}
+                  />
+                  <div className={styles.fraisMontantWrap}>
+                    <input
+                      className={styles.fraisMontantInput}
+                      type="text"
+                      inputMode="decimal"
+                      placeholder="0.00"
+                      value={fraisMontant}
+                      onChange={e => setFraisMontant(e.target.value)}
+                    />
+                    <span className={styles.fraisMontantUnit}>€ HT</span>
+                  </div>
                   <button
-                    className={styles.btnDeleteFrais}
-                    onClick={() => deleteFrais.mutate(f.id)}
-                    title="Supprimer"
-                  >✕</button>
-                ) : (
-                  <span className={styles.fraisAnnule}>annulé</span>
-                )}
+                    className={styles.btnFraisValider}
+                    disabled={!fraisMotif.trim() || createFrais.isPending}
+                    onClick={async () => {
+                      if (!fraisMotif.trim() || !activeSessionId) return
+                      await createFrais.mutateAsync({
+                        id: crypto.randomUUID(),
+                        sessionId: activeSessionId,
+                        type: fraisType,
+                        motif: fraisMotif,
+                        montantHT: fraisMontant ? parseFloat(fraisMontant.replace(',', '.')) : undefined,
+                      })
+                      setFraisMotif('')
+                      setFraisMontant('')
+                      setShowFraisForm(false)
+                    }}
+                  >
+                    {createFrais.isPending ? '…' : 'Ajouter'}
+                  </button>
+                </div>
               </div>
-            ))}
-            <div className={styles.fraisTotal}>
-              Total frais :&nbsp;
-              <strong>
-                {fraisSession.filter(f => f.actif).reduce((s, f) => s + (f.montantHT ? parseFloat(f.montantHT) : 0), 0).toFixed(2)} € HT
-              </strong>
-            </div>
+            )}
+
+            {fraisSession.length > 0 && (
+              <div className={styles.fraisList}>
+                {fraisSession.map(f => (
+                  <div key={f.id} className={`${styles.fraisRow} ${!f.actif ? styles.fraisRowDeleted : ''}`}>
+                    <span className={styles.fraisEmoji}>{TYPE_FRAIS_EMOJI[f.type]}</span>
+                    <span className={styles.fraisMotif}>{f.motif}</span>
+                    <span className={styles.fraisType}>{TYPE_FRAIS_LABELS[f.type]}</span>
+                    <span className={styles.fraisMontant}>
+                      {f.montantHT ? `${parseFloat(f.montantHT).toFixed(2)} € HT` : '—'}
+                    </span>
+                    {f.actif ? (
+                      <button className={styles.btnDeleteFrais} onClick={() => deleteFrais.mutate(f.id)} title="Supprimer">✕</button>
+                    ) : (
+                      <span className={styles.fraisAnnule}>annulé</span>
+                    )}
+                  </div>
+                ))}
+                <div className={styles.fraisTotal}>
+                  Total frais :&nbsp;
+                  <strong>
+                    {fraisSession.filter(f => f.actif).reduce((s, f) => s + (f.montantHT ? parseFloat(f.montantHT) : 0), 0).toFixed(2)} € HT
+                  </strong>
+                </div>
+              </div>
+            )}
+
+            {fraisSession.length === 0 && !showFraisForm && (
+              <p className={styles.fraisEmpty}>Aucun frais enregistré pour cette session.</p>
+            )}
           </div>
         )}
+      </div>
 
-        {fraisSession.length === 0 && !showFraisForm && (
-          <p className={styles.fraisEmpty}>Aucun frais enregistré pour cette session.</p>
+      {/* ── Ventes de la session ─────────────────────────────────────── */}
+      <div className={styles.ventesSection}>
+        <button className={styles.sectionAccHead} onClick={() => setVentesOpen(o => !o)}>
+          <span className={styles.sectionAccTitle}>Ventes de la session</span>
+          <span className={styles.sectionAccCount}>{ventes.filter(v => v.statut === 'VALIDEE').length}</span>
+          <span className={styles.sectionAccChevron} style={{ transform: ventesOpen ? 'rotate(180deg)' : undefined }}>▾</span>
+        </button>
+
+        {ventesOpen && (
+          <div className={styles.sectionAccBody}>
+            {ventes.length === 0 && (
+              <p className={styles.fraisEmpty}>Aucune vente enregistrée pour cette session.</p>
+            )}
+            {ventes.map(v => {
+              const annulee = v.statut === 'ANNULEE'
+              const meta    = MODE_META[v.modePaiement]
+              return (
+                <div key={v.id} className={`${styles.venteSessionRow} ${annulee ? styles.venteSessionRowAnnulee : ''}`}>
+                  <div className={styles.venteSessionLeft}>
+                    <span className={styles.venteSessionNum}>#{v.numero}</span>
+                    <span className={styles.venteSessionHeure}>{fmtTime(v.dateVente)}</span>
+                    {annulee
+                      ? <span className={styles.venteAnnuleeBadge}>Annulée</span>
+                      : <span className={styles.venteSessionMode}
+                          style={{ background: `${meta?.color ?? '#888'}18`, color: meta?.color ?? '#888' }}>
+                          {meta?.label ?? v.modePaiement}
+                        </span>
+                    }
+                    <div className={styles.venteSessionArticles}>
+                      {v.lignes.map(l => (
+                        <span key={l.id} className={styles.venteSessionPill}>
+                          {l.article.nom}{l.quantite > 1 ? ` ×${l.quantite}` : ''}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  <div className={styles.venteSessionRight}>
+                    <span className={styles.venteSessionMontant}>
+                      {parseFloat(v.totalTTC).toFixed(2)} €
+                    </span>
+                    {!annulee && (
+                      annulerConfirmId === v.id
+                        ? (
+                          <div className={styles.annulerConfirm}>
+                            <span className={styles.annulerConfirmTxt}>Confirmer ?</span>
+                            <button
+                              className={styles.annulerConfirmYes}
+                              disabled={annulerVente.isPending}
+                              onClick={() => { annulerVente.mutate({ id: v.id }); setAnnulerConfirmId(null) }}
+                            >
+                              {annulerVente.isPending ? '…' : 'Oui'}
+                            </button>
+                            <button className={styles.annulerConfirmNo} onClick={() => setAnnulerConfirmId(null)}>
+                              Non
+                            </button>
+                          </div>
+                        ) : (
+                          <button className={styles.btnAnnulerVente} onClick={() => setAnnulerConfirmId(v.id)}>
+                            Annuler
+                          </button>
+                        )
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
         )}
       </div>
 
@@ -712,6 +809,8 @@ export function VentesPage() {
               frais={fraisSession}
               articles={articles}
               sessionNom={activeSession.nom ?? activeSession.pointDeVente.nom}
+              commissionFixe={activeSession.pointDeVente.commissionFixe}
+              commissionPourcent={activeSession.pointDeVente.commissionPourcent}
               onClose={() => setShowBilan(false)}
             />
           </div>

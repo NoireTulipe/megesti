@@ -132,6 +132,8 @@ export function HistoriqueSessions() {
               sessionId={bilanSessionObj.id}
               pdvNom={bilanSessionObj.pointDeVente.nom}
               sessionNom={bilanSessionObj.nom ?? undefined}
+              commissionFixe={bilanSessionObj.pointDeVente.commissionFixe}
+              commissionPourcent={bilanSessionObj.pointDeVente.commissionPourcent}
               onClose={() => setBilanSession(null)}
             />
           </div>

@@ -6,7 +6,7 @@ Attention : Penser au niveau d'abonnement et l'activation ou la désectivation d
 
 Attention : Penser au crédit pour les factures. Comme elles sont payantes, on ne peut pas laisser les users envoyer autant de factures qu'ils le souhaiente. On doit donc attribuer des crédits.
 
-
+**Caisse :** Pouvoir annuler un pannier depuis l'APP et gérer les Pannier annulés. Pouvoir encaisser une vente exeptionnel par l'utilisateur quand prévue en caisse.
 
 
 **Droits auteurs !** Quand un paiement est en retard, la date de prochaine échéance doit rester celle du retard, pas la prochaine. Et bien indiquer le retard.
@@ -25,6 +25,15 @@ En test pré-prod :
  Le fix noImplicitAny: false est pragmatique pour la pré-prod — le code fonctionne, c'est juste du typage implicite non déclaré dans les
   callbacks. À corriger proprement plus tard, pas maintenant.
 
+
+_________________________________________
+
+**Intégration SumUp dans l'app**
+
+ Prochaine étape : quand tu feras npx expo prebuild && npx expo run:android, il faudra :
+  1. Ajouter com.sumup:merchant-sdk:3.5.+ au build.gradle Android
+  2. Ajouter pod 'SumUpSDK' au Podfile iOS
+  3. Brancher les vrais appels SDK dans les fichiers .kt/.swift
 
 _________________________________________
 

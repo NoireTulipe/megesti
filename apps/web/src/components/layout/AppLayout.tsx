@@ -5,6 +5,7 @@ import { Sidebar } from './Sidebar'
 import { Header } from './Header'
 import { PageBlobs } from '@/components/PageBlobs'
 import { PopupOverlay } from '@/components/PopupOverlay'
+import { HelpProvider } from '@/components/HelpContext'
 import { ALL_NAV, type NavKey } from '@/config/navigation'
 
 interface AppLayoutProps {
@@ -35,6 +36,7 @@ export function AppLayout({ children }: AppLayoutProps) {
   }
 
   return (
+    <HelpProvider>
     <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
       <PageBlobs />
       <Sidebar
@@ -51,5 +53,6 @@ export function AppLayout({ children }: AppLayoutProps) {
       </div>
       <PopupOverlay />
     </div>
+    </HelpProvider>
   )
 }

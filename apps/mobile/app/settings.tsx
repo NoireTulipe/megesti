@@ -5,6 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useAuthStore } from '@/store/authStore'
 import { useThemeStore } from '@/store/themeStore'
+import { SumUp } from '@megesti/react-native-sumup'
 import { Colors, Dark, Fonts, Radius, Shadow } from '@/constants/theme'
 
 type Tab = 'compte' | 'apparence' | 'paiement'
@@ -46,6 +47,38 @@ export default function SettingsScreen() {
   const toggleTheme = useThemeStore(s => s.toggle)
 
   const [tab, setTab] = useState<Tab>('compte')
+  const [sumupTerminal, setSumupTerminal] = useState<'air' | 'solo' | null>(null)
+  const [testingSumup, setTestingSumup] = useState(false)
+
+  function cycleSumupTerminal() {
+    setSumupTerminal(prev => prev === 'air' ? 'solo' : prev === 'solo' ? null : 'air')
+  }
+
+  async function testSumupConnection() {
+    if (!sumupTerminal) {
+      Alert.alert('Terminal requis', 'Veuillez d\'abord sélectionner un type de terminal SumUp.')
+      return
+    }
+    setTestingSumup(true)
+    if (!SumUp.isAvailable()) {
+      setTestingSumup(false)
+      Alert.alert(
+        'Module natif absent',
+        sumupTerminal === 'air'
+          ? 'Le module SumUp n\'est disponible qu\'avec une build native (expo run:android / expo run:ios).\n\nExpo Go ne supporte pas les SDK Bluetooth.'
+          : 'Le module SumUp n\'est disponible qu\'avec une build native. Le terminal Solo utilisera l\'API REST côté serveur.'
+      )
+      return
+    }
+    const ready = await SumUp.isReady()
+    setTestingSumup(false)
+    Alert.alert(
+      ready ? 'SumUp connecté' : 'SumUp non prêt',
+      ready
+        ? 'Le terminal est connecté et prêt à encaisser.'
+        : 'Vérifiez que le terminal est allumé et couplé en Bluetooth.'
+    )
+  }
 
   function handleLogout() {
     Alert.alert('Déconnexion', 'Voulez-vous vous déconnecter ?', [
@@ -165,9 +198,29 @@ export default function SettingsScreen() {
             </View>
 
             <View style={s.section}>
-              <Text style={[s.sectionTitle, isDark && s.sectionTitleDark]}>Terminal de paiement</Text>
+              <Text style={[s.sectionTitle, isDark && s.sectionTitleDark]}>SumUp</Text>
               <View style={[s.sectionBody, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : Colors.white, borderWidth: isDark ? 1 : 0, borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'transparent', shadowColor: isDark ? 'transparent' : Colors.text, elevation: isDark ? 0 : 3 }]}>
-                <SettingRow label="SumUp" sub="Carte bancaire en salon" isDark={isDark} />
+                <SettingRow
+                  label="Terminal"
+                  sub={sumupTerminal === 'air' ? 'Air (Bluetooth)' : sumupTerminal === 'solo' ? 'Solo (4G autonome)' : 'Non configuré'}
+                  onPress={cycleSumupTerminal}
+                  isDark={isDark}
+                />
+                <SettingRow label="Clé d'affilié" sub="••••••••" isDark={isDark} />
+                <SettingRow label="Identifiant marchand" sub="••••••••" isDark={isDark} />
+                <SettingRow
+                  label="Tester la connexion"
+                  sub="Vérifier que le terminal répond"
+                  onPress={testSumupConnection}
+                  last
+                  isDark={isDark}
+                />
+              </View>
+            </View>
+
+            <View style={s.section}>
+              <Text style={[s.sectionTitle, isDark && s.sectionTitleDark]}>Autres terminaux</Text>
+              <View style={[s.sectionBody, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : Colors.white, borderWidth: isDark ? 1 : 0, borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'transparent', shadowColor: isDark ? 'transparent' : Colors.text, elevation: isDark ? 0 : 3 }]}>
                 <SettingRow label="Stripe Reader" sub="Terminal physique connecté" last isDark={isDark} />
               </View>
             </View>

@@ -1,0 +1,19 @@
+{
+  "name": "@megesti/react-native-sumup",
+  "version": "0.0.1",
+  "description": "Expo module for SumUp Air/Solo terminal integration (Android + iOS)",
+  "main": "src/index.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "expo": "*",
+    "expo-modules-core": "*",
+    "react": "*",
+    "react-native": "*"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.0",
+    "typescript": "^5.7.0"
+  }
+}

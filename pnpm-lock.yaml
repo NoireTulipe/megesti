@@ -145,6 +145,9 @@ importers:
       '@megesti/business':
         specifier: workspace:*
         version: link:../../packages/business
+      '@megesti/react-native-sumup':
+        specifier: workspace:*
+        version: link:../../packages/react-native-sumup
       '@megesti/shared':
         specifier: workspace:*
         version: link:../../packages/shared
@@ -351,6 +354,28 @@ importers:
       vitest:
         specifier: ^2.0.0
         version: 2.1.9(@types/node@22.19.17)(lightningcss@1.32.0)(terser@5.46.2)
+
+  packages/react-native-sumup:
+    dependencies:
+      expo:
+        specifier: '*'
+        version: 54.0.34(@babel/core@7.29.0)(@expo/metro-runtime@6.1.2)(expo-router@6.0.23)(react-native@0.81.5(@babel/core@7.29.0)(@react-native/metro-config@0.85.2(@babel/core@7.29.0))(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)(typescript@5.9.3)
+      expo-modules-core:
+        specifier: '*'
+        version: 3.0.30(react-native@0.81.5(@babel/core@7.29.0)(@react-native/metro-config@0.85.2(@babel/core@7.29.0))(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)
+      react:
+        specifier: '*'
+        version: 19.1.0
+      react-native:
+        specifier: '*'
+        version: 0.81.5(@babel/core@7.29.0)(@react-native/metro-config@0.85.2(@babel/core@7.29.0))(@types/react@19.1.17)(react@19.1.0)
+    devDependencies:
+      '@types/react':
+        specifier: ^19.1.0
+        version: 19.1.17
+      typescript:
+        specifier: ^5.7.0
+        version: 5.9.3
 
   packages/shared:
     dependencies:

@@ -61,6 +61,7 @@
 .btn-primary:active:not(:disabled) { transform:scale(0.97); }
 
 /* ─── ONGLETS CATALOGUE / RETIRÉS ──────────────────── */
+.tab-help { margin-left: 8px; }
 .tab-bar {
   display:inline-flex; background:var(--white); border:1.5px solid var(--cream-dark);
   border-radius:var(--r-pill); padding:4px; gap:2px; margin-bottom:20px; box-shadow:var(--shadow-card);

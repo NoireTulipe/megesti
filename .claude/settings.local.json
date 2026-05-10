@@ -51,7 +51,8 @@
       "Bash(grep -n \"} // fin content\\\\|</div>.*page\\\\|^\\\\s*\\)\\\\s*$\" /c/Users/DCFM/Documents/Bobo/megesti/apps/web/src/features/comptabilite/BilanPage.tsx)",
       "Bash(node_modules/.bin/prisma migrate *)",
       "Bash(sed -i \"s|import { mascoteDialogRoutes }   from './mascote-dialogs.js'|import { mascoteDialogRoutes }   from './mascote-dialogs.js'\\\\nimport { popupRoutes }           from './popups.js'|\" /c/Users/DCFM/Documents/Bobo/megesti/apps/api/src/routes/index.ts)",
-      "Bash(sed -i \"s|  await app.register\\(mascoteDialogRoutes,  { prefix: '/mascote-dialogs' }\\)|  await app.register\\(mascoteDialogRoutes,  { prefix: '/mascote-dialogs' }\\)\\\\n  await app.register\\(popupRoutes,          { prefix: '/popups' }\\)|\" /c/Users/DCFM/Documents/Bobo/megesti/apps/api/src/routes/index.ts)"
+      "Bash(sed -i \"s|  await app.register\\(mascoteDialogRoutes,  { prefix: '/mascote-dialogs' }\\)|  await app.register\\(mascoteDialogRoutes,  { prefix: '/mascote-dialogs' }\\)\\\\n  await app.register\\(popupRoutes,          { prefix: '/popups' }\\)|\" /c/Users/DCFM/Documents/Bobo/megesti/apps/api/src/routes/index.ts)",
+      "Bash(pnpm --filter web tsc --noEmit)"
     ]
   }
 }

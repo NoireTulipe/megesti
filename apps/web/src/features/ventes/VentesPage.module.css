@@ -70,6 +70,7 @@
 .btnSecondary:active { transform: scale(0.97); }
 
 /* ── MAIN TAB BAR (Caisse | Historique) ───────────── */
+.tab-help { margin-left: 8px; }
 .mainTabBar {
   display: inline-flex; background: var(--white);
   border: 1.5px solid var(--cream-dark); border-radius: var(--r-pill);
@@ -444,12 +445,32 @@
 .pdvEncaisseTitle { font-size: 0.82rem; font-weight: 600; color: var(--ink); margin: 0; }
 .pdvEncaisseSub   { font-size: 0.75rem; color: var(--text-soft); margin: 2px 0 0; }
 
+/* ── ACCORDÉONS COMMUNS (frais + ventes) ────────────── */
+.sectionAccHead {
+  width: 100%; display: flex; align-items: center; gap: 10px;
+  padding: 13px 20px; border: none; background: transparent;
+  cursor: pointer; text-align: left; transition: background var(--t);
+}
+.sectionAccHead:hover { background: rgba(0,0,0,0.018); }
+.sectionAccTitle {
+  font-family: 'DM Serif Display', serif; font-size: 1rem; color: var(--ink); flex: 1;
+}
+.sectionAccCount {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 20px; height: 18px; padding: 0 6px; border-radius: 20px;
+  background: var(--cream-dark); font-family: inherit;
+  font-size: 0.68rem; font-weight: 700; color: var(--text-soft);
+}
+.sectionAccTotal { font-size: 0.82rem; font-weight: 600; color: var(--text-mid); }
+.sectionAccChevron { font-size: 0.8rem; color: var(--text-soft); flex-shrink: 0; transition: transform 0.2s; }
+.sectionAccBody { border-top: 1px solid var(--cream-dark); padding: 14px 20px; }
+
 /* ── FRAIS DE SESSION ──────────────────────────────── */
 .fraisSection {
   flex-shrink: 0; border-top: 1px solid var(--cream-dark);
-  background: var(--white); padding: 14px 20px;
+  background: var(--white);
 }
-.fraisHeader { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.fraisBodyHeader { margin-bottom: 10px; }
 .fraisTitle {
   font-family: 'DM Serif Display', serif; font-size: 1rem; color: var(--ink); margin: 0;
 }
@@ -544,6 +565,73 @@
 
 .fraisAnnule  { font-size: 0.68rem; color: var(--text-soft); font-style: italic; white-space: nowrap; }
 .fraisTotal   { text-align: right; font-size: 0.82rem; color: var(--text-mid); padding-top: 6px; }
+
+/* ── VENTES DE LA SESSION ───────────────────────────── */
+.ventesSection {
+  flex-shrink: 0; border-top: 1px solid var(--cream-dark);
+  background: var(--cream);
+}
+.ventesSection .sectionAccBody { max-height: 280px; overflow-y: auto; }
+.ventesList { display: flex; flex-direction: column; gap: 6px; }
+
+.venteSessionRow {
+  display: flex; align-items: center; gap: 12px;
+  padding: 8px 12px; background: var(--white); border: 1px solid var(--cream-dark);
+  border-radius: var(--radius-md); font-size: 0.82rem;
+  transition: border-color var(--t), opacity var(--t);
+}
+.venteSessionRow:hover { border-color: var(--cream-mid); }
+.venteSessionRowAnnulee {
+  opacity: 0.45; background: transparent; border-style: dashed;
+}
+.venteSessionRowAnnulee .venteSessionMontant { text-decoration: line-through; }
+
+.venteSessionLeft {
+  flex: 1; display: flex; align-items: center; gap: 7px; min-width: 0; flex-wrap: wrap;
+}
+.venteSessionNum   { font-size: 0.75rem; font-weight: 800; color: var(--ink); letter-spacing: 0.03em; flex-shrink: 0; }
+.venteSessionHeure { font-size: 0.72rem; color: var(--text-soft); flex-shrink: 0; }
+.venteSessionMode  {
+  font-size: 0.65rem; font-weight: 700; padding: 2px 7px;
+  border-radius: 20px; flex-shrink: 0;
+}
+.venteAnnuleeBadge {
+  font-size: 0.65rem; font-weight: 700; color: #dc2626;
+  background: #fee2e2; padding: 2px 8px; border-radius: 20px; flex-shrink: 0;
+}
+.venteSessionArticles { display: flex; gap: 4px; flex-wrap: wrap; }
+.venteSessionPill {
+  font-size: 0.68rem; background: var(--cream); border: 1px solid var(--cream-dark);
+  border-radius: 20px; padding: 1px 8px; color: var(--ink); white-space: nowrap;
+}
+
+.venteSessionRight { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.venteSessionMontant { font-weight: 700; font-size: 0.88rem; color: var(--ink); white-space: nowrap; }
+
+.btnAnnulerVente {
+  height: 26px; padding: 0 12px; background: transparent;
+  border: 1.5px solid #fca5a5; border-radius: var(--r-pill);
+  font-size: 0.72rem; font-weight: 600; color: #dc2626; cursor: pointer;
+  transition: all var(--t); white-space: nowrap;
+}
+.btnAnnulerVente:hover { background: #fef2f2; border-color: #dc2626; }
+
+.annulerConfirm { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.annulerConfirmTxt { font-size: 0.72rem; color: var(--text-mid); white-space: nowrap; }
+.annulerConfirmYes {
+  height: 26px; padding: 0 12px; background: #dc2626; border: none;
+  border-radius: var(--r-pill); font-size: 0.72rem; font-weight: 700;
+  color: #fff; cursor: pointer; transition: opacity var(--t); font-family: inherit;
+}
+.annulerConfirmYes:hover:not(:disabled) { opacity: 0.8; }
+.annulerConfirmYes:disabled { opacity: 0.5; }
+.annulerConfirmNo {
+  height: 26px; padding: 0 12px; background: transparent;
+  border: 1.5px solid var(--cream-dark); border-radius: var(--r-pill);
+  font-size: 0.72rem; font-weight: 600; color: var(--text-mid);
+  cursor: pointer; transition: all var(--t); font-family: inherit;
+}
+.annulerConfirmNo:hover { border-color: var(--ink-light); color: var(--ink); }
 .fraisEmpty   { font-size: 0.8rem; color: var(--text-soft); font-style: italic; margin: 0; }
 
 /* ── BILAN OVERLAY ─────────────────────────────────── */
