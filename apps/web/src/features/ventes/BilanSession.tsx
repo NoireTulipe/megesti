@@ -17,6 +17,9 @@ function fEur(v: number) {
 function fHeure(iso: string) {
   return new Date(iso).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
 }
+function fDate(iso: string) {
+  return new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })
+}
 
 const MODE_META: Record<string, { label: string; color: string }> = {
   CB:       { label: 'Carte',    color: '#3D5470' },
@@ -74,6 +77,7 @@ interface Props {
 export function BilanSession({ sessionId, ventes: ventesProp, frais: fraisProp, articles: articlesProp, sessionNom, pdvNom, commissionFixe, commissionPourcent, onClose }: Props) {
   const { data: droitsData } = useSessionDroits(sessionId)
   const { can, upgradeMessage } = usePlanFeatures()
+  const [selectedVenteId, setSelectedVenteId] = useState<string | null>(null)
 
   const fetchRemote = ventesProp === undefined
   const { data: ventesRemote   = [] } = useVentes(fetchRemote ? sessionId : undefined)
@@ -81,9 +85,11 @@ export function BilanSession({ sessionId, ventes: ventesProp, frais: fraisProp, 
   const { data: articlesRemote = [] } = useArticles()
 
   const ventes   = ventesProp   ?? ventesRemote
+
   const frais    = fraisProp    ?? fraisRemote
   const articles = articlesProp ?? articlesRemote
 
+  const selectedVente  = ventes.find(v => v.id === selectedVenteId) ?? null
   const ventesValidees = ventes.filter(v => v.statut === 'VALIDEE')
   const ventesAnnulees = ventes.filter(v => v.statut === 'ANNULEE')
   const ventesDirectes = ventesValidees.filter(v => v.modePaiement !== 'PDV')
@@ -253,7 +259,7 @@ export function BilanSession({ sessionId, ventes: ventesProp, frais: fraisProp, 
         header="Ventes"
         count={ventesValidees.length}
         total={caTTC}
-        color="rgba(255,255,255,0.7)"
+        color="#16a34a"
         empty="Aucune vente enregistrée."
         defaultOpen
         unit="vente"
@@ -262,7 +268,10 @@ export function BilanSession({ sessionId, ventes: ventesProp, frais: fraisProp, 
           const meta = MODE_META[v.modePaiement]
           const annulee = v.statut === 'ANNULEE'
           return (
-            <div key={v.id} className={`${styles.venteRow} ${annulee ? styles.venteAnnulee : ''}`}>
+            <div key={v.id}
+              className={`${styles.venteRow} ${annulee ? styles.venteAnnulee : ''} ${styles.venteRowClickable}`}
+              onClick={() => setSelectedVenteId(v.id)}
+            >
               <div className={styles.venteStripe} style={{ background: annulee ? '#ef4444' : (meta?.color ?? '#888') }} />
               <div className={styles.venteBody}>
                 <div className={styles.venteTop}>
@@ -288,6 +297,7 @@ export function BilanSession({ sessionId, ventes: ventesProp, frais: fraisProp, 
                   </div>
                 )}
               </div>
+              <span className={styles.venteChevron}>›</span>
             </div>
           )
         })}
@@ -395,6 +405,83 @@ export function BilanSession({ sessionId, ventes: ventesProp, frais: fraisProp, 
       </Accordion>
 
       </div>{/* scrollArea */}
+
+      {/* ── PANNEAU DÉTAIL VENTE ───────────────────────────────────── */}
+      {selectedVente && (() => {
+        const meta    = MODE_META[selectedVente.modePaiement]
+        const annulee = selectedVente.statut === 'ANNULEE'
+        return (
+          <div className={styles.venteDetail}>
+            {/* Header sombre */}
+            <div className={styles.venteDetailHeader}>
+              <button className={styles.venteDetailBack} onClick={() => setSelectedVenteId(null)}>
+                ← Retour au bilan
+              </button>
+              <div className={styles.venteDetailTitleRow}>
+                <h3 className={styles.venteDetailTitle}>Vente #{selectedVente.numero}</h3>
+                {!annulee && (
+                  <span className={styles.venteDetailModeBadge}
+                    style={{ background: `${meta?.color ?? '#888'}28`, color: meta?.color ?? '#ccc' }}>
+                    {meta?.label ?? selectedVente.modePaiement}
+                  </span>
+                )}
+              </div>
+              <p className={styles.venteDetailMeta}>
+                {fDate(selectedVente.dateVente)} · {fHeure(selectedVente.dateVente)}
+              </p>
+              {annulee && <div className={styles.venteDetailAnnulee}>Vente annulée</div>}
+            </div>
+
+            {/* Lignes */}
+            <div className={styles.venteDetailScroll}>
+              {selectedVente.lignes.map(l => {
+                const art      = articles.find(a => a.id === l.articleId)
+                const prixStd  = art ? parseFloat(art.prixVenteHT as string) : null
+                const prixUsed = parseFloat(l.prixUnitaireHT)
+                const modified = prixStd !== null && Math.abs(prixStd - prixUsed) > 0.005
+                return (
+                  <div key={l.id} className={styles.venteDetailLigne}>
+                    <div className={styles.venteDetailLeft}>
+                      <span className={styles.venteDetailNom}>{l.article.nom}</span>
+                      {l.quantite > 1 && (
+                        <span className={styles.venteDetailQte}>× {l.quantite} exemplaires</span>
+                      )}
+                    </div>
+                    <div className={styles.venteDetailRight}>
+                      <div className={styles.venteDetailPrixWrap}>
+                        {modified && (
+                          <s className={styles.venteDetailPrixBarre}>{fEur(prixStd!)}</s>
+                        )}
+                        <span className={modified ? styles.venteDetailPrixRemise : styles.venteDetailPrixNormal}>
+                          {fEur(prixUsed)}
+                        </span>
+                        {modified && <span className={styles.venteDetailRemiseBadge}>remisé</span>}
+                      </div>
+                      <span className={styles.venteDetailLigneTotal}>
+                        {fEur(parseFloat(l.totalLigneTTC))}
+                      </span>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+
+            {/* Footer totaux */}
+            <div className={styles.venteDetailFooter}>
+              <div className={styles.venteDetailTaxRow}>
+                <span>Total HT</span><span>{fEur(parseFloat(selectedVente.totalHT))}</span>
+              </div>
+              <div className={styles.venteDetailTaxRow}>
+                <span>TVA</span><span>{fEur(parseFloat(selectedVente.totalTVA))}</span>
+              </div>
+              <div className={styles.venteDetailTotalRow}>
+                <span className={styles.venteDetailTotalLabel}>Total TTC</span>
+                <span className={styles.venteDetailTotalVal}>{fEur(parseFloat(selectedVente.totalTTC))}</span>
+              </div>
+            </div>
+          </div>
+        )
+      })()}
     </div>
   )
 }

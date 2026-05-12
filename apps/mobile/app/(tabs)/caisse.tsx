@@ -25,7 +25,8 @@ interface CartItem {
   id: string
   articleId: string
   nom: string
-  prix: number
+  prix: number        // prix actuel
+  prixOrigine: number  // prix d'origine (pour savoir si modifié)
   quantite: number
 }
 
@@ -121,7 +122,8 @@ export default function CaisseScreen() {
             if (existing) {
               return prev.map(i => i.articleId === article.id ? { ...i, quantite: i.quantite + 1 } : i)
             }
-            return [...prev, { id: Date.now().toString() + Math.random(), articleId: article.id, nom: article.nom, prix: article.prix_vente_ht, quantite: 1 }]
+            const prixArt = article.prix_vente_ht
+            return [...prev, { id: Date.now().toString() + Math.random(), articleId: article.id, nom: article.nom, prix: prixArt, prixOrigine: prixArt, quantite: 1 }]
           })
         }
       }
@@ -139,6 +141,7 @@ export default function CaisseScreen() {
   const [cart, setCart] = useState<CartItem[]>([])
   const [showCart, setShowCart] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
+  const [saleError, setSaleError] = useState<string | null>(null)
   const [selectedPayment, setSelectedPayment] = useState<PaymentMode>('CB')
   const [submitting, setSubmitting] = useState(false)
 
@@ -222,15 +225,21 @@ export default function CaisseScreen() {
 
   async function handleCloseSession() { closeSession(0) }
 
+  const [editingPrice, setEditingPrice] = useState<string | null>(null)
+  const [editPriceVal, setEditPriceVal] = useState('')
+
   function addToCart(article: LocalArticle) {
     if (article.stock_local <= 0) return
     setCart(prev => {
-      const existing = prev.find(i => i.articleId === article.id)
+      // Grouper seulement si même article ET prix non modifié
+      const existing = prev.find(i => i.articleId === article.id && i.prix === i.prixOrigine)
       if (existing) {
         if (existing.quantite >= article.stock_local) return prev
-        return prev.map(i => i.articleId === article.id ? { ...i, quantite: i.quantite + 1 } : i)
+        return prev.map(i => i.articleId === article.id && i.prix === i.prixOrigine
+          ? { ...i, quantite: i.quantite + 1 } : i)
       }
-      return [...prev, { id: Date.now().toString(), articleId: article.id, nom: article.nom, prix: article.prix_vente_ht, quantite: 1 }]
+      const prix = article.prix_vente_ht
+      return [...prev, { id: Date.now().toString(), articleId: article.id, nom: article.nom, prix, prixOrigine: prix, quantite: 1 }]
     })
   }
 
@@ -238,14 +247,28 @@ export default function CaisseScreen() {
     setCart(prev => prev.map(i => {
       if (i.id !== id) return i
       const q = i.quantite + delta
-      return q <= 0 ? i : { ...i, quantite: q }
+      // Si la quantité atteint 0, on supprime la ligne
+      return q <= 0 ? { ...i, quantite: 0 } : { ...i, quantite: q }
     }).filter(i => i.quantite > 0))
+  }
+
+  function removeFromCart(id: string) {
+    setCart(prev => prev.filter(i => i.id !== id))
+  }
+
+  function updatePrice(id: string) {
+    const val = parseFloat(editPriceVal.replace(',', '.'))
+    if (!isNaN(val) && val >= 0) {
+      setCart(prev => prev.map(i => i.id === id ? { ...i, prix: val } : i))
+    }
+    setEditingPrice(null)
   }
 
   function clearCart() { setCart([]); setShowCart(false) }
 
   async function handleSale() {
     if (cart.length === 0 || submitting) return
+    setSaleError(null)
     setSubmitting(true)
     const payment = encaissementDirect ? 'PDV' : selectedPayment
     try {
@@ -264,6 +287,8 @@ export default function CaisseScreen() {
       addLog('info', `Vente validée: ${total.toFixed(2)} €`)
     } catch (e: any) {
       addLog('error', `Erreur vente: ${e?.message}`)
+      setSaleError(e?.message ?? 'Erreur inconnue')
+      if (hasSession) pullFromServer().catch(() => {})
     } finally { setSubmitting(false) }
   }
 
@@ -491,7 +516,8 @@ export default function CaisseScreen() {
           const rupture = a.stock_local <= 0
           const stockLow = a.stock_local > 0 && a.stock_local <= (a.stock_alerte || 3)
           const accent = getCatColor(a.categorie_id ?? a.rayon_nom ?? a.nom)
-          const inCart = cart.find(i => i.articleId === a.id)
+          const inCartQty = cart.filter(i => i.articleId === a.id).reduce((s, i) => s + i.quantite, 0)
+          const inCart = inCartQty > 0
           return (
             <TouchableOpacity
               style={[styles.productCard, isDark && { backgroundColor: Dark.surface, shadowColor: 'transparent', elevation: 0 }, inCart && { borderColor: accent, borderWidth: 2 }]}
@@ -532,7 +558,7 @@ export default function CaisseScreen() {
               {/* Badge panier */}
               {inCart && (
                 <View style={[styles.productCartBadge, { backgroundColor: accent }]}>
-                  <Text style={styles.productCartBadgeText}>{inCart.quantite}</Text>
+                  <Text style={styles.productCartBadgeText}>{inCartQty}</Text>
                 </View>
               )}
               {/* Overlay rupture */}
@@ -582,7 +608,38 @@ export default function CaisseScreen() {
                 <View key={item.id} style={styles.cartRow}>
                   <View style={styles.cartRowInfo}>
                     <Text style={styles.cartRowName}>{item.nom}</Text>
-                    <Text style={styles.cartRowUnit}>{item.prix.toFixed(2)} € / u.</Text>
+                    {editingPrice === item.id ? (
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 }}>
+                        <TextInput
+                          style={styles.cartPriceInput}
+                          value={editPriceVal}
+                          onChangeText={setEditPriceVal}
+                          keyboardType="decimal-pad"
+                          autoFocus
+                          selectTextOnFocus
+                        />
+                        <TouchableOpacity
+                          style={styles.cartPriceOk}
+                          onPress={() => updatePrice(item.id)}
+                          activeOpacity={0.7}>
+                          <Text style={styles.cartPriceOkText}>✓</Text>
+                        </TouchableOpacity>
+                      </View>
+                    ) : (
+                      <TouchableOpacity
+                        style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}
+                        onPress={() => { setEditingPrice(item.id); setEditPriceVal(String(item.prix)) }}>
+                        {item.prix !== item.prixOrigine ? (
+                          <View style={{ flexDirection: 'row', gap: 6 }}>
+                            <Text style={styles.cartRowOldPrice}>{item.prixOrigine.toFixed(2)} €</Text>
+                            <Text style={styles.cartRowNewPrice}>{item.prix.toFixed(2)} € / u.</Text>
+                          </View>
+                        ) : (
+                          <Text style={styles.cartRowUnit}>{item.prix.toFixed(2)} € / u.</Text>
+                        )}
+                        <Text style={styles.cartRowEditHint}>✎</Text>
+                      </TouchableOpacity>
+                    )}
                   </View>
                   <View style={styles.cartRowQty}>
                     <TouchableOpacity onPress={() => updateQte(item.id, -1)} style={styles.qtyBtn} activeOpacity={0.6}>
@@ -594,6 +651,10 @@ export default function CaisseScreen() {
                     </TouchableOpacity>
                   </View>
                   <Text style={styles.cartRowTotal}>{(item.prix * item.quantite).toFixed(2)} €</Text>
+                  <TouchableOpacity style={styles.cartDelBtn} activeOpacity={0.5}
+                    onPress={() => removeFromCart(item.id)}>
+                    <Text style={styles.cartDelIcon}>✕</Text>
+                  </TouchableOpacity>
                 </View>
               ))}
             </ScrollView>
@@ -620,6 +681,12 @@ export default function CaisseScreen() {
             <Text style={styles.confirmTitle}>Confirmer la vente</Text>
             <Text style={styles.confirmTotal}>{total.toFixed(2)} €</Text>
             <Text style={styles.confirmArticles}>{cart.length} article{cart.length > 1 ? 's' : ''}</Text>
+            {saleError && (
+              <View style={styles.confirmError}>
+                <Text style={styles.confirmErrorText}>{saleError}</Text>
+                <Text style={styles.confirmErrorHint}>Les articles seront resynchronisés. Réessayez.</Text>
+              </View>
+            )}
             {!encaissementDirect && (
               <>
                 <Text style={styles.confirmSectionLabel}>Mode de paiement</Text>
@@ -639,7 +706,7 @@ export default function CaisseScreen() {
             )}
             <View style={styles.confirmActions}>
               <TouchableOpacity style={styles.confirmBtnCancel} activeOpacity={0.7}
-                onPress={() => setShowConfirm(false)}>
+                onPress={() => { setShowConfirm(false); setSaleError(null) }}>
                 <Text style={styles.confirmBtnCancelText}>Retour</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.confirmBtnOk} activeOpacity={0.85}
@@ -785,11 +852,35 @@ const styles = StyleSheet.create({
   cartRowInfo: { flex: 1 },
   cartRowName: { fontFamily: Fonts.body, fontSize: 14, fontWeight: '600', color: Colors.text },
   cartRowUnit: { fontFamily: Fonts.body, fontSize: 11, color: Colors.textSoft, marginTop: 2 },
+  cartRowOldPrice: { fontFamily: Fonts.body, fontSize: 11, color: Colors.textSoft, textDecorationLine: 'line-through' as const },
+  cartRowNewPrice: { fontFamily: Fonts.body, fontSize: 11, fontWeight: '700', color: Colors.terra },
+  cartPriceInput: {
+    fontFamily: Fonts.body, fontSize: 11, color: Colors.ink,
+    backgroundColor: Colors.cream, borderRadius: Radius.sm,
+    paddingHorizontal: 8, paddingVertical: 4, width: 72,
+    borderWidth: 1, borderColor: Colors.rose,
+  },
+  cartPriceOk: {
+    width: 24, height: 24, borderRadius: 12,
+    backgroundColor: Colors.sage, justifyContent: 'center', alignItems: 'center',
+  },
+  cartPriceOkText: { fontSize: 12, fontWeight: '700', color: Colors.white },
+  cartRowEditHint: { fontSize: 10, color: Colors.textSoft, marginLeft: 2 },
   cartRowQty: { flexDirection: 'row', alignItems: 'center', gap: 8, marginRight: 12 },
   qtyBtn: { width: 30, height: 30, borderRadius: Radius.full, backgroundColor: Colors.cream, justifyContent: 'center', alignItems: 'center' },
   qtyBtnText: { fontSize: 16, color: Colors.rose, fontWeight: '600' },
   qtyValue: { fontFamily: Fonts.body, fontSize: 15, fontWeight: '700', color: Colors.text, minWidth: 20, textAlign: 'center' },
   cartRowTotal: { fontFamily: Fonts.body, fontSize: 14, fontWeight: '700', color: Colors.roseDark, minWidth: 56, textAlign: 'right' },
+  cartDelBtn: { width: 24, height: 24, borderRadius: 12, backgroundColor: Colors.terraLight, justifyContent: 'center', alignItems: 'center', marginLeft: 6 },
+  cartDelIcon: { fontSize: 9, color: Colors.terra, fontWeight: '700' },
+
+  // Swipe actions
+  swipeRowWrap: { position: 'relative', overflow: 'hidden', borderRadius: Radius.md },
+  swipeBgBtn: { position: 'absolute', top: 0, bottom: 0, justifyContent: 'center', alignItems: 'center', width: 64 },
+  swipeEditBg: { right: 0, backgroundColor: Colors.inkLight, borderTopRightRadius: Radius.md, borderBottomRightRadius: Radius.md },
+  swipeDeleteBg: { left: 0, backgroundColor: Colors.terra, borderTopLeftRadius: Radius.md, borderBottomLeftRadius: Radius.md },
+  swipeDeleteText: { fontSize: 18, color: Colors.white },
+  swipeEditText: { fontFamily: Fonts.body, fontSize: 11, fontWeight: '700', color: Colors.white },
   sheetFooter: { paddingHorizontal: 20, paddingTop: 16 },
   sheetTotalRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 },
   sheetTotalLabel: { fontFamily: Fonts.body, fontSize: 12, fontWeight: '700', color: Colors.textSoft, textTransform: 'uppercase', letterSpacing: 0.6 },
@@ -802,6 +893,9 @@ const styles = StyleSheet.create({
   confirmTitle: { fontFamily: Fonts.displayItalic, fontSize: 18, color: Colors.rose, fontStyle: 'italic', marginBottom: 16 },
   confirmTotal: { fontFamily: Fonts.displayItalic, fontSize: 42, color: Colors.sage, fontStyle: 'italic' },
   confirmArticles: { fontFamily: Fonts.body, fontSize: 13, color: Colors.textSoft, marginBottom: 20 },
+  confirmError: { backgroundColor: Colors.terraLight, borderRadius: Radius.md, padding: 12, marginBottom: 16, borderWidth: 1, borderColor: 'rgba(200,93,58,0.2)' },
+  confirmErrorText: { fontFamily: Fonts.body, fontSize: 12, fontWeight: '700', color: Colors.terra, textAlign: 'center' },
+  confirmErrorHint: { fontFamily: Fonts.body, fontSize: 10, color: Colors.textSoft, textAlign: 'center', marginTop: 4 },
   confirmSectionLabel: { fontFamily: Fonts.body, fontSize: 11, fontWeight: '700', color: Colors.textSoft, textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 8, alignSelf: 'flex-start' },
   confirmPayRow: { flexDirection: 'row', gap: 6, marginBottom: 24, alignSelf: 'stretch' },
   confirmPayChip: { flex: 1, alignItems: 'center', padding: 10, borderRadius: Radius.md, backgroundColor: Colors.cream, borderWidth: 2, borderColor: 'transparent' },

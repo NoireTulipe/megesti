@@ -74,7 +74,7 @@ export const venteRoutes: FastifyPluginAsync = async (app) => {
       if (!motif) return reply.notFound('Motif de vente introuvable')
     }
 
-    const articleIds = body.lignes.map((l) => l.articleId)
+    const articleIds = [...new Set(body.lignes.map((l) => l.articleId))]
     const articles = await app.db.article.findMany({
       where: { id: { in: articleIds }, tenantId },
       include: { rayon: { select: { tauxTVA: true } } },

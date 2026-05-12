@@ -17,6 +17,7 @@ export interface LocalVente {
   lignes_json: string
   synced: number
   synced_at: string | null
+  statut: string
 }
 
 export interface LigneVente {
@@ -100,13 +101,17 @@ export function useLocalVentes(sessionId?: string) {
       synced = 1
       addLog('info', `Vente envoyée au serveur: ${totalTTCr.toFixed(2)} € — ${input.modePaiement}`)
     } catch (e: any) {
+      // Si le serveur rejette la vente (article introuvable, etc.), ne pas stocker en local
+      if (e?.status === 404 || e?.status === 400) {
+        throw e
+      }
       addLog('warn', `Vente stockée en local (serveur injoignable): ${e.message}`)
     }
 
     const db = await getDb()
     await db.runAsync(
-      `INSERT INTO ventes_locales (id, session_id, motif_vente_id, date_vente, mode_paiement, total_ht, total_tva, total_ttc, lignes_json, synced)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO ventes_locales (id, session_id, motif_vente_id, date_vente, mode_paiement, total_ht, total_tva, total_ttc, lignes_json, synced, statut)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'VALIDEE')`,
       [id, input.sessionId ?? null, input.motifVenteId ?? null, dateVente, input.modePaiement, totalHTr, totalTVAr, totalTTCr, JSON.stringify(lignesCompletes), synced],
     )
 
@@ -119,12 +124,21 @@ export function useLocalVentes(sessionId?: string) {
     return id
   }
 
-  // Stats
-  const stats = {
-    total: ventes.reduce((s, v) => s + v.total_ttc, 0),
-    count: ventes.length,
-    enAttente: ventes.filter(v => !v.synced).length,
+  /** Annuler une vente (soft delete local + PATCH serveur) */
+  async function cancelVente(venteId: string) {
+    const db = await getDb()
+    await db.runAsync(`UPDATE ventes_locales SET statut = 'ANNULEE' WHERE id = ?`, [venteId])
+    api.patch(`/ventes/${venteId}/annuler`, {}).catch(() => {})
+    await refresh()
   }
 
-  return { ventes, loading, refresh, createVente, stats }
+  // Stats (hors annulées)
+  const actives = ventes.filter(v => v.statut !== 'ANNULEE')
+  const stats = {
+    total: actives.reduce((s, v) => s + v.total_ttc, 0),
+    count: actives.length,
+    enAttente: actives.filter(v => !v.synced).length,
+  }
+
+  return { ventes, loading, refresh, createVente, cancelVente, stats }
 }

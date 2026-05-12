@@ -39,3 +39,8 @@ coverage/
 # Exemples de référence pour Claude (non versionnés)
 Exemple-pour-Claude/
 .claude/settings.local.json
+
+# Keystore & credentials (NE JAMAIS COMMITTER)
+**/*.keystore
+apps/mobile/credentials.json
+apps/mobile/android/

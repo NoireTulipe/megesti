@@ -583,7 +583,7 @@ export function VentesPage() {
                   <polyline points="9 22 9 12 15 12 15 22"/>
                 </svg>
                 <div>
-                  <p className={styles.pdvEncaisseTitle}>Encaissé par le point de vente</p>
+                  <p className={styles.pdvEncaisseTitle}>Encaissé par le point de vente <HelpButton slug="aide-caisse-paiementpointdevente" className={styles['tab-help']} /></p>
                   <p className={styles.pdvEncaisseSub}>Le paiement sera reversé ultérieurement.</p>
                 </div>
               </div>

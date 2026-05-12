@@ -2,16 +2,14 @@
 **Auteur :** Ajouté si auteur en contrat chez nous. Sela sera directement lié avec les contrats édités via la système. => En partie fait, reste l'éditeur de contrat en ligne.
 
 
-Attention : Penser au niveau d'abonnement et l'activation ou la désectivation des options.
-
-Attention : Penser au crédit pour les factures. Comme elles sont payantes, on ne peut pas laisser les users envoyer autant de factures qu'ils le souhaiente. On doit donc attribuer des crédits.
-
-**Caisse :** Pouvoir annuler un pannier depuis l'APP et gérer les Pannier annulés. Pouvoir encaisser une vente exeptionnel par l'utilisateur quand prévue en caisse.
+**Stock :** Par article, courbe et histogramme des entrées et sortie sur une période donnée.
 
 
 **Droits auteurs !** Quand un paiement est en retard, la date de prochaine échéance doit rester celle du retard, pas la prochaine. Et bien indiquer le retard.
 Pour les references de paiement : Créer une référence unique par contre : initialAuteur-4premiercaracterelivre-annee-numeroOrdrePaiement
 Il ne sera pas éditable.
+
+**Reversement** Un problème, en plan auto-editeur, quand une vente est enregisté en caisse. On ne peut pas récupérer l'argent car reversement est bloqué.
 
 
 

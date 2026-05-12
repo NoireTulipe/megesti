@@ -17,6 +17,7 @@ interface VenteLigne {
 interface Vente {
   id: string; dateVente: string; modePaiement: string
   totalTTC: number; totalHT: number
+  statut?: string
   lignes: VenteLigne[]
 }
 interface SessionDetail {
@@ -105,6 +106,7 @@ export default function SessionDetailScreen() {
     if (!data) return []
     const map = new Map<string, { nom: string; qty: number; ca: number }>()
     for (const v of data.ventes) {
+      if (v.statut === 'ANNULEE') continue
       for (const l of v.lignes) {
         const nom = l.article?.nom ?? 'Article inconnu'
         const ex = map.get(nom) ?? { nom, qty: 0, ca: 0 }
@@ -130,6 +132,7 @@ export default function SessionDetailScreen() {
       // Coût des ventes
       let cout = 0
       for (const v of data.ventes) {
+        if (v.statut === 'ANNULEE') continue
         for (const l of v.lignes) {
           const art = await db.getFirstAsync<{ prix_achat_ht: number | null }>(
             'SELECT prix_achat_ht FROM articles WHERE id = ?', [l.articleId],
@@ -175,13 +178,21 @@ export default function SessionDetailScreen() {
     })()
   }, [data, id])
 
-  const ca = data ? data.ventes.reduce((sum, v) => sum + Number(v.totalTTC), 0) : 0
+  const ca = data ? data.ventes.filter(v => v.statut !== 'ANNULEE').reduce((sum, v) => sum + Number(v.totalTTC), 0) : 0
   const pdv = data?.pointDeVente ?? null
   const commissionPdv = pdv
     ? (Number(pdv.commissionFixe) || 0) + (ca * (Number(pdv.commissionPourcent) || 0) / 100)
     : 0
   const beneficeNet = ca - coutVentes - fraisSession - commissionPdv
   function fmtEuro(n: number) { return `${n.toFixed(2)} €` }
+
+  async function cancelVente(venteId: string) {
+    await api.patch(`/ventes/${venteId}/annuler`, {}).catch(() => {})
+    // Re-fetch la session pour rafraîchir les statuts
+    if (id) {
+      api.get<SessionDetail>(`/sessions-caisse/${id}`).then(setData).catch(() => {})
+    }
+  }
 
   if (loading) {
     return (
@@ -234,7 +245,7 @@ export default function SessionDetailScreen() {
         </View>
         <View style={[s.summaryDiv, isDark && { backgroundColor: 'rgba(255,255,255,0.1)' }]} />
         <View style={s.summaryItem}>
-          <Text style={[s.summaryVal, { color: isDark ? Dark.text : Colors.ink }]}>{data.ventes.length}</Text>
+          <Text style={[s.summaryVal, { color: isDark ? Dark.text : Colors.ink }]}>{data.ventes.filter(v => v.statut !== 'ANNULEE').length}</Text>
           <Text style={[s.summaryLbl, isDark && { color: 'rgba(255,255,255,0.5)' }]}>paniers</Text>
         </View>
         <View style={[s.summaryDiv, isDark && { backgroundColor: 'rgba(255,255,255,0.1)' }]} />
@@ -297,7 +308,7 @@ export default function SessionDetailScreen() {
       <View style={[s.tabRow, isDark && { backgroundColor: Dark.surface }]}>
         <TouchableOpacity style={[s.tab, tab === 'paniers' && (isDark ? s.tabActiveDark : s.tabActive)]}
           onPress={() => setTab('paniers')} activeOpacity={0.7}>
-          <Text style={[s.tabText, { color: tab === 'paniers' ? (isDark ? Dark.accent : Colors.ink) : (isDark ? Dark.textSoft : Colors.textSoft) }]}>Paniers ({data.ventes.length})</Text>
+          <Text style={[s.tabText, { color: tab === 'paniers' ? (isDark ? Dark.accent : Colors.ink) : (isDark ? Dark.textSoft : Colors.textSoft) }]}>Paniers ({data.ventes.filter(v => v.statut !== 'ANNULEE').length})</Text>
         </TouchableOpacity>
         <TouchableOpacity style={[s.tab, tab === 'articles' && (isDark ? s.tabActiveDark : s.tabActive)]}
           onPress={() => setTab('articles')} activeOpacity={0.7}>
@@ -320,21 +331,29 @@ export default function SessionDetailScreen() {
               const isExpanded = expanded === v.id
               return (
                 <TouchableOpacity key={v.id}
-                  style={[s.panierCard, isDark && { backgroundColor: Dark.surface, shadowColor: 'transparent', elevation: 0 }]}
+                  style={[s.panierCard, v.statut === 'ANNULEE' && { opacity: 0.5 }, isDark && { backgroundColor: Dark.surface, shadowColor: 'transparent', elevation: 0 }]}
                   onPress={() => setExpanded(isExpanded ? null : v.id)}
-                  activeOpacity={0.8}>
+                  activeOpacity={v.statut === 'ANNULEE' ? 1 : 0.8}>
                   <View style={s.panierRow}>
                     <Text style={s.panierEmoji}>{MODE_EMOJI[v.modePaiement] ?? '💰'}</Text>
                     <View style={s.panierInfo}>
-                      <Text style={[s.panierName, isDark && { color: Dark.text }]}>
+                      <Text style={[s.panierName, isDark && { color: Dark.text }, v.statut === 'ANNULEE' && { textDecorationLine: 'line-through' as const }]}>
                         {v.lignes[0]?.article?.nom ?? 'Article'}
                         {v.lignes.length > 1 ? ` +${v.lignes.length - 1}` : ''}
                       </Text>
                       <Text style={[s.panierMeta, isDark && { color: Dark.textSoft }]}>
-                        {fmtTime(v.dateVente)} · {v.modePaiement}
+                        {fmtTime(v.dateVente)} · {v.modePaiement}{v.statut === 'ANNULEE' ? ' · Annulé' : ''}
                       </Text>
                     </View>
-                    <Text style={[s.panierTotal, { color: isDark ? Dark.text : Colors.ink }]}>{Number(v.totalTTC).toFixed(2)} €</Text>
+                    <Text style={[s.panierTotal, { color: isDark ? Dark.text : Colors.ink }, v.statut === 'ANNULEE' && { textDecorationLine: 'line-through' as const }]}>{Number(v.totalTTC).toFixed(2)} €</Text>
+                    {v.statut !== 'ANNULEE' && (
+                      <TouchableOpacity
+                        style={s.panierCancelBtn}
+                        onPress={(e) => { e.stopPropagation(); cancelVente(v.id) }}
+                        activeOpacity={0.5}>
+                        <Text style={s.panierCancelIcon}>✕</Text>
+                      </TouchableOpacity>
+                    )}
                   </View>
                   {isExpanded && (
                     <View style={[s.lignesWrap, isDark && { borderTopColor: 'rgba(255,255,255,0.06)' }]}>
@@ -556,6 +575,11 @@ const s = StyleSheet.create({
   panierName: { fontFamily: Fonts.body, fontSize: 14, fontWeight: '600', color: Colors.text },
   panierMeta: { fontFamily: Fonts.body, fontSize: 11, color: Colors.textSoft, marginTop: 2 },
   panierTotal: { fontFamily: Fonts.body, fontSize: 15, fontWeight: '700', color: Colors.ink },
+  panierCancelBtn: {
+    width: 26, height: 26, borderRadius: 13,
+    backgroundColor: Colors.terraLight, justifyContent: 'center', alignItems: 'center', marginLeft: 8,
+  },
+  panierCancelIcon: { fontSize: 10, color: Colors.terra, fontWeight: '700' },
 
   lignesWrap: { marginTop: 10, paddingTop: 10, borderTopWidth: 1, borderTopColor: Colors.cream },
   ligneRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 4 },

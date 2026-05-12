@@ -11,6 +11,7 @@ import { getFormWidth }        from '@/lib/formWidth'
 import sty    from '@/features/auteurs/AuteursPage.module.css'
 import mascot from './PointsDeVentePage.module.css'
 import { MascoteBlock } from '@/components/MascoteBlock'
+import { HelpButton } from '@/components/HelpButton'
 
 // ── Page principale ───────────────────────────────────────────────────────────
 
@@ -67,7 +68,8 @@ export function PointsDeVentePage() {
               <line x1="7" y1="7" x2="7.01" y2="7"/>
             </svg>
             Catégories
-          </button>
+          </button> 
+          <HelpButton slug="aide-pdv-categorie" />
 
           {/* Bouton Nouveau PDV — désactivé si aucune catégorie */}
           <button

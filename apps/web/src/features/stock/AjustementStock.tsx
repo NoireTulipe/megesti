@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
 import { useCreateMouvement, type TypeMouvement } from './hooks/useMouvementsStock'
 import type { Article } from '@/features/catalogue/types'
@@ -33,6 +34,18 @@ export function AjustementStock({ article, onClose }: Props) {
   const [noteLibre,  setNoteLibre]  = useState('')
   const [montantHT,  setMontantHT]  = useState<string>('')
   const create = useCreateMouvement()
+
+  useEffect(() => {
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = prev }
+  }, [])
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [onClose])
 
   const stockActuel = article.stock
 
@@ -70,8 +83,9 @@ export function AjustementStock({ article, onClose }: Props) {
     onClose()
   }
 
-  return (
-    <div className={styles.panel}>
+  return createPortal(
+    <div className={styles.overlay} onClick={onClose}>
+      <div className={styles.panel} onClick={e => e.stopPropagation()}>
       {/* En-tête */}
       <div className={styles.header}>
         <div className={styles.headerText}>
@@ -215,6 +229,8 @@ export function AjustementStock({ article, onClose }: Props) {
           {create.isPending ? 'Enregistrement…' : 'Valider l\'ajustement'}
         </button>
       </div>
-    </div>
+      </div>
+    </div>,
+    document.body
   )
 }
