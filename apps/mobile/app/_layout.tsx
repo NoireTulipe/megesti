@@ -54,16 +54,16 @@ function AuthGate({ children }: { children: React.ReactNode }) {
 }
 
 export default function RootLayout() {
-  const [fontsLoaded] = useFonts({
+  const [fontsLoaded, fontError] = useFonts({
     'DM Serif Display': require('../assets/fonts/DMSerifDisplay-Regular.ttf'),
     'DM Serif Display Italic': require('../assets/fonts/DMSerifDisplay-Italic.ttf'),
   })
 
   useEffect(() => {
-    if (fontsLoaded) SplashScreen.hideAsync()
-  }, [fontsLoaded])
+    if (fontsLoaded || fontError) SplashScreen.hideAsync()
+  }, [fontsLoaded, fontError])
 
-  if (!fontsLoaded) return null
+  if (!fontsLoaded && !fontError) return null
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
