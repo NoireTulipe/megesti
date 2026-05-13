@@ -5,7 +5,6 @@
     "version": "0.0.1",
     "orientation": "portrait",
     "scheme": "megesti",
-    "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "icon": "./assets/images/icon.png",
     "splash": {
