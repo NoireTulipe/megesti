@@ -21,6 +21,8 @@ export async function initDb(): Promise<void> {
     `ALTER TABLE articles ADD COLUMN thumb_app_url TEXT`,
     `ALTER TABLE articles ADD COLUMN prix_achat_ht REAL`,
     `ALTER TABLE frais_locaux ADD COLUMN actif INTEGER NOT NULL DEFAULT 1`,
+    `ALTER TABLE frais_locaux ADD COLUMN synced_at TEXT`,
+    `ALTER TABLE sessions ADD COLUMN synced_at TEXT`,
     `ALTER TABLE ventes_locales ADD COLUMN statut TEXT NOT NULL DEFAULT 'VALIDEE'`,
   ]) {
     try { await db.execAsync(col) } catch { /* colonne existe déjà */ }
@@ -56,7 +58,8 @@ export async function initDb(): Promise<void> {
       debiter_stock INTEGER NOT NULL DEFAULT 1,
       statut TEXT NOT NULL DEFAULT 'OUVERTE',
       articles_exposes TEXT,
-      synced INTEGER NOT NULL DEFAULT 0
+      synced INTEGER NOT NULL DEFAULT 0,
+      synced_at TEXT
     );
 
     CREATE TABLE IF NOT EXISTS ventes_locales (
@@ -84,6 +87,8 @@ export async function initDb(): Promise<void> {
       montant_ht REAL,
       date TEXT NOT NULL,
       synced INTEGER NOT NULL DEFAULT 0,
+      synced_at TEXT,
+      actif INTEGER NOT NULL DEFAULT 1,
       FOREIGN KEY (session_id) REFERENCES sessions(id)
     );
 

@@ -52,7 +52,12 @@
       "Bash(node_modules/.bin/prisma migrate *)",
       "Bash(sed -i \"s|import { mascoteDialogRoutes }   from './mascote-dialogs.js'|import { mascoteDialogRoutes }   from './mascote-dialogs.js'\\\\nimport { popupRoutes }           from './popups.js'|\" /c/Users/DCFM/Documents/Bobo/megesti/apps/api/src/routes/index.ts)",
       "Bash(sed -i \"s|  await app.register\\(mascoteDialogRoutes,  { prefix: '/mascote-dialogs' }\\)|  await app.register\\(mascoteDialogRoutes,  { prefix: '/mascote-dialogs' }\\)\\\\n  await app.register\\(popupRoutes,          { prefix: '/popups' }\\)|\" /c/Users/DCFM/Documents/Bobo/megesti/apps/api/src/routes/index.ts)",
-      "Bash(pnpm --filter web tsc --noEmit)"
+      "Bash(pnpm --filter web tsc --noEmit)",
+      "Read(//mnt/c/Users/DCFM/Documents/Bobo/megesti/apps/**)",
+      "Bash(python3 -c ' *)",
+      "PowerShell(Get-Item *)",
+      "PowerShell(pnpm store *)",
+      "PowerShell(Get-ChildItem *)"
     ]
   }
 }

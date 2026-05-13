@@ -5,6 +5,7 @@ import { useFonts } from 'expo-font'
 import { ActivityIndicator, View, Text } from 'react-native'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import * as SplashScreen from 'expo-splash-screen'
 import { useAuthStore } from '@/store/authStore'
 import { useDevStore } from '@/store/devStore'
 import { useThemeStore } from '@/store/themeStore'
@@ -13,6 +14,8 @@ import { DevMenu } from '@/components/DevMenu'
 import { initDb } from '@/lib/db'
 import { Colors, Dark, Fonts } from '@/constants/theme'
 import '@/i18n'
+
+SplashScreen.preventAutoHideAsync()
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 2, staleTime: 30_000 } },
@@ -55,6 +58,10 @@ export default function RootLayout() {
     'DM Serif Display': require('../assets/fonts/DMSerifDisplay-Regular.ttf'),
     'DM Serif Display Italic': require('../assets/fonts/DMSerifDisplay-Italic.ttf'),
   })
+
+  useEffect(() => {
+    if (fontsLoaded) SplashScreen.hideAsync()
+  }, [fontsLoaded])
 
   if (!fontsLoaded) return null
 

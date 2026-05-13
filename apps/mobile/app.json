@@ -7,7 +7,9 @@
     "scheme": "megesti",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
+    "icon": "./assets/images/icon.png",
     "splash": {
+      "image": "./assets/images/splash-logo.png",
       "backgroundColor": "#FFF9F5"
     },
     "ios": {
@@ -16,6 +18,7 @@
     },
     "android": {
       "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#FFF9F5"
       },
       "package": "com.megesti.app"
