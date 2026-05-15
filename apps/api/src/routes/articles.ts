@@ -212,6 +212,53 @@ export const articleRoutes: FastifyPluginAsync = async (app) => {
     }
   })
 
+  // ── Stats de ventes par article ──
+  app.get('/:id/ventes-stats', auth, async (request) => {
+    const { tenantId } = request.tenant
+    const { id }       = request.params as { id: string }
+    const { period = '12' } = request.query as { period?: string }
+
+    const periodMonths = Math.min(Math.max(Number(period) || 12, 1), 36)
+    const cutoff = new Date()
+    cutoff.setMonth(cutoff.getMonth() - periodMonths)
+
+    const lignes = await app.db.ligneVente.findMany({
+      where: {
+        articleId: id,
+        vente:     { tenantId, dateVente: { gte: cutoff }, statut: 'VALIDEE' },
+      },
+      select: {
+        quantite:     true,
+        totalLigneHT: true,
+        vente:        { select: { dateVente: true } },
+      },
+    })
+
+    const byMonth = new Map<string, { quantite: number; totalHT: number }>()
+    for (const ligne of lignes) {
+      const d   = new Date(ligne.vente.dateVente)
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+      const cur = byMonth.get(key) ?? { quantite: 0, totalHT: 0 }
+      byMonth.set(key, {
+        quantite: cur.quantite + ligne.quantite,
+        totalHT:  cur.totalHT + Number(ligne.totalLigneHT),
+      })
+    }
+
+    const months = []
+    for (let i = periodMonths - 1; i >= 0; i--) {
+      const d   = new Date()
+      d.setDate(1)
+      d.setMonth(d.getMonth() - i)
+      const key   = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+      const label = d.toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' })
+      const cur   = byMonth.get(key)
+      months.push({ key, label, quantite: cur?.quantite ?? 0, totalHT: cur?.totalHT ?? 0 })
+    }
+
+    return { months }
+  })
+
   app.delete('/:id', authAdmin, async (request, reply) => {
     const { tenantId } = request.tenant
     const { id } = request.params as { id: string }

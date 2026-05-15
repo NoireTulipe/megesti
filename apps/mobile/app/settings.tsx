@@ -74,6 +74,7 @@ export default function SettingsScreen() {
   async function handleSumupLogin() {
     setCheckingLogin(true)
     try {
+      await SumUp.init(Config.sumupAffiliateKey)
       const success = await SumUp.login()
       setSumupLoggedIn(success)
       if (!success) Alert.alert('Connexion annulée', 'La connexion à SumUp a été annulée.')

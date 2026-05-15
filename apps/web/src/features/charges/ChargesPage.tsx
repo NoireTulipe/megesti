@@ -371,7 +371,7 @@ export function ChargesPage() {
   return (
     <div className={styles.page}>
 
-      <button className={styles.backBtn} style={{ margin: '24px 40px 0', width: 'fit-content' }} onClick={() => navigate('/bilan')}>
+      <button className={styles.backBtn} onClick={() => navigate('/bilan')}>
         <ArrowLeft size={16} /> Bilan
       </button>
 
