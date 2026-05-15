@@ -416,14 +416,14 @@ function SortableRayon({
           title={isExpanded ? 'Réduire' : 'Développer'}
           aria-expanded={isExpanded}
         >
-          {isExpanded ? '•-•' : '•-•'}
+          {isExpanded ? '▾' : '▸'}
         </button>
 
         <button
           className={`${styles.btnIconSm} ${styles.btnDelete}`}
           onClick={() => onDelete(rayon.id, rayon.nom)}
           title="Supprimer le rayon"
-        >•-</button>
+        >✕</button>
       </div>
 
       {/* •"?•"? Catégories •"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"? */}
@@ -511,7 +511,7 @@ function SortableCategorie({ cat, rayonId, onRename, onDelete }: SortableCategor
         className={`${styles.btnIconXs} ${styles.btnDelete}`}
         onClick={() => onDelete(cat.id, rayonId, cat.nom)}
         title="Supprimer"
-      >•-</button>
+      >✕</button>
     </div>
   )
 }

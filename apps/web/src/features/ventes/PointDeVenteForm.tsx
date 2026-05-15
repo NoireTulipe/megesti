@@ -171,7 +171,7 @@ export function PointDeVenteForm({ onClose, pointDeVente }: Props) {
             className={`${fStyles.encaissBtn} ${encaissementDirect ? fStyles.encaissBtnActive : ''}`}
             onClick={() => setValue('encaissementDirect', true)}
           >
-            <span className={fStyles.encaissEmoji}>•Y••</span>
+            <span className={fStyles.encaissEmoji}>💳</span>
             <span className={fStyles.encaissLabel}>Direct par la ME</span>
             <span className={fStyles.encaissDesc}>CB, espèces, chèque…</span>
           </button>
@@ -180,7 +180,7 @@ export function PointDeVenteForm({ onClose, pointDeVente }: Props) {
             className={`${fStyles.encaissBtn} ${!encaissementDirect ? fStyles.encaissBtnActive : ''}`}
             onClick={() => setValue('encaissementDirect', false)}
           >
-            <span className={fStyles.encaissEmoji}>•Y••</span>
+            <span className={fStyles.encaissEmoji}>🏬</span>
             <span className={fStyles.encaissLabel}>Par le point de vente</span>
             <span className={fStyles.encaissDesc}>Le PDV encaisse, reverse ensuite</span>
           </button>
@@ -188,8 +188,8 @@ export function PointDeVenteForm({ onClose, pointDeVente }: Props) {
         <input type="hidden" {...register('encaissementDirect')} />
         <p style={{ fontSize: '0.78rem', color: 'var(--text-soft)', lineHeight: 1.55, margin: '8px 0 0', padding: '10px 12px', background: 'var(--cream)', borderRadius: 8 }}>
           {encaissementDirect
-            ? '•Y•• Vous encaissez directement les paiements (CB, espèces, chèque…) lors de vos ventes. MeGesti enregistre chaque règlement en temps réel.'
-            : '•Y•• Le point de vente encaisse à votre place (ex : librairie partenaire). Vous recevrez un reversement par la suite. MeGesti suit les commissions et les reversements dus.'}
+            ? '💳 Vous encaissez directement les paiements (CB, espèces, chèque…) lors de vos ventes. MeGesti enregistre chaque règlement en temps réel.'
+            : '🏬 Le point de vente encaisse à votre place (ex : librairie partenaire). Vous recevrez un reversement par la suite. MeGesti suit les commissions et les reversements dus.'}
         </p>
         <CustomFieldsRenderer entityType="pointDeVente" onlyCategory="Encaissement" register={register} errors={errors} />
       </div>
