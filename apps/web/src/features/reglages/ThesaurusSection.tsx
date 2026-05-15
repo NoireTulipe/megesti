@@ -1,4 +1,4 @@
-﻿import { generateUUID } from '@/lib/utils'
+import { generateUUID } from '@/lib/utils'
 import { useState } from 'react'
 import { useThesauri, useCreateThesaurus, useDeleteThesaurus, useCreateThesaurusEntry } from './hooks/useThesaurus'
 import type { Thesaurus, ThesaurusEntry } from './hooks/useThesaurus'
@@ -31,22 +31,22 @@ export function ThesaurusSection() {
     setCreating(false)
   }
 
-  if (isLoading) return <p className={styles.loading}>Chargementâ€¦</p>
+  if (isLoading) return <p className={styles.loading}>Chargement…</p>
 
   return (
     <div className={styles.layout}>
-      {/* Colonne gauche â€” liste des thÃ©saurus */}
+      {/* Colonne gauche — liste des thésaurus */}
       <div className={styles.sidebar}>
         <div className={styles.sidebarHeader}>
-          <span className={styles.sidebarTitle}>Vos thÃ©saurus</span>
+          <span className={styles.sidebarTitle}>Vos thésaurus</span>
           <button className={styles.btnAdd} onClick={() => setShowCreate(true)}>+</button>
         </div>
 
         {thesauri.length === 0 && (
           <div className={styles.empty}>
-            <p>Aucun thÃ©saurus.</p>
+            <p>Aucun thésaurus.</p>
             <button className={styles.btnEmptyAdd} onClick={() => setShowCreate(true)}>
-              CrÃ©er le premier
+              Créer le premier
             </button>
           </div>
         )}
@@ -63,11 +63,11 @@ export function ThesaurusSection() {
         ))}
       </div>
 
-      {/* Colonne droite â€” dÃ©tail */}
+      {/* Colonne droite — détail */}
       <div className={styles.detail}>
         {!selected && (
           <div className={styles.detailEmpty}>
-            <p>SÃ©lectionnez un thÃ©saurus pour gÃ©rer ses entrÃ©es.</p>
+            <p>Sélectionnez un thésaurus pour gérer ses entrées.</p>
           </div>
         )}
         {selected && (
@@ -78,8 +78,8 @@ export function ThesaurusSection() {
         )}
       </div>
 
-      {/* Modal crÃ©ation thÃ©saurus */}
-      <Modal isOpen={showCreate} onClose={() => setShowCreate(false)} title="Nouveau thÃ©saurus" size="md">
+      {/* Modal création thésaurus */}
+      <Modal isOpen={showCreate} onClose={() => setShowCreate(false)} title="Nouveau thésaurus" size="md">
         <div className={styles.createForm}>
           <div className={styles.field}>
             <label className={styles.label}>Nom <span className={styles.req}>*</span></label>
@@ -87,7 +87,7 @@ export function ThesaurusSection() {
               className={styles.input}
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
-              placeholder="Ex : Genre littÃ©raire, Type de reliureâ€¦"
+              placeholder="Ex : Genre littéraire, Type de reliure…"
               autoFocus
               onKeyDown={(e) => { if (e.key === 'Enter') handleCreateThesaurus() }}
             />
@@ -105,7 +105,7 @@ export function ThesaurusSection() {
           <div className={styles.actions}>
             <button className={styles.btnSecondary} onClick={() => setShowCreate(false)}>Annuler</button>
             <button className={styles.btnPrimary} onClick={handleCreateThesaurus} disabled={creating || !newName.trim()}>
-              {creating ? 'CrÃ©ationâ€¦' : 'CrÃ©er'}
+              {creating ? 'Création…' : 'Créer'}
             </button>
           </div>
         </div>
@@ -143,16 +143,16 @@ function ThesaurusDetail({ thesaurus, onDelete }: { thesaurus: Thesaurus; onDele
       <div className={styles.detailHeader}>
         <div>
           <h2 className={styles.detailTitle}>{thesaurus.nameFr}</h2>
-          <p className={styles.detailCount}>{thesaurus.entries.length} entrÃ©e{thesaurus.entries.length !== 1 ? 's' : ''}</p>
+          <p className={styles.detailCount}>{thesaurus.entries.length} entrée{thesaurus.entries.length !== 1 ? 's' : ''}</p>
         </div>
-        <button className={styles.btnDanger} onClick={() => { if (confirm('Supprimer ce thÃ©saurus ?')) onDelete() }}>
+        <button className={styles.btnDanger} onClick={() => { if (confirm('Supprimer ce thésaurus ?')) onDelete() }}>
           Supprimer
         </button>
       </div>
 
-      {/* Arbre des entrÃ©es */}
+      {/* Arbre des entrées */}
       <div className={styles.tree}>
-        {roots.length === 0 && <p className={styles.treeEmpty}>Aucune entrÃ©e. Ajoutez-en ci-dessous.</p>}
+        {roots.length === 0 && <p className={styles.treeEmpty}>Aucune entrée. Ajoutez-en ci-dessous.</p>}
         {roots.map((entry) => (
           <EntryNode key={entry.id} entry={entry} children={children(entry.id)} />
         ))}
@@ -160,18 +160,18 @@ function ThesaurusDetail({ thesaurus, onDelete }: { thesaurus: Thesaurus; onDele
 
       {/* Formulaire ajout */}
       <div className={styles.addEntry}>
-        <p className={styles.addEntryTitle}>Ajouter une entrÃ©e</p>
+        <p className={styles.addEntryTitle}>Ajouter une entrée</p>
         <div className={styles.addEntryRow}>
           <input
             className={styles.input}
             value={newLabel}
             onChange={(e) => setNewLabel(e.target.value)}
-            placeholder="LibellÃ©â€¦"
+            placeholder="Libellé…"
             onKeyDown={(e) => { if (e.key === 'Enter') handleAddEntry() }}
           />
           {roots.length > 0 && (
             <select className={styles.select} value={parentId} onChange={(e) => setParentId(e.target.value)}>
-              <option value="">EntrÃ©e racine</option>
+              <option value="">Entrée racine</option>
               {roots.map((r) => <option key={r.id} value={r.id}>{r.labelFr}</option>)}
             </select>
           )}
@@ -180,7 +180,7 @@ function ThesaurusDetail({ thesaurus, onDelete }: { thesaurus: Thesaurus; onDele
             onClick={handleAddEntry}
             disabled={adding || !newLabel.trim()}
           >
-            {adding ? 'â€¦' : 'Ajouter'}
+            {adding ? '…' : 'Ajouter'}
           </button>
         </div>
       </div>

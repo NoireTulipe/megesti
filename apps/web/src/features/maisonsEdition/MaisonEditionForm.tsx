@@ -1,4 +1,4 @@
-﻿import { generateUUID } from '@/lib/utils'
+import { generateUUID } from '@/lib/utils'
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -121,7 +121,7 @@ export function MaisonEditionForm({ onClose, maisonEdition }: Props) {
       <div className={styles.section}>
         <p className={styles.sectionLabel}>Adresse</p>
         <div className={styles.field}>
-          <label className={styles.label} htmlFor="telephone">TÃ©lÃ©phone</label>
+          <label className={styles.label} htmlFor="telephone">Téléphone</label>
           <input id="telephone" className={styles.input} {...register('telephone')} />
         </div>
         <div className={styles.field}>
@@ -138,12 +138,12 @@ export function MaisonEditionForm({ onClose, maisonEdition }: Props) {
         errors={errors}
       />
 
-      {isError && <p className={styles.errorGlobal}>Une erreur est survenue. Veuillez rÃ©essayer.</p>}
+      {isError && <p className={styles.errorGlobal}>Une erreur est survenue. Veuillez réessayer.</p>}
 
       <div className={styles.actions}>
         <button type="button" className={styles.btnSecondary} onClick={onClose}>Annuler</button>
         <button type="submit" className={styles.btnPrimary} disabled={isSubmitting}>
-          {isSubmitting ? 'Enregistrementâ€¦' : isEdit ? 'Enregistrer' : 'CrÃ©er la maison'}
+          {isSubmitting ? 'Enregistrement…' : isEdit ? 'Enregistrer' : 'Créer la maison'}
         </button>
       </div>
     </form>

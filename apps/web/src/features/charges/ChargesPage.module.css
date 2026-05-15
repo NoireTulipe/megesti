@@ -1,5 +1,6 @@
 .page {
   display: flex; flex-direction: column; min-height: 100%;
+  padding: 0 44px 60px;
   animation: fadeUp 0.4s cubic-bezier(0.22,1,0.36,1) both;
 }
 @keyframes fadeUp { from { opacity:0; transform:translateY(10px) } to { opacity:1; transform:none } }
@@ -87,7 +88,7 @@
 .heroMetricDiv { width:1px; height:32px; background:rgba(255,255,255,0.12); margin-right:32px; }
 
 /* CONTENT */
-.content { padding:28px 40px 56px; display:flex; flex-direction:column; gap:20px; }
+.content { padding:28px 0 56px; display:flex; flex-direction:column; gap:20px; }
 
 /* FORMULAIRE */
 .formSection {

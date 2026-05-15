@@ -1,5 +1,5 @@
 /* ─── PAGE ─────────────────────────────────────────── */
-.page { padding:40px 44px 60px; animation:fadeUp 0.5s cubic-bezier(0.22,1,0.36,1) both; position:relative; z-index:1; }
+.page { padding:0 44px 60px; animation:fadeUp 0.5s cubic-bezier(0.22,1,0.36,1) both; position:relative; z-index:1; }
 
 /* ─── HEADER ───────────────────────────────────────── */
 .header { display:flex; align-items:flex-end; justify-content:space-between; gap:24px; margin-bottom:32px; flex-wrap:wrap; }

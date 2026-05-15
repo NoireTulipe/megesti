@@ -1,4 +1,4 @@
-﻿import { generateUUID } from '@/lib/utils'
+import { generateUUID } from '@/lib/utils'
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useMascoteDialog } from '@/hooks/useMascoteDialog'
@@ -17,7 +17,7 @@ import {
 import type { Rayon, Categorie } from '../catalogue/types'
 import styles from './RayonsSection.module.css'
 
-// â”€â”€ Mascotte sidebar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// •"?•"? Mascotte sidebar •"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?
 
 const BookIcon = () => (
   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" style={{ display:'inline', verticalAlign:'middle' }}>
@@ -81,14 +81,14 @@ export function RayonsSection() {
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }))
 
-  // â”€â”€ DnD â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // •"?•"? DnD •"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?
 
   function onDragEnd({ active, over }: DragEndEvent) {
     setActiveId(null)
     if (!over || active.id === over.id) return
     const aStr = active.id as string, oStr = over.id as string
 
-    // RÃ©ordonner les rayons
+    // Réordonner les rayons
     if (aStr.startsWith('rayon::') && oStr.startsWith('rayon::')) {
       const fi = rayons.findIndex((r) => `rayon::${r.id}` === aStr)
       const ti = rayons.findIndex((r) => `rayon::${r.id}` === oStr)
@@ -101,7 +101,7 @@ export function RayonsSection() {
       return
     }
 
-    // RÃ©ordonner les catÃ©gories dans un rayon
+    // Réordonner les catégories dans un rayon
     if (aStr.startsWith('cat::') && oStr.startsWith('cat::')) {
       const [, aRayonId, aCatId] = aStr.split('::')
       const [, oRayonId, oCatId] = oStr.split('::')
@@ -119,7 +119,7 @@ export function RayonsSection() {
     }
   }
 
-  // â”€â”€ Rayons â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // •"?•"? Rayons •"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?
 
   async function handleAddRayon() {
     const nom = newRayonName.trim()
@@ -138,7 +138,7 @@ export function RayonsSection() {
 
   async function handleToggleLibrairie(id: string, current: boolean) {
     const newIsLibrairie = !current
-    // TVA auto : 5.5 % mode librairie, 20 % mode gÃ©nÃ©ral
+    // TVA auto : 5.5 % mode librairie, 20 % mode général
     const newTVA = newIsLibrairie ? 5.5 : 20
     setRayons((prev) => prev.map((r) =>
       r.id === id ? { ...r, isLibrairie: newIsLibrairie, tauxTVA: String(newTVA) } : r
@@ -152,7 +152,7 @@ export function RayonsSection() {
   }
 
   async function handleDeleteRayon(id: string, nom: string) {
-    if (!confirm(`Supprimer le rayon Â« ${nom} Â» et toutes ses catÃ©gories ?`)) return
+    if (!confirm(`Supprimer le rayon « ${nom} » et toutes ses catégories ?`)) return
     try {
       setRayons((prev) => prev.filter((r) => r.id !== id))
       await deleteRayon.mutateAsync(id)
@@ -162,10 +162,10 @@ export function RayonsSection() {
     }
   }
 
-  // â”€â”€ CatÃ©gories â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // •"?•"? Catégories •"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?
 
   async function handleAddCategorie(rayonId: string) {
-    const nom = prompt('Nom de la catÃ©gorie :')?.trim()
+    const nom = prompt('Nom de la catégorie :')?.trim()
     if (!nom) return
     const id = generateUUID()
     await createCategorie.mutateAsync({ id, rayonId, nom })
@@ -181,14 +181,14 @@ export function RayonsSection() {
   }
 
   async function handleDeleteCategorie(id: string, rayonId: string, nom: string) {
-    if (!confirm(`Supprimer la catÃ©gorie Â« ${nom} Â» ?`)) return
+    if (!confirm(`Supprimer la catégorie « ${nom} » ?`)) return
     setRayons((prev) => prev.map((r) =>
       r.id !== rayonId ? r : { ...r, categories: r.categories.filter((c) => c.id !== id) }
     ))
     await deleteCategorie.mutateAsync(id)
   }
 
-  // â”€â”€ Render â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // •"?•"? Render •"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?
 
   const rayonIds   = rayons.map((r) => `rayon::${r.id}`)
   const totalCats  = rayons.reduce((n, r) => n + r.categories.length, 0)
@@ -200,7 +200,7 @@ export function RayonsSection() {
   return (
     <div className={styles.root}>
 
-      {/* â”€â”€ Colonne gauche : liste + formulaire â”€â”€ */}
+      {/* •"?•"? Colonne gauche : liste + formulaire •"?•"? */}
       <div className={styles.content}>
         <DndContext
           sensors={sensors}
@@ -260,14 +260,14 @@ export function RayonsSection() {
                 if (e.key === 'Enter') handleAddRayon()
                 if (e.key === 'Escape') { setShowNewRayon(false); setNewRayonName('') }
               }}
-              placeholder="Nom du rayon (ex : Goodies, Posterâ€¦)"
+              placeholder="Nom du rayon (ex : Goodies, Poster…)"
               autoFocus
             />
             <button className={styles.btnConfirm} onClick={handleAddRayon}
               disabled={!newRayonName.trim() || createRayon.isPending}>
-              {createRayon.isPending ? 'â€¦' : 'CrÃ©er'}
+              {createRayon.isPending ? '…' : 'Créer'}
             </button>
-            <button className={styles.btnCancel} onClick={() => { setShowNewRayon(false); setNewRayonName('') }}>âœ•</button>
+            <button className={styles.btnCancel} onClick={() => { setShowNewRayon(false); setNewRayonName('') }}>•o.</button>
           </div>
         ) : rayons.length > 0 ? (
           <button className={styles.btnAddRayon} onClick={() => setShowNewRayon(true)}>
@@ -279,14 +279,14 @@ export function RayonsSection() {
         ) : null}
       </div>
 
-      {/* â”€â”€ Colonne droite : mascotte permanente â”€â”€ */}
+      {/* •"?•"? Colonne droite : mascotte permanente •"?•"? */}
       <MascotSidebar state={mascotState} onCreateRayon={() => setShowNewRayon(true)} />
 
     </div>
   )
 }
 
-// â”€â”€ Rayon sortable â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// •"?•"? Rayon sortable •"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?
 
 interface SortableRayonProps {
   rayon:             Rayon
@@ -337,7 +337,7 @@ function SortableRayon({
 
   return (
     <div ref={setNodeRef} style={style} className={`${styles.rayonItem} ${isDragging ? styles.dragging : ''}`}>
-      {/* â”€â”€ Header rayon â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* •"?•"? Header rayon •"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"? */}
       <div className={styles.rayonHeader}>
         <span className={styles.dragHandle} {...attributes} {...listeners}>
           <DragDotsIcon />
@@ -366,10 +366,10 @@ function SortableRayon({
         )}
 
         <span className={styles.catCount}>
-          {rayon.categories.length} catÃ©gorie{rayon.categories.length !== 1 ? 's' : ''}
+          {rayon.categories.length} catégorie{rayon.categories.length !== 1 ? 's' : ''}
         </span>
 
-        {/* Taux TVA Ã©ditable */}
+        {/* Taux TVA éditable */}
         {editingTVA ? (
           <span className={styles.tvaBadgeEdit}>
             <input
@@ -396,7 +396,7 @@ function SortableRayon({
         <button
           className={`${styles.btnLibrairie} ${rayon.isLibrairie ? styles.btnLibrairieActive : ''}`}
           onClick={() => onToggleLibrairie(rayon.id, rayon.isLibrairie)}
-          title={rayon.isLibrairie ? 'Mode librairie actif â€” TVA 5,5 % Â· ISBN Â· Auteurs' : 'Activer le mode librairie (livres)'}
+          title={rayon.isLibrairie ? 'Mode librairie actif — TVA 5,5 % · ISBN · Auteurs' : 'Activer le mode librairie (livres)'}
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
@@ -407,30 +407,30 @@ function SortableRayon({
         <button
           className={styles.btnIconSm}
           onClick={() => onAddCategorie(rayon.id)}
-          title="Ajouter une catÃ©gorie"
+          title="Ajouter une catégorie"
         >+</button>
 
         <button
           className={styles.btnExpand}
           onClick={onToggleExpand}
-          title={isExpanded ? 'RÃ©duire' : 'DÃ©velopper'}
+          title={isExpanded ? 'Réduire' : 'Développer'}
           aria-expanded={isExpanded}
         >
-          {isExpanded ? 'â–¾' : 'â–¸'}
+          {isExpanded ? '•-•' : '•-•'}
         </button>
 
         <button
           className={`${styles.btnIconSm} ${styles.btnDelete}`}
           onClick={() => onDelete(rayon.id, rayon.nom)}
           title="Supprimer le rayon"
-        >Ã—</button>
+        >•-</button>
       </div>
 
-      {/* â”€â”€ CatÃ©gories â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* •"?•"? Catégories •"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"? */}
       {isExpanded && (
         <div className={styles.catList}>
           {rayon.categories.length === 0 && (
-            <span className={styles.catEmpty}>Aucune catÃ©gorie â€” cliquez sur + pour en ajouter.</span>
+            <span className={styles.catEmpty}>Aucune catégorie — cliquez sur + pour en ajouter.</span>
           )}
           <SortableContext items={catIds} strategy={verticalListSortingStrategy}>
             {rayon.categories.map((cat) => (
@@ -449,7 +449,7 @@ function SortableRayon({
   )
 }
 
-// â”€â”€ CatÃ©gorie sortable â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// •"?•"? Catégorie sortable •"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?
 
 interface SortableCategorieProps {
   cat:      Categorie
@@ -511,12 +511,12 @@ function SortableCategorie({ cat, rayonId, onRename, onDelete }: SortableCategor
         className={`${styles.btnIconXs} ${styles.btnDelete}`}
         onClick={() => onDelete(cat.id, rayonId, cat.nom)}
         title="Supprimer"
-      >Ã—</button>
+      >•-</button>
     </div>
   )
 }
 
-// â”€â”€ Icons â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// •"?•"? Icons •"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?
 
 function DragDotsIcon() {
   return (

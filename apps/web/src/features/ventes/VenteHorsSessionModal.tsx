@@ -1,4 +1,4 @@
-﻿import { generateUUID } from '@/lib/utils'
+import { generateUUID } from '@/lib/utils'
 import { useState, useMemo, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { useMotifVente, useCreateMotifVente } from './hooks/useMotifVente'
@@ -11,13 +11,13 @@ import styles from './VentesPage.module.css'
 
 const MODES: { key: ModePaiement; label: string }[] = [
   { key: 'CB',       label: 'CB' },
-  { key: 'ESPECES',  label: 'EspÃ¨ces' },
-  { key: 'CHEQUE',   label: 'ChÃ¨que' },
+  { key: 'ESPECES',  label: 'Espèces' },
+  { key: 'CHEQUE',   label: 'Chèque' },
   { key: 'VIREMENT', label: 'Virement' },
 ]
 
 function fEur(n: number) {
-  return n.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' â‚¬'
+  return n.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €'
 }
 
 interface Props {
@@ -129,7 +129,7 @@ export function VenteHorsSessionModal({ isOpen, onClose }: Props) {
     <div className={styles.hsOverlay} onClick={handleClose}>
       <div className={styles.hsDialog} role="dialog" aria-modal="true" onClick={e => e.stopPropagation()}>
 
-        {/* Accent + dÃ©cos */}
+        {/* Accent + décos */}
         <div className={styles.hsAccent} />
         <div className={styles.hsDecorations}>
           <div className={styles.hsBlobA} />
@@ -166,12 +166,12 @@ export function VenteHorsSessionModal({ isOpen, onClose }: Props) {
                   className={styles.addMotifInput}
                   value={newMotifLabel}
                   onChange={e => setNewMotifLabel(e.target.value)}
-                  placeholder="Nouveau motifâ€¦"
+                  placeholder="Nouveau motif…"
                   autoFocus
                   onKeyDown={e => { if (e.key === 'Enter') handleAddMotif() }}
                 />
-                <button className={styles.addMotifConfirm} onClick={handleAddMotif}>âœ“</button>
-                <button className={styles.addMotifCancel} onClick={() => setShowAddMotif(false)}>âœ•</button>
+                <button className={styles.addMotifConfirm} onClick={handleAddMotif}>•o"</button>
+                <button className={styles.addMotifCancel} onClick={() => setShowAddMotif(false)}>•o.</button>
               </div>
             ) : (
               <button className={styles.addMotifBtn} onClick={() => setShowAddMotif(true)}>+ Ajouter</button>
@@ -187,7 +187,7 @@ export function VenteHorsSessionModal({ isOpen, onClose }: Props) {
             <div className={styles.hsCatalogueBar}>
               <input
                 className={styles.hsSearch}
-                placeholder="Rechercher un articleâ€¦"
+                placeholder="Rechercher un article…"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
               />
@@ -210,7 +210,7 @@ export function VenteHorsSessionModal({ isOpen, onClose }: Props) {
             <div className={styles.hsArticleGrid}>
               {filteredArticles.length === 0 && (
                 <p className={styles.hsNoArticles}>
-                  {search ? `Aucun rÃ©sultat pour Â« ${search} Â»` : 'Aucun article dans ce rayon.'}
+                  {search ? `Aucun résultat pour « ${search} »` : 'Aucun article dans ce rayon.'}
                 </p>
               )}
               {filteredArticles.map(a => (
@@ -243,7 +243,7 @@ export function VenteHorsSessionModal({ isOpen, onClose }: Props) {
                     <div key={l.articleId} className={styles.hsPanierLigne}>
                       <span className={styles.hsPanierNom}>{l.nom}</span>
                       <div className={styles.hsQtyWrap}>
-                        <button className={styles.hsQtyBtn} onClick={() => setQty(l.articleId, l.quantite - 1)}>âˆ’</button>
+                        <button className={styles.hsQtyBtn} onClick={() => setQty(l.articleId, l.quantite - 1)}>•^'</button>
                         <span className={styles.hsQtyVal}>{l.quantite}</span>
                         <button className={styles.hsQtyBtn} onClick={() => setQty(l.articleId, l.quantite + 1)}>+</button>
                       </div>
@@ -280,7 +280,7 @@ export function VenteHorsSessionModal({ isOpen, onClose }: Props) {
                 disabled={!motifId || cart.length === 0 || pending}
                 onClick={handleValider}
               >
-                {success ? 'âœ“ EnregistrÃ©e' : pending ? 'Enregistrementâ€¦' : `Valider â€” ${fEur(totalTTC)}`}
+                {success ? '•o" Enregistrée' : pending ? 'Enregistrement…' : `Valider — ${fEur(totalTTC)}`}
               </button>
             </div>
           </div>

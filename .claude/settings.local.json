@@ -63,7 +63,9 @@
       "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\DCFM\\\\Documents\\\\Bobo\\\\megesti\\\\apps\\\\mobile\" -Recurse -File | Where-Object {$_.Extension -match '\\\\.\\(tsx?|json\\)$' -and $_.FullName -notmatch 'node_modules|android'} | Select-Object FullName | Sort-Object FullName)",
       "Bash([ -f \"$d/package.json\" ])",
       "Bash(read f *)",
-      "Bash(Select-String -Pattern \"PageHero\")"
+      "Bash(Select-String -Pattern \"PageHero\")",
+      "Bash(git -C \"C:/Users/DCFM/Documents/Bobo/megesti\" show HEAD:apps/web/src/features/ventes/VentesPage.tsx)",
+      "Bash(git -C \"C:/Users/DCFM/Documents/Bobo/megesti\" show HEAD:apps/web/src/features/stock/AjustementStock.tsx)"
     ]
   }
 }

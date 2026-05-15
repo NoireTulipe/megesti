@@ -1,4 +1,4 @@
-﻿import { generateUUID } from '@/lib/utils'
+import { generateUUID } from '@/lib/utils'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -12,8 +12,8 @@ import styles from './ChampForm.module.css'
 const FIELD_TYPE_LABELS: Record<string, string> = {
   text:      'Texte court',  textarea:  'Texte long',
   number:    'Nombre',       date:      'Date',
-  boolean:   'Case Ã  cocher', select:   'Liste dÃ©roulante',
-  thesaurus: 'ThÃ©saurus',
+  boolean:   'Case à cocher', select:   'Liste déroulante',
+  thesaurus: 'Thésaurus',
 }
 
 const COMMON_CATEGORIES = ['Contact', 'Bibliographie', 'Commercial', 'Notes']
@@ -75,16 +75,16 @@ export function ChampForm({ entityType, onClose }: Props) {
 
       <div className={styles.row2}>
         <div className={styles.field}>
-          <label className={styles.label}>LibellÃ© <span className={styles.req}>*</span></label>
-          <input className={`${styles.input} ${errors.labelFr ? styles.inputError : ''}`} {...register('labelFr')} placeholder="Ex : NumÃ©ro de tÃ©lÃ©phone" autoFocus />
+          <label className={styles.label}>Libellé <span className={styles.req}>*</span></label>
+          <input className={`${styles.input} ${errors.labelFr ? styles.inputError : ''}`} {...register('labelFr')} placeholder="Ex : Numéro de téléphone" autoFocus />
           {errors.labelFr && <span className={styles.error}>{errors.labelFr.message}</span>}
         </div>
         <div className={styles.field}>
-          <label className={styles.label}>CatÃ©gorie</label>
+          <label className={styles.label}>Catégorie</label>
           <input
             className={styles.input}
             {...register('category')}
-            placeholder="Ex : Contact, Bibliographieâ€¦"
+            placeholder="Ex : Contact, Bibliographie…"
             list="categories-suggestions"
           />
           <datalist id="categories-suggestions">
@@ -102,21 +102,21 @@ export function ChampForm({ entityType, onClose }: Props) {
         </select>
       </div>
 
-      {/* ThÃ©saurus â€” choisir lequel */}
+      {/* Thésaurus — choisir lequel */}
       {fieldType === 'thesaurus' && (
         <div className={styles.field}>
-          <label className={styles.label}>ThÃ©saurus liÃ© <span className={styles.req}>*</span></label>
+          <label className={styles.label}>Thésaurus lié <span className={styles.req}>*</span></label>
           {thesauri.length === 0
-            ? <p className={styles.hint}>Aucun thÃ©saurus disponible. CrÃ©ez-en un dans l'onglet ThÃ©saurus.</p>
+            ? <p className={styles.hint}>Aucun thésaurus disponible. Créez-en un dans l'onglet Thésaurus.</p>
             : <select className={styles.select} {...register('thesaurusId')}>
-                <option value="">â€” Choisir â€”</option>
+                <option value="">— Choisir —</option>
                 {thesauri.map((t) => <option key={t.id} value={t.id}>{t.nameFr}</option>)}
               </select>
           }
         </div>
       )}
 
-      {/* Select â€” gÃ©rer les options */}
+      {/* Select — gérer les options */}
       {fieldType === 'select' && (
         <div className={styles.field}>
           <label className={styles.label}>Options de la liste</label>
@@ -124,7 +124,7 @@ export function ChampForm({ entityType, onClose }: Props) {
             {options.map((o, i) => (
               <span key={i} className={styles.optionTag}>
                 {o}
-                <button type="button" onClick={() => setOptions(options.filter((_, j) => j !== i))}>Ã—</button>
+                <button type="button" onClick={() => setOptions(options.filter((_, j) => j !== i))}>•-</button>
               </span>
             ))}
           </div>
@@ -134,11 +134,11 @@ export function ChampForm({ entityType, onClose }: Props) {
               value={newOption}
               onChange={(e) => setNewOption(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addOption() } }}
-              placeholder="Nouvelle optionâ€¦"
+              placeholder="Nouvelle option…"
             />
             <button type="button" className={styles.btnAddOption} onClick={addOption}>Ajouter</button>
           </div>
-          {options.length === 0 && <span className={styles.hint}>Appuyez sur EntrÃ©e pour ajouter une option.</span>}
+          {options.length === 0 && <span className={styles.hint}>Appuyez sur Entrée pour ajouter une option.</span>}
         </div>
       )}
 
@@ -148,13 +148,13 @@ export function ChampForm({ entityType, onClose }: Props) {
       </label>
 
       {createChamp.isError && (
-        <p className={styles.errorGlobal}>Une erreur est survenue. Veuillez rÃ©essayer.</p>
+        <p className={styles.errorGlobal}>Une erreur est survenue. Veuillez réessayer.</p>
       )}
 
       <div className={styles.actions}>
         <button type="button" className={styles.btnSecondary} onClick={onClose}>Annuler</button>
         <button type="submit" className={styles.btnPrimary} disabled={isSubmitting}>
-          {isSubmitting ? 'Enregistrementâ€¦' : 'CrÃ©er le champ'}
+          {isSubmitting ? 'Enregistrement…' : 'Créer le champ'}
         </button>
       </div>
     </form>

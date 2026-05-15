@@ -1,11 +1,11 @@
-﻿import { generateUUID } from '@/lib/utils'
+import { generateUUID } from '@/lib/utils'
 import { useState } from 'react'
 import { useTypesDA, useCreateTypeDA, useUpdateTypeDA, useDeleteTypeDA } from './hooks/useTypesDA'
 import type { TypeDA } from './hooks/useTypesDA'
 import type { RegleDA, ConditionRegle, BaseCalcul, VendeurType, TypeVente } from '@megesti/business'
 import styles from './TypesDASection.module.css'
 
-// â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// •"?•"? Helpers •"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?
 
 function regleVide(): RegleDA {
   return { conditions: {}, taux: 40, base: 'TTC' }
@@ -17,17 +17,17 @@ function estFallback(r: RegleDA): boolean {
 }
 
 function describeRegle(r: RegleDA): string {
-  if (estFallback(r)) return 'DÃ©faut (toujours)'
+  if (estFallback(r)) return 'Défaut (toujours)'
   const parts: string[] = []
   if (r.conditions.vendeur === 'AUTEUR') parts.push("Auteur vend")
   if (r.conditions.vendeur === 'ME') parts.push("ME vend")
   if (r.conditions.avecCommission === true) parts.push("avec commission")
   if (r.conditions.avecCommission === false) parts.push("sans commission")
   if (r.conditions.typeVente) parts.push(r.conditions.typeVente.toLowerCase())
-  return parts.join(', ') || 'â€”'
+  return parts.join(', ') || '—'
 }
 
-// â”€â”€ Ã‰diteur d'une rÃ¨gle (une ligne du tableau) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// •"?•"? … d'une règle (une ligne du tableau) •"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?
 
 function LigneRegle({
   regle, index, total,
@@ -96,7 +96,7 @@ function LigneRegle({
           <option value="">Tous</option>
           <option value="DIRECTE">Directe</option>
           <option value="SALON">Salon</option>
-          <option value="DEPOT">DÃ©pÃ´t</option>
+          <option value="DEPOT">Dépôt</option>
         </select>
       </td>
       <td>
@@ -124,25 +124,25 @@ function LigneRegle({
       </td>
       <td>
         {isFallback
-          ? <span className={styles.fallbackBadge}>â†³ dÃ©faut</span>
+          ? <span className={styles.fallbackBadge}>… défaut</span>
           : (
             <div className={styles.orderBtns}>
-              <button className={styles.btnOrder} onClick={onUp}  disabled={index === 0}     title="Monter">â–²</button>
-              <button className={styles.btnOrder} onClick={onDown} disabled={index === total - 1} title="Descendre">â–¼</button>
+              <button className={styles.btnOrder} onClick={onUp}  disabled={index === 0}     title="Monter">•-•</button>
+              <button className={styles.btnOrder} onClick={onDown} disabled={index === total - 1} title="Descendre">•-•</button>
             </div>
           )
         }
       </td>
       <td>
         {!isFallback && (
-          <button className={styles.btnRemoveRow} onClick={onRemove} title="Supprimer">Ã—</button>
+          <button className={styles.btnRemoveRow} onClick={onRemove} title="Supprimer">•-</button>
         )}
       </td>
     </tr>
   )
 }
 
-// â”€â”€ Ã‰diteur complet d'un barÃ¨me â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// •"?•"? … complet d'un barème •"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?
 
 function EditeurDA({
   initial, onSave, onCancel, isLoading,
@@ -166,7 +166,7 @@ function EditeurDA({
   }
 
   function addLigne() {
-    // InsÃ¨re avant la derniÃ¨re si elle est fallback
+    // Insère avant la dernière si elle est fallback
     setLignes(ls => {
       const last = ls[ls.length - 1]
       if (last && estFallback(last) && ls.length > 0) {
@@ -191,12 +191,12 @@ function EditeurDA({
   return (
     <div className={styles.editor}>
       <div className={styles.editorTitle}>
-        {initial.nom ? 'Modifier le barÃ¨me' : 'Nouveau barÃ¨me'}
+        {initial.nom ? 'Modifier le barème' : 'Nouveau barème'}
       </div>
 
       <div>
         <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-soft)', textTransform: 'uppercase', letterSpacing: '0.08em', display: 'block', marginBottom: 5 }}>
-          Nom du barÃ¨me
+          Nom du barème
         </label>
         <input
           className={styles.nomInput}
@@ -209,7 +209,7 @@ function EditeurDA({
 
       <div>
         <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-soft)', textTransform: 'uppercase', letterSpacing: '0.08em', display: 'block', marginBottom: 8 }}>
-          RÃ¨gles de calcul
+          Règles de calcul
         </label>
         <div className={styles.tableWrap}>
           <table className={styles.table}>
@@ -240,13 +240,13 @@ function EditeurDA({
         </div>
 
         <div style={{ marginTop: 8 }}>
-          <button className={styles.btnAddRule} onClick={addLigne}>+ Ajouter une rÃ¨gle</button>
+          <button className={styles.btnAddRule} onClick={addLigne}>+ Ajouter une règle</button>
         </div>
       </div>
 
       <p className={styles.hint}>
-        Les rÃ¨gles sont Ã©valuÃ©es dans l'ordre â€” la premiÃ¨re qui correspond au contexte de vente s'applique.
-        Une ligne sans conditions sert de rÃ¨gle par dÃ©faut (fallback).
+        Les règles sont évaluées dans l'ordre — la première qui correspond au contexte de vente s'applique.
+        Une ligne sans conditions sert de règle par défaut (fallback).
       </p>
 
       <div className={styles.editorFooter}>
@@ -256,14 +256,14 @@ function EditeurDA({
           disabled={!canSave || isLoading}
           onClick={() => onSave(nom.trim(), lignes)}
         >
-          {isLoading ? 'Enregistrementâ€¦' : 'Enregistrer'}
+          {isLoading ? 'Enregistrement…' : 'Enregistrer'}
         </button>
       </div>
     </div>
   )
 }
 
-// â”€â”€ Section principale â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// •"?•"? Section principale •"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?
 
 type Mode =
   | { type: 'list' }
@@ -290,10 +290,10 @@ export function TypesDASection() {
 
   async function handleDelete(t: TypeDA) {
     if (t._count.contrats > 0) {
-      alert(`Ce barÃ¨me est utilisÃ© par ${t._count.contrats} contrat(s) et ne peut pas Ãªtre supprimÃ©.`)
+      alert(`Ce barème est utilisé par ${t._count.contrats} contrat(s) et ne peut pas être supprimé.`)
       return
     }
-    if (!confirm(`Supprimer le barÃ¨me "${t.nom}" ?`)) return
+    if (!confirm(`Supprimer le barème "${t.nom}" ?`)) return
     await remove.mutateAsync(t.id)
   }
 
@@ -326,7 +326,7 @@ export function TypesDASection() {
       <div className={styles.list}>
         {typesDA.length === 0 && (
           <div className={styles.empty}>
-            Aucun barÃ¨me de droits d'auteur â€” crÃ©ez-en un pour commencer.
+            Aucun barème de droits d'auteur — créez-en un pour commencer.
           </div>
         )}
         {typesDA.map((t) => (
@@ -334,10 +334,10 @@ export function TypesDASection() {
             <div className={styles.cardInfo}>
               <div className={styles.cardNom}>{t.nom}</div>
               <div className={styles.cardMeta}>
-                {t.formule.lignes.length} rÃ¨gle{t.formule.lignes.length > 1 ? 's' : ''}
-                {' Â· '}
+                {t.formule.lignes.length} règle{t.formule.lignes.length > 1 ? 's' : ''}
+                {' · '}
                 {t._count.contrats} contrat{t._count.contrats > 1 ? 's' : ''}
-                {' Â· '}
+                {' · '}
                 {t.formule.lignes.map(describeRegle).join(' / ')}
               </div>
             </div>
@@ -345,14 +345,14 @@ export function TypesDASection() {
               <button className={styles.btnEdit} onClick={() => setMode({ type: 'edit', typeDA: t })}>
                 Modifier
               </button>
-              <button className={styles.btnDelete} onClick={() => handleDelete(t)} title="Supprimer">Ã—</button>
+              <button className={styles.btnDelete} onClick={() => handleDelete(t)} title="Supprimer">•-</button>
             </div>
           </div>
         ))}
       </div>
 
       <button className={styles.btnAdd} onClick={() => setMode({ type: 'create' })}>
-        + Nouveau barÃ¨me
+        + Nouveau barème
       </button>
     </div>
   )

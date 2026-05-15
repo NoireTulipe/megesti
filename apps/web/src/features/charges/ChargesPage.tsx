@@ -1,4 +1,4 @@
-﻿import { generateUUID } from '@/lib/utils'
+import { generateUUID } from '@/lib/utils'
 import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
@@ -13,9 +13,9 @@ import { usePlanFeatures } from '@/hooks/usePlanFeatures'
 import { PageHero } from '@/components/PageHero'
 import styles from './ChargesPage.module.css'
 
-// â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// •"?•"? Helpers •"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?
 function fEur(v: number) {
-  return v.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' â‚¬'
+  return v.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €'
 }
 function fDate(iso: string) {
   return new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })
@@ -25,7 +25,7 @@ function joursAvant(iso: string): number {
   return Math.ceil((new Date(iso).getTime() - Date.now()) / 86_400_000)
 }
 
-// â”€â”€ Presets de pÃ©riode â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// •"?•"? Presets de période •"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?
 function startOfMonth()   { const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), 1) }
 function startOfQuarter() { const d = new Date(); return new Date(d.getFullYear(), Math.floor(d.getMonth() / 3) * 3, 1) }
 function startOfYear()    { return new Date(new Date().getFullYear(), 0, 1) }
@@ -34,13 +34,13 @@ function endOfToday()     { const d = new Date(); d.setHours(23, 59, 59, 999); r
 const PRESETS = [
   { key: 'month',   label: 'Ce mois',      getFrom: startOfMonth   },
   { key: 'quarter', label: 'Ce trimestre', getFrom: startOfQuarter },
-  { key: 'year',    label: 'Cette annÃ©e',  getFrom: startOfYear    },
+  { key: 'year',    label: 'Cette année',  getFrom: startOfYear    },
   { key: 'all',     label: 'Tout',         getFrom: () => new Date('2000-01-01') },
-  { key: 'custom',  label: 'PersonnalisÃ©', getFrom: startOfYear    },
+  { key: 'custom',  label: 'Personnalisé', getFrom: startOfYear    },
 ] as const
 type PresetKey = typeof PRESETS[number]['key']
 
-// â”€â”€ Formulaire â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// •"?•"? Formulaire •"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?
 interface FormProps { initial?: Charge | null; onDone: () => void }
 
 function ChargeForm({ initial, onDone }: FormProps) {
@@ -84,7 +84,7 @@ function ChargeForm({ initial, onDone }: FormProps) {
     <form className={styles.form} onSubmit={handleSubmit}>
       <div className={styles.formRow}>
         <div className={styles.formGroup}>
-          <label className={styles.formLabel}>Type (rÃ©currence)</label>
+          <label className={styles.formLabel}>Type (récurrence)</label>
           <div className={styles.typeSelector}>
             {(['DEPENSE','ABONNEMENT','PERTE'] as TypeCharge[]).map(t => (
               <button key={t} type="button"
@@ -100,7 +100,7 @@ function ChargeForm({ initial, onDone }: FormProps) {
 
       <div className={styles.formRow}>
         <div className={styles.formGroup}>
-          <label className={styles.formLabel}>CatÃ©gorie comptable (PCG)</label>
+          <label className={styles.formLabel}>Catégorie comptable (PCG)</label>
           <div className={styles.typeSelector} style={{ flexWrap: 'wrap' }}>
             {(Object.keys(CATEGORIE_CHARGE_LABELS) as CategorieCharge[]).map(cat => (
               <button key={cat} type="button"
@@ -116,27 +116,27 @@ function ChargeForm({ initial, onDone }: FormProps) {
 
       <div className={styles.formRow}>
         <div className={styles.formGroup} style={{ flex: 2 }}>
-          <label className={styles.formLabel}>LibellÃ©</label>
+          <label className={styles.formLabel}>Libellé</label>
           <input className={styles.formInput} value={libelle} onChange={e => setLibelle(e.target.value)}
             placeholder={isAbo ? 'ex. Abonnement Stripe' : 'ex. Stand salon Paris'} required />
         </div>
         <div className={styles.formGroup}>
-          <label className={styles.formLabel}>Montant HT (â‚¬)</label>
+          <label className={styles.formLabel}>Montant HT (€)</label>
           <input className={styles.formInput} type="number" min="0" step="0.01" value={montant} onChange={e => setMontant(e.target.value)} required />
         </div>
       </div>
 
       <div className={styles.formRow}>
         <div className={styles.formGroup}>
-          <label className={styles.formLabel}>{isAbo ? 'Date de dÃ©but' : 'Date d\'effet'}</label>
+          <label className={styles.formLabel}>{isAbo ? 'Date de début' : 'Date d\'effet'}</label>
           <input className={styles.formInput} type="date" value={dateEffet} onChange={e => setDateEffet(e.target.value)} required />
         </div>
 
         {isAbo ? (
           <div className={styles.formGroup}>
-            <label className={styles.formLabel}>PÃ©riodicitÃ©</label>
+            <label className={styles.formLabel}>Périodicité</label>
             <select className={styles.formInput} value={periodicite} onChange={e => setPeriodicite(e.target.value as Periodicite)}>
-              <option value="">â€” aucune â€”</option>
+              <option value="">— aucune —</option>
               {(['MENSUELLE','TRIMESTRIELLE','SEMESTRIELLE','ANNUELLE'] as Periodicite[]).map(p => (
                 <option key={p} value={p}>{PERIODICITE_LABELS[p]}</option>
               ))}
@@ -147,8 +147,8 @@ function ChargeForm({ initial, onDone }: FormProps) {
             <div className={styles.formGroup}>
               <label className={styles.formLabel}>Statut</label>
               <select className={styles.formInput} value={statut} onChange={e => setStatut(e.target.value as 'PREVU'|'PAYE')}>
-                <option value="PREVU">PrÃ©vu</option>
-                <option value="PAYE">PayÃ©</option>
+                <option value="PREVU">Prévu</option>
+                <option value="PAYE">Payé</option>
               </select>
             </div>
             {statut === 'PAYE' && (
@@ -163,29 +163,29 @@ function ChargeForm({ initial, onDone }: FormProps) {
 
       <div className={styles.formGroup}>
         <label className={styles.formLabel}>Notes <span className={styles.optional}>(optionnel)</span></label>
-        <input className={styles.formInput} value={notes} onChange={e => setNotes(e.target.value)} placeholder="Remarques, rÃ©fÃ©rence contratâ€¦" />
+        <input className={styles.formInput} value={notes} onChange={e => setNotes(e.target.value)} placeholder="Remarques, référence contrat…" />
       </div>
 
       {isAbo && periodicite && (
         <p className={styles.aboHint}>
-          Les occurrences sont calculÃ©es automatiquement. Chaque date passÃ©e compte comme payÃ©e dans le bilan.
+          Les occurrences sont calculées automatiquement. Chaque date passée compte comme payée dans le bilan.
         </p>
       )}
 
       <div className={styles.formActions}>
         <button type="button" className={styles.btnCancel} onClick={onDone}>Annuler</button>
         <button type="submit" className={styles.btnSubmit} disabled={isLoading}>
-          {isLoading ? 'Enregistrementâ€¦' : initial ? 'Modifier' : 'Ajouter'}
+          {isLoading ? 'Enregistrement…' : initial ? 'Modifier' : 'Ajouter'}
         </button>
       </div>
     </form>
   )
 }
 
-// â”€â”€ Card charge â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// •"?•"? Card charge •"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?
 interface CardProps {
   charge:       Charge
-  occurrences?: Date[]   // pour les abonnements filtrÃ©s sur une pÃ©riode
+  occurrences?: Date[]   // pour les abonnements filtrés sur une période
   onEdit:       () => void
   onDelete:     () => void
 }
@@ -198,7 +198,7 @@ function ChargeCard({ charge: c, occurrences, onEdit, onDelete }: CardProps) {
   const montant  = parseFloat(c.montantHT)
   const now      = new Date()
 
-  // Pour les abonnements : rÃ©partir les occurrences en passÃ©es / futures
+  // Pour les abonnements : répartir les occurrences en passées / futures
   const occPassed = occurrences?.filter(d => d <= now) ?? []
   const occFuture = occurrences?.filter(d => d > now)  ?? []
   const totalPeriode = occurrences ? montant * occurrences.length : null
@@ -216,34 +216,34 @@ function ChargeCard({ charge: c, occurrences, onEdit, onDelete }: CardProps) {
         {isAbo && c.periodicite && (
           <span className={styles.periodeBadge}>{PERIODICITE_LABELS[c.periodicite]}</span>
         )}
-        {!isAbo && c.statut === 'PAYE' && <span className={styles.payeBadge}>âœ“ PayÃ©</span>}
+        {!isAbo && c.statut === 'PAYE' && <span className={styles.payeBadge}>•o" Payé</span>}
         {!isAbo && c.statut === 'PREVU' && <span className={styles.prevuBadge}>En attente</span>}
       </div>
 
       <p className={styles.cardLibelle}>{c.libelle}</p>
 
-      {/* Montant : pour les abonnements filtrÃ©s, afficher le total de la pÃ©riode */}
+      {/* Montant : pour les abonnements filtrés, afficher le total de la période */}
       {totalPeriode !== null ? (
         <div className={styles.cardMontantWrap}>
           <p className={styles.cardMontant}>{fEur(totalPeriode)}</p>
-          <p className={styles.cardMontantSub}>{occurrences!.length} Ã— {fEur(montant)}</p>
+          <p className={styles.cardMontantSub}>{occurrences!.length} •- {fEur(montant)}</p>
         </div>
       ) : (
         <p className={styles.cardMontant}>{fEur(montant)}</p>
       )}
 
-      {/* Occurrences dÃ©taillÃ©es pour les abonnements */}
+      {/* Occurrences détaillées pour les abonnements */}
       {isAbo && occurrences && occurrences.length > 0 && (
         <div className={styles.occurrences}>
           {occPassed.length > 0 && (
             <span className={styles.occPasse}>
-              âœ“ {occPassed.length} payÃ©e{occPassed.length > 1 ? 's' : ''}
+              •o" {occPassed.length} payée{occPassed.length > 1 ? 's' : ''}
               {occPassed.length <= 3 && ` (${occPassed.map(d => fDate(d.toISOString())).join(', ')})`}
             </span>
           )}
           {occFuture.length > 0 && (
             <span className={styles.occFuture}>
-              â³ {occFuture.length} prÃ©vue{occFuture.length > 1 ? 's' : ''}
+              ⏳ {occFuture.length} prévue{occFuture.length > 1 ? 's' : ''}
               {occFuture.length <= 2 && ` (${occFuture.map(d => fDate(d.toISOString())).join(', ')})`}
             </span>
           )}
@@ -256,7 +256,7 @@ function ChargeCard({ charge: c, occurrences, onEdit, onDelete }: CardProps) {
             <span className={styles.cardMetaItem}>Depuis {fDate(c.dateEffet)}</span>
             {!occurrences && c.prochaineEcheance && (
               <span className={`${styles.echeance} ${urgent ? styles.echeanceUrgent : ''} ${depassee ? styles.echeanceDepassee : ''}`}>
-                {depassee ? 'âš ï¸ Ã‰chue' : urgent ? `â° J-${jours} Â· ${fDate(c.prochaineEcheance)}` : `ðŸ“… ${fDate(c.prochaineEcheance)}`}
+                {depassee ? '•s•️ …' : urgent ? `⏰ J-${jours} · ${fDate(c.prochaineEcheance)}` : `•Y". ${fDate(c.prochaineEcheance)}`}
               </span>
             )}
           </>
@@ -264,7 +264,7 @@ function ChargeCard({ charge: c, occurrences, onEdit, onDelete }: CardProps) {
           <>
             <span className={styles.cardMetaItem}>{fDate(c.dateEffet)}</span>
             {c.datePaiement && c.statut === 'PAYE' && (
-              <span className={styles.cardMetaItem}>PayÃ© le {fDate(c.datePaiement)}</span>
+              <span className={styles.cardMetaItem}>Payé le {fDate(c.datePaiement)}</span>
             )}
           </>
         )}
@@ -280,25 +280,25 @@ function ChargeCard({ charge: c, occurrences, onEdit, onDelete }: CardProps) {
   )
 }
 
-// â”€â”€ Page principale â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// •"?•"? Page principale •"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?
 export function ChargesPage() {
   const navigate = useNavigate()
   const { features, upgradeMessage } = usePlanFeatures()
 
-  // Garde plan â€” affiche un Ã©cran verrouillÃ© si la feature n'est pas disponible
+  // Garde plan — affiche un écran verrouillé si la feature n'est pas disponible
   if (!features.charges) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, padding: '80px 32px', textAlign: 'center' }}>
-        <span style={{ fontSize: 44 }}>ðŸ”’</span>
+        <span style={{ fontSize: 44 }}>•Y"'</span>
         <p style={{ fontFamily: "'DM Serif Display',serif", fontSize: '1.3rem', color: 'var(--ink)', margin: 0 }}>
-          Disponible Ã  partir du plan Edition
+          Disponible à partir du plan Edition
         </p>
         <p style={{ fontSize: '0.85rem', color: 'var(--text-soft)', maxWidth: 340, margin: 0, lineHeight: 1.65 }}>
           {upgradeMessage('charges')}
         </p>
         <button onClick={() => navigate(-1)}
           style={{ marginTop: 8, padding: '9px 20px', borderRadius: 10, border: '1.5px solid var(--cream-dark)', background: 'var(--cream)', color: 'var(--text-mid)', fontSize: '0.83rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
-          â† Retour
+          … Retour
         </button>
       </div>
     )
@@ -314,7 +314,7 @@ export function ChargesPage() {
   const [editTarget, setEditTarget] = useState<Charge | null>(null)
   const [filterType, setFilterType] = useState<TypeCharge | 'ALL'>('ALL')
 
-  // â”€â”€ Calcul de la pÃ©riode active â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // •"?•"? Calcul de la période active •"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?
   const { fromDate, toDate } = useMemo(() => {
     let from: Date
     let to = endOfToday()
@@ -330,7 +330,7 @@ export function ChargesPage() {
     return { fromDate: from, toDate: to }
   }, [preset, customFrom, customTo])
 
-  // â”€â”€ Filtrage par pÃ©riode + type â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // •"?•"? Filtrage par période + type •"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?
   const chargesFiltrees = useMemo(() => {
     return charges
       .filter(c => filterType === 'ALL' || c.type === filterType)
@@ -343,7 +343,7 @@ export function ChargesPage() {
       }))
   }, [charges, filterType, fromDate, toDate, preset])
 
-  // â”€â”€ MÃ©triques de la pÃ©riode â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // •"?•"? Métriques de la période •"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?
   const metrics = useMemo(() => {
     const now = new Date()
     let totalPaye = 0, totalPrevu = 0
@@ -377,7 +377,7 @@ export function ChargesPage() {
 
       <PageHero
         title="Charges & abonnements"
-        subtitle="DÃ©penses ponctuelles, pertes et abonnements rÃ©currents"
+        subtitle="Dépenses ponctuelles, pertes et abonnements récurrents"
         extra={(
           <>
             {preset === 'custom' && (
@@ -391,13 +391,13 @@ export function ChargesPage() {
             {!isLoading && chargesFiltrees.length > 0 && (
               <div className={styles.heroMetrics}>
                 <div className={styles.heroMetric}>
-                  <span>DÃ©caissÃ© / payÃ©</span>
+                  <span>Décaissé / payé</span>
                   <strong style={{ color: '#f87171' }}>{fEur(metrics.totalPaye)}</strong>
                 </div>
                 {metrics.totalPrevu > 0 && <>
                   <div className={styles.heroMetricDiv} />
                   <div className={styles.heroMetric}>
-                    <span>Ã€ venir / prÃ©vu</span>
+                    <span>•? venir / prévu</span>
                     <strong style={{ color: '#fbbf24' }}>{fEur(metrics.totalPrevu)}</strong>
                   </div>
                 </>}
@@ -408,7 +408,7 @@ export function ChargesPage() {
                 </div>
                 <div className={styles.heroMetricDiv} />
                 <div className={styles.heroMetric}>
-                  <span>{metrics.nb} charge{metrics.nb > 1 ? 's' : ''} sur la pÃ©riode</span>
+                  <span>{metrics.nb} charge{metrics.nb > 1 ? 's' : ''} sur la période</span>
                 </div>
               </div>
             )}
@@ -433,7 +433,7 @@ export function ChargesPage() {
 
       <div className={styles.content}>
 
-        {/* â”€â”€ FORMULAIRE â”€â”€ */}
+        {/* •"?•"? FORMULAIRE •"?•"? */}
         {showForm && (
           <div className={styles.formSection}>
             <h2 className={styles.formTitle}>{editTarget ? 'Modifier la charge' : 'Nouvelle charge'}</h2>
@@ -441,7 +441,7 @@ export function ChargesPage() {
           </div>
         )}
 
-        {/* â”€â”€ FILTRES TYPE â”€â”€ */}
+        {/* •"?•"? FILTRES TYPE •"?•"? */}
         {charges.length > 0 && (
           <div className={styles.filters}>
             {(['ALL', 'DEPENSE', 'ABONNEMENT', 'PERTE'] as (TypeCharge | 'ALL')[]).map(t => (
@@ -455,7 +455,7 @@ export function ChargesPage() {
           </div>
         )}
 
-        {/* â”€â”€ GRILLE â”€â”€ */}
+        {/* •"?•"? GRILLE •"?•"? */}
         {isLoading && (
           <div className={styles.cardGrid}>
             {[1,2,3].map(i => <div key={i} className={styles.skCard} />)}
@@ -464,16 +464,16 @@ export function ChargesPage() {
 
         {!isLoading && charges.length === 0 && (
           <div className={styles.emptyState}>
-            <p className={styles.emptyTitle}>Aucune charge enregistrÃ©e</p>
-            <p className={styles.emptySub}>Ajoutez des dÃ©penses, pertes et abonnements pour les voir apparaÃ®tre dans votre bilan.</p>
+            <p className={styles.emptyTitle}>Aucune charge enregistrée</p>
+            <p className={styles.emptySub}>Ajoutez des dépenses, pertes et abonnements pour les voir apparaître dans votre bilan.</p>
             <button className={styles.btnAdd} onClick={() => setShowForm(true)}>+ Ajouter une charge</button>
           </div>
         )}
 
         {!isLoading && charges.length > 0 && chargesFiltrees.length === 0 && (
           <div className={styles.emptyState}>
-            <p className={styles.emptyTitle}>Aucune charge sur cette pÃ©riode</p>
-            <p className={styles.emptySub}>Essayez une pÃ©riode plus large ou "Tout" pour voir toutes vos charges.</p>
+            <p className={styles.emptyTitle}>Aucune charge sur cette période</p>
+            <p className={styles.emptySub}>Essayez une période plus large ou "Tout" pour voir toutes vos charges.</p>
           </div>
         )}
 

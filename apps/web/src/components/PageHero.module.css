@@ -8,6 +8,7 @@
   overflow: hidden;
   background: linear-gradient(135deg, #1A2845 0%, #2A1F3D 50%, #1E3040 100%);
   padding: 36px 40px 28px;
+  margin: 0 -44px 36px;
   flex-shrink: 0;
 }
 

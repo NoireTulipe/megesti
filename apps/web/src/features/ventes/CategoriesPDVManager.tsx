@@ -1,4 +1,4 @@
-﻿import { generateUUID } from '@/lib/utils'
+import { generateUUID } from '@/lib/utils'
 import { useState } from 'react'
 import {
   useCategoriesPointDeVente,
@@ -43,7 +43,7 @@ export function CategoriesPDVManager() {
 
   return (
     <div className={styles.root}>
-      {isLoading && <p className={styles.loading}>Chargementâ€¦</p>}
+      {isLoading && <p className={styles.loading}>Chargement…</p>}
 
       <ul className={styles.list}>
         {categories.map((cat) => (
@@ -57,18 +57,18 @@ export function CategoriesPDVManager() {
                   onKeyDown={(e) => { if (e.key === 'Enter') handleUpdate(cat.id); if (e.key === 'Escape') setEditId(null) }}
                   autoFocus
                 />
-                <button className={styles.btnSave}   onClick={() => handleUpdate(cat.id)}>âœ“</button>
-                <button className={styles.btnCancel} onClick={() => setEditId(null)}>âœ•</button>
+                <button className={styles.btnSave}   onClick={() => handleUpdate(cat.id)}>•o"</button>
+                <button className={styles.btnCancel} onClick={() => setEditId(null)}>•o.</button>
               </div>
             ) : (
               <div className={styles.readRow}>
                 <span className={styles.nom}>{cat.nom}</span>
                 <div className={styles.actions}>
-                  <button className={styles.btnEdit}   onClick={() => startEdit(cat.id, cat.nom)}>âœŽ</button>
+                  <button className={styles.btnEdit}   onClick={() => startEdit(cat.id, cat.nom)}>•oZ</button>
                   <button
                     className={styles.btnDelete}
-                    onClick={() => { if (confirm(`Supprimer Â« ${cat.nom} Â» ?`)) remove.mutate(cat.id) }}
-                  >âœ•</button>
+                    onClick={() => { if (confirm(`Supprimer « ${cat.nom} » ?`)) remove.mutate(cat.id) }}
+                  >•o.</button>
                 </div>
               </div>
             )}
@@ -77,7 +77,7 @@ export function CategoriesPDVManager() {
       </ul>
 
       {categories.length === 0 && !isLoading && (
-        <p className={styles.empty}>Aucune catÃ©gorie. Ajoutez-en une ci-dessous.</p>
+        <p className={styles.empty}>Aucune catégorie. Ajoutez-en une ci-dessous.</p>
       )}
 
       <div className={styles.addRow}>
@@ -86,7 +86,7 @@ export function CategoriesPDVManager() {
           value={newNom}
           onChange={(e) => setNewNom(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter') handleAdd() }}
-          placeholder="Nouvelle catÃ©gorie (ex : Salon, Centre commercialâ€¦)"
+          placeholder="Nouvelle catégorie (ex : Salon, Centre commercial…)"
         />
         <button className={styles.btnAdd} onClick={handleAdd} disabled={isAdding || !newNom.trim()}>
           + Ajouter

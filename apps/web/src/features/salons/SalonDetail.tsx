@@ -1,4 +1,4 @@
-﻿import { generateUUID } from '@/lib/utils'
+import { generateUUID } from '@/lib/utils'
 import { useState } from 'react'
 import type { Salon, ContactSalon, CreateSalonPayload } from './hooks/useSalons'
 import { salonCA } from './hooks/useSalons'
@@ -6,7 +6,7 @@ import { useCreateSalon, useUpdateSalon } from './hooks/useSalons'
 import { useTypesSalon, useCreateTypeSalon } from './hooks/useTypesSalon'
 import styles from './SalonDetail.module.css'
 
-// â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// •"?•"? Helpers •"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?
 
 function toDateInput(iso: string | null): string {
   if (!iso) return ''
@@ -18,7 +18,7 @@ function formatDateFr(iso: string | null): string {
   return new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
 }
 
-// â”€â”€ Star rating â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// •"?•"? Star rating •"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?
 
 function StarRating({ value, onChange }: { value: number | null; onChange: (v: number | null) => void }) {
   const [hover, setHover] = useState<number | null>(null)
@@ -33,19 +33,19 @@ function StarRating({ value, onChange }: { value: number | null; onChange: (v: n
           onMouseEnter={() => setHover(i + 1)}
           onMouseLeave={() => setHover(null)}
           onClick={() => onChange(i + 1 === value ? null : i + 1)}
-          title={`${i + 1} Ã©toile${i > 0 ? 's' : ''}`}
+          title={`${i + 1} étoile${i > 0 ? 's' : ''}`}
         >
-          â˜…
+          •~.
         </button>
       ))}
       {value !== null && (
-        <button type="button" className={styles.starClear} onClick={() => onChange(null)} title="Supprimer la note">âœ•</button>
+        <button type="button" className={styles.starClear} onClick={() => onChange(null)} title="Supprimer la note">•o.</button>
       )}
     </div>
   )
 }
 
-// â”€â”€ Type selector â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// •"?•"? Type selector •"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?
 
 function TypeSelector({
   value, onChange,
@@ -93,14 +93,14 @@ function TypeSelector({
       />
       {newLib.trim() && (
         <button type="button" className={styles.typeAddBtn} onClick={handleCreate}>
-          {create.isPending ? 'â€¦' : 'Ajouter'}
+          {create.isPending ? '…' : 'Ajouter'}
         </button>
       )}
     </div>
   )
 }
 
-// â”€â”€ Draft contact â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// •"?•"? Draft contact •"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?
 
 interface DraftContact {
   id:        string
@@ -114,10 +114,10 @@ function contactFromServer(c: ContactSalon): DraftContact {
   return { id: c.id, nom: c.nom, prenom: c.prenom ?? '', email: c.email ?? '', telephone: c.telephone ?? '' }
 }
 
-// â”€â”€ Panneau principal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// •"?•"? Panneau principal •"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?
 
 interface Props {
-  salon?:   Salon        // undefined = crÃ©ation
+  salon?:   Salon        // undefined = création
   onDone:   () => void
   onCancel: () => void
 }
@@ -198,7 +198,7 @@ export function SalonDetail({ salon, onDone, onCancel }: Props) {
 
   return (
     <div className={styles.panel}>
-      {/* â”€â”€ Header â”€â”€ */}
+      {/* •"?•"? Header •"?•"? */}
       <div className={styles.panelHeader}>
         <h2 className={styles.panelNom}>{nom || 'Nouveau salon'}</h2>
         <div className={styles.panelMeta}>
@@ -208,22 +208,22 @@ export function SalonDetail({ salon, onDone, onCancel }: Props) {
         </div>
       </div>
 
-      {/* â”€â”€ BanniÃ¨re CA (mode Ã©dition uniquement) â”€â”€ */}
+      {/* •"?•"? Bannière CA (mode édition uniquement) •"?•"? */}
       {isEdit && (
         <div className={styles.caBanner}>
           <div>
-            <div className={styles.caMain}>{ca.toFixed(2)} â‚¬</div>
+            <div className={styles.caMain}>{ca.toFixed(2)} €</div>
             <div className={styles.caSub}>CA total sur {salon!.sessions.length} session{salon!.sessions.length > 1 ? 's' : ''}</div>
           </div>
         </div>
       )}
 
-      {/* â”€â”€ Corps scrollable â”€â”€ */}
+      {/* •"?•"? Corps scrollable •"?•"? */}
       <div className={styles.body}>
 
-        {/* Infos gÃ©nÃ©rales */}
+        {/* Infos générales */}
         <section className={styles.section}>
-          <h3 className={styles.sectionTitle}>Informations gÃ©nÃ©rales</h3>
+          <h3 className={styles.sectionTitle}>Informations générales</h3>
           <div className={styles.field}>
             <label className={styles.label}>Nom du salon *</label>
             <input className={styles.input} value={nom} onChange={(e) => setNom(e.target.value)} placeholder="ex. Salon du livre de Paris" autoFocus />
@@ -250,23 +250,23 @@ export function SalonDetail({ salon, onDone, onCancel }: Props) {
                 background: avecPDV ? 'rgba(16,185,129,0.12)' : 'var(--ink-faint)',
                 color: avecPDV ? '#065F46' : 'var(--text-soft)',
               }}>
-                {avecPDV ? 'Actif' : 'DÃ©sactivÃ©'}
+                {avecPDV ? 'Actif' : 'Désactivé'}
               </span>
             )}
           </label>
           {avecPDV && (
             <p style={{ fontSize: '0.75rem', color: 'var(--text-soft)', margin: '0 0 0 26px' }}>
-              Un point de vente Â« {nom || 'ce salon'} Â» sera disponible Ã  l'ouverture des sessions de caisse.
-              Les ventes seront automatiquement liÃ©es Ã  ce salon.
+              Un point de vente « {nom || 'ce salon'} » sera disponible à l'ouverture des sessions de caisse.
+              Les ventes seront automatiquement liées à ce salon.
             </p>
           )}
           <div className={styles.grid2}>
             <div className={styles.field}>
-              <label className={styles.label}>PÃ©riode habituelle</label>
+              <label className={styles.label}>Période habituelle</label>
               <input className={styles.input} value={periodeHabituelle} onChange={(e) => setPeriodeHabituelle(e.target.value)} placeholder="ex. Printemps" />
             </div>
             <div className={styles.field}>
-              <label className={styles.label}>DurÃ©e (jours)</label>
+              <label className={styles.label}>Durée (jours)</label>
               <input className={styles.input} type="number" min={1} value={dureeJours} onChange={(e) => setDureeJours(e.target.value)} placeholder="3" />
             </div>
           </div>
@@ -277,7 +277,7 @@ export function SalonDetail({ salon, onDone, onCancel }: Props) {
           <h3 className={styles.sectionTitle}>Dates du prochain salon</h3>
           <div className={styles.grid2}>
             <div className={styles.field}>
-              <label className={styles.label}>Date de dÃ©but</label>
+              <label className={styles.label}>Date de début</label>
               <input className={styles.input} type="date" value={dateDebut} onChange={(e) => setDateDebut(e.target.value)} />
             </div>
             <div className={styles.field}>
@@ -292,7 +292,7 @@ export function SalonDetail({ salon, onDone, onCancel }: Props) {
           <h3 className={styles.sectionTitle}>Lieu</h3>
           <div className={styles.field}>
             <label className={styles.label}>Adresse</label>
-            <input className={styles.input} value={adresse} onChange={(e) => setAdresse(e.target.value)} placeholder="Rue, numÃ©roâ€¦" />
+            <input className={styles.input} value={adresse} onChange={(e) => setAdresse(e.target.value)} placeholder="Rue, numéro…" />
           </div>
           <div className={styles.grid2}>
             <div className={styles.field}>
@@ -311,7 +311,7 @@ export function SalonDetail({ salon, onDone, onCancel }: Props) {
           <h3 className={styles.sectionTitle}>Finances</h3>
           <div className={styles.grid2}>
             <div className={styles.field}>
-              <label className={styles.label}>Participation fixe (â‚¬)</label>
+              <label className={styles.label}>Participation fixe (€)</label>
               <input className={styles.input} type="number" min={0} step={0.01} value={prixPrevuFixe} onChange={(e) => setPrixPrevuFixe(e.target.value)} placeholder="0.00" />
             </div>
             <div className={styles.field}>
@@ -327,7 +327,7 @@ export function SalonDetail({ salon, onDone, onCancel }: Props) {
           <div className={styles.contactList}>
             {contacts.length > 0 && (
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr auto', gap: '8px', padding: '0 12px', marginBottom: -4 }}>
-                {['Nom *', 'PrÃ©nom', 'Email', 'TÃ©lÃ©phone', ''].map((h) => (
+                {['Nom *', 'Prénom', 'Email', 'Téléphone', ''].map((h) => (
                   <span key={h} style={{ fontSize: '0.65rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-soft)' }}>{h}</span>
                 ))}
               </div>
@@ -335,10 +335,10 @@ export function SalonDetail({ salon, onDone, onCancel }: Props) {
             {contacts.map((c, i) => (
               <div key={c.id} className={styles.contactRow}>
                 <input className={styles.contactInput} value={c.nom}       onChange={(e) => updateContact(i, 'nom',       e.target.value)} placeholder="Nom" />
-                <input className={styles.contactInput} value={c.prenom}    onChange={(e) => updateContact(i, 'prenom',    e.target.value)} placeholder="PrÃ©nom" />
-                <input className={styles.contactInput} value={c.email}     onChange={(e) => updateContact(i, 'email',     e.target.value)} placeholder="email@â€¦" />
-                <input className={styles.contactInput} value={c.telephone} onChange={(e) => updateContact(i, 'telephone', e.target.value)} placeholder="06â€¦" />
-                <button className={styles.btnRemoveContact} onClick={() => removeContact(i)} title="Supprimer">Ã—</button>
+                <input className={styles.contactInput} value={c.prenom}    onChange={(e) => updateContact(i, 'prenom',    e.target.value)} placeholder="Prénom" />
+                <input className={styles.contactInput} value={c.email}     onChange={(e) => updateContact(i, 'email',     e.target.value)} placeholder="email@…" />
+                <input className={styles.contactInput} value={c.telephone} onChange={(e) => updateContact(i, 'telephone', e.target.value)} placeholder="06…" />
+                <button className={styles.btnRemoveContact} onClick={() => removeContact(i)} title="Supprimer">•-</button>
               </div>
             ))}
           </div>
@@ -354,7 +354,7 @@ export function SalonDetail({ salon, onDone, onCancel }: Props) {
           </div>
           <div className={styles.field}>
             <label className={styles.label}>Commentaires</label>
-            <textarea className={styles.textarea} value={commentaires} onChange={(e) => setCommentaires(e.target.value)} placeholder="Observations, points Ã  amÃ©liorer, anecdotesâ€¦" />
+            <textarea className={styles.textarea} value={commentaires} onChange={(e) => setCommentaires(e.target.value)} placeholder="Observations, points à améliorer, anecdotes…" />
           </div>
         </section>
 
@@ -369,9 +369,9 @@ export function SalonDetail({ salon, onDone, onCancel }: Props) {
                   <div key={s.id} className={styles.sessionRow}>
                     <div>
                       <span className={styles.sessionNom}>Session</span>
-                      <span className={styles.sessionDate}> Â· {s.statut === 'FERMEE' ? 'ClÃ´turÃ©e' : 'En cours'}</span>
+                      <span className={styles.sessionDate}> · {s.statut === 'FERMEE' ? 'Clôturée' : 'En cours'}</span>
                     </div>
-                    <span className={styles.sessionCA}>{sessionCA.toFixed(2)} â‚¬</span>
+                    <span className={styles.sessionCA}>{sessionCA.toFixed(2)} €</span>
                   </div>
                 )
               })}
@@ -380,11 +380,11 @@ export function SalonDetail({ salon, onDone, onCancel }: Props) {
         )}
       </div>
 
-      {/* â”€â”€ Footer â”€â”€ */}
+      {/* •"?•"? Footer •"?•"? */}
       <div className={styles.footer}>
         <button className={styles.btnCancel} onClick={onCancel}>Annuler</button>
         <button className={styles.btnSave} disabled={!canSave || isSaving} onClick={handleSave}>
-          {isSaving ? 'Enregistrementâ€¦' : isEdit ? 'Enregistrer' : 'CrÃ©er le salon'}
+          {isSaving ? 'Enregistrement…' : isEdit ? 'Enregistrer' : 'Créer le salon'}
         </button>
       </div>
     </div>

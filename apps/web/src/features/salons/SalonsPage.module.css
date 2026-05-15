@@ -27,7 +27,7 @@
 
 /* ── PAGE ─────────────────────────────────────────── */
 .page {
-  padding: 40px 44px 60px; animation: fadeUp 0.5s cubic-bezier(0.22,1,0.36,1) both;
+  padding: 0 44px 60px; animation: fadeUp 0.5s cubic-bezier(0.22,1,0.36,1) both;
   position: relative; z-index: 1;
 }
 

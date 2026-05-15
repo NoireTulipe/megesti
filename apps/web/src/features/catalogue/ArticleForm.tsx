@@ -1,4 +1,4 @@
-﻿import { generateUUID } from '@/lib/utils'
+import { generateUUID } from '@/lib/utils'
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -34,7 +34,7 @@ const schema = z.object({
   reference:       z.string().optional(),
   description:     z.string().optional(),
   imageUrl:        z.string().optional(),
-  prixVenteHT:     z.coerce.number({ invalid_type_error: 'Nombre requis' }).min(0, 'Doit Ãªtre â‰¥ 0'),
+  prixVenteHT:     z.coerce.number({ invalid_type_error: 'Nombre requis' }).min(0, 'Doit être … 0'),
   prixAchatHT:     optNum,
   prixAchatLotHT:  optNum,
   prixAchatLotQte: optInt,
@@ -123,7 +123,7 @@ export function ArticleForm({ onClose, article }: Props) {
     setValue('stockTension', tension)
   }, [setValue])
 
-  // â”€â”€ TVA : facteur de conversion selon le rayon sÃ©lectionnÃ© â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // •"?•"? TVA : facteur de conversion selon le rayon sélectionné •"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?
   const selectedRayon = rayons.find(r => r.id === selectedRayonId)
   const tauxTVA       = franchiseTVA ? 0 : Number(selectedRayon?.tauxTVA ?? 20)
   const facteurTVA    = 1 + tauxTVA / 100
@@ -163,7 +163,7 @@ export function ArticleForm({ onClose, article }: Props) {
     }
   }
 
-  // Remplir les champs custom quand les valeurs chargent (mode Ã©dition)
+  // Remplir les champs custom quand les valeurs chargent (mode édition)
   useEffect(() => {
     if (isEdit && Object.keys(customValues).length > 0) {
       Object.entries(customValues).forEach(([defId, val]) => {
@@ -242,7 +242,7 @@ export function ArticleForm({ onClose, article }: Props) {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className={styles.form}>
 
-      {/* â”€â”€ Classification â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* •"?•"? Classification •"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"? */}
       <div className={styles.section}>
         <p className={styles.sectionLabel}>Classification</p>
         <div className={styles.row2}>
@@ -259,7 +259,7 @@ export function ArticleForm({ onClose, article }: Props) {
                 setValue('categorieId', undefined)
               }}
             >
-              <option value="">â€” Choisir â€”</option>
+              <option value="">— Choisir —</option>
               {rayons.map((r) => (
                 <option key={r.id} value={r.id}>{r.nom}</option>
               ))}
@@ -267,14 +267,14 @@ export function ArticleForm({ onClose, article }: Props) {
             {errors.rayonId && <span className={styles.error}>{errors.rayonId.message}</span>}
           </div>
           <div className={styles.field}>
-            <label className={styles.label} htmlFor="categorieId">CatÃ©gorie</label>
+            <label className={styles.label} htmlFor="categorieId">Catégorie</label>
             <select
               id="categorieId"
               className={styles.select}
               disabled={categories.length === 0}
               {...register('categorieId')}
             >
-              <option value="">â€” Aucune â€”</option>
+              <option value="">— Aucune —</option>
               {categories.map((c) => (
                 <option key={c.id} value={c.id}>{c.nom}</option>
               ))}
@@ -283,7 +283,7 @@ export function ArticleForm({ onClose, article }: Props) {
         </div>
       </div>
 
-      {/* â”€â”€ Informations â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* •"?•"? Informations •"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"? */}
       <div className={styles.section}>
         <p className={styles.sectionLabel}>Informations</p>
         <div className={styles.field}>
@@ -300,12 +300,12 @@ export function ArticleForm({ onClose, article }: Props) {
         </div>
         <div className={styles.row2}>
           <div className={styles.field}>
-            <label className={styles.label} htmlFor="reference">RÃ©fÃ©rence</label>
-            <input id="reference" className={styles.input} {...register('reference')} placeholder="SKU, code interneâ€¦" />
+            <label className={styles.label} htmlFor="reference">Référence</label>
+            <input id="reference" className={styles.input} {...register('reference')} placeholder="SKU, code interne…" />
           </div>
           <div className={styles.field}>
             <label className={styles.label} htmlFor="imageUrl">Image (URL)</label>
-            <input id="imageUrl" className={styles.input} {...register('imageUrl')} placeholder="https://â€¦" />
+            <input id="imageUrl" className={styles.input} {...register('imageUrl')} placeholder="https://…" />
           </div>
         </div>
         <div className={styles.field}>
@@ -314,18 +314,18 @@ export function ArticleForm({ onClose, article }: Props) {
         </div>
       </div>
 
-      {/* â”€â”€ Tarification â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* •"?•"? Tarification •"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"? */}
       <div className={styles.section}>
         <p className={styles.sectionLabel}>
           Tarification
           {selectedRayon && (
             <span style={{ marginLeft: 8, fontWeight: 400, color: 'var(--text-soft)', textTransform: 'none', letterSpacing: 0 }}>
-              â€” TVA {franchiseTVA ? 'non applicable (293 B CGI)' : `${tauxTVA} %`}
+              — TVA {franchiseTVA ? 'non applicable (293 B CGI)' : `${tauxTVA} %`}
             </span>
           )}
         </p>
 
-        {/* Prix de vente : double saisie HT â†” TTC */}
+        {/* Prix de vente : double saisie HT — TTC */}
         <div className={styles.prixVenteRow}>
           <div className={styles.field} style={{ flex: 1 }}>
             <label className={styles.label} htmlFor="prixVenteHT">
@@ -339,13 +339,13 @@ export function ArticleForm({ onClose, article }: Props) {
                 placeholder="0.00"
                 {...register('prixVenteHT', { onBlur: onHTBlur })}
               />
-              <span className={styles.unit}>â‚¬</span>
+              <span className={styles.unit}>€</span>
             </div>
             {errors.prixVenteHT && <span className={styles.error}>{errors.prixVenteHT.message}</span>}
           </div>
 
           <div className={styles.prixArrow} title={franchiseTVA ? 'TVA non applicable' : `TVA ${tauxTVA} %`}>
-            {franchiseTVA ? '=' : 'â†”'}
+            {franchiseTVA ? '=' : '—'}
           </div>
 
           <div className={styles.field} style={{ flex: 1 }}>
@@ -364,22 +364,22 @@ export function ArticleForm({ onClose, article }: Props) {
                 readOnly={franchiseTVA}
                 style={franchiseTVA ? { background: 'var(--cream)', color: 'var(--text-soft)' } : {}}
               />
-              <span className={styles.unit}>â‚¬</span>
+              <span className={styles.unit}>€</span>
             </div>
           </div>
         </div>
 
-        {/* Achat : lot en premier â†’ prix unitaire dÃ©rivÃ© ou saisie directe */}
+        {/* Achat : lot en premier → prix unitaire dérivé ou saisie directe */}
         <div className={styles.row2}>
           <div className={styles.field}>
             <label className={styles.label} htmlFor="prixAchatLotHT">Prix lot HT</label>
             <div className={styles.inputWithUnit}>
               <input id="prixAchatLotHT" className={styles.input} inputMode="decimal" placeholder="0.00" {...register('prixAchatLotHT')} />
-              <span className={styles.unit}>â‚¬</span>
+              <span className={styles.unit}>€</span>
             </div>
           </div>
           <div className={styles.field}>
-            <label className={styles.label} htmlFor="prixAchatLotQte">QtÃ© par lot</label>
+            <label className={styles.label} htmlFor="prixAchatLotQte">Qté par lot</label>
             <input id="prixAchatLotQte" className={styles.input} inputMode="numeric" placeholder="ex : 5" {...register('prixAchatLotQte')} />
           </div>
         </div>
@@ -389,7 +389,7 @@ export function ArticleForm({ onClose, article }: Props) {
             <label className={styles.label} htmlFor="prixAchatHT">
               Prix d'achat unitaire HT
               {lotValide && (
-                <span className={styles.calcBadge}>ðŸ”¢ calculÃ© depuis le lot</span>
+                <span className={styles.calcBadge}>•Y"• calculé depuis le lot</span>
               )}
             </label>
             <div className={styles.inputWithUnit}>
@@ -402,11 +402,11 @@ export function ArticleForm({ onClose, article }: Props) {
                 style={lotValide ? { background: 'var(--cream)', color: 'var(--text-soft)', cursor: 'not-allowed' } : {}}
                 {...register('prixAchatHT')}
               />
-              <span className={styles.unit}>â‚¬</span>
+              <span className={styles.unit}>€</span>
             </div>
             {lotValide && prixUnitaireCalcule !== null && (
               <p className={styles.calcHint}>
-                {Number(watchLotHT).toFixed(2)} â‚¬ Ã· {watchLotQte} = {prixUnitaireCalcule.toFixed(4)} â‚¬ / unitÃ©
+                {Number(watchLotHT).toFixed(2)} € ÷ {watchLotQte} = {prixUnitaireCalcule.toFixed(4)} € / unité
               </p>
             )}
           </div>
@@ -423,14 +423,14 @@ export function ArticleForm({ onClose, article }: Props) {
         />
       </div>
 
-      {/* â”€â”€ Librairie â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* •"?•"? Librairie •"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"? */}
       {isLibrairie && (
         <div className={styles.section}>
           <p className={styles.sectionLabel}>Librairie</p>
           <div className={styles.row2}>
             <div className={styles.field}>
               <label className={styles.label} htmlFor="isbn">ISBN</label>
-              <input id="isbn" className={styles.input} {...register('isbn')} placeholder="978-â€¦" />
+              <input id="isbn" className={styles.input} {...register('isbn')} placeholder="978-…" />
             </div>
             <div className={styles.field}>
               <label className={styles.label} htmlFor="datePublication">Date de publication</label>
@@ -440,25 +440,25 @@ export function ArticleForm({ onClose, article }: Props) {
           <div className={styles.field}>
             <label className={styles.label}>Auteur{!reseauOnly ? 's' : ''}</label>
             {reseauOnly ? (
-              /* Auto-Ã©dition : auteur virtuel assignÃ© automatiquement */
+              /* Auto-édition : auteur virtuel assigné automatiquement */
               <div className={styles.auteurVirtuel}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, color: 'var(--sage)' }}>
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
                 </svg>
-                <span className={styles.auteurVirtuelNom}>{tenant?.name ?? 'Votre maison d\'Ã©dition'}</span>
-                <span className={styles.auteurVirtuelBadge}>Auteur assignÃ© automatiquement</span>
+                <span className={styles.auteurVirtuelNom}>{tenant?.name ?? 'Votre maison d\'édition'}</span>
+                <span className={styles.auteurVirtuelBadge}>Auteur assigné automatiquement</span>
               </div>
             ) : (
               <>
                 <input
                   className={styles.auteurSearch}
-                  placeholder="Rechercher un auteurâ€¦"
+                  placeholder="Rechercher un auteur…"
                   value={auteurSearch}
                   onChange={(e) => setAuteurSearch(e.target.value)}
                 />
                 <div className={styles.auteurList}>
                   {filteredAuteurs.length === 0 && (
-                    <p className={styles.auteurEmpty}>Aucun auteur trouvÃ©.</p>
+                    <p className={styles.auteurEmpty}>Aucun auteur trouvé.</p>
                   )}
                   {filteredAuteurs.map((a) => {
                     const selected = auteurIds.includes(a.id)
@@ -481,14 +481,14 @@ export function ArticleForm({ onClose, article }: Props) {
         </div>
       )}
 
-      {/* â”€â”€ Impression â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* •"?•"? Impression •"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"? */}
       {imprimeurs.length > 0 && (
         <div className={styles.section}>
           <p className={styles.sectionLabel}>Impression</p>
           <div className={styles.field}>
             <label className={styles.label} htmlFor="imprimeurId">Imprimeur</label>
             <select id="imprimeurId" className={styles.select} {...register('imprimeurId')}>
-              <option value="">â€” Aucun â€”</option>
+              <option value="">— Aucun —</option>
               {imprimeurs.map(imp => (
                 <option key={imp.id} value={imp.id}>{imp.nom}</option>
               ))}
@@ -497,14 +497,14 @@ export function ArticleForm({ onClose, article }: Props) {
         </div>
       )}
 
-      {/* â”€â”€ Champs custom du rayon â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* •"?•"? Champs custom du rayon •"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"? */}
       {selectedRayonId && (
         <CustomFieldsRenderer rayonId={selectedRayonId} register={register} errors={errors} />
       )}
 
-      {isError && <p className={styles.errorGlobal}>Une erreur est survenue. Veuillez rÃ©essayer.</p>}
+      {isError && <p className={styles.errorGlobal}>Une erreur est survenue. Veuillez réessayer.</p>}
 
-      {/* â”€â”€ Statut catalogue (mode Ã©dition uniquement) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* •"?•"? Statut catalogue (mode édition uniquement) •"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"? */}
       {isEdit && article && (
         <div style={{
           padding: '12px 16px',
@@ -515,12 +515,12 @@ export function ArticleForm({ onClose, article }: Props) {
         }}>
           <div>
             <span style={{ fontSize: '0.82rem', fontWeight: 600, color: article.actif ? 'var(--ink)' : '#DC2626' }}>
-              {article.actif ? 'Article en catalogue' : 'Article retirÃ© du catalogue'}
+              {article.actif ? 'Article en catalogue' : 'Article retiré du catalogue'}
             </span>
             <p style={{ fontSize: '0.72rem', color: 'var(--text-soft)', margin: '2px 0 0' }}>
               {article.actif
                 ? 'Visible dans les ventes et le catalogue.'
-                : 'ConservÃ© en base pour l\'historique. Non disponible Ã  la vente.'}
+                : 'Conservé en base pour l\'historique. Non disponible à la vente.'}
             </p>
           </div>
           <button
@@ -539,7 +539,7 @@ export function ArticleForm({ onClose, article }: Props) {
               transition: 'background 0.15s',
             }}
           >
-            {setActif.isPending ? 'â€¦' : article.actif ? 'Retirer du catalogue' : 'Remettre au catalogue'}
+            {setActif.isPending ? '…' : article.actif ? 'Retirer du catalogue' : 'Remettre au catalogue'}
           </button>
         </div>
       )}
@@ -547,7 +547,7 @@ export function ArticleForm({ onClose, article }: Props) {
       <div className={styles.actions}>
         <button type="button" className={styles.btnSecondary} onClick={onClose}>Annuler</button>
         <button type="submit" className={styles.btnPrimary} disabled={isSubmitting}>
-          {isSubmitting ? 'Enregistrementâ€¦' : isEdit ? 'Enregistrer' : 'CrÃ©er l\'article'}
+          {isSubmitting ? 'Enregistrement…' : isEdit ? 'Enregistrer' : 'Créer l\'article'}
         </button>
       </div>
     </form>
