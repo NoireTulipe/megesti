@@ -94,10 +94,10 @@ export function PopupsPage() {
   function closePanel() { setSelected(null); setIsNew(false); setErr('') }
   function setF<K extends keyof FormState>(k: K, v: FormState[K]) { setForm(f => ({ ...f, [k]: v })) }
   function setSlide(i: number, k: keyof PopupSlide, v: string) {
-    setForm(f => { const s = [...f.slides]; s[i] = { ...s[i], [k]: v }; return { ...f, slides: s } })
+    setForm(f => { const s = [...f.slides]; s[i] = { ...s[i]!, [k]: v }; return { ...f, slides: s } })
   }
   function moveSlide(i: number, dir: -1 | 1) {
-    setForm(f => { const s = [...f.slides]; const j = i + dir; if (j < 0 || j >= s.length) return f; [s[i], s[j]] = [s[j], s[i]]; return { ...f, slides: s } })
+    setForm(f => { const s = [...f.slides]; const j = i + dir; if (j < 0 || j >= s.length) return f; [s[i], s[j]] = [s[j]!, s[i]!]; return { ...f, slides: s } })
   }
   function removeSlide(i: number) { setForm(f => ({ ...f, slides: f.slides.filter((_, idx) => idx !== i) })) }
 

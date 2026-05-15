@@ -20,7 +20,8 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#FFF9F5"
       },
-      "package": "com.megesti.app"
+      "package": "com.megesti.app",
+      "usesCleartextTraffic": true
     },
     "plugins": [
       "expo-router",

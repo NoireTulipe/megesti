@@ -117,7 +117,7 @@ export function MascoteDialogsPage() {
   function setBulle(i: number, key: keyof Bulle, val: string) {
     setForm(f => {
       const bulles = [...f.bulles]
-      bulles[i] = { ...bulles[i], [key]: val }
+      bulles[i] = { ...bulles[i]!, [key]: val }
       return { ...f, bulles }
     })
   }
@@ -127,7 +127,7 @@ export function MascoteDialogsPage() {
       const bulles = [...f.bulles]
       const j = i + dir
       if (j < 0 || j >= bulles.length) return f
-      ;[bulles[i], bulles[j]] = [bulles[j], bulles[i]]
+      ;[bulles[i], bulles[j]] = [bulles[j]!, bulles[i]!]
       return { ...f, bulles }
     })
   }
