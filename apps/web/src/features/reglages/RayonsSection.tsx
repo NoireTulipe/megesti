@@ -267,7 +267,7 @@ export function RayonsSection() {
               disabled={!newRayonName.trim() || createRayon.isPending}>
               {createRayon.isPending ? '…' : 'Créer'}
             </button>
-            <button className={styles.btnCancel} onClick={() => { setShowNewRayon(false); setNewRayonName('') }}>•o.</button>
+            <button className={styles.btnCancel} onClick={() => { setShowNewRayon(false); setNewRayonName('') }}>✕</button>
           </div>
         ) : rayons.length > 0 ? (
           <button className={styles.btnAddRayon} onClick={() => setShowNewRayon(true)}>

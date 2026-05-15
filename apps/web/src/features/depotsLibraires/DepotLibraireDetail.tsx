@@ -339,7 +339,7 @@ export function DepotLibraireDetail({ depot, isOpen, onClose }: Props) {
       <div className={`${sty.modal} ${sty['modal-xl']}`} style={{ display:'flex', flexDirection:'column' }}
         role="dialog" aria-modal="true" onClick={e => e.stopPropagation()}>
 
-        <button className={sty['modal-close']} onClick={onClose} aria-label="Fermer">•o.</button>
+        <button className={sty['modal-close']} onClick={onClose} aria-label="Fermer">✕</button>
 
         {/* Header */}
         <div className={sty['detail-header']}>

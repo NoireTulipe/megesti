@@ -336,7 +336,7 @@ export function FormBuilder({ entityType, rayonId, isLibrairie }: Props) {
             autoFocus
           />
           <button className={styles.btnConfirm} onClick={handleAddSection}>Créer</button>
-          <button className={styles.btnCancel} onClick={() => setShowNewSection(false)}>•o.</button>
+          <button className={styles.btnCancel} onClick={() => setShowNewSection(false)}>✕</button>
         </div>
       )}
 

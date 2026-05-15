@@ -171,7 +171,7 @@ export function VenteHorsSessionModal({ isOpen, onClose }: Props) {
                   onKeyDown={e => { if (e.key === 'Enter') handleAddMotif() }}
                 />
                 <button className={styles.addMotifConfirm} onClick={handleAddMotif}>•o"</button>
-                <button className={styles.addMotifCancel} onClick={() => setShowAddMotif(false)}>•o.</button>
+                <button className={styles.addMotifCancel} onClick={() => setShowAddMotif(false)}>✕</button>
               </div>
             ) : (
               <button className={styles.addMotifBtn} onClick={() => setShowAddMotif(true)}>+ Ajouter</button>

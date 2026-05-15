@@ -39,7 +39,7 @@ function StarRating({ value, onChange }: { value: number | null; onChange: (v: n
         </button>
       ))}
       {value !== null && (
-        <button type="button" className={styles.starClear} onClick={() => onChange(null)} title="Supprimer la note">•o.</button>
+        <button type="button" className={styles.starClear} onClick={() => onChange(null)} title="Supprimer la note">✕</button>
       )}
     </div>
   )

@@ -528,7 +528,7 @@ export function VentesPage() {
                               autoFocus
                             />
                             <button className={styles.prixEditSave} onClick={() => confirmPrixEdit(l.articleId)}>•o"</button>
-                            <button className={styles.prixEditCancel} onClick={() => { setEditPrixId(null); setEditPrixVal('') }}>•o.</button>
+                            <button className={styles.prixEditCancel} onClick={() => { setEditPrixId(null); setEditPrixVal('') }}>✕</button>
                           </div>
                         ) : (
                           <button
@@ -635,7 +635,7 @@ export function VentesPage() {
           <div className={styles.sectionAccBody}>
             <div className={styles.fraisBodyHeader}>
               <button className={styles.btnAddFrais} onClick={() => setShowFraisForm(v => !v)}>
-                {showFraisForm ? '•o. Annuler' : '+ Enregistrer un frais'}
+                {showFraisForm ? '✕ Annuler' : '+ Enregistrer un frais'}
               </button>
               <HelpButton slug="aide-caisse-frais" className={styles['tab-help']} />
             </div>
@@ -706,7 +706,7 @@ export function VentesPage() {
                       {f.montantHT ? `${parseFloat(f.montantHT).toFixed(2)} € HT` : '—'}
                     </span>
                     {f.actif ? (
-                      <button className={styles.btnDeleteFrais} onClick={() => deleteFrais.mutate(f.id)} title="Supprimer">•o.</button>
+                      <button className={styles.btnDeleteFrais} onClick={() => deleteFrais.mutate(f.id)} title="Supprimer">✕</button>
                     ) : (
                       <span className={styles.fraisAnnule}>annulé</span>
                     )}

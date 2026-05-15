@@ -58,7 +58,7 @@ export function CategoriesPDVManager() {
                   autoFocus
                 />
                 <button className={styles.btnSave}   onClick={() => handleUpdate(cat.id)}>•o"</button>
-                <button className={styles.btnCancel} onClick={() => setEditId(null)}>•o.</button>
+                <button className={styles.btnCancel} onClick={() => setEditId(null)}>✕</button>
               </div>
             ) : (
               <div className={styles.readRow}>
@@ -68,7 +68,7 @@ export function CategoriesPDVManager() {
                   <button
                     className={styles.btnDelete}
                     onClick={() => { if (confirm(`Supprimer « ${cat.nom} » ?`)) remove.mutate(cat.id) }}
-                  >•o.</button>
+                  >✕</button>
                 </div>
               </div>
             )}
