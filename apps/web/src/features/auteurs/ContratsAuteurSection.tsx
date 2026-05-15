@@ -124,7 +124,7 @@ function PeriodiciteFields({ periodicite, datesFixesJSON, prochainVersement, onC
               />
               <button type="button" onClick={() => removeDate(i)}
                 style={{ width: 24, height: 24, border: 'none', borderRadius: 6, background: '#FEE2E2', color: '#DC2626', cursor: 'pointer', fontSize: '0.75rem' }}>
-                •-
+                ✕
               </button>
             </div>
           ))}
@@ -244,7 +244,7 @@ function ContratCard({ c, typesDA, articles, onDelete, onUpdate, onAppliquer, up
         />
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
           {saveError && (
-            <span style={{ fontSize: '0.75rem', color: '#DC2626', flex: 1 }}>•s• {saveError}</span>
+            <span style={{ fontSize: '0.75rem', color: '#DC2626', flex: 1 }}>⚠ {saveError}</span>
           )}
           <button type="button" className={sty.btnSecondary} onClick={() => setEditing(false)}>Annuler</button>
           <button type="button" className={sty.btnPrimary} disabled={!f.typeDAId || updating} onClick={handleSave}>
@@ -306,7 +306,7 @@ function ContratCard({ c, typesDA, articles, onDelete, onUpdate, onAppliquer, up
           onMouseLeave={e => { const el = e.currentTarget; el.style.background = 'transparent'; el.style.color = '#aaa'; el.style.borderColor = 'transparent' }}
           title="Modifier le contrat"
         >
-          •oZ
+          ✎
         </button>
         <button
           type="button"
@@ -323,7 +323,7 @@ function ContratCard({ c, typesDA, articles, onDelete, onUpdate, onAppliquer, up
           onMouseLeave={e => { const el = e.currentTarget; el.style.background = 'transparent'; el.style.color = '#ccc'; el.style.borderColor = 'transparent' }}
           title="Résilier le contrat"
         >
-          •-
+          ✕
         </button>
       </div>
 

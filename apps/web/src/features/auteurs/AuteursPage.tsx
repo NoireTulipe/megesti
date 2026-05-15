@@ -9,6 +9,7 @@ import { usePlanFeatures } from '@/hooks/usePlanFeatures'
 import { HelpButton } from '@/components/HelpButton'
 import { MascoteBlock } from '@/components/MascoteBlock'
 import { PageHero } from '@/components/PageHero'
+import { SearchInput } from '@/components/SearchInput'
 import styles from './AuteursPage.module.css'
 
 type AuteurTab = 'me' | 'reseau'
@@ -43,20 +44,12 @@ export function AuteursPage() {
           subtitle={<>{auteurs.length} auteur{auteurs.length !== 1 ? 's' : ''}{debouncedSearch ? ` · résultats pour « ${debouncedSearch} »` : ''}</>}
         >
           <div className={styles['header-actions']}>
-            <div className={styles['search-wrap']}>
-              <span className={styles['search-icon']}>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-                </svg>
-              </span>
-              <input
-                className={styles['search-input']}
-                type="search"
-                placeholder="Rechercher un auteur…"
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-              />
-            </div>
+            <SearchInput
+              value={search}
+              onChange={setSearch}
+              onClear={() => { setSearch(''); setDebounced('') }}
+              placeholder="Rechercher un auteur…"
+            />
             <button className={styles['btn-primary']} onClick={() => setShowCreate(true)}>
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
                 <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>

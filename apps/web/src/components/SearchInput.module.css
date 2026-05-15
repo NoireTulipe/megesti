@@ -1,0 +1,65 @@
+/* SearchInput — Champ de recherche partagé (style Catalogue) */
+
+.wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input {
+  height: 42px;
+  padding: 0 36px 0 16px;
+  border: 1.5px solid var(--cream-dark);
+  border-radius: 12px;
+  font-size: 0.865rem;
+  font-family: inherit;
+  background: var(--cream, #FAF7F2);
+  color: var(--text);
+  outline: none;
+  width: 220px;
+  transition: border-color 0.15s, box-shadow 0.15s, width 0.2s ease;
+}
+
+.input:focus {
+  border-color: var(--rose, #C4847A);
+  box-shadow: 0 0 0 3px rgba(196,144,124,0.15);
+  background: var(--white);
+  width: 270px;
+}
+
+.input::placeholder {
+  color: var(--text-soft);
+  font-style: normal;
+}
+
+/* Supprime le X natif des navigateurs Webkit */
+.input::-webkit-search-cancel-button,
+.input::-webkit-search-decoration {
+  display: none;
+}
+
+.clear {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: none;
+  background: var(--cream-dark, #EDE7DC);
+  color: var(--text-soft);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s;
+  line-height: 1;
+}
+
+.clear:hover {
+  background: var(--rose-light, #F9EDE8);
+  color: var(--rose, #C4847A);
+}

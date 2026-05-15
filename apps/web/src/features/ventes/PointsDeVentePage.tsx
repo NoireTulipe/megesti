@@ -12,6 +12,7 @@ import sty    from '@/features/auteurs/AuteursPage.module.css'
 import mascot from './PointsDeVentePage.module.css'
 import { MascoteBlock } from '@/components/MascoteBlock'
 import { PageHero } from '@/components/PageHero'
+import { SearchInput } from '@/components/SearchInput'
 import { HelpButton } from '@/components/HelpButton'
 
 // ── Page principale ───────────────────────────────────────────────────────────
@@ -42,20 +43,12 @@ export function PointsDeVentePage() {
         subtitle={<>{items.length} point{items.length > 1 ? 's' : ''}{debounced ? ` · résultats pour « ${debounced} »` : ''}</>}
       >
         <div className={sty['header-actions']}>
-          <div className={sty['search-wrap']}>
-            <span className={sty['search-icon']}>
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-              </svg>
-            </span>
-            <input
-              className={sty['search-input']}
-              type="search"
-              placeholder="Rechercher un PDV…"
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-            />
-          </div>
+          <SearchInput
+            value={search}
+            onChange={setSearch}
+            onClear={() => { setSearch(''); setDebounced('') }}
+            placeholder="Rechercher un PDV…"
+          />
 
           {/* Bouton Catégories */}
           <button className={mascot['btn-categories']} onClick={() => setShowCategories(true)}>

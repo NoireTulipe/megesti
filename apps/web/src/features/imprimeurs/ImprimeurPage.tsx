@@ -6,6 +6,7 @@ import { ImprimeurDetail } from './ImprimeurDetail'
 import { ImprimeurForm }   from './ImprimeurForm'
 import { Modal } from '@/components/ui/Modal'
 import { PageHero } from '@/components/PageHero'
+import { SearchInput } from '@/components/SearchInput'
 import sty from '@/features/auteurs/AuteursPage.module.css'
 
 export function ImprimeurPage() {
@@ -32,20 +33,12 @@ export function ImprimeurPage() {
         subtitle={<>{items.length} imprimeur{items.length > 1 ? 's' : ''} référencé{items.length > 1 ? 's' : ''}{debounced ? ` · résultats pour « ${debounced} »` : ''}</>}
       >
         <div className={sty['header-actions']}>
-          <div className={sty['search-wrap']}>
-            <span className={sty['search-icon']}>
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-              </svg>
-            </span>
-            <input
-              className={sty['search-input']}
-              type="search"
-              placeholder="Rechercher un imprimeur…"
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-            />
-          </div>
+          <SearchInput
+            value={search}
+            onChange={setSearch}
+            onClear={() => { setSearch(''); setDebounced('') }}
+            placeholder="Rechercher un imprimeur…"
+          />
           <button className={sty['btn-primary']} onClick={() => setShowCreate(true)}>
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
               <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>

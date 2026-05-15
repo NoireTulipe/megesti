@@ -12,6 +12,7 @@ import styles from './CataloguePage.module.css'
 
 import { MascoteBlock } from '@/components/MascoteBlock'
 import { PageHero } from '@/components/PageHero'
+import { SearchInput } from '@/components/SearchInput'
 import { HelpButton } from '@/components/HelpButton'
 
 type CatalogueTab = 'actifs' | 'retires'
@@ -101,20 +102,12 @@ export function CataloguePage() {
           {tab === 'actifs' && (
             <ArticleQuota used={allActifs.length} max={features.maxArticles} />
           )}
-          <div className={styles['search-wrap']}>
-            <input
-              className={styles['search-input']}
-              type="text"
-              placeholder="🔍  Rechercher…"
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-            />
-            {search && (
-              <button className={styles['search-clear']} onClick={() => { setSearch(''); setDebounced('') }} aria-label="Effacer">
-                ✕
-              </button>
-            )}
-          </div>
+          <SearchInput
+            value={search}
+            onChange={setSearch}
+            onClear={() => { setSearch(''); setDebounced('') }}
+            placeholder="🔍  Rechercher…"
+          />
           {tab === 'actifs' && (
             <button
               className={styles['btn-primary']}

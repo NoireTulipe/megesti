@@ -5,6 +5,7 @@ import { AjustementStock }      from './AjustementStock'
 import { HistoriqueMouvements } from './HistoriqueMouvements'
 import type { Article } from '@/features/catalogue/types'
 import { PageHero } from '@/components/PageHero'
+import { SearchInput } from '@/components/SearchInput'
 import styles from './StockPage.module.css'
 
 type StockTab    = 'stocks' | 'historique'
@@ -97,20 +98,12 @@ export function StockPage() {
         <div className={styles['header-actions']}>
           {/* Recherche */}
           {activeTab === 'stocks' && (
-            <div className={styles['search-wrap']}>
-              <span className={styles['search-icon']}>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-                </svg>
-              </span>
-              <input
-                className={styles['search-input']}
-                type="search"
-                placeholder="Rechercher un article…"
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-              />
-            </div>
+            <SearchInput
+              value={search}
+              onChange={setSearch}
+              onClear={() => setSearch('')}
+              placeholder="Rechercher un article…"
+            />
           )}
 
           {/* Switch tri — remplace le <select> */}
