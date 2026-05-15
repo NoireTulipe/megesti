@@ -11,6 +11,7 @@ import { getFormWidth }        from '@/lib/formWidth'
 import sty    from '@/features/auteurs/AuteursPage.module.css'
 import mascot from './PointsDeVentePage.module.css'
 import { MascoteBlock } from '@/components/MascoteBlock'
+import { PageHero } from '@/components/PageHero'
 import { HelpButton } from '@/components/HelpButton'
 
 // ── Page principale ───────────────────────────────────────────────────────────
@@ -36,15 +37,10 @@ export function PointsDeVentePage() {
   return (
     <div className={sty.page}>
 
-      {/* ── Header ── */}
-      <header className={sty.header}>
-        <div>
-          <h1 className={sty['page-title']}>Points de vente</h1>
-          <p className={sty['page-subtitle']}>
-            {items.length} point{items.length > 1 ? 's' : ''}
-            {debounced ? ` · résultats pour « ${debounced} »` : ''}
-          </p>
-        </div>
+      <PageHero
+        title="Points de vente"
+        subtitle={<>{items.length} point{items.length > 1 ? 's' : ''}{debounced ? ` · résultats pour « ${debounced} »` : ''}</>}
+      >
         <div className={sty['header-actions']}>
           <div className={sty['search-wrap']}>
             <span className={sty['search-icon']}>
@@ -85,7 +81,7 @@ export function PointsDeVentePage() {
             Nouveau PDV
           </button>
         </div>
-      </header>
+      </PageHero>
 
       {/* ── Grille / Mascottes ── */}
       {isLoading && (

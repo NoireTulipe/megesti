@@ -1,3 +1,4 @@
+﻿import { generateUUID } from '@/lib/utils'
 import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
@@ -16,10 +17,10 @@ interface MotifSortie {
 }
 
 const MOTIFS_SORTIE: MotifSortie[] = [
-  { type: 'SORTIE_DON',         label: 'Don',           emoji: '🎁', frais: true,  desc: 'Livres offerts (déductible)' },
-  { type: 'SORTIE_PERTE',       label: 'Perte',         emoji: '📦', frais: true,  desc: 'Livres perdus ou égarés' },
-  { type: 'SORTIE_VOL',         label: 'Vol',           emoji: '🚨', frais: true,  desc: 'Livres dérobés' },
-  { type: 'SORTIE_DEGRADATION', label: 'Dégradation',   emoji: '💧', frais: true,  desc: 'Livres endommagés' },
+  { type: 'SORTIE_DON',         label: 'Don',           emoji: 'ðŸŽ', frais: true,  desc: 'Livres offerts (dÃ©ductible)' },
+  { type: 'SORTIE_PERTE',       label: 'Perte',         emoji: 'ðŸ“¦', frais: true,  desc: 'Livres perdus ou Ã©garÃ©s' },
+  { type: 'SORTIE_VOL',         label: 'Vol',           emoji: 'ðŸš¨', frais: true,  desc: 'Livres dÃ©robÃ©s' },
+  { type: 'SORTIE_DEGRADATION', label: 'DÃ©gradation',   emoji: 'ðŸ’§', frais: true,  desc: 'Livres endommagÃ©s' },
 ]
 
 interface Props {
@@ -70,7 +71,7 @@ export function AjustementStock({ article, onClose }: Props) {
     const motifFinal = noteLibre || (isSortie ? motifType.label : undefined)
 
     await create.mutateAsync({
-      id:          crypto.randomUUID(),
+      id:          generateUUID(),
       articleId:   article.id,
       type:        mode === '=' ? 'AJUSTEMENT' : mode === '+' ? 'ENTREE' : motifType.type,
       quantite:    isSortie ? quantite : undefined,
@@ -86,7 +87,7 @@ export function AjustementStock({ article, onClose }: Props) {
   return createPortal(
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.panel} onClick={e => e.stopPropagation()}>
-      {/* En-tête */}
+      {/* En-tÃªte */}
       <div className={styles.header}>
         <div className={styles.headerText}>
           <h3 className={styles.title}>Ajustement de stock</h3>
@@ -101,12 +102,12 @@ export function AjustementStock({ article, onClose }: Props) {
         <span className={styles.stockVal}>{stockActuel}</span>
       </div>
 
-      {/* Sélecteur de mode */}
+      {/* SÃ©lecteur de mode */}
       <div className={styles.modeRow}>
         {([
-          { m: '-' as Mode, emoji: '−', label: 'Sortie',    color: '#ef4444' },
+          { m: '-' as Mode, emoji: 'âˆ’', label: 'Sortie',    color: '#ef4444' },
           { m: '=' as Mode, emoji: '=', label: 'Affecter',  color: '#3D5470' },
-          { m: '+' as Mode, emoji: '+', label: 'Entrée',    color: '#6B8F71' },
+          { m: '+' as Mode, emoji: '+', label: 'EntrÃ©e',    color: '#6B8F71' },
         ] as { m: Mode; emoji: string; label: string; color: string }[]).map(({ m, emoji, label, color }) => (
           <button
             key={m}
@@ -120,13 +121,13 @@ export function AjustementStock({ article, onClose }: Props) {
         ))}
       </div>
 
-      {/* Saisie de quantité */}
+      {/* Saisie de quantitÃ© */}
       <div className={styles.qteSection}>
         <label className={styles.qteLabel}>
-          {mode === '=' ? 'Nouvelle valeur de stock' : mode === '+' ? 'Quantité à ajouter' : 'Quantité à retirer'}
+          {mode === '=' ? 'Nouvelle valeur de stock' : mode === '+' ? 'QuantitÃ© Ã  ajouter' : 'QuantitÃ© Ã  retirer'}
         </label>
         <div className={styles.qteRow}>
-          <button className={styles.qteBtn} onClick={() => setQuantite(q => Math.max(0, q - 1))}>−</button>
+          <button className={styles.qteBtn} onClick={() => setQuantite(q => Math.max(0, q - 1))}>âˆ’</button>
           <input
             className={styles.qteInput}
             type="number"
@@ -160,9 +161,9 @@ export function AjustementStock({ article, onClose }: Props) {
 
           {motifType.frais && (
             <div className={styles.fraisNotice}>
-              <span>💳</span>
+              <span>ðŸ’³</span>
               <div>
-                <p className={styles.fraisNoticeTitle}>Cette sortie sera enregistrée dans les frais</p>
+                <p className={styles.fraisNoticeTitle}>Cette sortie sera enregistrÃ©e dans les frais</p>
                 <div className={styles.fraisNoticeRow}>
                   <label className={styles.fraisNoticeLabel}>Valeur HT (optionnel)</label>
                   <div className={styles.fraisNoticeInput}>
@@ -174,7 +175,7 @@ export function AjustementStock({ article, onClose }: Props) {
                       value={montantHT}
                       onChange={e => setMontantHT(e.target.value)}
                     />
-                    <span className={styles.montantUnit}>€</span>
+                    <span className={styles.montantUnit}>â‚¬</span>
                   </div>
                 </div>
               </div>
@@ -189,22 +190,22 @@ export function AjustementStock({ article, onClose }: Props) {
         <input
           className={styles.noteInput}
           type="text"
-          placeholder="Observation, référence de livraison…"
+          placeholder="Observation, rÃ©fÃ©rence de livraisonâ€¦"
           value={noteLibre}
           onChange={e => setNoteLibre(e.target.value)}
         />
       </div>
 
-      {/* Prévisualisation */}
+      {/* PrÃ©visualisation */}
       {quantite > 0 || mode === '=' ? (
         <div className={styles.preview}>
           <div className={styles.previewRow}>
             <span className={styles.previewLabel}>Stock actuel</span>
             <span className={styles.previewStock}>{stockActuel}</span>
           </div>
-          <div className={styles.previewArrow}>↓</div>
+          <div className={styles.previewArrow}>â†“</div>
           <div className={styles.previewRow}>
-            <span className={styles.previewLabel}>Stock après</span>
+            <span className={styles.previewLabel}>Stock aprÃ¨s</span>
             <span
               className={styles.previewStock}
               style={{ color: delta < 0 ? '#ef4444' : delta > 0 ? '#6B8F71' : 'var(--ink)' }}
@@ -226,7 +227,7 @@ export function AjustementStock({ article, onClose }: Props) {
           onClick={handleSave}
           disabled={!canSave || create.isPending}
         >
-          {create.isPending ? 'Enregistrement…' : 'Valider l\'ajustement'}
+          {create.isPending ? 'Enregistrementâ€¦' : 'Valider l\'ajustement'}
         </button>
       </div>
       </div>
@@ -234,3 +235,7 @@ export function AjustementStock({ article, onClose }: Props) {
     document.body
   )
 }
+
+
+
+

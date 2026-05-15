@@ -8,6 +8,7 @@ import { Modal } from '@/components/ui/Modal'
 import { usePlanFeatures } from '@/hooks/usePlanFeatures'
 import { HelpButton } from '@/components/HelpButton'
 import { MascoteBlock } from '@/components/MascoteBlock'
+import { PageHero } from '@/components/PageHero'
 import styles from './AuteursPage.module.css'
 
 type AuteurTab = 'me' | 'reseau'
@@ -37,14 +38,10 @@ export function AuteursPage() {
 
   return (
     <div className={styles.page}>
-        <header className={styles.header}>
-          <div>
-            <h1 className={styles['page-title']}>Auteurs</h1>
-            <p className={styles['page-subtitle']}>
-              {auteurs.length} auteur{auteurs.length !== 1 ? 's' : ''}
-              {debouncedSearch ? ` · résultats pour « ${debouncedSearch} »` : ''}
-            </p>
-          </div>
+        <PageHero
+          title="Auteurs"
+          subtitle={<>{auteurs.length} auteur{auteurs.length !== 1 ? 's' : ''}{debouncedSearch ? ` · résultats pour « ${debouncedSearch} »` : ''}</>}
+        >
           <div className={styles['header-actions']}>
             <div className={styles['search-wrap']}>
               <span className={styles['search-icon']}>
@@ -67,7 +64,7 @@ export function AuteursPage() {
               Nouvel auteur
             </button>
           </div>
-        </header>
+        </PageHero>
 
         <div className={styles['tab-bar']} style={{ alignItems: 'center' }}>
             <button

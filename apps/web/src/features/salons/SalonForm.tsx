@@ -1,3 +1,4 @@
+﻿import { generateUUID } from '@/lib/utils'
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -75,7 +76,7 @@ export function SalonForm({ onClose, salon }: Props) {
       dateFin:   values.dateFin   ? new Date(values.dateFin).toISOString()   : undefined,
     }
 
-    const entityId = isEdit ? salon!.id : crypto.randomUUID()
+    const entityId = isEdit ? salon!.id : generateUUID()
     if (isEdit) {
       await update.mutateAsync({ id: entityId, ...payload })
     } else {
@@ -107,7 +108,7 @@ export function SalonForm({ onClose, salon }: Props) {
         </div>
         <div className={styles.field}>
           <label className={styles.label} htmlFor="lieu">Lieu</label>
-          <input id="lieu" className={styles.input} {...register('lieu')} placeholder="Ville, salle…" />
+          <input id="lieu" className={styles.input} {...register('lieu')} placeholder="Ville, salleâ€¦" />
         </div>
         <CustomFieldsRenderer entityType="salon" onlyCategory="Informations" register={register} errors={errors} />
       </div>
@@ -116,7 +117,7 @@ export function SalonForm({ onClose, salon }: Props) {
         <p className={styles.sectionLabel}>Dates du prochain salon</p>
         <div className={styles.row2}>
           <div className={styles.field}>
-            <label className={styles.label} htmlFor="dateDebut">Date de début</label>
+            <label className={styles.label} htmlFor="dateDebut">Date de dÃ©but</label>
             <input id="dateDebut" type="date" className={styles.input} {...register('dateDebut')} />
           </div>
           <div className={styles.field}>
@@ -134,14 +135,18 @@ export function SalonForm({ onClose, salon }: Props) {
         errors={errors}
       />
 
-      {isError && <p className={styles.errorGlobal}>Une erreur est survenue. Veuillez réessayer.</p>}
+      {isError && <p className={styles.errorGlobal}>Une erreur est survenue. Veuillez rÃ©essayer.</p>}
 
       <div className={styles.actions}>
         <button type="button" className={styles.btnSecondary} onClick={onClose}>Annuler</button>
         <button type="submit" className={styles.btnPrimary} disabled={isSubmitting}>
-          {isSubmitting ? 'Enregistrement…' : isEdit ? 'Enregistrer' : 'Créer le salon'}
+          {isSubmitting ? 'Enregistrementâ€¦' : isEdit ? 'Enregistrer' : 'CrÃ©er le salon'}
         </button>
       </div>
     </form>
   )
 }
+
+
+
+

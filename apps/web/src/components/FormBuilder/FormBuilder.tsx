@@ -1,3 +1,4 @@
+﻿import { generateUUID } from '@/lib/utils'
 import { useState, useEffect, useRef } from 'react'
 import {
   DndContext, DragOverlay, closestCenter, PointerSensor, useSensor, useSensors,
@@ -61,7 +62,7 @@ function buildCanvas(champs: CustomFieldDef[], entityType?: EntityType): CanvasS
   const uncategorized = byCategory.get('__none__') ?? []
   if (uncategorized.length > 0) {
     result.push({
-      id: '_sans_categorie', label: 'Sans catégorie',
+      id: '_sans_categorie', label: 'Sans catÃ©gorie',
       isFixed: false, fixedFields: [],
       fields: uncategorized.map(toBuilderField),
     })
@@ -71,7 +72,7 @@ function buildCanvas(champs: CustomFieldDef[], entityType?: EntityType): CanvasS
 }
 
 export function FormBuilder({ entityType, rayonId, isLibrairie }: Props) {
-  // Hooks toujours appelés dans le même ordre — on désactive celui qui ne sert pas
+  // Hooks toujours appelÃ©s dans le mÃªme ordre â€” on dÃ©sactive celui qui ne sert pas
   const { data: entityChamps } = useCustomFields(
     entityType ?? 'auteur', { enabled: !!entityType }
   )
@@ -102,7 +103,7 @@ export function FormBuilder({ entityType, rayonId, isLibrairie }: Props) {
 
   const isSaving = createChamp.isPending || updateChamp.isPending || deleteChamp.isPending
 
-  // ── Width ────────────────────────────────────────────────────────────────────
+  // â”€â”€ Width â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   const widthKey = (entityType ?? `rayon-${rayonId}`) as EntityType
 
@@ -128,7 +129,7 @@ export function FormBuilder({ entityType, rayonId, isLibrairie }: Props) {
     document.addEventListener('mouseup', onUp)
   }
 
-  // ── Sections ─────────────────────────────────────────────────────────────────
+  // â”€â”€ Sections â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   function handleAddSection() {
     const name = newSectionName.trim() || 'Nouvelle section'
@@ -155,13 +156,13 @@ export function FormBuilder({ entityType, rayonId, isLibrairie }: Props) {
     await Promise.all(section.fields.map((f) => deleteChamp.mutateAsync(f.id)))
   }
 
-  // ── Fields ───────────────────────────────────────────────────────────────────
+  // â”€â”€ Fields â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   async function handleAddField(sectionId: string, fieldType: FieldType, labelFr: string): Promise<void> {
     const section = sections.find((s) => s.id === sectionId)
     if (!section) return
-    const id       = crypto.randomUUID()
-    const category = section.label === 'Sans catégorie' ? null : section.label
+    const id       = generateUUID()
+    const category = section.label === 'Sans catÃ©gorie' ? null : section.label
     const position = section.fields.length
 
     setSections((prev) => prev.map((s) =>
@@ -203,7 +204,7 @@ export function FormBuilder({ entityType, rayonId, isLibrairie }: Props) {
     await deleteChamp.mutateAsync(fieldId)
   }
 
-  // ── DnD ─────────────────────────────────────────────────────────────────────
+  // â”€â”€ DnD â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }))
 
@@ -251,7 +252,7 @@ export function FormBuilder({ entityType, rayonId, isLibrairie }: Props) {
       crossSectionRef.current = null
       const toSect = sections.find((s) => s.id === toSection)
       if (toSect) {
-        const newCategory = toSect.label === 'Sans catégorie' ? null : toSect.label
+        const newCategory = toSect.label === 'Sans catÃ©gorie' ? null : toSect.label
         updateChamp.mutate({ id: fieldId, category: newCategory })
         toSect.fields.forEach((f, i) => updateChamp.mutate({ id: f.id, position: i }))
       }
@@ -273,7 +274,7 @@ export function FormBuilder({ entityType, rayonId, isLibrairie }: Props) {
     }
   }
 
-  // ── Render ───────────────────────────────────────────────────────────────────
+  // â”€â”€ Render â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   function getActiveLabel(): string | null {
     if (!activeId) return null
@@ -290,10 +291,10 @@ export function FormBuilder({ entityType, rayonId, isLibrairie }: Props) {
   return (
     <div className={styles.page}>
 
-      {/* ── Toolbar ────────────────────────────────────────────── */}
+      {/* â”€â”€ Toolbar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <div className={styles.toolbar}>
         <div className={styles.widthControl}>
-          <span className={styles.widthLabel}>Aperçu : {canvasWidth}px</span>
+          <span className={styles.widthLabel}>AperÃ§u : {canvasWidth}px</span>
           <input
             type="range" min={320} max={1400} value={canvasWidth}
             onChange={(e) => handleWidthChange(Number(e.target.value))}
@@ -302,8 +303,8 @@ export function FormBuilder({ entityType, rayonId, isLibrairie }: Props) {
         </div>
         <div className={styles.toolbarRight}>
           {isSaving
-            ? <span className={styles.saving}>Enregistrement…</span>
-            : <span className={styles.hint}>Glisser · Double-cliquer pour renommer</span>
+            ? <span className={styles.saving}>Enregistrementâ€¦</span>
+            : <span className={styles.hint}>Glisser Â· Double-cliquer pour renommer</span>
           }
           <button className={styles.btnAddSection} onClick={() => setShowNewSection((v) => !v)}>
             + Section
@@ -311,19 +312,19 @@ export function FormBuilder({ entityType, rayonId, isLibrairie }: Props) {
         </div>
       </div>
 
-      {/* ── Champs fixes article (mode rayon) ──────────────────── */}
+      {/* â”€â”€ Champs fixes article (mode rayon) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {rayonId && (
         <div className={styles.systemNotice}>
-          <span className={styles.systemNoticeIcon}>ℹ</span>
+          <span className={styles.systemNoticeIcon}>â„¹</span>
           <div>
-            <strong>Champs système de l'article</strong> — toujours présents :
-            {' '}Nom, Référence, Prix vente HT, Prix achat HT, Prix lot HT / Qté lot, Stock, Description, Image
-            {isLibrairie && <> · <em>Librairie :</em> ISBN, Date de publication, Auteurs</>}
+            <strong>Champs systÃ¨me de l'article</strong> â€” toujours prÃ©sents :
+            {' '}Nom, RÃ©fÃ©rence, Prix vente HT, Prix achat HT, Prix lot HT / QtÃ© lot, Stock, Description, Image
+            {isLibrairie && <> Â· <em>Librairie :</em> ISBN, Date de publication, Auteurs</>}
           </div>
         </div>
       )}
 
-      {/* ── Nouvelle section ───────────────────────────────────── */}
+      {/* â”€â”€ Nouvelle section â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {showNewSection && (
         <div className={styles.newSectionForm}>
           <input
@@ -331,15 +332,15 @@ export function FormBuilder({ entityType, rayonId, isLibrairie }: Props) {
             value={newSectionName}
             onChange={(e) => setNewSectionName(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter') handleAddSection(); if (e.key === 'Escape') setShowNewSection(false) }}
-            placeholder="Nom de la section (ex : Droits d'auteur, Diffusion…)"
+            placeholder="Nom de la section (ex : Droits d'auteur, Diffusionâ€¦)"
             autoFocus
           />
-          <button className={styles.btnConfirm} onClick={handleAddSection}>Créer</button>
-          <button className={styles.btnCancel} onClick={() => setShowNewSection(false)}>✕</button>
+          <button className={styles.btnConfirm} onClick={handleAddSection}>CrÃ©er</button>
+          <button className={styles.btnCancel} onClick={() => setShowNewSection(false)}>âœ•</button>
         </div>
       )}
 
-      {/* ── Canvas ─────────────────────────────────────────────── */}
+      {/* â”€â”€ Canvas â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <div className={styles.canvasRow}>
         <div className={styles.canvas} style={{ width: canvasWidth }}>
           <DndContext
@@ -397,3 +398,7 @@ function GripLines() {
     </svg>
   )
 }
+
+
+
+

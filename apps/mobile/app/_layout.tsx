@@ -11,6 +11,8 @@ import { useDevStore } from '@/store/devStore'
 import { useThemeStore } from '@/store/themeStore'
 import { useCategoryColorsStore } from '@/store/categoryColorsStore'
 import { usePaymentModesStore } from '@/store/paymentModesStore'
+import { SumUp } from '@megesti/react-native-sumup'
+import { Config } from '@/constants/Config'
 import { DevMenu } from '@/components/DevMenu'
 import { initDb } from '@/lib/db'
 import { Colors, Dark, Fonts } from '@/constants/theme'
@@ -39,7 +41,12 @@ function AuthGate({ children }: { children: React.ReactNode }) {
     hydrateDevUrl()
     hydrateTheme()
     hydrateCatColors()
-    hydratePaymentModes()
+    hydratePaymentModes().then(() => {
+      const modes = usePaymentModesStore.getState().enabled
+      if (modes.includes('SUMUP') && SumUp.isAvailable()) {
+        SumUp.init(Config.sumupAffiliateKey).catch(() => {})
+      }
+    })
   }, [])
 
   if (isLoading || !dbReady) {

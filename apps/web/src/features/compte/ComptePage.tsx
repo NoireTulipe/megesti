@@ -1,8 +1,10 @@
+﻿import { generateUUID } from '@/lib/utils'
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useMonTenant, useUpdateMonTenant } from '@/features/reglages/hooks/useMonTenant'
 import { useAuthStore } from '@/store/authStore'
 import { api } from '@/lib/api'
+import { PageHero } from '@/components/PageHero'
 import styles from './ComptePage.module.css'
 
 type Tab = 'profil' | 'contacts' | 'abonnement'
@@ -10,8 +12,8 @@ type Tab = 'profil' | 'contacts' | 'abonnement'
 const PLAN_LABELS: Record<string, string> = {
   TRIAL:        'Essai gratuit',
   AUTEUR:       'Auteur',
-  EDITEUR:      'Éditeur',
-  EDITEUR_PLUS: 'Éditeur + salon',
+  EDITEUR:      'Ã‰diteur',
+  EDITEUR_PLUS: 'Ã‰diteur + salon',
 }
 
 interface ContactDraft {
@@ -24,7 +26,7 @@ interface ContactDraft {
   saved?: boolean
 }
 
-// ── Helpers ─────────────────────────────────────────────────────────────────────
+// â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 async function patchMe(data: { firstName?: string; lastName?: string; email?: string }) {
   return api.patch('/auth/me', data)
@@ -34,7 +36,7 @@ async function changePassword(current: string, newPass: string) {
   return api.patch('/auth/password', { current, new: newPass })
 }
 
-// ── Page ────────────────────────────────────────────────────────────────────────
+// â”€â”€ Page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export function ComptePage() {
   const [tab, setTab] = useState<Tab>('profil')
@@ -43,24 +45,20 @@ export function ComptePage() {
   const user = useAuthStore(s => s.user)
   const navigate = useNavigate()
 
-  if (isLoading) return <div className={styles.loading}>Chargement…</div>
+  if (isLoading) return <div className={styles.loading}>Chargementâ€¦</div>
   if (!tenant) return null
 
   return (
     <div className={styles.page}>
-      <header className={styles.header}>
-        <div>
-          <h1 className={styles.pageTitle}>Compte</h1>
-          <p className={styles.pageSubtitle}>{tenant.name}</p>
-        </div>
+      <PageHero title="Compte" subtitle={tenant.name}>
         <button className={styles.btnLogout} onClick={() => { useAuthStore.getState().logout(); navigate('/login') }}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
             <polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
           </svg>
-          Déconnexion
+          DÃ©connexion
         </button>
-      </header>
+      </PageHero>
 
       <div className={styles.tabBar}>
         {([
@@ -102,7 +100,7 @@ export function ComptePage() {
   )
 }
 
-// ── Onglet Profil ───────────────────────────────────────────────────────────────
+// â”€â”€ Onglet Profil â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function OngletProfil({ tenant, updateTenant, user }: {
   tenant: NonNullable<ReturnType<typeof useMonTenant>['data']>
@@ -118,7 +116,7 @@ function OngletProfil({ tenant, updateTenant, user }: {
   const [presSaved, setPresSaved]     = useState(false)
   const [logoSaved, setLogoSaved]     = useState(false)
 
-  // Propriétaire
+  // PropriÃ©taire
   const [ownerPrenom, setOwnerPrenom] = useState(user?.firstName ?? '')
   const [ownerNom, setOwnerNom]       = useState(user?.lastName ?? '')
   const [ownerEmail, setOwnerEmail]   = useState(user?.email ?? '')
@@ -149,7 +147,7 @@ function OngletProfil({ tenant, updateTenant, user }: {
     setPwdError('')
     setPwdSaved(false)
     if (!pwdCurrent || pwdNew.length < 8) {
-      setPwdError('Le nouveau mot de passe doit faire au moins 8 caractères.')
+      setPwdError('Le nouveau mot de passe doit faire au moins 8 caractÃ¨res.')
       return
     }
     setPwdPending(true)
@@ -173,15 +171,15 @@ function OngletProfil({ tenant, updateTenant, user }: {
 
   return (
     <div className={styles.tabContent}>
-      {/* Propriétaire du compte */}
+      {/* PropriÃ©taire du compte */}
       <section className={styles.section}>
-        <h2 className={styles.sectionTitle}>Propriétaire du compte</h2>
+        <h2 className={styles.sectionTitle}>PropriÃ©taire du compte</h2>
         <p className={styles.sectionDesc}>Les informations personnelles du titulaire du compte MeGesti.</p>
         <div className={styles.ownerGrid}>
           <div className={styles.fieldCol}>
-            <label className={styles.fieldLabel}>Prénom</label>
+            <label className={styles.fieldLabel}>PrÃ©nom</label>
             <input className={styles.input} value={ownerPrenom}
-              onChange={e => setOwnerPrenom(e.target.value)} placeholder="Prénom" />
+              onChange={e => setOwnerPrenom(e.target.value)} placeholder="PrÃ©nom" />
           </div>
           <div className={styles.fieldCol}>
             <label className={styles.fieldLabel}>Nom</label>
@@ -191,7 +189,7 @@ function OngletProfil({ tenant, updateTenant, user }: {
           <div className={styles.fieldCol} style={{ gridColumn: '1 / -1' }}>
             <label className={styles.fieldLabel}>Email</label>
             <input className={styles.input} type="email" value={ownerEmail}
-              onChange={e => setOwnerEmail(e.target.value)} placeholder="email@…" />
+              onChange={e => setOwnerEmail(e.target.value)} placeholder="email@â€¦" />
           </div>
         </div>
         <div className={styles.fieldRow} style={{ marginTop: 12 }}>
@@ -201,7 +199,7 @@ function OngletProfil({ tenant, updateTenant, user }: {
             onClick={handleSaveOwner}
             disabled={!ownerPrenom.trim() || !ownerNom.trim() || !ownerEmail.trim()}
           >
-            {ownerSaved ? '✓ Enregistré' : 'Enregistrer le propriétaire'}
+            {ownerSaved ? 'âœ“ EnregistrÃ©' : 'Enregistrer le propriÃ©taire'}
           </button>
         </div>
       </section>
@@ -209,7 +207,7 @@ function OngletProfil({ tenant, updateTenant, user }: {
       {/* Logo */}
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>Logo</h2>
-        <p className={styles.sectionDesc}>Apparaît dans l'application et sur vos documents.</p>
+        <p className={styles.sectionDesc}>ApparaÃ®t dans l'application et sur vos documents.</p>
         <div className={styles.logoRow}>
           <div className={styles.logoPreview}>
             {hasLogo ? (
@@ -231,7 +229,7 @@ function OngletProfil({ tenant, updateTenant, user }: {
             <button className={`${styles.btnSave} ${logoSaved ? styles.btnSaved : ''}`}
               onClick={() => save('logo', logoUrl || null, setLogoSaved)}
               disabled={updateTenant.isPending || logoUrl === (tenant.logo ?? '')}>
-              {logoSaved ? '✓ Enregistré' : updateTenant.isPending ? '…' : 'Enregistrer'}
+              {logoSaved ? 'âœ“ EnregistrÃ©' : updateTenant.isPending ? 'â€¦' : 'Enregistrer'}
             </button>
           </div>
         </div>
@@ -239,8 +237,8 @@ function OngletProfil({ tenant, updateTenant, user }: {
 
       {/* Nom */}
       <section className={styles.section}>
-        <h2 className={styles.sectionTitle}>Nom de la maison d'édition</h2>
-        <p className={styles.sectionDesc}>Affiché dans l'en-tête et sur les documents officiels.</p>
+        <h2 className={styles.sectionTitle}>Nom de la maison d'Ã©dition</h2>
+        <p className={styles.sectionDesc}>AffichÃ© dans l'en-tÃªte et sur les documents officiels.</p>
         <div className={styles.fieldRow}>
           <input className={styles.input} value={name}
             onChange={e => setName(e.target.value)}
@@ -248,7 +246,7 @@ function OngletProfil({ tenant, updateTenant, user }: {
           <button className={`${styles.btnSave} ${nameSaved ? styles.btnSaved : ''}`}
             onClick={() => save('name', name.trim(), setNameSaved)}
             disabled={updateTenant.isPending || !name.trim() || name === tenant.name}>
-            {nameSaved ? '✓ Enregistré' : updateTenant.isPending ? '…' : 'Enregistrer'}
+            {nameSaved ? 'âœ“ EnregistrÃ©' : updateTenant.isPending ? 'â€¦' : 'Enregistrer'}
           </button>
         </div>
       </section>
@@ -256,7 +254,7 @@ function OngletProfil({ tenant, updateTenant, user }: {
       {/* Site web */}
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>Site internet</h2>
-        <p className={styles.sectionDesc}>Le site web de votre maison d'édition.</p>
+        <p className={styles.sectionDesc}>Le site web de votre maison d'Ã©dition.</p>
         <div className={styles.fieldRow}>
           <input className={styles.input} type="url" value={siteWeb}
             onChange={e => setSiteWeb(e.target.value)} placeholder="https://www.votre-maison-edition.fr"
@@ -264,24 +262,24 @@ function OngletProfil({ tenant, updateTenant, user }: {
           <button className={`${styles.btnSave} ${siteSaved ? styles.btnSaved : ''}`}
             onClick={() => save('siteWeb', siteWeb || null, setSiteSaved)}
             disabled={updateTenant.isPending || siteWeb === (tenant.siteWeb ?? '')}>
-            {siteSaved ? '✓ Enregistré' : updateTenant.isPending ? '…' : 'Enregistrer'}
+            {siteSaved ? 'âœ“ EnregistrÃ©' : updateTenant.isPending ? 'â€¦' : 'Enregistrer'}
           </button>
         </div>
       </section>
 
-      {/* Présentation */}
+      {/* PrÃ©sentation */}
       <section className={styles.section}>
-        <h2 className={styles.sectionTitle}>Présentation</h2>
-        <p className={styles.sectionDesc}>Une courte description de votre ligne éditoriale.</p>
+        <h2 className={styles.sectionTitle}>PrÃ©sentation</h2>
+        <p className={styles.sectionDesc}>Une courte description de votre ligne Ã©ditoriale.</p>
         <textarea className={styles.textarea} rows={4} value={presentation}
           onChange={e => setPres(e.target.value)}
-          placeholder="Maison d'édition indépendante fondée en… Nous publions…" />
+          placeholder="Maison d'Ã©dition indÃ©pendante fondÃ©e enâ€¦ Nous publionsâ€¦" />
         <div className={styles.fieldRow} style={{ marginTop: 10 }}>
           <span />
           <button className={`${styles.btnSave} ${presSaved ? styles.btnSaved : ''}`}
             onClick={() => save('presentation', presentation || null, setPresSaved)}
             disabled={updateTenant.isPending || presentation === (tenant.presentation ?? '')}>
-            {presSaved ? '✓ Enregistré' : updateTenant.isPending ? '…' : 'Enregistrer'}
+            {presSaved ? 'âœ“ EnregistrÃ©' : updateTenant.isPending ? 'â€¦' : 'Enregistrer'}
           </button>
         </div>
       </section>
@@ -303,16 +301,16 @@ function OngletProfil({ tenant, updateTenant, user }: {
             <input className={styles.input} type="password" value={pwdCurrent}
               onChange={e => setPwdCurrent(e.target.value)} placeholder="Mot de passe actuel" />
             <input className={styles.input} type="password" value={pwdNew}
-              onChange={e => setPwdNew(e.target.value)} placeholder="Nouveau mot de passe (min. 8 caractères)" />
+              onChange={e => setPwdNew(e.target.value)} placeholder="Nouveau mot de passe (min. 8 caractÃ¨res)" />
             {pwdError && <p className={styles.pwdError}>{pwdError}</p>}
-            {pwdSaved && <p className={styles.pwdOk}>✓ Mot de passe modifié avec succès.</p>}
+            {pwdSaved && <p className={styles.pwdOk}>âœ“ Mot de passe modifiÃ© avec succÃ¨s.</p>}
             <div className={styles.fieldRow}>
               <button className={styles.btnOutline} onClick={() => { setShowPwd(false); setPwdError(''); setPwdCurrent(''); setPwdNew('') }}>
                 Annuler
               </button>
               <button className={styles.btnSave}
                 onClick={handleChangePwd} disabled={pwdPending}>
-                {pwdPending ? '…' : 'Enregistrer le mot de passe'}
+                {pwdPending ? 'â€¦' : 'Enregistrer le mot de passe'}
               </button>
             </div>
           </div>
@@ -322,7 +320,7 @@ function OngletProfil({ tenant, updateTenant, user }: {
   )
 }
 
-// ── Onglet Contacts ─────────────────────────────────────────────────────────────
+// â”€â”€ Onglet Contacts â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function OngletContacts() {
   const [contacts, setContacts] = useState<ContactDraft[]>([])
@@ -333,14 +331,14 @@ function OngletContacts() {
     api.get<{ id: string; nom: string; prenom: string | null; email: string | null; telephone: string | null; fonction: string | null }[]>('/contacts-tenant')
       .then(data => {
         const mapped = data.map(c => ({ id: c.id, nom: c.nom, prenom: c.prenom ?? '', email: c.email ?? '', telephone: c.telephone ?? '', fonction: c.fonction ?? '' }))
-        setContacts(mapped.length > 0 ? mapped : [{ id: crypto.randomUUID(), nom: '', prenom: '', email: '', telephone: '', fonction: '' }])
+        setContacts(mapped.length > 0 ? mapped : [{ id: generateUUID(), nom: '', prenom: '', email: '', telephone: '', fonction: '' }])
         setLoaded(true)
       })
       .catch(() => setLoaded(true))
   }, [])
 
   function addRow() {
-    setContacts(prev => [...prev, { id: crypto.randomUUID(), nom: '', prenom: '', email: '', telephone: '', fonction: '' }])
+    setContacts(prev => [...prev, { id: generateUUID(), nom: '', prenom: '', email: '', telephone: '', fonction: '' }])
   }
 
   function update(id: string, field: keyof ContactDraft, val: string) {
@@ -348,7 +346,7 @@ function OngletContacts() {
   }
 
   async function removeContact(id: string) {
-    // Si le contact existe côté serveur, on le supprime
+    // Si le contact existe cÃ´tÃ© serveur, on le supprime
     const isNew = id.length > 30 // UUID temporaire = nouveau
     if (!isNew) {
       try { await api.delete(`/contacts-tenant/${id}`) } catch {}
@@ -383,7 +381,7 @@ function OngletContacts() {
     }
   }
 
-  if (!loaded) return <div className={styles.loading}>Chargement…</div>
+  if (!loaded) return <div className={styles.loading}>Chargementâ€¦</div>
 
   return (
     <div className={styles.tabContent}>
@@ -391,7 +389,7 @@ function OngletContacts() {
         <div className={styles.sectionHeader}>
           <div>
             <h2 className={styles.sectionTitle}>Contacts de la maison</h2>
-            <p className={styles.sectionDesc}>Les personnes à contacter pour vos partenaires, libraires et auteurs.</p>
+            <p className={styles.sectionDesc}>Les personnes Ã  contacter pour vos partenaires, libraires et auteurs.</p>
           </div>
           <button className={styles.btnAdd} onClick={addRow}>
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
@@ -404,10 +402,10 @@ function OngletContacts() {
         <div className={styles.contactsTable}>
           <div className={styles.contactsHead}>
             <span>Nom</span>
-            <span>Prénom</span>
+            <span>PrÃ©nom</span>
             <span>Fonction</span>
             <span>Email</span>
-            <span>Téléphone</span>
+            <span>TÃ©lÃ©phone</span>
             <span />
           </div>
           {contacts.map(c => (
@@ -416,16 +414,16 @@ function OngletContacts() {
                 onChange={e => update(c.id, 'nom', e.target.value)} placeholder="Nom"
                 onKeyDown={e => e.key === 'Enter' && saveContact(c.id)} />
               <input className={styles.contactInput} value={c.prenom}
-                onChange={e => update(c.id, 'prenom', e.target.value)} placeholder="Prénom"
+                onChange={e => update(c.id, 'prenom', e.target.value)} placeholder="PrÃ©nom"
                 onKeyDown={e => e.key === 'Enter' && saveContact(c.id)} />
               <input className={styles.contactInput} value={c.fonction}
                 onChange={e => update(c.id, 'fonction', e.target.value)} placeholder="Fonction"
                 onKeyDown={e => e.key === 'Enter' && saveContact(c.id)} />
               <input className={styles.contactInput} value={c.email}
-                onChange={e => update(c.id, 'email', e.target.value)} placeholder="email@…"
+                onChange={e => update(c.id, 'email', e.target.value)} placeholder="email@â€¦"
                 onKeyDown={e => e.key === 'Enter' && saveContact(c.id)} />
               <input className={styles.contactInput} value={c.telephone}
-                onChange={e => update(c.id, 'telephone', e.target.value)} placeholder="06…"
+                onChange={e => update(c.id, 'telephone', e.target.value)} placeholder="06â€¦"
                 onKeyDown={e => e.key === 'Enter' && saveContact(c.id)} />
               <div className={styles.contactActions}>
                 <button
@@ -458,7 +456,7 @@ function OngletContacts() {
   )
 }
 
-// ── Onglet Abonnement ───────────────────────────────────────────────────────────
+// â”€â”€ Onglet Abonnement â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function OngletAbonnement({ tenant }: { tenant: ReturnType<typeof useMonTenant>['data'] }) {
   return (
@@ -469,25 +467,29 @@ function OngletAbonnement({ tenant }: { tenant: ReturnType<typeof useMonTenant>[
           <span className={styles.planBadge}>{PLAN_LABELS[tenant!.plan] ?? tenant!.plan}</span>
           <p className={styles.planDesc}>
             {tenant!.plan === 'TRIAL'
-              ? 'Vous êtes en période d\'essai. Passez à la formule Éditeur pour débloquer toutes les fonctionnalités.'
-              : 'Votre abonnement est actif. Gérez-le depuis votre espace Stripe (bientôt disponible).'}
+              ? 'Vous Ãªtes en pÃ©riode d\'essai. Passez Ã  la formule Ã‰diteur pour dÃ©bloquer toutes les fonctionnalitÃ©s.'
+              : 'Votre abonnement est actif. GÃ©rez-le depuis votre espace Stripe (bientÃ´t disponible).'}
           </p>
         </div>
       </section>
 
       <section className={styles.section}>
-        <h2 className={styles.sectionTitle}>Accès auteurs</h2>
+        <h2 className={styles.sectionTitle}>AccÃ¨s auteurs</h2>
         <p className={styles.sectionDesc}>
-          Donnez à vos auteurs l'accès à l'application mobile salon. Ils pourront enregistrer leurs ventes,
-          et leurs données seront automatiquement intégrées à votre comptabilité.
+          Donnez Ã  vos auteurs l'accÃ¨s Ã  l'application mobile salon. Ils pourront enregistrer leurs ventes,
+          et leurs donnÃ©es seront automatiquement intÃ©grÃ©es Ã  votre comptabilitÃ©.
         </p>
         <div className={styles.comingSoon}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
             <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
           </svg>
-          <span>Disponible prochainement avec la formule <strong>Éditeur + salon</strong>. Vos auteurs recevront un accès restreint à l'app mobile.</span>
+          <span>Disponible prochainement avec la formule <strong>Ã‰diteur + salon</strong>. Vos auteurs recevront un accÃ¨s restreint Ã  l'app mobile.</span>
         </div>
       </section>
     </div>
   )
 }
+
+
+
+

@@ -1,3 +1,4 @@
+﻿import { generateUUID } from '@/lib/utils'
 import { useState, useEffect } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -62,7 +63,7 @@ export function AuteurForm({ onClose, auteur }: Props) {
       } : {},
     })
 
-  // Remplir les champs custom quand les valeurs chargent (mode édition)
+  // Remplir les champs custom quand les valeurs chargent (mode Ã©dition)
   useEffect(() => {
     if (isEdit && Object.keys(customValues).length > 0) {
       Object.entries(customValues).forEach(([defId, val]) => {
@@ -83,7 +84,7 @@ export function AuteurForm({ onClose, auteur }: Props) {
   async function onSubmit(values: FormValues) {
     const allValues = getValues() as Record<string, unknown>
 
-    // zodResolver ignore les règles field-level → validation manuelle des champs custom
+    // zodResolver ignore les rÃ¨gles field-level â†’ validation manuelle des champs custom
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const hasErrors = validateCustomFields(allChamps, allValues, setError as any, clearErrors as any)
     if (hasErrors) return
@@ -95,7 +96,7 @@ export function AuteurForm({ onClose, auteur }: Props) {
         value:        value != null && value !== '' ? String(value) : null,
       }))
 
-    const entityId = isEdit ? auteur!.id : crypto.randomUUID()
+    const entityId = isEdit ? auteur!.id : generateUUID()
 
     if (isEdit) {
       await updateAuteur.mutateAsync({
@@ -115,11 +116,11 @@ export function AuteurForm({ onClose, auteur }: Props) {
         email:      values.email      || undefined,
         bio:        values.bio        || undefined,
       })
-      // Contrat inline à la création
+      // Contrat inline Ã  la crÃ©ation
       if (avecContrat && contratTypeDAId) {
         const sigDate = contratDateSig ? `${contratDateSig}T00:00:00.000Z` : undefined
         await createContrat.mutateAsync({
-          id:               crypto.randomUUID(),
+          id:               generateUUID(),
           auteurId:         entityId,
           typeDAId:         contratTypeDAId,
           dateSignature:    sigDate,
@@ -144,16 +145,16 @@ export function AuteurForm({ onClose, auteur }: Props) {
         <div className={styles.avatarLarge}>{initiales}</div>
         <div className={styles.previewText}>
           <span className={styles.previewNom}>{nomAffiche}</span>
-          <span className={styles.previewHint}>{isEdit ? 'Modification de la fiche' : 'Aperçu de la fiche auteur'}</span>
+          <span className={styles.previewHint}>{isEdit ? 'Modification de la fiche' : 'AperÃ§u de la fiche auteur'}</span>
         </div>
       </div>
 
-      {/* ── Identité ──────────────────────────────────────────── */}
+      {/* â”€â”€ IdentitÃ© â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <div className={styles.section}>
-        <p className={styles.sectionLabel}>Identité</p>
+        <p className={styles.sectionLabel}>IdentitÃ©</p>
         <div className={styles.row2}>
           <div className={styles.field}>
-            <label className={styles.label} htmlFor="prenom">Prénom <span className={styles.req}>*</span></label>
+            <label className={styles.label} htmlFor="prenom">PrÃ©nom <span className={styles.req}>*</span></label>
             <input id="prenom" className={`${styles.input} ${errors.prenom ? styles.inputError : ''}`} {...register('prenom')} autoFocus />
             {errors.prenom && <span className={styles.error}>{errors.prenom.message}</span>}
           </div>
@@ -167,10 +168,10 @@ export function AuteurForm({ onClose, auteur }: Props) {
           <label className={styles.label} htmlFor="pseudonyme">Pseudonyme</label>
           <input id="pseudonyme" className={styles.input} {...register('pseudonyme')} placeholder="Remplace le nom civil dans l'affichage" />
         </div>
-        <CustomFieldsRenderer entityType="auteur" onlyCategory="Identité" register={register} errors={errors} />
+        <CustomFieldsRenderer entityType="auteur" onlyCategory="IdentitÃ©" register={register} errors={errors} />
       </div>
 
-      {/* ── Contact ───────────────────────────────────────────── */}
+      {/* â”€â”€ Contact â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <div className={styles.section}>
         <p className={styles.sectionLabel}>Contact</p>
         <div className={styles.field}>
@@ -181,17 +182,17 @@ export function AuteurForm({ onClose, auteur }: Props) {
         <CustomFieldsRenderer entityType="auteur" onlyCategory="Contact" register={register} errors={errors} />
       </div>
 
-      {/* ── Biographie ────────────────────────────────────────── */}
+      {/* â”€â”€ Biographie â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <div className={styles.section}>
         <p className={styles.sectionLabel}>Biographie</p>
         <div className={styles.field}>
           <textarea id="bio" className={styles.textarea} rows={5} {...register('bio')}
-            placeholder="Quelques mots sur l'auteur, son parcours, ses thèmes de prédilection…" />
+            placeholder="Quelques mots sur l'auteur, son parcours, ses thÃ¨mes de prÃ©dilectionâ€¦" />
         </div>
         <CustomFieldsRenderer entityType="auteur" onlyCategory="Biographie" register={register} errors={errors} />
       </div>
 
-      {/* ── Autres sections custom ────────────────────────────── */}
+      {/* â”€â”€ Autres sections custom â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <CustomFieldsRenderer
         entityType="auteur"
         excludeCategories={FIXED_CATEGORIES}
@@ -199,10 +200,10 @@ export function AuteurForm({ onClose, auteur }: Props) {
         errors={errors}
       />
 
-      {/* ── Contrats & barèmes DA ─────────────────────────────── */}
+      {/* â”€â”€ Contrats & barÃ¨mes DA â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {isEdit && auteur && features.contratsAuteurs && <ContratsAuteurSection auteur={auteur} />}
 
-      {/* ── Contrat ME à la création ──────────────────────────── */}
+      {/* â”€â”€ Contrat ME Ã  la crÃ©ation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {!isEdit && features.contratsAuteurs && (
         <div className={styles.section}>
           <p className={styles.sectionLabel}>Contrat ME</p>
@@ -214,7 +215,7 @@ export function AuteurForm({ onClose, auteur }: Props) {
               style={{ width: 16, height: 16, accentColor: 'var(--ink)', cursor: 'pointer' }}
             />
             <span style={{ fontSize: '0.85rem', color: 'var(--ink)', fontWeight: 500 }}>
-              Cet auteur est sous contrat avec la maison d'édition
+              Cet auteur est sous contrat avec la maison d'Ã©dition
             </span>
           </label>
 
@@ -222,9 +223,9 @@ export function AuteurForm({ onClose, auteur }: Props) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 4, padding: '12px 14px', background: 'var(--ink-faint)', borderRadius: 10, border: '1px solid var(--cream-dark)' }}>
               <div className={styles.row2}>
                 <div className={styles.field}>
-                  <label className={styles.label}>Barème DA *</label>
+                  <label className={styles.label}>BarÃ¨me DA *</label>
                   <select className={styles.input} value={contratTypeDAId} onChange={(e) => setContratTypeDAId(e.target.value)}>
-                    <option value="">— Choisir —</option>
+                    <option value="">â€” Choisir â€”</option>
                     {typesDA.map((t) => <option key={t.id} value={t.id}>{t.nom}</option>)}
                   </select>
                 </div>
@@ -235,8 +236,8 @@ export function AuteurForm({ onClose, auteur }: Props) {
               </div>
               <div className={styles.row2}>
                 <div className={styles.field}>
-                  <label className={styles.label}>Durée (années)</label>
-                  <input type="number" min={1} className={styles.input} value={contratDureeAns} onChange={(e) => setContratDureeAns(e.target.value)} placeholder="Indéterminée si vide" />
+                  <label className={styles.label}>DurÃ©e (annÃ©es)</label>
+                  <input type="number" min={1} className={styles.input} value={contratDureeAns} onChange={(e) => setContratDureeAns(e.target.value)} placeholder="IndÃ©terminÃ©e si vide" />
                 </div>
                 {contratDureeAns && (
                   <div className={styles.field} style={{ justifyContent: 'flex-end', paddingBottom: 4 }}>
@@ -249,7 +250,7 @@ export function AuteurForm({ onClose, auteur }: Props) {
               </div>
               {!contratTypeDAId && (
                 <p style={{ fontSize: '0.72rem', color: 'var(--terra)', margin: 0 }}>
-                  Sélectionne un barème pour activer le contrat. Si aucun barème n'existe, crée-en un dans Réglages → Barèmes DA.
+                  SÃ©lectionne un barÃ¨me pour activer le contrat. Si aucun barÃ¨me n'existe, crÃ©e-en un dans RÃ©glages â†’ BarÃ¨mes DA.
                 </p>
               )}
             </div>
@@ -257,14 +258,18 @@ export function AuteurForm({ onClose, auteur }: Props) {
         </div>
       )}
 
-      {isError && <p className={styles.errorGlobal}>Une erreur est survenue. Veuillez réessayer.</p>}
+      {isError && <p className={styles.errorGlobal}>Une erreur est survenue. Veuillez rÃ©essayer.</p>}
 
       <div className={styles.actions}>
         <button type="button" className={styles.btnSecondary} onClick={onClose}>Annuler</button>
         <button type="submit" className={styles.btnPrimary} disabled={isSubmitting}>
-          {isSubmitting ? 'Enregistrement…' : isEdit ? 'Enregistrer les modifications' : 'Créer la fiche auteur'}
+          {isSubmitting ? 'Enregistrementâ€¦' : isEdit ? 'Enregistrer les modifications' : 'CrÃ©er la fiche auteur'}
         </button>
       </div>
     </form>
   )
 }
+
+
+
+

@@ -1,3 +1,4 @@
+﻿import { generateUUID } from '@/lib/utils'
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -73,7 +74,7 @@ export function MaisonEditionForm({ onClose, maisonEdition }: Props) {
       adresse:   values.adresse   || undefined,
     }
 
-    const entityId = isEdit ? maisonEdition!.id : crypto.randomUUID()
+    const entityId = isEdit ? maisonEdition!.id : generateUUID()
     if (isEdit) {
       await update.mutateAsync({ id: entityId, ...payload })
     } else {
@@ -120,7 +121,7 @@ export function MaisonEditionForm({ onClose, maisonEdition }: Props) {
       <div className={styles.section}>
         <p className={styles.sectionLabel}>Adresse</p>
         <div className={styles.field}>
-          <label className={styles.label} htmlFor="telephone">Téléphone</label>
+          <label className={styles.label} htmlFor="telephone">TÃ©lÃ©phone</label>
           <input id="telephone" className={styles.input} {...register('telephone')} />
         </div>
         <div className={styles.field}>
@@ -137,14 +138,18 @@ export function MaisonEditionForm({ onClose, maisonEdition }: Props) {
         errors={errors}
       />
 
-      {isError && <p className={styles.errorGlobal}>Une erreur est survenue. Veuillez réessayer.</p>}
+      {isError && <p className={styles.errorGlobal}>Une erreur est survenue. Veuillez rÃ©essayer.</p>}
 
       <div className={styles.actions}>
         <button type="button" className={styles.btnSecondary} onClick={onClose}>Annuler</button>
         <button type="submit" className={styles.btnPrimary} disabled={isSubmitting}>
-          {isSubmitting ? 'Enregistrement…' : isEdit ? 'Enregistrer' : 'Créer la maison'}
+          {isSubmitting ? 'Enregistrementâ€¦' : isEdit ? 'Enregistrer' : 'CrÃ©er la maison'}
         </button>
       </div>
     </form>
   )
 }
+
+
+
+

@@ -275,6 +275,18 @@ export default function CaisseScreen() {
     setSubmitting(true)
     const payment = encaissementDirect ? 'PDV' : selectedPayment
     try {
+      // ── Encaissement SumUp : déclencher le terminal avant d'enregistrer ──
+      if (payment === 'SUMUP') {
+        const result = await SumUp.checkout(total, 'EUR', 'Vente MeGesti')
+        if (!result.success) {
+          setSaleError(result.message ?? 'Paiement SumUp annulé ou échoué.')
+          addLog('warn', `SumUp refusé: ${result.message ?? result.errorCode}`)
+          setSubmitting(false)
+          return
+        }
+        addLog('info', `SumUp OK — code: ${result.transactionCode ?? '?'}`)
+      }
+
       await createVente({
         sessionId: session?.id,
         modePaiement: payment,

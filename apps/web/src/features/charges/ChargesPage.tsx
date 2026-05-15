@@ -1,3 +1,4 @@
+﻿import { generateUUID } from '@/lib/utils'
 import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
@@ -9,11 +10,12 @@ import {
   type TypeCharge, type Periodicite, type CategorieCharge, type Charge,
 } from '@/features/comptabilite/hooks/useCharges'
 import { usePlanFeatures } from '@/hooks/usePlanFeatures'
+import { PageHero } from '@/components/PageHero'
 import styles from './ChargesPage.module.css'
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
+// â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function fEur(v: number) {
-  return v.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €'
+  return v.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' â‚¬'
 }
 function fDate(iso: string) {
   return new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })
@@ -23,7 +25,7 @@ function joursAvant(iso: string): number {
   return Math.ceil((new Date(iso).getTime() - Date.now()) / 86_400_000)
 }
 
-// ── Presets de période ────────────────────────────────────────────────────────
+// â”€â”€ Presets de pÃ©riode â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function startOfMonth()   { const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), 1) }
 function startOfQuarter() { const d = new Date(); return new Date(d.getFullYear(), Math.floor(d.getMonth() / 3) * 3, 1) }
 function startOfYear()    { return new Date(new Date().getFullYear(), 0, 1) }
@@ -32,13 +34,13 @@ function endOfToday()     { const d = new Date(); d.setHours(23, 59, 59, 999); r
 const PRESETS = [
   { key: 'month',   label: 'Ce mois',      getFrom: startOfMonth   },
   { key: 'quarter', label: 'Ce trimestre', getFrom: startOfQuarter },
-  { key: 'year',    label: 'Cette année',  getFrom: startOfYear    },
+  { key: 'year',    label: 'Cette annÃ©e',  getFrom: startOfYear    },
   { key: 'all',     label: 'Tout',         getFrom: () => new Date('2000-01-01') },
-  { key: 'custom',  label: 'Personnalisé', getFrom: startOfYear    },
+  { key: 'custom',  label: 'PersonnalisÃ©', getFrom: startOfYear    },
 ] as const
 type PresetKey = typeof PRESETS[number]['key']
 
-// ── Formulaire ───────────────────────────────────────────────────────────────
+// â”€â”€ Formulaire â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 interface FormProps { initial?: Charge | null; onDone: () => void }
 
 function ChargeForm({ initial, onDone }: FormProps) {
@@ -74,7 +76,7 @@ function ChargeForm({ initial, onDone }: FormProps) {
       ),
     }
     if (initial) await update.mutateAsync({ id: initial.id, ...body })
-    else         await create.mutateAsync({ id: crypto.randomUUID(), ...body })
+    else         await create.mutateAsync({ id: generateUUID(), ...body })
     onDone()
   }
 
@@ -82,7 +84,7 @@ function ChargeForm({ initial, onDone }: FormProps) {
     <form className={styles.form} onSubmit={handleSubmit}>
       <div className={styles.formRow}>
         <div className={styles.formGroup}>
-          <label className={styles.formLabel}>Type (récurrence)</label>
+          <label className={styles.formLabel}>Type (rÃ©currence)</label>
           <div className={styles.typeSelector}>
             {(['DEPENSE','ABONNEMENT','PERTE'] as TypeCharge[]).map(t => (
               <button key={t} type="button"
@@ -98,7 +100,7 @@ function ChargeForm({ initial, onDone }: FormProps) {
 
       <div className={styles.formRow}>
         <div className={styles.formGroup}>
-          <label className={styles.formLabel}>Catégorie comptable (PCG)</label>
+          <label className={styles.formLabel}>CatÃ©gorie comptable (PCG)</label>
           <div className={styles.typeSelector} style={{ flexWrap: 'wrap' }}>
             {(Object.keys(CATEGORIE_CHARGE_LABELS) as CategorieCharge[]).map(cat => (
               <button key={cat} type="button"
@@ -114,27 +116,27 @@ function ChargeForm({ initial, onDone }: FormProps) {
 
       <div className={styles.formRow}>
         <div className={styles.formGroup} style={{ flex: 2 }}>
-          <label className={styles.formLabel}>Libellé</label>
+          <label className={styles.formLabel}>LibellÃ©</label>
           <input className={styles.formInput} value={libelle} onChange={e => setLibelle(e.target.value)}
             placeholder={isAbo ? 'ex. Abonnement Stripe' : 'ex. Stand salon Paris'} required />
         </div>
         <div className={styles.formGroup}>
-          <label className={styles.formLabel}>Montant HT (€)</label>
+          <label className={styles.formLabel}>Montant HT (â‚¬)</label>
           <input className={styles.formInput} type="number" min="0" step="0.01" value={montant} onChange={e => setMontant(e.target.value)} required />
         </div>
       </div>
 
       <div className={styles.formRow}>
         <div className={styles.formGroup}>
-          <label className={styles.formLabel}>{isAbo ? 'Date de début' : 'Date d\'effet'}</label>
+          <label className={styles.formLabel}>{isAbo ? 'Date de dÃ©but' : 'Date d\'effet'}</label>
           <input className={styles.formInput} type="date" value={dateEffet} onChange={e => setDateEffet(e.target.value)} required />
         </div>
 
         {isAbo ? (
           <div className={styles.formGroup}>
-            <label className={styles.formLabel}>Périodicité</label>
+            <label className={styles.formLabel}>PÃ©riodicitÃ©</label>
             <select className={styles.formInput} value={periodicite} onChange={e => setPeriodicite(e.target.value as Periodicite)}>
-              <option value="">— aucune —</option>
+              <option value="">â€” aucune â€”</option>
               {(['MENSUELLE','TRIMESTRIELLE','SEMESTRIELLE','ANNUELLE'] as Periodicite[]).map(p => (
                 <option key={p} value={p}>{PERIODICITE_LABELS[p]}</option>
               ))}
@@ -145,8 +147,8 @@ function ChargeForm({ initial, onDone }: FormProps) {
             <div className={styles.formGroup}>
               <label className={styles.formLabel}>Statut</label>
               <select className={styles.formInput} value={statut} onChange={e => setStatut(e.target.value as 'PREVU'|'PAYE')}>
-                <option value="PREVU">Prévu</option>
-                <option value="PAYE">Payé</option>
+                <option value="PREVU">PrÃ©vu</option>
+                <option value="PAYE">PayÃ©</option>
               </select>
             </div>
             {statut === 'PAYE' && (
@@ -161,29 +163,29 @@ function ChargeForm({ initial, onDone }: FormProps) {
 
       <div className={styles.formGroup}>
         <label className={styles.formLabel}>Notes <span className={styles.optional}>(optionnel)</span></label>
-        <input className={styles.formInput} value={notes} onChange={e => setNotes(e.target.value)} placeholder="Remarques, référence contrat…" />
+        <input className={styles.formInput} value={notes} onChange={e => setNotes(e.target.value)} placeholder="Remarques, rÃ©fÃ©rence contratâ€¦" />
       </div>
 
       {isAbo && periodicite && (
         <p className={styles.aboHint}>
-          Les occurrences sont calculées automatiquement. Chaque date passée compte comme payée dans le bilan.
+          Les occurrences sont calculÃ©es automatiquement. Chaque date passÃ©e compte comme payÃ©e dans le bilan.
         </p>
       )}
 
       <div className={styles.formActions}>
         <button type="button" className={styles.btnCancel} onClick={onDone}>Annuler</button>
         <button type="submit" className={styles.btnSubmit} disabled={isLoading}>
-          {isLoading ? 'Enregistrement…' : initial ? 'Modifier' : 'Ajouter'}
+          {isLoading ? 'Enregistrementâ€¦' : initial ? 'Modifier' : 'Ajouter'}
         </button>
       </div>
     </form>
   )
 }
 
-// ── Card charge ───────────────────────────────────────────────────────────────
+// â”€â”€ Card charge â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 interface CardProps {
   charge:       Charge
-  occurrences?: Date[]   // pour les abonnements filtrés sur une période
+  occurrences?: Date[]   // pour les abonnements filtrÃ©s sur une pÃ©riode
   onEdit:       () => void
   onDelete:     () => void
 }
@@ -196,7 +198,7 @@ function ChargeCard({ charge: c, occurrences, onEdit, onDelete }: CardProps) {
   const montant  = parseFloat(c.montantHT)
   const now      = new Date()
 
-  // Pour les abonnements : répartir les occurrences en passées / futures
+  // Pour les abonnements : rÃ©partir les occurrences en passÃ©es / futures
   const occPassed = occurrences?.filter(d => d <= now) ?? []
   const occFuture = occurrences?.filter(d => d > now)  ?? []
   const totalPeriode = occurrences ? montant * occurrences.length : null
@@ -214,34 +216,34 @@ function ChargeCard({ charge: c, occurrences, onEdit, onDelete }: CardProps) {
         {isAbo && c.periodicite && (
           <span className={styles.periodeBadge}>{PERIODICITE_LABELS[c.periodicite]}</span>
         )}
-        {!isAbo && c.statut === 'PAYE' && <span className={styles.payeBadge}>✓ Payé</span>}
+        {!isAbo && c.statut === 'PAYE' && <span className={styles.payeBadge}>âœ“ PayÃ©</span>}
         {!isAbo && c.statut === 'PREVU' && <span className={styles.prevuBadge}>En attente</span>}
       </div>
 
       <p className={styles.cardLibelle}>{c.libelle}</p>
 
-      {/* Montant : pour les abonnements filtrés, afficher le total de la période */}
+      {/* Montant : pour les abonnements filtrÃ©s, afficher le total de la pÃ©riode */}
       {totalPeriode !== null ? (
         <div className={styles.cardMontantWrap}>
           <p className={styles.cardMontant}>{fEur(totalPeriode)}</p>
-          <p className={styles.cardMontantSub}>{occurrences!.length} × {fEur(montant)}</p>
+          <p className={styles.cardMontantSub}>{occurrences!.length} Ã— {fEur(montant)}</p>
         </div>
       ) : (
         <p className={styles.cardMontant}>{fEur(montant)}</p>
       )}
 
-      {/* Occurrences détaillées pour les abonnements */}
+      {/* Occurrences dÃ©taillÃ©es pour les abonnements */}
       {isAbo && occurrences && occurrences.length > 0 && (
         <div className={styles.occurrences}>
           {occPassed.length > 0 && (
             <span className={styles.occPasse}>
-              ✓ {occPassed.length} payée{occPassed.length > 1 ? 's' : ''}
+              âœ“ {occPassed.length} payÃ©e{occPassed.length > 1 ? 's' : ''}
               {occPassed.length <= 3 && ` (${occPassed.map(d => fDate(d.toISOString())).join(', ')})`}
             </span>
           )}
           {occFuture.length > 0 && (
             <span className={styles.occFuture}>
-              ⏳ {occFuture.length} prévue{occFuture.length > 1 ? 's' : ''}
+              â³ {occFuture.length} prÃ©vue{occFuture.length > 1 ? 's' : ''}
               {occFuture.length <= 2 && ` (${occFuture.map(d => fDate(d.toISOString())).join(', ')})`}
             </span>
           )}
@@ -254,7 +256,7 @@ function ChargeCard({ charge: c, occurrences, onEdit, onDelete }: CardProps) {
             <span className={styles.cardMetaItem}>Depuis {fDate(c.dateEffet)}</span>
             {!occurrences && c.prochaineEcheance && (
               <span className={`${styles.echeance} ${urgent ? styles.echeanceUrgent : ''} ${depassee ? styles.echeanceDepassee : ''}`}>
-                {depassee ? '⚠️ Échue' : urgent ? `⏰ J-${jours} · ${fDate(c.prochaineEcheance)}` : `📅 ${fDate(c.prochaineEcheance)}`}
+                {depassee ? 'âš ï¸ Ã‰chue' : urgent ? `â° J-${jours} Â· ${fDate(c.prochaineEcheance)}` : `ðŸ“… ${fDate(c.prochaineEcheance)}`}
               </span>
             )}
           </>
@@ -262,7 +264,7 @@ function ChargeCard({ charge: c, occurrences, onEdit, onDelete }: CardProps) {
           <>
             <span className={styles.cardMetaItem}>{fDate(c.dateEffet)}</span>
             {c.datePaiement && c.statut === 'PAYE' && (
-              <span className={styles.cardMetaItem}>Payé le {fDate(c.datePaiement)}</span>
+              <span className={styles.cardMetaItem}>PayÃ© le {fDate(c.datePaiement)}</span>
             )}
           </>
         )}
@@ -278,25 +280,25 @@ function ChargeCard({ charge: c, occurrences, onEdit, onDelete }: CardProps) {
   )
 }
 
-// ── Page principale ───────────────────────────────────────────────────────────
+// â”€â”€ Page principale â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export function ChargesPage() {
   const navigate = useNavigate()
   const { features, upgradeMessage } = usePlanFeatures()
 
-  // Garde plan — affiche un écran verrouillé si la feature n'est pas disponible
+  // Garde plan â€” affiche un Ã©cran verrouillÃ© si la feature n'est pas disponible
   if (!features.charges) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, padding: '80px 32px', textAlign: 'center' }}>
-        <span style={{ fontSize: 44 }}>🔒</span>
+        <span style={{ fontSize: 44 }}>ðŸ”’</span>
         <p style={{ fontFamily: "'DM Serif Display',serif", fontSize: '1.3rem', color: 'var(--ink)', margin: 0 }}>
-          Disponible à partir du plan Edition
+          Disponible Ã  partir du plan Edition
         </p>
         <p style={{ fontSize: '0.85rem', color: 'var(--text-soft)', maxWidth: 340, margin: 0, lineHeight: 1.65 }}>
           {upgradeMessage('charges')}
         </p>
         <button onClick={() => navigate(-1)}
           style={{ marginTop: 8, padding: '9px 20px', borderRadius: 10, border: '1.5px solid var(--cream-dark)', background: 'var(--cream)', color: 'var(--text-mid)', fontSize: '0.83rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
-          ← Retour
+          â† Retour
         </button>
       </div>
     )
@@ -312,7 +314,7 @@ export function ChargesPage() {
   const [editTarget, setEditTarget] = useState<Charge | null>(null)
   const [filterType, setFilterType] = useState<TypeCharge | 'ALL'>('ALL')
 
-  // ── Calcul de la période active ──────────────────────────────────────────
+  // â”€â”€ Calcul de la pÃ©riode active â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const { fromDate, toDate } = useMemo(() => {
     let from: Date
     let to = endOfToday()
@@ -328,7 +330,7 @@ export function ChargesPage() {
     return { fromDate: from, toDate: to }
   }, [preset, customFrom, customTo])
 
-  // ── Filtrage par période + type ──────────────────────────────────────────
+  // â”€â”€ Filtrage par pÃ©riode + type â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const chargesFiltrees = useMemo(() => {
     return charges
       .filter(c => filterType === 'ALL' || c.type === filterType)
@@ -341,7 +343,7 @@ export function ChargesPage() {
       }))
   }, [charges, filterType, fromDate, toDate, preset])
 
-  // ── Métriques de la période ──────────────────────────────────────────────
+  // â”€â”€ MÃ©triques de la pÃ©riode â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const metrics = useMemo(() => {
     const now = new Date()
     let totalPaye = 0, totalPrevu = 0
@@ -369,73 +371,69 @@ export function ChargesPage() {
   return (
     <div className={styles.page}>
 
-      {/* ── HERO ── */}
-      <div className={styles.hero}>
-        <div className={styles.heroBlob} />
-        <div className={styles.heroContent}>
-          <div className={styles.heroLeft}>
-            <button className={styles.backBtn} onClick={() => navigate('/bilan')}>
-              <ArrowLeft size={16} /> Bilan
-            </button>
-            <div>
-              <h1 className={styles.heroTitle}>Charges & abonnements</h1>
-              <p className={styles.heroSub}>Dépenses ponctuelles, pertes et abonnements récurrents</p>
-            </div>
-          </div>
-          <div className={styles.heroRight}>
-            <div className={styles.periodSelector}>
-              {PRESETS.map(p => (
-                <button key={p.key}
-                  className={`${styles.periodBtn} ${preset === p.key ? styles.periodBtnActive : ''}`}
-                  onClick={() => setPreset(p.key)}>
-                  {p.label}
-                </button>
-              ))}
-            </div>
-            <button className={styles.btnAdd} onClick={() => { setEditTarget(null); setShowForm(v => !v) }}>
-              + Ajouter
-            </button>
-          </div>
-        </div>
+      <button className={styles.backBtn} style={{ margin: '24px 40px 0', width: 'fit-content' }} onClick={() => navigate('/bilan')}>
+        <ArrowLeft size={16} /> Bilan
+      </button>
 
-        {preset === 'custom' && (
-          <div className={styles.customDates}>
-            <label className={styles.customLabel}>Du</label>
-            <input type="date" className={styles.customInput} value={customFrom} onChange={e => setCustomFrom(e.target.value)} />
-            <label className={styles.customLabel}>au</label>
-            <input type="date" className={styles.customInput} value={customTo}   onChange={e => setCustomTo(e.target.value)} />
-          </div>
-        )}
-
-        {!isLoading && chargesFiltrees.length > 0 && (
-          <div className={styles.heroMetrics}>
-            <div className={styles.heroMetric}>
-              <span>Décaissé / payé</span>
-              <strong style={{ color: '#f87171' }}>{fEur(metrics.totalPaye)}</strong>
-            </div>
-            {metrics.totalPrevu > 0 && <>
-              <div className={styles.heroMetricDiv} />
-              <div className={styles.heroMetric}>
-                <span>À venir / prévu</span>
-                <strong style={{ color: '#fbbf24' }}>{fEur(metrics.totalPrevu)}</strong>
+      <PageHero
+        title="Charges & abonnements"
+        subtitle="DÃ©penses ponctuelles, pertes et abonnements rÃ©currents"
+        extra={(
+          <>
+            {preset === 'custom' && (
+              <div className={styles.customDates}>
+                <label className={styles.customLabel}>Du</label>
+                <input type="date" className={styles.customInput} value={customFrom} onChange={e => setCustomFrom(e.target.value)} />
+                <label className={styles.customLabel}>au</label>
+                <input type="date" className={styles.customInput} value={customTo}   onChange={e => setCustomTo(e.target.value)} />
               </div>
-            </>}
-            <div className={styles.heroMetricDiv} />
-            <div className={styles.heroMetric}>
-              <span>Total</span>
-              <strong>{fEur(metrics.totalPaye + metrics.totalPrevu)}</strong>
-            </div>
-            <div className={styles.heroMetricDiv} />
-            <div className={styles.heroMetric}>
-              <span>{metrics.nb} charge{metrics.nb > 1 ? 's' : ''} sur la période</span>
-            </div>
-          </div>
+            )}
+            {!isLoading && chargesFiltrees.length > 0 && (
+              <div className={styles.heroMetrics}>
+                <div className={styles.heroMetric}>
+                  <span>DÃ©caissÃ© / payÃ©</span>
+                  <strong style={{ color: '#f87171' }}>{fEur(metrics.totalPaye)}</strong>
+                </div>
+                {metrics.totalPrevu > 0 && <>
+                  <div className={styles.heroMetricDiv} />
+                  <div className={styles.heroMetric}>
+                    <span>Ã€ venir / prÃ©vu</span>
+                    <strong style={{ color: '#fbbf24' }}>{fEur(metrics.totalPrevu)}</strong>
+                  </div>
+                </>}
+                <div className={styles.heroMetricDiv} />
+                <div className={styles.heroMetric}>
+                  <span>Total</span>
+                  <strong>{fEur(metrics.totalPaye + metrics.totalPrevu)}</strong>
+                </div>
+                <div className={styles.heroMetricDiv} />
+                <div className={styles.heroMetric}>
+                  <span>{metrics.nb} charge{metrics.nb > 1 ? 's' : ''} sur la pÃ©riode</span>
+                </div>
+              </div>
+            )}
+          </>
         )}
-      </div>
+      >
+        <div className={styles.heroRight}>
+          <div className={styles.periodSelector}>
+            {PRESETS.map(p => (
+              <button key={p.key}
+                className={`${styles.periodBtn} ${preset === p.key ? styles.periodBtnActive : ''}`}
+                onClick={() => setPreset(p.key)}>
+                {p.label}
+              </button>
+            ))}
+          </div>
+          <button className={styles.btnAdd} onClick={() => { setEditTarget(null); setShowForm(v => !v) }}>
+            + Ajouter
+          </button>
+        </div>
+      </PageHero>
 
       <div className={styles.content}>
 
-        {/* ── FORMULAIRE ── */}
+        {/* â”€â”€ FORMULAIRE â”€â”€ */}
         {showForm && (
           <div className={styles.formSection}>
             <h2 className={styles.formTitle}>{editTarget ? 'Modifier la charge' : 'Nouvelle charge'}</h2>
@@ -443,7 +441,7 @@ export function ChargesPage() {
           </div>
         )}
 
-        {/* ── FILTRES TYPE ── */}
+        {/* â”€â”€ FILTRES TYPE â”€â”€ */}
         {charges.length > 0 && (
           <div className={styles.filters}>
             {(['ALL', 'DEPENSE', 'ABONNEMENT', 'PERTE'] as (TypeCharge | 'ALL')[]).map(t => (
@@ -457,7 +455,7 @@ export function ChargesPage() {
           </div>
         )}
 
-        {/* ── GRILLE ── */}
+        {/* â”€â”€ GRILLE â”€â”€ */}
         {isLoading && (
           <div className={styles.cardGrid}>
             {[1,2,3].map(i => <div key={i} className={styles.skCard} />)}
@@ -466,16 +464,16 @@ export function ChargesPage() {
 
         {!isLoading && charges.length === 0 && (
           <div className={styles.emptyState}>
-            <p className={styles.emptyTitle}>Aucune charge enregistrée</p>
-            <p className={styles.emptySub}>Ajoutez des dépenses, pertes et abonnements pour les voir apparaître dans votre bilan.</p>
+            <p className={styles.emptyTitle}>Aucune charge enregistrÃ©e</p>
+            <p className={styles.emptySub}>Ajoutez des dÃ©penses, pertes et abonnements pour les voir apparaÃ®tre dans votre bilan.</p>
             <button className={styles.btnAdd} onClick={() => setShowForm(true)}>+ Ajouter une charge</button>
           </div>
         )}
 
         {!isLoading && charges.length > 0 && chargesFiltrees.length === 0 && (
           <div className={styles.emptyState}>
-            <p className={styles.emptyTitle}>Aucune charge sur cette période</p>
-            <p className={styles.emptySub}>Essayez une période plus large ou "Tout" pour voir toutes vos charges.</p>
+            <p className={styles.emptyTitle}>Aucune charge sur cette pÃ©riode</p>
+            <p className={styles.emptySub}>Essayez une pÃ©riode plus large ou "Tout" pour voir toutes vos charges.</p>
           </div>
         )}
 
@@ -494,3 +492,7 @@ export function ChargesPage() {
     </div>
   )
 }
+
+
+
+

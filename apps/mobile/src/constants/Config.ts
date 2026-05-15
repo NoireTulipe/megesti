@@ -7,6 +7,7 @@ const host = Constants.expoConfig?.hostUri
   : DEV_HOST
 
 export const Config = {
-  apiBaseUrl:    `${host}/api`,
-  uploadBaseUrl: host,           // base pour les fichiers statiques /uploads/...
+  apiBaseUrl:          `${host}/api`,
+  uploadBaseUrl:       host,
+  sumupAffiliateKey:   'sup_afk_k9GalLMZmEcZyzmJXC8pppIHmpC6CLRo',   // clé développeur MeGesti sur dashboard.sumup.com
 } as const

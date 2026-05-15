@@ -1,3 +1,4 @@
+﻿import { generateUUID } from '@/lib/utils'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -76,7 +77,7 @@ export function ImprimeurForm({ onClose, imprimeur }: Props) {
     if (isEdit) {
       await update.mutateAsync({ id: imprimeur!.id, ...payload })
     } else {
-      await create.mutateAsync({ id: crypto.randomUUID(), ...payload })
+      await create.mutateAsync({ id: generateUUID(), ...payload })
     }
     onClose()
   }
@@ -84,7 +85,7 @@ export function ImprimeurForm({ onClose, imprimeur }: Props) {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className={styles.form}>
 
-      {/* Infos générales */}
+      {/* Infos gÃ©nÃ©rales */}
       <div className={styles.section}>
         <p className={styles.sectionLabel}>Identification</p>
         <div className={styles.field}>
@@ -95,7 +96,7 @@ export function ImprimeurForm({ onClose, imprimeur }: Props) {
         <div className={styles.field}>
           <label className={styles.label}>Lien commande en ligne</label>
           <div className={fStyles.urlField}>
-            <input className={`${styles.input} ${errors.lienCommande ? styles.inputError : ''}`} {...register('lienCommande')} placeholder="https://…" />
+            <input className={`${styles.input} ${errors.lienCommande ? styles.inputError : ''}`} {...register('lienCommande')} placeholder="https://â€¦" />
             <ExternalLink size={14} className={fStyles.urlIcon} />
           </div>
           {errors.lienCommande && <span className={styles.error}>{errors.lienCommande.message}</span>}
@@ -104,26 +105,26 @@ export function ImprimeurForm({ onClose, imprimeur }: Props) {
 
       {/* Points forts / faibles */}
       <div className={styles.section}>
-        <p className={styles.sectionLabel}>Évaluation</p>
+        <p className={styles.sectionLabel}>Ã‰valuation</p>
         <div className={fStyles.pointsGrid}>
           <PointList
             label="Points forts"
             color="#22c55e"
             items={forts}
             onChange={setForts}
-            placeholder="Ex : délais rapides"
+            placeholder="Ex : dÃ©lais rapides"
           />
           <PointList
             label="Points faibles"
             color="#ef4444"
             items={faibles}
             onChange={setFaibles}
-            placeholder="Ex : tarifs élevés"
+            placeholder="Ex : tarifs Ã©levÃ©s"
           />
         </div>
         <div className={styles.field} style={{ marginTop: 12 }}>
           <label className={styles.label}>Note libre</label>
-          <textarea className={styles.textarea} rows={3} {...register('noteLibre')} placeholder="Observations, conditions tarifaires…" />
+          <textarea className={styles.textarea} rows={3} {...register('noteLibre')} placeholder="Observations, conditions tarifairesâ€¦" />
         </div>
       </div>
 
@@ -143,20 +144,20 @@ export function ImprimeurForm({ onClose, imprimeur }: Props) {
       </div>
 
       {(create.isError || update.isError) && (
-        <p className={styles.errorGlobal}>Une erreur est survenue. Veuillez réessayer.</p>
+        <p className={styles.errorGlobal}>Une erreur est survenue. Veuillez rÃ©essayer.</p>
       )}
 
       <div className={styles.actions}>
         <button type="button" className={styles.btnSecondary} onClick={onClose}>Annuler</button>
         <button type="submit" className={styles.btnPrimary} disabled={isSubmitting}>
-          {isSubmitting ? 'Enregistrement…' : isEdit ? 'Enregistrer' : "Créer l'imprimeur"}
+          {isSubmitting ? 'Enregistrementâ€¦' : isEdit ? 'Enregistrer' : "CrÃ©er l'imprimeur"}
         </button>
       </div>
     </form>
   )
 }
 
-// ── Sous-composants ──────────────────────────────────────────
+// â”€â”€ Sous-composants â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function PointList({ label, color, items, onChange, placeholder }: {
   label: string; color: string; items: PointRow[]; onChange: (rows: PointRow[]) => void; placeholder: string
@@ -205,9 +206,9 @@ function ContactRow({ contact, onChange, onRemove }: {
     <div className={fStyles.contactCard}>
       <div className={fStyles.contactGrid}>
         <input className={fStyles.contactInput} placeholder="Nom *" value={contact.nom} onChange={upd('nom')} />
-        <input className={fStyles.contactInput} placeholder="Prénom" value={contact.prenom} onChange={upd('prenom')} />
+        <input className={fStyles.contactInput} placeholder="PrÃ©nom" value={contact.prenom} onChange={upd('prenom')} />
         <input className={fStyles.contactInput} placeholder="Email" type="email" value={contact.email} onChange={upd('email')} />
-        <input className={fStyles.contactInput} placeholder="Téléphone" value={contact.telephone} onChange={upd('telephone')} />
+        <input className={fStyles.contactInput} placeholder="TÃ©lÃ©phone" value={contact.telephone} onChange={upd('telephone')} />
       </div>
       <button type="button" className={fStyles.removeContactBtn} onClick={onRemove}>
         <X size={13} />
@@ -215,3 +216,7 @@ function ContactRow({ contact, onChange, onRemove }: {
     </div>
   )
 }
+
+
+
+

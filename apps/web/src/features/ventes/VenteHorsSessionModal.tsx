@@ -1,3 +1,4 @@
+﻿import { generateUUID } from '@/lib/utils'
 import { useState, useMemo, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { useMotifVente, useCreateMotifVente } from './hooks/useMotifVente'
@@ -10,13 +11,13 @@ import styles from './VentesPage.module.css'
 
 const MODES: { key: ModePaiement; label: string }[] = [
   { key: 'CB',       label: 'CB' },
-  { key: 'ESPECES',  label: 'Espèces' },
-  { key: 'CHEQUE',   label: 'Chèque' },
+  { key: 'ESPECES',  label: 'EspÃ¨ces' },
+  { key: 'CHEQUE',   label: 'ChÃ¨que' },
   { key: 'VIREMENT', label: 'Virement' },
 ]
 
 function fEur(n: number) {
-  return n.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €'
+  return n.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' â‚¬'
 }
 
 interface Props {
@@ -99,7 +100,7 @@ export function VenteHorsSessionModal({ isOpen, onClose }: Props) {
     setPending(true)
     try {
       await createVente.mutateAsync({
-        id: crypto.randomUUID(),
+        id: generateUUID(),
         motifVenteId: motifId,
         modePaiement: mode,
         lignes: cart.map(l => ({
@@ -128,7 +129,7 @@ export function VenteHorsSessionModal({ isOpen, onClose }: Props) {
     <div className={styles.hsOverlay} onClick={handleClose}>
       <div className={styles.hsDialog} role="dialog" aria-modal="true" onClick={e => e.stopPropagation()}>
 
-        {/* Accent + décos */}
+        {/* Accent + dÃ©cos */}
         <div className={styles.hsAccent} />
         <div className={styles.hsDecorations}>
           <div className={styles.hsBlobA} />
@@ -165,12 +166,12 @@ export function VenteHorsSessionModal({ isOpen, onClose }: Props) {
                   className={styles.addMotifInput}
                   value={newMotifLabel}
                   onChange={e => setNewMotifLabel(e.target.value)}
-                  placeholder="Nouveau motif…"
+                  placeholder="Nouveau motifâ€¦"
                   autoFocus
                   onKeyDown={e => { if (e.key === 'Enter') handleAddMotif() }}
                 />
-                <button className={styles.addMotifConfirm} onClick={handleAddMotif}>✓</button>
-                <button className={styles.addMotifCancel} onClick={() => setShowAddMotif(false)}>✕</button>
+                <button className={styles.addMotifConfirm} onClick={handleAddMotif}>âœ“</button>
+                <button className={styles.addMotifCancel} onClick={() => setShowAddMotif(false)}>âœ•</button>
               </div>
             ) : (
               <button className={styles.addMotifBtn} onClick={() => setShowAddMotif(true)}>+ Ajouter</button>
@@ -186,7 +187,7 @@ export function VenteHorsSessionModal({ isOpen, onClose }: Props) {
             <div className={styles.hsCatalogueBar}>
               <input
                 className={styles.hsSearch}
-                placeholder="Rechercher un article…"
+                placeholder="Rechercher un articleâ€¦"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
               />
@@ -209,7 +210,7 @@ export function VenteHorsSessionModal({ isOpen, onClose }: Props) {
             <div className={styles.hsArticleGrid}>
               {filteredArticles.length === 0 && (
                 <p className={styles.hsNoArticles}>
-                  {search ? `Aucun résultat pour « ${search} »` : 'Aucun article dans ce rayon.'}
+                  {search ? `Aucun rÃ©sultat pour Â« ${search} Â»` : 'Aucun article dans ce rayon.'}
                 </p>
               )}
               {filteredArticles.map(a => (
@@ -242,7 +243,7 @@ export function VenteHorsSessionModal({ isOpen, onClose }: Props) {
                     <div key={l.articleId} className={styles.hsPanierLigne}>
                       <span className={styles.hsPanierNom}>{l.nom}</span>
                       <div className={styles.hsQtyWrap}>
-                        <button className={styles.hsQtyBtn} onClick={() => setQty(l.articleId, l.quantite - 1)}>−</button>
+                        <button className={styles.hsQtyBtn} onClick={() => setQty(l.articleId, l.quantite - 1)}>âˆ’</button>
                         <span className={styles.hsQtyVal}>{l.quantite}</span>
                         <button className={styles.hsQtyBtn} onClick={() => setQty(l.articleId, l.quantite + 1)}>+</button>
                       </div>
@@ -279,7 +280,7 @@ export function VenteHorsSessionModal({ isOpen, onClose }: Props) {
                 disabled={!motifId || cart.length === 0 || pending}
                 onClick={handleValider}
               >
-                {success ? '✓ Enregistrée' : pending ? 'Enregistrement…' : `Valider — ${fEur(totalTTC)}`}
+                {success ? 'âœ“ EnregistrÃ©e' : pending ? 'Enregistrementâ€¦' : `Valider â€” ${fEur(totalTTC)}`}
               </button>
             </div>
           </div>
@@ -290,3 +291,7 @@ export function VenteHorsSessionModal({ isOpen, onClose }: Props) {
 
   return createPortal(dialog, document.body)
 }
+
+
+
+

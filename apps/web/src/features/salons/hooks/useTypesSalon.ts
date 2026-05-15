@@ -1,3 +1,4 @@
+﻿import { generateUUID } from '@/lib/utils'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/lib/api'
 import type { TypeSalon } from './useSalons'
@@ -11,7 +12,7 @@ export function useTypesSalon() {
 export function useCreateTypeSalon() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (libelle: string) => api.post<TypeSalon>('/types-salon', { id: crypto.randomUUID(), libelle }),
+    mutationFn: (libelle: string) => api.post<TypeSalon>('/types-salon', { id: generateUUID(), libelle }),
     onSuccess:  () => qc.invalidateQueries({ queryKey: KEY }),
   })
 }
@@ -23,3 +24,7 @@ export function useDeleteTypeSalon() {
     onSuccess:  () => qc.invalidateQueries({ queryKey: KEY }),
   })
 }
+
+
+
+

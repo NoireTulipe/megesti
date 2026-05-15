@@ -1,3 +1,4 @@
+﻿import { generateUUID } from '@/lib/utils'
 import { useState } from 'react'
 import type { Salon, ContactSalon, CreateSalonPayload } from './hooks/useSalons'
 import { salonCA } from './hooks/useSalons'
@@ -5,7 +6,7 @@ import { useCreateSalon, useUpdateSalon } from './hooks/useSalons'
 import { useTypesSalon, useCreateTypeSalon } from './hooks/useTypesSalon'
 import styles from './SalonDetail.module.css'
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function toDateInput(iso: string | null): string {
   if (!iso) return ''
@@ -17,7 +18,7 @@ function formatDateFr(iso: string | null): string {
   return new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
 }
 
-// ── Star rating ───────────────────────────────────────────────────────────────
+// â”€â”€ Star rating â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function StarRating({ value, onChange }: { value: number | null; onChange: (v: number | null) => void }) {
   const [hover, setHover] = useState<number | null>(null)
@@ -32,19 +33,19 @@ function StarRating({ value, onChange }: { value: number | null; onChange: (v: n
           onMouseEnter={() => setHover(i + 1)}
           onMouseLeave={() => setHover(null)}
           onClick={() => onChange(i + 1 === value ? null : i + 1)}
-          title={`${i + 1} étoile${i > 0 ? 's' : ''}`}
+          title={`${i + 1} Ã©toile${i > 0 ? 's' : ''}`}
         >
-          ★
+          â˜…
         </button>
       ))}
       {value !== null && (
-        <button type="button" className={styles.starClear} onClick={() => onChange(null)} title="Supprimer la note">✕</button>
+        <button type="button" className={styles.starClear} onClick={() => onChange(null)} title="Supprimer la note">âœ•</button>
       )}
     </div>
   )
 }
 
-// ── Type selector ─────────────────────────────────────────────────────────────
+// â”€â”€ Type selector â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function TypeSelector({
   value, onChange,
@@ -92,14 +93,14 @@ function TypeSelector({
       />
       {newLib.trim() && (
         <button type="button" className={styles.typeAddBtn} onClick={handleCreate}>
-          {create.isPending ? '…' : 'Ajouter'}
+          {create.isPending ? 'â€¦' : 'Ajouter'}
         </button>
       )}
     </div>
   )
 }
 
-// ── Draft contact ─────────────────────────────────────────────────────────────
+// â”€â”€ Draft contact â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 interface DraftContact {
   id:        string
@@ -113,10 +114,10 @@ function contactFromServer(c: ContactSalon): DraftContact {
   return { id: c.id, nom: c.nom, prenom: c.prenom ?? '', email: c.email ?? '', telephone: c.telephone ?? '' }
 }
 
-// ── Panneau principal ─────────────────────────────────────────────────────────
+// â”€â”€ Panneau principal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 interface Props {
-  salon?:   Salon        // undefined = création
+  salon?:   Salon        // undefined = crÃ©ation
   onDone:   () => void
   onCancel: () => void
 }
@@ -147,7 +148,7 @@ export function SalonDetail({ salon, onDone, onCancel }: Props) {
   )
 
   function addContact() {
-    setContacts((cs) => [...cs, { id: crypto.randomUUID(), nom: '', prenom: '', email: '', telephone: '' }])
+    setContacts((cs) => [...cs, { id: generateUUID(), nom: '', prenom: '', email: '', telephone: '' }])
   }
 
   function updateContact(i: number, field: keyof DraftContact, val: string) {
@@ -160,7 +161,7 @@ export function SalonDetail({ salon, onDone, onCancel }: Props) {
 
   async function handleSave() {
     const payload: CreateSalonPayload = {
-      id:                salon?.id ?? crypto.randomUUID(),
+      id:                salon?.id ?? generateUUID(),
       nom,
       creerPointDeVente: avecPDV,
       typeSalonId:       typeSalonId ?? undefined,
@@ -197,7 +198,7 @@ export function SalonDetail({ salon, onDone, onCancel }: Props) {
 
   return (
     <div className={styles.panel}>
-      {/* ── Header ── */}
+      {/* â”€â”€ Header â”€â”€ */}
       <div className={styles.panelHeader}>
         <h2 className={styles.panelNom}>{nom || 'Nouveau salon'}</h2>
         <div className={styles.panelMeta}>
@@ -207,22 +208,22 @@ export function SalonDetail({ salon, onDone, onCancel }: Props) {
         </div>
       </div>
 
-      {/* ── Bannière CA (mode édition uniquement) ── */}
+      {/* â”€â”€ BanniÃ¨re CA (mode Ã©dition uniquement) â”€â”€ */}
       {isEdit && (
         <div className={styles.caBanner}>
           <div>
-            <div className={styles.caMain}>{ca.toFixed(2)} €</div>
+            <div className={styles.caMain}>{ca.toFixed(2)} â‚¬</div>
             <div className={styles.caSub}>CA total sur {salon!.sessions.length} session{salon!.sessions.length > 1 ? 's' : ''}</div>
           </div>
         </div>
       )}
 
-      {/* ── Corps scrollable ── */}
+      {/* â”€â”€ Corps scrollable â”€â”€ */}
       <div className={styles.body}>
 
-        {/* Infos générales */}
+        {/* Infos gÃ©nÃ©rales */}
         <section className={styles.section}>
-          <h3 className={styles.sectionTitle}>Informations générales</h3>
+          <h3 className={styles.sectionTitle}>Informations gÃ©nÃ©rales</h3>
           <div className={styles.field}>
             <label className={styles.label}>Nom du salon *</label>
             <input className={styles.input} value={nom} onChange={(e) => setNom(e.target.value)} placeholder="ex. Salon du livre de Paris" autoFocus />
@@ -249,23 +250,23 @@ export function SalonDetail({ salon, onDone, onCancel }: Props) {
                 background: avecPDV ? 'rgba(16,185,129,0.12)' : 'var(--ink-faint)',
                 color: avecPDV ? '#065F46' : 'var(--text-soft)',
               }}>
-                {avecPDV ? 'Actif' : 'Désactivé'}
+                {avecPDV ? 'Actif' : 'DÃ©sactivÃ©'}
               </span>
             )}
           </label>
           {avecPDV && (
             <p style={{ fontSize: '0.75rem', color: 'var(--text-soft)', margin: '0 0 0 26px' }}>
-              Un point de vente « {nom || 'ce salon'} » sera disponible à l'ouverture des sessions de caisse.
-              Les ventes seront automatiquement liées à ce salon.
+              Un point de vente Â« {nom || 'ce salon'} Â» sera disponible Ã  l'ouverture des sessions de caisse.
+              Les ventes seront automatiquement liÃ©es Ã  ce salon.
             </p>
           )}
           <div className={styles.grid2}>
             <div className={styles.field}>
-              <label className={styles.label}>Période habituelle</label>
+              <label className={styles.label}>PÃ©riode habituelle</label>
               <input className={styles.input} value={periodeHabituelle} onChange={(e) => setPeriodeHabituelle(e.target.value)} placeholder="ex. Printemps" />
             </div>
             <div className={styles.field}>
-              <label className={styles.label}>Durée (jours)</label>
+              <label className={styles.label}>DurÃ©e (jours)</label>
               <input className={styles.input} type="number" min={1} value={dureeJours} onChange={(e) => setDureeJours(e.target.value)} placeholder="3" />
             </div>
           </div>
@@ -276,7 +277,7 @@ export function SalonDetail({ salon, onDone, onCancel }: Props) {
           <h3 className={styles.sectionTitle}>Dates du prochain salon</h3>
           <div className={styles.grid2}>
             <div className={styles.field}>
-              <label className={styles.label}>Date de début</label>
+              <label className={styles.label}>Date de dÃ©but</label>
               <input className={styles.input} type="date" value={dateDebut} onChange={(e) => setDateDebut(e.target.value)} />
             </div>
             <div className={styles.field}>
@@ -291,7 +292,7 @@ export function SalonDetail({ salon, onDone, onCancel }: Props) {
           <h3 className={styles.sectionTitle}>Lieu</h3>
           <div className={styles.field}>
             <label className={styles.label}>Adresse</label>
-            <input className={styles.input} value={adresse} onChange={(e) => setAdresse(e.target.value)} placeholder="Rue, numéro…" />
+            <input className={styles.input} value={adresse} onChange={(e) => setAdresse(e.target.value)} placeholder="Rue, numÃ©roâ€¦" />
           </div>
           <div className={styles.grid2}>
             <div className={styles.field}>
@@ -310,7 +311,7 @@ export function SalonDetail({ salon, onDone, onCancel }: Props) {
           <h3 className={styles.sectionTitle}>Finances</h3>
           <div className={styles.grid2}>
             <div className={styles.field}>
-              <label className={styles.label}>Participation fixe (€)</label>
+              <label className={styles.label}>Participation fixe (â‚¬)</label>
               <input className={styles.input} type="number" min={0} step={0.01} value={prixPrevuFixe} onChange={(e) => setPrixPrevuFixe(e.target.value)} placeholder="0.00" />
             </div>
             <div className={styles.field}>
@@ -326,7 +327,7 @@ export function SalonDetail({ salon, onDone, onCancel }: Props) {
           <div className={styles.contactList}>
             {contacts.length > 0 && (
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr auto', gap: '8px', padding: '0 12px', marginBottom: -4 }}>
-                {['Nom *', 'Prénom', 'Email', 'Téléphone', ''].map((h) => (
+                {['Nom *', 'PrÃ©nom', 'Email', 'TÃ©lÃ©phone', ''].map((h) => (
                   <span key={h} style={{ fontSize: '0.65rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-soft)' }}>{h}</span>
                 ))}
               </div>
@@ -334,10 +335,10 @@ export function SalonDetail({ salon, onDone, onCancel }: Props) {
             {contacts.map((c, i) => (
               <div key={c.id} className={styles.contactRow}>
                 <input className={styles.contactInput} value={c.nom}       onChange={(e) => updateContact(i, 'nom',       e.target.value)} placeholder="Nom" />
-                <input className={styles.contactInput} value={c.prenom}    onChange={(e) => updateContact(i, 'prenom',    e.target.value)} placeholder="Prénom" />
-                <input className={styles.contactInput} value={c.email}     onChange={(e) => updateContact(i, 'email',     e.target.value)} placeholder="email@…" />
-                <input className={styles.contactInput} value={c.telephone} onChange={(e) => updateContact(i, 'telephone', e.target.value)} placeholder="06…" />
-                <button className={styles.btnRemoveContact} onClick={() => removeContact(i)} title="Supprimer">×</button>
+                <input className={styles.contactInput} value={c.prenom}    onChange={(e) => updateContact(i, 'prenom',    e.target.value)} placeholder="PrÃ©nom" />
+                <input className={styles.contactInput} value={c.email}     onChange={(e) => updateContact(i, 'email',     e.target.value)} placeholder="email@â€¦" />
+                <input className={styles.contactInput} value={c.telephone} onChange={(e) => updateContact(i, 'telephone', e.target.value)} placeholder="06â€¦" />
+                <button className={styles.btnRemoveContact} onClick={() => removeContact(i)} title="Supprimer">Ã—</button>
               </div>
             ))}
           </div>
@@ -353,7 +354,7 @@ export function SalonDetail({ salon, onDone, onCancel }: Props) {
           </div>
           <div className={styles.field}>
             <label className={styles.label}>Commentaires</label>
-            <textarea className={styles.textarea} value={commentaires} onChange={(e) => setCommentaires(e.target.value)} placeholder="Observations, points à améliorer, anecdotes…" />
+            <textarea className={styles.textarea} value={commentaires} onChange={(e) => setCommentaires(e.target.value)} placeholder="Observations, points Ã  amÃ©liorer, anecdotesâ€¦" />
           </div>
         </section>
 
@@ -368,9 +369,9 @@ export function SalonDetail({ salon, onDone, onCancel }: Props) {
                   <div key={s.id} className={styles.sessionRow}>
                     <div>
                       <span className={styles.sessionNom}>Session</span>
-                      <span className={styles.sessionDate}> · {s.statut === 'FERMEE' ? 'Clôturée' : 'En cours'}</span>
+                      <span className={styles.sessionDate}> Â· {s.statut === 'FERMEE' ? 'ClÃ´turÃ©e' : 'En cours'}</span>
                     </div>
-                    <span className={styles.sessionCA}>{sessionCA.toFixed(2)} €</span>
+                    <span className={styles.sessionCA}>{sessionCA.toFixed(2)} â‚¬</span>
                   </div>
                 )
               })}
@@ -379,13 +380,17 @@ export function SalonDetail({ salon, onDone, onCancel }: Props) {
         )}
       </div>
 
-      {/* ── Footer ── */}
+      {/* â”€â”€ Footer â”€â”€ */}
       <div className={styles.footer}>
         <button className={styles.btnCancel} onClick={onCancel}>Annuler</button>
         <button className={styles.btnSave} disabled={!canSave || isSaving} onClick={handleSave}>
-          {isSaving ? 'Enregistrement…' : isEdit ? 'Enregistrer' : 'Créer le salon'}
+          {isSaving ? 'Enregistrementâ€¦' : isEdit ? 'Enregistrer' : 'CrÃ©er le salon'}
         </button>
       </div>
     </div>
   )
 }
+
+
+
+

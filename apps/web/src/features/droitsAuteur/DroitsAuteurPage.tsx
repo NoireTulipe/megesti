@@ -1,3 +1,4 @@
+﻿import { generateUUID } from '@/lib/utils'
 import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import {
@@ -10,12 +11,13 @@ import {
 } from './hooks/useDroitsAuteur'
 import type { SoldeContrat } from './hooks/useDroitsAuteur'
 import { buildReference } from '@megesti/business/droits/reference'
+import { PageHero } from '@/components/PageHero'
 import styles from './DroitsAuteurPage.module.css'
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const fmtDate = (s: string | null) =>
-  s ? new Date(s).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'
+  s ? new Date(s).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : 'â€”'
 
 const fmtEuro = (n: number) =>
   n.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })
@@ -33,7 +35,7 @@ function urgencyClass(prochainVersement: string | null): string {
   return styles.urgenceOk
 }
 
-// ── Modal paiement ────────────────────────────────────────────────────────────
+// â”€â”€ Modal paiement â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 interface ModalPaiementProps {
   contrat: SoldeContrat
@@ -73,7 +75,7 @@ function ModalPaiement({ contrat, onClose }: ModalPaiementProps) {
 
   async function handleSubmit() {
     await create.mutateAsync({
-      id:               crypto.randomUUID(),
+      id:               generateUUID(),
       contratId:        contrat.contratId,
       montant:          Number(montant),
       dateVersement:    `${dateVersement}T00:00:00.000Z`,
@@ -98,7 +100,7 @@ function ModalPaiement({ contrat, onClose }: ModalPaiementProps) {
         <div className={styles.modalHeader}>
           <div>
             <h3 className={styles.modalTitle}>Enregistrer un paiement</h3>
-            <p className={styles.modalSub}>{contrat.auteurNom} · {contrat.articleNom ?? 'Tous les articles'}</p>
+            <p className={styles.modalSub}>{contrat.auteurNom} Â· {contrat.articleNom ?? 'Tous les articles'}</p>
           </div>
           <button className={styles.modalClose} onClick={onClose} aria-label="Fermer">
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -110,7 +112,7 @@ function ModalPaiement({ contrat, onClose }: ModalPaiementProps) {
         <div className={styles.modalBody}>
           <div className={styles.modalGrid}>
             <div className={styles.field}>
-              <label className={styles.label}>Montant (€)</label>
+              <label className={styles.label}>Montant (â‚¬)</label>
               <input type="number" step="0.01" className={styles.input} value={montant} onChange={(e) => setMontant(e.target.value)} />
             </div>
             <div className={styles.field}>
@@ -118,7 +120,7 @@ function ModalPaiement({ contrat, onClose }: ModalPaiementProps) {
               <input type="date" className={styles.input} value={dateVersement} onChange={(e) => setDate(e.target.value)} />
             </div>
             <div className={styles.field}>
-              <label className={styles.label}>Période du</label>
+              <label className={styles.label}>PÃ©riode du</label>
               <input type="date" className={styles.input} value={dateDebut} onChange={(e) => setDateDebut(e.target.value)} />
             </div>
             <div className={styles.field}>
@@ -129,16 +131,16 @@ function ModalPaiement({ contrat, onClose }: ModalPaiementProps) {
               <label className={styles.label}>Mode</label>
               <select className={styles.input} value={mode} onChange={(e) => setMode(e.target.value as 'VIREMENT' | 'CHEQUE')}>
                 <option value="VIREMENT">Virement</option>
-                <option value="CHEQUE">Chèque</option>
+                <option value="CHEQUE">ChÃ¨que</option>
               </select>
             </div>
             <div className={styles.field}>
-              <label className={styles.label}>Référence</label>
+              <label className={styles.label}>RÃ©fÃ©rence</label>
               <input type="text" className={styles.input} value={reference} readOnly tabIndex={-1}
                 style={{ background: 'var(--cream)', color: 'var(--text-mid)', cursor: 'default', userSelect: 'all' }}
               />
               <span style={{ fontSize: '0.65rem', color: 'var(--text-soft)', fontStyle: 'italic', marginTop: 2 }}>
-                Générée automatiquement — {numeroOrdre > 1 ? `${paiementsContrat.length} paiement(s) existant(s)` : 'premier paiement'}
+                GÃ©nÃ©rÃ©e automatiquement â€” {numeroOrdre > 1 ? `${paiementsContrat.length} paiement(s) existant(s)` : 'premier paiement'}
               </span>
             </div>
           </div>
@@ -150,7 +152,7 @@ function ModalPaiement({ contrat, onClose }: ModalPaiementProps) {
 
           <div className={styles.modalSolde}>
             Solde disponible : <strong>{fmtEuro(contrat.solde)}</strong>
-            {contrat.avanceRestante > 0 && <span className={styles.avanceBadge}>À-valoir restant : {fmtEuro(contrat.avanceRestante)}</span>}
+            {contrat.avanceRestante > 0 && <span className={styles.avanceBadge}>Ã€-valoir restant : {fmtEuro(contrat.avanceRestante)}</span>}
           </div>
 
           <div className={styles.modalFooter}>
@@ -160,7 +162,7 @@ function ModalPaiement({ contrat, onClose }: ModalPaiementProps) {
               disabled={!montant || Number(montant) <= 0 || create.isPending}
               onClick={handleSubmit}
             >
-              {create.isPending ? 'Enregistrement…' : 'Enregistrer le paiement'}
+              {create.isPending ? 'Enregistrementâ€¦' : 'Enregistrer le paiement'}
             </button>
           </div>
         </div>
@@ -171,7 +173,7 @@ function ModalPaiement({ contrat, onClose }: ModalPaiementProps) {
   return createPortal(dialog, document.body)
 }
 
-// ── Onglet Échéances ──────────────────────────────────────────────────────────
+// â”€â”€ Onglet Ã‰chÃ©ances â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function OngletEcheances() {
   const { data: soldes = [], isLoading } = useSoldesDroitsAuteur()
@@ -184,7 +186,7 @@ function OngletEcheances() {
     return new Date(a.prochainVersement).getTime() - new Date(b.prochainVersement).getTime()
   })
 
-  if (isLoading) return <div className={styles.loading}>Calcul en cours…</div>
+  if (isLoading) return <div className={styles.loading}>Calcul en coursâ€¦</div>
 
   if (tries.length === 0) {
     return (
@@ -198,8 +200,8 @@ function OngletEcheances() {
             <polyline points="10 9 9 9 8 9"/>
           </svg>
         </div>
-        <div className={styles.emptyTitle}>Aucun contrat actif avec droits configurés</div>
-        <div className={styles.emptyDesc}>Configurez la périodicité dans les fiches auteurs.</div>
+        <div className={styles.emptyTitle}>Aucun contrat actif avec droits configurÃ©s</div>
+        <div className={styles.emptyDesc}>Configurez la pÃ©riodicitÃ© dans les fiches auteurs.</div>
       </div>
     )
   }
@@ -214,7 +216,7 @@ function OngletEcheances() {
 
           return (
             <div key={s.contratId} className={`${styles.tableCard} ${urgencyClass(s.prochainVersement)}`}>
-              {/* Ligne haute : identité + périodicité + échéance */}
+              {/* Ligne haute : identitÃ© + pÃ©riodicitÃ© + Ã©chÃ©ance */}
               <div className={styles.cardMain}>
                 <div className={styles.cardLeft}>
                   <span className={styles.cardAuteur}>{s.auteurNom}</span>
@@ -222,7 +224,7 @@ function OngletEcheances() {
                 </div>
                 <div className={styles.cardMeta}>
                   <span className={styles.cardPeriodBadge}>
-                    {s.periodicite ? PERIODICITE_LABELS[s.periodicite] : '—'}
+                    {s.periodicite ? PERIODICITE_LABELS[s.periodicite] : 'â€”'}
                   </span>
                   <div className={styles.cardVersement}>
                     {prochain ? (
@@ -240,7 +242,7 @@ function OngletEcheances() {
                         {urgent && <span className={styles.cardUrgentBadge}>Imminent</span>}
                       </>
                     ) : (
-                      <span className={styles.cardDate} style={{color:'var(--text-soft)'}}>—</span>
+                      <span className={styles.cardDate} style={{color:'var(--text-soft)'}}>â€”</span>
                     )}
                   </div>
                 </div>
@@ -253,15 +255,15 @@ function OngletEcheances() {
                   <span className={styles.amountValue}>{fmtEuro(s.totalDuBrut)}</span>
                 </div>
                 <div className={styles.amountItem}>
-                  <span className={styles.amountLabel}>À-valoir</span>
+                  <span className={styles.amountLabel}>Ã€-valoir</span>
                   {s.avanceRestante > 0 ? (
                     <span className={styles.amountAvance}>{fmtEuro(s.avanceRestante)}</span>
                   ) : (
-                    <span className={styles.amountValue} style={{color:'var(--text-soft)'}}>—</span>
+                    <span className={styles.amountValue} style={{color:'var(--text-soft)'}}>â€”</span>
                   )}
                 </div>
                 <div className={styles.amountItem}>
-                  <span className={styles.amountLabel}>Déjà versé</span>
+                  <span className={styles.amountLabel}>DÃ©jÃ  versÃ©</span>
                   <span className={styles.amountValue} style={{color:'var(--text-soft)'}}>{fmtEuro(s.totalVerse)}</span>
                 </div>
                 <div className={styles.amountItem}>
@@ -285,19 +287,19 @@ function OngletEcheances() {
   )
 }
 
-// ── Onglet Historique ─────────────────────────────────────────────────────────
+// â”€â”€ Onglet Historique â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function OngletHistorique() {
   const { data: paiements = [], isLoading } = useHistoriquePaiements()
   const patch = usePatchPaiementDA()
 
   const STATUT_STYLES: Record<string, { color: string; bg: string; label: string }> = {
-    PREVU:  { color: '#92400E', bg: '#FEF3C7', label: 'Prévu'  },
-    PAYE:   { color: '#065F46', bg: '#D1FAE5', label: 'Payé'   },
-    ANNULE: { color: '#991B1B', bg: '#FEE2E2', label: 'Annulé' },
+    PREVU:  { color: '#92400E', bg: '#FEF3C7', label: 'PrÃ©vu'  },
+    PAYE:   { color: '#065F46', bg: '#D1FAE5', label: 'PayÃ©'   },
+    ANNULE: { color: '#991B1B', bg: '#FEE2E2', label: 'AnnulÃ©' },
   }
 
-  if (isLoading) return <div className={styles.loading}>Chargement…</div>
+  if (isLoading) return <div className={styles.loading}>Chargementâ€¦</div>
   if (paiements.length === 0) return (
     <div className={styles.emptyState}>
       <div className={styles.emptyIcon}>
@@ -308,7 +310,7 @@ function OngletHistorique() {
           <line x1="3" y1="10" x2="21" y2="10"/>
         </svg>
       </div>
-      <div className={styles.emptyTitle}>Aucun paiement enregistré</div>
+      <div className={styles.emptyTitle}>Aucun paiement enregistrÃ©</div>
     </div>
   )
 
@@ -317,7 +319,7 @@ function OngletHistorique() {
       <div className={styles.histoHeader}>
         <span>Date</span>
         <span>Auteur</span>
-        <span>Détails</span>
+        <span>DÃ©tails</span>
         <span>Montant</span>
         <span />
       </div>
@@ -330,17 +332,17 @@ function OngletHistorique() {
               <span className={styles.cardSmAuteur}>{p.auteur.prenom} {p.auteur.nom}</span>
               <div className={styles.cardSmDetails}>
                 <span>{p.contrat.article?.nom ?? 'Tous les articles'}</span>
-                <span style={{color:'var(--text-mid)'}}>·</span>
-                <span>{fmtDate(p.dateDebutPeriode)} → {fmtDate(p.dateFinPeriode)}</span>
+                <span style={{color:'var(--text-mid)'}}>Â·</span>
+                <span>{fmtDate(p.dateDebutPeriode)} â†’ {fmtDate(p.dateFinPeriode)}</span>
                 {p.modePaiement && (
                   <>
-                    <span style={{color:'var(--text-mid)'}}>·</span>
+                    <span style={{color:'var(--text-mid)'}}>Â·</span>
                     <span>{p.modePaiement}</span>
                   </>
                 )}
                 {p.reference && (
                   <>
-                    <span style={{color:'var(--text-mid)'}}>·</span>
+                    <span style={{color:'var(--text-mid)'}}>Â·</span>
                     <span style={{fontWeight:500}}>{p.reference}</span>
                   </>
                 )}
@@ -364,7 +366,7 @@ function OngletHistorique() {
   )
 }
 
-// ── Onglet Par auteur ─────────────────────────────────────────────────────────
+// â”€â”€ Onglet Par auteur â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const COLORS = ['#C4907C','#8B7BAB','#6B8F71','#C9933A','#3D5470','#A07090','#5B8A8A']
 
@@ -372,7 +374,7 @@ function OngletStats() {
   const { data: stats = [], isLoading } = useStatsDroitsAuteur()
   const { data: soldes = [] }           = useSoldesDroitsAuteur()
 
-  if (isLoading) return <div className={styles.loading}>Chargement…</div>
+  if (isLoading) return <div className={styles.loading}>Chargementâ€¦</div>
   if (stats.length === 0) return (
     <div className={styles.emptyState}>
       <div className={styles.emptyIcon}>
@@ -382,7 +384,7 @@ function OngletStats() {
           <line x1="6" y1="20" x2="6" y2="14"/>
         </svg>
       </div>
-      <div className={styles.emptyTitle}>Aucun versement enregistré</div>
+      <div className={styles.emptyTitle}>Aucun versement enregistrÃ©</div>
     </div>
   )
 
@@ -396,13 +398,13 @@ function OngletStats() {
   return (
     <div className={styles.statsLayout}>
       <div className={styles.chartCard}>
-        <h3 className={styles.chartTitle}>Droits versés par auteur (€)</h3>
+        <h3 className={styles.chartTitle}>Droits versÃ©s par auteur (â‚¬)</h3>
         <ResponsiveContainer width="100%" height={280}>
           <BarChart data={chartData} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
             <XAxis dataKey="nom" tick={{ fontSize: 12 }} />
-            <YAxis tickFormatter={(v) => `${v} €`} tick={{ fontSize: 12 }} />
+            <YAxis tickFormatter={(v) => `${v} â‚¬`} tick={{ fontSize: 12 }} />
             <Tooltip formatter={(v: number) => fmtEuro(v)} />
-            <Bar dataKey="verse" name="Versé" radius={[6, 6, 0, 0]}>
+            <Bar dataKey="verse" name="VersÃ©" radius={[6, 6, 0, 0]}>
               {chartData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
             </Bar>
           </BarChart>
@@ -429,7 +431,7 @@ function OngletStats() {
               </div>
               <div className={styles.rankAmounts}>
                 <span className={styles.rankTotal}>{fmtEuro(s.total)}</span>
-                {solde > 0 && <span className={styles.rankSolde}>+{fmtEuro(solde)} à verser</span>}
+                {solde > 0 && <span className={styles.rankSolde}>+{fmtEuro(solde)} Ã  verser</span>}
               </div>
             </div>
           )
@@ -439,7 +441,7 @@ function OngletStats() {
   )
 }
 
-// ── Page principale ───────────────────────────────────────────────────────────
+// â”€â”€ Page principale â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 type Tab = 'echeances' | 'historique' | 'stats'
 
@@ -448,16 +450,11 @@ export function DroitsAuteurPage() {
 
   return (
     <div className={styles.page}>
-      <header className={styles.header}>
-        <div>
-          <h1 className={styles.title}>Droits d'auteur</h1>
-          <p className={styles.subtitle}>Suivi des reversements dus et versés</p>
-        </div>
-      </header>
+      <PageHero title="Droits d'auteur" subtitle="Suivi des reversements dus et versÃ©s" />
 
       <div className={styles.tabBar}>
         {([
-          ['echeances',  'Échéances & soldes', (
+          ['echeances',  'Ã‰chÃ©ances & soldes', (
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
               <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
               <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
@@ -495,3 +492,7 @@ export function DroitsAuteurPage() {
     </div>
   )
 }
+
+
+
+

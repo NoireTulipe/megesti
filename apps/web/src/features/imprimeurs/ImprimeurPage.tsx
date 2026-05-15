@@ -5,6 +5,7 @@ import { ImprimeurCard }   from './ImprimeurCard'
 import { ImprimeurDetail } from './ImprimeurDetail'
 import { ImprimeurForm }   from './ImprimeurForm'
 import { Modal } from '@/components/ui/Modal'
+import { PageHero } from '@/components/PageHero'
 import sty from '@/features/auteurs/AuteursPage.module.css'
 
 export function ImprimeurPage() {
@@ -26,15 +27,10 @@ export function ImprimeurPage() {
   return (
     <div className={sty.page}>
 
-      {/* ── Header ── */}
-      <header className={sty.header}>
-        <div>
-          <h1 className={sty['page-title']}>Imprimeurs</h1>
-          <p className={sty['page-subtitle']}>
-            {items.length} imprimeur{items.length > 1 ? 's' : ''} référencé{items.length > 1 ? 's' : ''}
-            {debounced ? ` · résultats pour « ${debounced} »` : ''}
-          </p>
-        </div>
+      <PageHero
+        title="Imprimeurs"
+        subtitle={<>{items.length} imprimeur{items.length > 1 ? 's' : ''} référencé{items.length > 1 ? 's' : ''}{debounced ? ` · résultats pour « ${debounced} »` : ''}</>}
+      >
         <div className={sty['header-actions']}>
           <div className={sty['search-wrap']}>
             <span className={sty['search-icon']}>
@@ -57,7 +53,7 @@ export function ImprimeurPage() {
             Nouvel imprimeur
           </button>
         </div>
-      </header>
+      </PageHero>
 
       {/* ── Grille ── */}
       {isLoading && (

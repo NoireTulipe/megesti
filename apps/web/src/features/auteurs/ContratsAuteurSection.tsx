@@ -1,3 +1,4 @@
+﻿import { generateUUID } from '@/lib/utils'
 import { useState } from 'react'
 import {
   useContratsAuteur, useCreateContratAuteur, useUpdateContratAuteur, useDeleteContratAuteur,
@@ -9,7 +10,7 @@ import { useArticles } from '@/features/catalogue/hooks/useArticles'
 import type { Auteur } from './hooks/useAuteurs'
 import sty from './AuteurForm.module.css'
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const fmtDate = (d: Date | string | null) => {
   if (!d) return ''
@@ -21,7 +22,7 @@ function EcheanceBadge({ contrat }: { contrat: ContratAuteur }) {
   const echeance = prochaineEcheance(contrat)
 
   if (!fin) {
-    return <span style={{ fontSize: '0.72rem', color: 'var(--text-soft)' }}>Durée indéterminée</span>
+    return <span style={{ fontSize: '0.72rem', color: 'var(--text-soft)' }}>DurÃ©e indÃ©terminÃ©e</span>
   }
 
   const isExpire = !contrat.reconduiteTacite && fin < new Date()
@@ -32,16 +33,16 @@ function EcheanceBadge({ contrat }: { contrat: ContratAuteur }) {
       color: isExpire ? '#DC2626' : '#059669',
     }}>
       {isExpire
-        ? `Expiré le ${fmtDate(fin)}`
+        ? `ExpirÃ© le ${fmtDate(fin)}`
         : contrat.reconduiteTacite
-          ? `Reconduit tacitement · prochaine échéance ${fmtDate(echeance)}`
+          ? `Reconduit tacitement Â· prochaine Ã©chÃ©ance ${fmtDate(echeance)}`
           : `Contrat jusqu'au ${fmtDate(fin)}`
       }
     </span>
   )
 }
 
-// ── Périodicité ───────────────────────────────────────────────────────────────
+// â”€â”€ PÃ©riodicitÃ© â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const PERIODICITE_LABELS: Record<PeriodiciteDA, string> = {
   MENSUEL:        'Mensuel',
@@ -52,7 +53,7 @@ const PERIODICITE_LABELS: Record<PeriodiciteDA, string> = {
   DATES_FIXES:    'Dates fixes',
 }
 
-const MOIS_LABELS = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc']
+const MOIS_LABELS = ['Jan','FÃ©v','Mar','Avr','Mai','Jun','Jul','AoÃ»','Sep','Oct','Nov','DÃ©c']
 
 interface PeriodiciteFieldsProps {
   periodicite:       string
@@ -77,14 +78,14 @@ function PeriodiciteFields({ periodicite, datesFixesJSON, prochainVersement, onC
       <div style={{ display: 'flex', gap: 10 }}>
         <div style={{ flex: 1 }}>
           <label style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-soft)', display: 'block', marginBottom: 4 }}>
-            Périodicité reversements
+            PÃ©riodicitÃ© reversements
           </label>
           <select
             style={{ width: '100%', padding: '8px 10px', border: '1.5px solid var(--cream-dark)', borderRadius: 8, fontSize: '0.85rem', background: '#fff' }}
             value={periodicite}
             onChange={(e) => onChange(e.target.value, datesFixesJSON, prochainVersement)}
           >
-            <option value="">— Aucune —</option>
+            <option value="">â€” Aucune â€”</option>
             {(Object.entries(PERIODICITE_LABELS) as [PeriodiciteDA, string][]).map(([k, v]) => (
               <option key={k} value={k}>{v}</option>
             ))}
@@ -123,7 +124,7 @@ function PeriodiciteFields({ periodicite, datesFixesJSON, prochainVersement, onC
               />
               <button type="button" onClick={() => removeDate(i)}
                 style={{ width: 24, height: 24, border: 'none', borderRadius: 6, background: '#FEE2E2', color: '#DC2626', cursor: 'pointer', fontSize: '0.75rem' }}>
-                ×
+                Ã—
               </button>
             </div>
           ))}
@@ -137,7 +138,7 @@ function PeriodiciteFields({ periodicite, datesFixesJSON, prochainVersement, onC
   )
 }
 
-// ── Carte contrat ─────────────────────────────────────────────────────────────
+// â”€â”€ Carte contrat â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 interface ContratCardProps {
   c:           ContratAuteur
@@ -196,7 +197,7 @@ function ContratCard({ c, typesDA, articles, onDelete, onUpdate, onAppliquer, up
       <div style={{ padding: 14, background: '#fff', borderRadius: 10, border: '1.5px solid var(--ink-light)', display: 'flex', flexDirection: 'column', gap: 12 }}>
         <div className={sty.row2}>
           <div className={sty.field}>
-            <label className={sty.label}>Barème DA *</label>
+            <label className={sty.label}>BarÃ¨me DA *</label>
             <select className={sty.input} value={f.typeDAId} onChange={e => set('typeDAId')(e.target.value)}>
               {typesDA.map(t => <option key={t.id} value={t.id}>{t.nom}</option>)}
             </select>
@@ -221,11 +222,11 @@ function ContratCard({ c, typesDA, articles, onDelete, onUpdate, onAppliquer, up
         </div>
         <div className={sty.row2}>
           <div className={sty.field}>
-            <label className={sty.label}>Durée (années)</label>
-            <input type="number" min={1} className={sty.input} value={f.dureeAns} onChange={e => set('dureeAns')(e.target.value)} placeholder="Indéterminée" />
+            <label className={sty.label}>DurÃ©e (annÃ©es)</label>
+            <input type="number" min={1} className={sty.input} value={f.dureeAns} onChange={e => set('dureeAns')(e.target.value)} placeholder="IndÃ©terminÃ©e" />
           </div>
           <div className={sty.field}>
-            <label className={sty.label}>À-valoir (€)</label>
+            <label className={sty.label}>Ã€-valoir (â‚¬)</label>
             <input type="number" min={0} step={0.01} className={sty.input} value={f.avance} onChange={e => set('avance')(e.target.value)} placeholder="0.00" />
           </div>
         </div>
@@ -243,11 +244,11 @@ function ContratCard({ c, typesDA, articles, onDelete, onUpdate, onAppliquer, up
         />
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
           {saveError && (
-            <span style={{ fontSize: '0.75rem', color: '#DC2626', flex: 1 }}>⚠ {saveError}</span>
+            <span style={{ fontSize: '0.75rem', color: '#DC2626', flex: 1 }}>âš  {saveError}</span>
           )}
           <button type="button" className={sty.btnSecondary} onClick={() => setEditing(false)}>Annuler</button>
           <button type="button" className={sty.btnPrimary} disabled={!f.typeDAId || updating} onClick={handleSave}>
-            {updating ? 'Enregistrement…' : 'Enregistrer'}
+            {updating ? 'Enregistrementâ€¦' : 'Enregistrer'}
           </button>
         </div>
       </div>
@@ -279,13 +280,13 @@ function ContratCard({ c, typesDA, articles, onDelete, onUpdate, onAppliquer, up
         </div>
         {c.avance && (
           <div style={{ textAlign: 'right', flexShrink: 0 }}>
-            <span style={{ fontSize: '0.72rem', color: 'var(--text-soft)' }}>À-valoir </span>
+            <span style={{ fontSize: '0.72rem', color: 'var(--text-soft)' }}>Ã€-valoir </span>
             <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--gold)' }}>
-              {Number(c.avance).toFixed(2)} €
+              {Number(c.avance).toFixed(2)} â‚¬
             </span>
             {Number(c.avanceDue) > 0 && (
               <div style={{ fontSize: '0.68rem', color: 'var(--text-soft)' }}>
-                {Number(c.avanceDue).toFixed(2)} € recoupé
+                {Number(c.avanceDue).toFixed(2)} â‚¬ recoupÃ©
               </div>
             )}
           </div>
@@ -305,7 +306,7 @@ function ContratCard({ c, typesDA, articles, onDelete, onUpdate, onAppliquer, up
           onMouseLeave={e => { const el = e.currentTarget; el.style.background = 'transparent'; el.style.color = '#aaa'; el.style.borderColor = 'transparent' }}
           title="Modifier le contrat"
         >
-          ✎
+          âœŽ
         </button>
         <button
           type="button"
@@ -320,23 +321,23 @@ function ContratCard({ c, typesDA, articles, onDelete, onUpdate, onAppliquer, up
           }}
           onMouseEnter={e => { const el = e.currentTarget; el.style.background = '#FEE2E2'; el.style.color = '#DC2626'; el.style.borderColor = '#FECACA' }}
           onMouseLeave={e => { const el = e.currentTarget; el.style.background = 'transparent'; el.style.color = '#ccc'; el.style.borderColor = 'transparent' }}
-          title="Résilier le contrat"
+          title="RÃ©silier le contrat"
         >
-          ×
+          Ã—
         </button>
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
         {c.dateSignature && (
           <span style={{ fontSize: '0.72rem', color: 'var(--text-soft)' }}>
-            Signé le {fmtDate(c.dateSignature)}
+            SignÃ© le {fmtDate(c.dateSignature)}
           </span>
         )}
         <EcheanceBadge contrat={c} />
         {c.periodicite && (
           <span style={{ fontSize: '0.72rem', color: 'var(--text-soft)' }}>
-            · {PERIODICITE_LABELS[c.periodicite]}
-            {c.prochainVersement && ` · prochain ${fmtDate(c.prochainVersement)}`}
+            Â· {PERIODICITE_LABELS[c.periodicite]}
+            {c.prochainVersement && ` Â· prochain ${fmtDate(c.prochainVersement)}`}
           </span>
         )}
       </div>
@@ -355,7 +356,7 @@ function ContratCard({ c, typesDA, articles, onDelete, onUpdate, onAppliquer, up
             onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--ink-light)'; e.currentTarget.style.color = 'var(--ink)' }}
             onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--cream-dark)'; e.currentTarget.style.color = 'var(--text-soft)' }}
           >
-            {applying ? 'Application…' : '↓ Appliquer cette périodicité à tous les contrats de l\'auteur'}
+            {applying ? 'Applicationâ€¦' : 'â†“ Appliquer cette pÃ©riodicitÃ© Ã  tous les contrats de l\'auteur'}
           </button>
         </div>
       )}
@@ -363,7 +364,7 @@ function ContratCard({ c, typesDA, articles, onDelete, onUpdate, onAppliquer, up
   )
 }
 
-// ── Formulaire de création ────────────────────────────────────────────────────
+// â”€â”€ Formulaire de crÃ©ation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 interface FormState {
   typeDAId:          string
@@ -405,7 +406,7 @@ function FormulaireContrat({ auteurId, articles, typesDA, onCreated, onCancel, i
     const sigDate = f.dateSignature ? `${f.dateSignature}T00:00:00.000Z` : undefined
     const effDate = f.datePriseEffet ? `${f.datePriseEffet}T00:00:00.000Z` : sigDate
     onSubmit({
-      id:                crypto.randomUUID(),
+      id:                generateUUID(),
       auteurId,
       typeDAId:          f.typeDAId,
       articleId:         f.articleId || undefined,
@@ -425,9 +426,9 @@ function FormulaireContrat({ auteurId, articles, typesDA, onCreated, onCancel, i
 
       <div className={sty.row2}>
         <div className={sty.field}>
-          <label className={sty.label}>Barème DA *</label>
+          <label className={sty.label}>BarÃ¨me DA *</label>
           <select className={sty.input} value={f.typeDAId} onChange={(e) => set('typeDAId')(e.target.value)}>
-            <option value="">— Choisir —</option>
+            <option value="">â€” Choisir â€”</option>
             {typesDA.map((t) => <option key={t.id} value={t.id}>{t.nom}</option>)}
           </select>
         </div>
@@ -454,12 +455,12 @@ function FormulaireContrat({ auteurId, articles, typesDA, onCreated, onCancel, i
 
       <div className={sty.row2}>
         <div className={sty.field}>
-          <label className={sty.label}>Durée (années)</label>
+          <label className={sty.label}>DurÃ©e (annÃ©es)</label>
           <input type="number" min={1} className={sty.input} value={f.dureeAns}
-            onChange={(e) => set('dureeAns')(e.target.value)} placeholder="Indéterminée si vide" />
+            onChange={(e) => set('dureeAns')(e.target.value)} placeholder="IndÃ©terminÃ©e si vide" />
         </div>
         <div className={sty.field}>
-          <label className={sty.label}>À-valoir (€)</label>
+          <label className={sty.label}>Ã€-valoir (â‚¬)</label>
           <input type="number" min={0} step={0.01} className={sty.input} value={f.avance}
             onChange={(e) => set('avance')(e.target.value)} placeholder="0.00" />
         </div>
@@ -470,7 +471,7 @@ function FormulaireContrat({ auteurId, articles, typesDA, onCreated, onCancel, i
           <input type="checkbox" checked={f.reconduiteTacite}
             onChange={(e) => set('reconduiteTacite')(e.target.checked)}
             style={{ width: 15, height: 15, accentColor: 'var(--ink)' }} />
-          Reconduite tacite à l'échéance
+          Reconduite tacite Ã  l'Ã©chÃ©ance
         </label>
       )}
 
@@ -484,18 +485,18 @@ function FormulaireContrat({ auteurId, articles, typesDA, onCreated, onCancel, i
       <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
         <button type="button" className={sty.btnSecondary} onClick={onCancel}>Annuler</button>
         <button type="button" className={sty.btnPrimary} disabled={!f.typeDAId || isPending} onClick={handleSubmit}>
-          {isPending ? 'Enregistrement…' : 'Créer le contrat'}
+          {isPending ? 'Enregistrementâ€¦' : 'CrÃ©er le contrat'}
         </button>
       </div>
     </div>
   )
 }
 
-// ── Section principale ────────────────────────────────────────────────────────
+// â”€â”€ Section principale â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 interface Props {
   auteur:    Auteur
-  allArticles?: boolean  // si true : montre tous les articles (mode création auteur)
+  allArticles?: boolean  // si true : montre tous les articles (mode crÃ©ation auteur)
 }
 
 export function ContratsAuteurSection({ auteur, allArticles = false }: Props) {
@@ -520,11 +521,11 @@ export function ContratsAuteurSection({ auteur, allArticles = false }: Props) {
 
   return (
     <div className={sty.section}>
-      <p className={sty.sectionLabel}>Contrats &amp; barèmes DA</p>
+      <p className={sty.sectionLabel}>Contrats &amp; barÃ¨mes DA</p>
 
       {contrats.length === 0 && !showNew && (
         <p style={{ fontSize: '0.82rem', color: 'var(--text-soft)', fontStyle: 'italic', margin: 0 }}>
-          Aucun contrat actif — sans contrat, les droits ne peuvent pas être calculés.
+          Aucun contrat actif â€” sans contrat, les droits ne peuvent pas Ãªtre calculÃ©s.
         </p>
       )}
 
@@ -574,3 +575,7 @@ export function ContratsAuteurSection({ auteur, allArticles = false }: Props) {
     </div>
   )
 }
+
+
+
+

@@ -5,6 +5,7 @@ import { DepotLibraireCard }   from './DepotLibraireCard'
 import { DepotLibraireDetail } from './DepotLibraireDetail'
 import { Modal } from '@/components/ui/Modal'
 import { DepotLibraireForm }   from './DepotLibraireForm'
+import { PageHero } from '@/components/PageHero'
 import sty from '@/features/auteurs/AuteursPage.module.css'
 
 export function DepotsLibrairesPage() {
@@ -25,14 +26,10 @@ export function DepotsLibrairesPage() {
 
   return (
     <div className={sty.page}>
-      <header className={sty.header}>
-        <div>
-          <h1 className={sty['page-title']}>Dépôts libraires</h1>
-          <p className={sty['page-subtitle']}>
-            {items.length} dépôt{items.length > 1 ? 's' : ''} référencé{items.length > 1 ? 's' : ''}
-            {debounced ? ` · résultats pour « ${debounced} »` : ''}
-          </p>
-        </div>
+      <PageHero
+        title="Dépôts libraires"
+        subtitle={<>{items.length} dépôt{items.length > 1 ? 's' : ''} référencé{items.length > 1 ? 's' : ''}{debounced ? ` · résultats pour « ${debounced} »` : ''}</>}
+      >
         <div className={sty['header-actions']}>
           <div className={sty['search-wrap']}>
             <span className={sty['search-icon']}>
@@ -55,7 +52,7 @@ export function DepotsLibrairesPage() {
             Nouveau dépôt
           </button>
         </div>
-      </header>
+      </PageHero>
 
       {isLoading && (
         <div className={sty.grid}>

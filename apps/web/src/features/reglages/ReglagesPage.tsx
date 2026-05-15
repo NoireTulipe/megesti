@@ -7,6 +7,7 @@ import { useRayons }        from '../catalogue/hooks/useRayons'
 import { useMonTenant, useUpdateMonTenant } from './hooks/useMonTenant'
 import { usePlanFeatures } from '@/hooks/usePlanFeatures'
 import { useMascoteDialog } from '@/hooks/useMascoteDialog'
+import { PageHero } from '@/components/PageHero'
 import styles from './ReglagesPage.module.css'
 import type { EntityType } from '@megesti/shared'
 
@@ -82,12 +83,7 @@ export function ReglagesPage() {
 
   return (
     <div className={styles.page}>
-      <header className={styles.header}>
-        <div>
-          <h1 className={styles.title}>Réglages</h1>
-          <p className={styles.subtitle}>Personnalisez l'application selon vos besoins</p>
-        </div>
-        {/* Sélecteur Classique / Avancé */}
+      <PageHero title="Réglages" subtitle="Personnalisez l'application selon vos besoins">
         <div className={styles.niveauSwitch}>
           <button
             className={`${styles.niveauBtn} ${niveau === 'classique' ? styles.niveauBtnActive : ''}`}
@@ -105,7 +101,7 @@ export function ReglagesPage() {
             {!features.reglagesAvances ? '🔒' : '🔬'} Avancé
           </button>
         </div>
-      </header>
+      </PageHero>
 
       {/* ── Cartes de navigation ── */}
       <div className={styles.tabCards}>

@@ -12,6 +12,7 @@ import {
   type TypeCharge, type Periodicite, type CategorieCharge,
 } from './hooks/useCharges'
 import { usePlanFeatures } from '@/hooks/usePlanFeatures'
+import { PageHero } from '@/components/PageHero'
 import styles from './BilanPage.module.css'
 
 // ── Palette ─────────────────────────────────────────────────────────────────
@@ -162,12 +163,7 @@ export function BilanPage() {
   if (isLoading) {
     return (
       <div className={styles.page}>
-        <div className={styles.hero}>
-          <div className={styles.heroBlob} />
-          <div className={styles.heroContent}>
-            <div className={styles.skH1} />
-          </div>
-        </div>
+        <PageHero title="Chargement…" />
         <div className={styles.content}>
           <div className={styles.skRow}>
             {[1,2,3,4].map(i => <div key={i} className={styles.skCard} />)}
@@ -183,39 +179,30 @@ export function BilanPage() {
   return (
     <div className={styles.page}>
 
-      {/* ── HERO ─────────────────────────────────────────────────────────── */}
-      <div className={styles.hero}>
-        <div className={styles.heroBlob} />
-        <div className={styles.heroContent}>
-          <div>
-            <h1 className={styles.heroTitle}>Bilan financier</h1>
-            {data && (
-              <p className={styles.heroSub}>
-                {fDate(data.periode.from)} → {fDate(data.periode.to)}
-              </p>
-            )}
-          </div>
-          <div className={styles.periodSelector}>
-            {PRESETS.map(p => (
-              <button
-                key={p.key}
-                className={`${styles.periodBtn} ${preset === p.key ? styles.periodBtnActive : ''}`}
-                onClick={() => setPreset(p.key)}
-              >
-                {p.label}
-              </button>
-            ))}
-          </div>
-        </div>
-        {preset === 'custom' && (
+      <PageHero
+        title="Bilan financier"
+        subtitle={data ? `${fDate(data.periode.from)} → ${fDate(data.periode.to)}` : undefined}
+        extra={preset === 'custom' ? (
           <div className={styles.customDates}>
             <label className={styles.customLabel}>Du</label>
             <input type="date" className={styles.customInput} value={customFrom} onChange={e => setCustomFrom(e.target.value)} />
             <label className={styles.customLabel}>au</label>
             <input type="date" className={styles.customInput} value={customTo}   onChange={e => setCustomTo(e.target.value)} />
           </div>
-        )}
-      </div>
+        ) : undefined}
+      >
+        <div className={styles.periodSelector}>
+          {PRESETS.map(p => (
+            <button
+              key={p.key}
+              className={`${styles.periodBtn} ${preset === p.key ? styles.periodBtnActive : ''}`}
+              onClick={() => setPreset(p.key)}
+            >
+              {p.label}
+            </button>
+          ))}
+        </div>
+      </PageHero>
 
       {noData ? <MascoteBlock slug="bilan-no-data" /> : (
       <div className={styles.content}>

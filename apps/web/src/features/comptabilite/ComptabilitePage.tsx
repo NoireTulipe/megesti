@@ -6,6 +6,7 @@ import {
 import { useRapportVentes, type Period } from './hooks/useRapports'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { MascoteBlock } from '@/components/MascoteBlock'
+import { PageHero } from '@/components/PageHero'
 import styles from './ComptabilitePage.module.css'
 
 // ── Palette harmonisée avec le design system ──────────────────────
@@ -111,28 +112,19 @@ export function ComptabilitePage() {
   return (
     <div className={styles.page}>
 
-      {/* ── En-tête ── */}
-      <div className={styles.hero}>
-        <div className={styles.heroBlob} aria-hidden="true" />
-        <div className={styles.heroContent}>
-          <div className={styles.heroText}>
-            <h1 className={styles.heroTitle}>Rapports & statistiques</h1>
-            <p className={styles.heroSub}>{PERIOD_LABELS[period]}</p>
-          </div>
-          {/* Sélecteur de période */}
-          <div className={styles.periodSelector}>
-            {(Object.keys(PERIOD_LABELS) as Period[]).map(p => (
-              <button
-                key={p}
-                className={`${styles.periodBtn} ${period === p ? styles.periodBtnActive : ''}`}
-                onClick={() => setPeriod(p)}
-              >
-                {p === 'all' ? 'Tout' : p === '7d' ? '7 j' : p === '30d' ? '30 j' : p === '3m' ? '3 mois' : '1 an'}
-              </button>
-            ))}
-          </div>
+      <PageHero title="Rapports & statistiques" subtitle={PERIOD_LABELS[period]}>
+        <div className={styles.periodSelector}>
+          {(Object.keys(PERIOD_LABELS) as Period[]).map(p => (
+            <button
+              key={p}
+              className={`${styles.periodBtn} ${period === p ? styles.periodBtnActive : ''}`}
+              onClick={() => setPeriod(p)}
+            >
+              {p === 'all' ? 'Tout' : p === '7d' ? '7 j' : p === '30d' ? '30 j' : p === '3m' ? '3 mois' : '1 an'}
+            </button>
+          ))}
         </div>
-      </div>
+      </PageHero>
 
       {!hasData ? (
         <MascoteBlock slug="stats-no-data" />
@@ -336,15 +328,7 @@ export function ComptabilitePage() {
 function LoadingState() {
   return (
     <div className={styles.page}>
-      <div className={styles.hero}>
-        <div className={styles.heroBlob} />
-        <div className={styles.heroContent}>
-          <div>
-            <div className={`${styles.skeletonBlock} ${styles.skH1}`} />
-            <div className={`${styles.skeletonBlock} ${styles.skSub}`} />
-          </div>
-        </div>
-      </div>
+      <PageHero title="Chargement…" />
       <div className={styles.content}>
         <div className={styles.statsRow}>
           {[1,2,3,4].map(i => <div key={i} className={`${styles.skeletonBlock} ${styles.skStat}`} />)}

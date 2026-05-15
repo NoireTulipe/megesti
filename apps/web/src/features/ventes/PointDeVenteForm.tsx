@@ -1,3 +1,4 @@
+﻿import { generateUUID } from '@/lib/utils'
 import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -105,7 +106,7 @@ export function PointDeVenteForm({ onClose, pointDeVente }: Props) {
         })),
     }
 
-    const entityId = isEdit ? pointDeVente!.id : crypto.randomUUID()
+    const entityId = isEdit ? pointDeVente!.id : generateUUID()
     if (isEdit) {
       await update.mutateAsync({ id: entityId, ...payload })
     } else {
@@ -133,7 +134,7 @@ export function PointDeVenteForm({ onClose, pointDeVente }: Props) {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className={styles.form}>
 
-      {/* ── Informations ── */}
+      {/* â”€â”€ Informations â”€â”€ */}
       <div className={styles.section}>
         <p className={styles.sectionLabel}>Informations</p>
         <div className={styles.field}>
@@ -142,15 +143,15 @@ export function PointDeVenteForm({ onClose, pointDeVente }: Props) {
           {errors.nom && <span className={styles.error}>{errors.nom.message}</span>}
         </div>
         <div className={styles.field}>
-          <label className={styles.label} htmlFor="categorieId">Catégorie</label>
+          <label className={styles.label} htmlFor="categorieId">CatÃ©gorie</label>
           <select id="categorieId" className={styles.input} {...register('categorieId')}>
-            <option value="">— Aucune —</option>
+            <option value="">â€” Aucune â€”</option>
             {categories.map(c => <option key={c.id} value={c.id}>{c.nom}</option>)}
           </select>
         </div>
         <div className={styles.row2}>
           <div className={styles.field}>
-            <label className={styles.label} htmlFor="commissionFixe">Commission fixe (€)</label>
+            <label className={styles.label} htmlFor="commissionFixe">Commission fixe (â‚¬)</label>
             <input id="commissionFixe" className={styles.input} inputMode="decimal" placeholder="0.00" {...register('commissionFixe')} />
           </div>
           <div className={styles.field}>
@@ -161,7 +162,7 @@ export function PointDeVenteForm({ onClose, pointDeVente }: Props) {
         <CustomFieldsRenderer entityType="pointDeVente" onlyCategory="Informations" register={register} errors={errors} />
       </div>
 
-      {/* ── Encaissement ── */}
+      {/* â”€â”€ Encaissement â”€â”€ */}
       <div className={styles.section}>
         <p className={styles.sectionLabel}>Encaissement</p>
         <div className={fStyles.encaissRow}>
@@ -170,16 +171,16 @@ export function PointDeVenteForm({ onClose, pointDeVente }: Props) {
             className={`${fStyles.encaissBtn} ${encaissementDirect ? fStyles.encaissBtnActive : ''}`}
             onClick={() => setValue('encaissementDirect', true)}
           >
-            <span className={fStyles.encaissEmoji}>🏪</span>
+            <span className={fStyles.encaissEmoji}>ðŸª</span>
             <span className={fStyles.encaissLabel}>Direct par la ME</span>
-            <span className={fStyles.encaissDesc}>CB, espèces, chèque…</span>
+            <span className={fStyles.encaissDesc}>CB, espÃ¨ces, chÃ¨queâ€¦</span>
           </button>
           <button
             type="button"
             className={`${fStyles.encaissBtn} ${!encaissementDirect ? fStyles.encaissBtnActive : ''}`}
             onClick={() => setValue('encaissementDirect', false)}
           >
-            <span className={fStyles.encaissEmoji}>🏬</span>
+            <span className={fStyles.encaissEmoji}>ðŸ¬</span>
             <span className={fStyles.encaissLabel}>Par le point de vente</span>
             <span className={fStyles.encaissDesc}>Le PDV encaisse, reverse ensuite</span>
           </button>
@@ -187,30 +188,30 @@ export function PointDeVenteForm({ onClose, pointDeVente }: Props) {
         <input type="hidden" {...register('encaissementDirect')} />
         <p style={{ fontSize: '0.78rem', color: 'var(--text-soft)', lineHeight: 1.55, margin: '8px 0 0', padding: '10px 12px', background: 'var(--cream)', borderRadius: 8 }}>
           {encaissementDirect
-            ? '🏪 Vous encaissez directement les paiements (CB, espèces, chèque…) lors de vos ventes. MeGesti enregistre chaque règlement en temps réel.'
-            : '🏬 Le point de vente encaisse à votre place (ex : librairie partenaire). Vous recevrez un reversement par la suite. MeGesti suit les commissions et les reversements dus.'}
+            ? 'ðŸª Vous encaissez directement les paiements (CB, espÃ¨ces, chÃ¨queâ€¦) lors de vos ventes. MeGesti enregistre chaque rÃ¨glement en temps rÃ©el.'
+            : 'ðŸ¬ Le point de vente encaisse Ã  votre place (ex : librairie partenaire). Vous recevrez un reversement par la suite. MeGesti suit les commissions et les reversements dus.'}
         </p>
         <CustomFieldsRenderer entityType="pointDeVente" onlyCategory="Encaissement" register={register} errors={errors} />
       </div>
 
-      {/* ── Contacts ── */}
+      {/* â”€â”€ Contacts â”€â”€ */}
       <div className={styles.section}>
         <p className={styles.sectionLabel}>Contacts</p>
         {contacts.map((c, i) => (
           <div key={i} className={fStyles.contactCard}>
             <div className={fStyles.contactGrid}>
               <input className={fStyles.cInput} placeholder="Nom *" value={c.nom} onChange={e => updateContact(i, 'nom', e.target.value)} />
-              <input className={fStyles.cInput} placeholder="Prénom" value={c.prenom} onChange={e => updateContact(i, 'prenom', e.target.value)} />
+              <input className={fStyles.cInput} placeholder="PrÃ©nom" value={c.prenom} onChange={e => updateContact(i, 'prenom', e.target.value)} />
               <input className={fStyles.cInput} placeholder="Email" type="email" value={c.email} onChange={e => updateContact(i, 'email', e.target.value)} />
-              <input className={fStyles.cInput} placeholder="Téléphone" value={c.telephone} onChange={e => updateContact(i, 'telephone', e.target.value)} />
+              <input className={fStyles.cInput} placeholder="TÃ©lÃ©phone" value={c.telephone} onChange={e => updateContact(i, 'telephone', e.target.value)} />
               <select
                 className={fStyles.cSelect}
                 value={c.typePaiement}
                 onChange={e => updateContact(i, 'typePaiement', e.target.value)}
               >
-                <option value="">— Mode de remise —</option>
-                <option value="VIREMENT">💳 Virement bancaire</option>
-                <option value="CHEQUE">📋 Chèque</option>
+                <option value="">â€” Mode de remise â€”</option>
+                <option value="VIREMENT">ðŸ’³ Virement bancaire</option>
+                <option value="CHEQUE">ðŸ“‹ ChÃ¨que</option>
               </select>
             </div>
             <button type="button" className={fStyles.removeBtn} onClick={() => removeContact(i)}>
@@ -225,14 +226,18 @@ export function PointDeVenteForm({ onClose, pointDeVente }: Props) {
 
       <CustomFieldsRenderer entityType="pointDeVente" excludeCategories={FIXED_CATEGORIES} register={register} errors={errors} />
 
-      {isError && <p className={styles.errorGlobal}>Une erreur est survenue. Veuillez réessayer.</p>}
+      {isError && <p className={styles.errorGlobal}>Une erreur est survenue. Veuillez rÃ©essayer.</p>}
 
       <div className={styles.actions}>
         <button type="button" className={styles.btnSecondary} onClick={onClose}>Annuler</button>
         <button type="submit" className={styles.btnPrimary} disabled={isSubmitting}>
-          {isSubmitting ? 'Enregistrement…' : isEdit ? 'Enregistrer' : 'Créer le point de vente'}
+          {isSubmitting ? 'Enregistrementâ€¦' : isEdit ? 'Enregistrer' : 'CrÃ©er le point de vente'}
         </button>
       </div>
     </form>
   )
 }
+
+
+
+

@@ -4,6 +4,7 @@ import { useRayons }   from '@/features/catalogue/hooks/useRayons'
 import { AjustementStock }      from './AjustementStock'
 import { HistoriqueMouvements } from './HistoriqueMouvements'
 import type { Article } from '@/features/catalogue/types'
+import { PageHero } from '@/components/PageHero'
 import styles from './StockPage.module.css'
 
 type StockTab    = 'stocks' | 'historique'
@@ -89,15 +90,10 @@ export function StockPage() {
   return (
     <div className={styles.page}>
 
-      {/* ── Header ── */}
-      <header className={styles.header}>
-        <div>
-          <h1 className={styles['page-title']}>Stock</h1>
-          <p className={styles['page-subtitle']}>
-            {articles.length} article{articles.length > 1 ? 's' : ''} en catalogue
-          </p>
-        </div>
-
+      <PageHero
+        title="Stock"
+        subtitle={<>{articles.length} article{articles.length > 1 ? 's' : ''} en catalogue</>}
+      >
         <div className={styles['header-actions']}>
           {/* Recherche */}
           {activeTab === 'stocks' && (
@@ -141,7 +137,7 @@ export function StockPage() {
             </div>
           )}
         </div>
-      </header>
+      </PageHero>
 
       {/* ── Tab bar ── */}
       <div className={styles['tab-bar']}>

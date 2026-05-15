@@ -1,3 +1,4 @@
+﻿import { generateUUID } from '@/lib/utils'
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -70,7 +71,7 @@ export function DepotLibraireForm({ onClose, depotLibraire }: Props) {
       commissionPourcent: values.commissionPourcent ? Number(values.commissionPourcent) : null,
     }
 
-    const entityId = isEdit ? depotLibraire!.id : crypto.randomUUID()
+    const entityId = isEdit ? depotLibraire!.id : generateUUID()
     if (isEdit) {
       await update.mutateAsync({ id: entityId, ...payload })
     } else {
@@ -96,13 +97,13 @@ export function DepotLibraireForm({ onClose, depotLibraire }: Props) {
       <div className={styles.section}>
         <p className={styles.sectionLabel}>Informations</p>
         <div className={styles.field}>
-          <label className={styles.label} htmlFor="nom">Nom du dépôt <span className={styles.req}>*</span></label>
+          <label className={styles.label} htmlFor="nom">Nom du dÃ©pÃ´t <span className={styles.req}>*</span></label>
           <input id="nom" className={`${styles.input} ${errors.nom ? styles.inputError : ''}`} {...register('nom')} autoFocus />
           {errors.nom && <span className={styles.error}>{errors.nom.message}</span>}
         </div>
         <div className={styles.row2}>
           <div className={styles.field}>
-            <label className={styles.label} htmlFor="commissionFixe">Commission fixe (€)</label>
+            <label className={styles.label} htmlFor="commissionFixe">Commission fixe (â‚¬)</label>
             <input id="commissionFixe" type="number" min="0" step="0.01" className={styles.input} {...register('commissionFixe')} placeholder="0.00" />
           </div>
           <div className={styles.field}>
@@ -129,14 +130,18 @@ export function DepotLibraireForm({ onClose, depotLibraire }: Props) {
         errors={errors}
       />
 
-      {isError && <p className={styles.errorGlobal}>Une erreur est survenue. Veuillez réessayer.</p>}
+      {isError && <p className={styles.errorGlobal}>Une erreur est survenue. Veuillez rÃ©essayer.</p>}
 
       <div className={styles.actions}>
         <button type="button" className={styles.btnSecondary} onClick={onClose}>Annuler</button>
         <button type="submit" className={styles.btnPrimary} disabled={isSubmitting}>
-          {isSubmitting ? 'Enregistrement…' : isEdit ? 'Enregistrer' : 'Créer le dépôt'}
+          {isSubmitting ? 'Enregistrementâ€¦' : isEdit ? 'Enregistrer' : 'CrÃ©er le dÃ©pÃ´t'}
         </button>
       </div>
     </form>
   )
 }
+
+
+
+

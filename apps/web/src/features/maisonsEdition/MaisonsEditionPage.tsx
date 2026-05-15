@@ -5,6 +5,7 @@ import { MaisonEditionCard } from './MaisonEditionCard'
 import { MaisonEditionForm } from './MaisonEditionForm'
 import { Modal } from '@/components/ui/Modal'
 import { MascoteBlock } from '@/components/MascoteBlock'
+import { PageHero } from '@/components/PageHero'
 import styles from './MaisonsEditionPage.module.css'
 
 export function MaisonsEditionPage() {
@@ -29,15 +30,10 @@ export function MaisonsEditionPage() {
 
   return (
     <div className={styles.page}>
-      {/* ── Header ── */}
-      <header className={styles.header}>
-        <div className={styles.headerLeft}>
-          <h1 className={styles.pageTitle}>Maisons d'édition</h1>
-          <p className={styles.pageSubtitle}>
-            {items.length} maison{items.length !== 1 ? 's' : ''}
-            {debounced ? ` · résultats pour « ${debounced} »` : ''}
-          </p>
-        </div>
+      <PageHero
+        title="Maisons d'édition"
+        subtitle={<>{items.length} maison{items.length !== 1 ? 's' : ''}{debounced ? ` · résultats pour « ${debounced} »` : ''}</>}
+      >
         <div className={styles.headerActions}>
           <div className={styles.searchWrap}>
             <span className={styles.searchIcon}>
@@ -60,7 +56,7 @@ export function MaisonsEditionPage() {
             Nouvelle maison
           </button>
         </div>
-      </header>
+      </PageHero>
 
       {/* ── Loader ── */}
       {isLoading && (

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Switch, Alert } from 'react-native'
 import { router } from 'expo-router'
 import { LinearGradient } from 'expo-linear-gradient'
@@ -8,6 +8,7 @@ import { useThemeStore } from '@/store/themeStore'
 import { SumUp } from '@megesti/react-native-sumup'
 import { usePaymentModesStore, ALL_PAYMENT_MODES } from '@/store/paymentModesStore'
 import { Colors, Dark, Fonts, Radius, Shadow } from '@/constants/theme'
+import { Config } from '@/constants/Config'
 
 type Tab = 'compte' | 'apparence' | 'paiement'
 
@@ -48,14 +49,44 @@ export default function SettingsScreen() {
   const toggleTheme = useThemeStore(s => s.toggle)
 
   const [tab, setTab] = useState<Tab>('compte')
+
+  useEffect(() => {
+    if (tab === 'paiement') refreshSumupLoginState()
+  }, [tab])
   const enabledModes    = usePaymentModesStore(s => s.enabled)
   const toggleMode      = usePaymentModesStore(s => s.toggle)
   const sumupTerminal   = usePaymentModesStore(s => s.sumupTerminal)
   const setTerminal     = usePaymentModesStore(s => s.setSumupTerminal)
   const [testingSumup, setTestingSumup] = useState(false)
+  const [sumupLoggedIn, setSumupLoggedIn] = useState(false)
+  const [checkingLogin, setCheckingLogin] = useState(false)
 
   function cycleSumupTerminal() {
     setTerminal(sumupTerminal === 'air' ? 'solo' : sumupTerminal === 'solo' ? null : 'air')
+  }
+
+  async function refreshSumupLoginState() {
+    if (!SumUp.isAvailable()) return
+    const ready = await SumUp.isReady()
+    setSumupLoggedIn(ready)
+  }
+
+  async function handleSumupLogin() {
+    setCheckingLogin(true)
+    try {
+      const success = await SumUp.login()
+      setSumupLoggedIn(success)
+      if (!success) Alert.alert('Connexion annulée', 'La connexion à SumUp a été annulée.')
+    } catch (e: any) {
+      Alert.alert('Erreur', e?.message ?? 'Impossible de se connecter à SumUp.')
+    } finally {
+      setCheckingLogin(false)
+    }
+  }
+
+  async function handleSumupLogout() {
+    await SumUp.logout()
+    setSumupLoggedIn(false)
   }
 
   async function testSumupConnection() {
@@ -241,8 +272,31 @@ export default function SettingsScreen() {
                       onPress={cycleSumupTerminal}
                       isDark={isDark}
                     />
+                    {SumUp.isAvailable() ? (
+                      sumupLoggedIn ? (
+                        <SettingRow
+                          label="✅  Connecté à SumUp"
+                          sub="Appuyer pour se déconnecter"
+                          onPress={handleSumupLogout}
+                          isDark={isDark}
+                        />
+                      ) : (
+                        <SettingRow
+                          label={checkingLogin ? 'Connexion en cours…' : '🔗  Se connecter à SumUp'}
+                          sub="Ouvre l'écran de connexion SumUp"
+                          onPress={checkingLogin ? undefined : handleSumupLogin}
+                          isDark={isDark}
+                        />
+                      )
+                    ) : (
+                      <SettingRow
+                        label="Module natif absent"
+                        sub="SumUp nécessite une build release"
+                        isDark={isDark}
+                      />
+                    )}
                     <SettingRow
-                      label="Tester la connexion"
+                      label="Tester le terminal"
                       sub="Vérifier que le terminal répond"
                       onPress={testSumupConnection}
                       last
@@ -252,6 +306,15 @@ export default function SettingsScreen() {
                 )}
               </View>
             </View>
+            {tab === 'paiement' && (
+              <View style={[s.trustBox, isDark && s.trustBoxDark]}>
+                <Text style={[s.trustIcon]}>🔒</Text>
+                <Text style={[s.trustText, isDark && s.trustTextDark]}>
+                  <Text style={s.trustBold}>Vos identifiants SumUp ne transitent jamais par MeGesti.</Text>
+                  {' '}La connexion s'établit directement entre votre appareil et les serveurs SumUp. MeGesti ne stocke ni ne voit vos credentials.
+                </Text>
+              </View>
+            )}
           </>
         )}
 
@@ -332,6 +395,18 @@ const s = StyleSheet.create({
   logoutBtnDark: {},
   logoutText: { fontFamily: Fonts.body, fontSize: 14, fontWeight: '700', color: Colors.terra },
   logoutTextDark: { color: Dark.terra },
+
+  trustBox: {
+    flexDirection: 'row', alignItems: 'flex-start', gap: 10,
+    backgroundColor: 'rgba(0,120,80,0.07)', borderRadius: Radius.lg,
+    borderWidth: 1, borderColor: 'rgba(0,120,80,0.15)',
+    padding: 14, marginBottom: 8,
+  },
+  trustBoxDark: { backgroundColor: 'rgba(0,180,100,0.08)', borderColor: 'rgba(0,180,100,0.2)' },
+  trustIcon: { fontSize: 16, marginTop: 1 },
+  trustText: { flex: 1, fontFamily: Fonts.body, fontSize: 12, color: Colors.textSoft, lineHeight: 18 },
+  trustTextDark: { color: Dark.textSoft },
+  trustBold: { fontWeight: '700' },
 
   version: { fontFamily: Fonts.body, fontSize: 11, color: Colors.textSoft, textAlign: 'center', marginTop: 20 },
   versionDark: { color: Dark.textSoft },

@@ -5,6 +5,7 @@ import type { Salon } from './hooks/useSalons'
 import { SalonCard }   from './SalonCard'
 import { SalonDetail } from './SalonDetail'
 import { MascoteBlock } from '@/components/MascoteBlock'
+import { PageHero } from '@/components/PageHero'
 import styles from './SalonsPage.module.css'
 
 export function SalonsPage() {
@@ -55,15 +56,10 @@ export function SalonsPage() {
 
   return (
     <div className={styles.page}>
-      {/* ── Header ── */}
-      <header className={styles.header}>
-        <div className={styles.headerLeft}>
-          <h1 className={styles.pageTitle}>Salons & événements</h1>
-          <p className={styles.pageSubtitle}>
-            {salons.length} salon{salons.length !== 1 ? 's' : ''}
-            {debounced ? ` · résultats pour « ${debounced} »` : ''}
-          </p>
-        </div>
+      <PageHero
+        title="Salons & événements"
+        subtitle={<>{salons.length} salon{salons.length !== 1 ? 's' : ''}{debounced ? ` · résultats pour « ${debounced} »` : ''}</>}
+      >
         <div className={styles.headerActions}>
           <div className={styles.searchWrap}>
             <span className={styles.searchIcon}>
@@ -86,7 +82,7 @@ export function SalonsPage() {
             Nouveau salon
           </button>
         </div>
-      </header>
+      </PageHero>
 
       {/* ── Loader ── */}
       {isLoading && (

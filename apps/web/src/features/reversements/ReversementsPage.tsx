@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useReversements, useEncaisserReversement, useAnnulerReversement, useAjusterReversement } from './hooks/useReversements'
 import type { Reversement, TypePaiementRemise, StatutReversement } from './hooks/useReversements'
 import { EmptyState } from '@/components/ui/EmptyState'
+import { PageHero } from '@/components/PageHero'
 import styles from './ReversementsPage.module.css'
 
 type Filtre = 'EN_ATTENTE' | 'ENCAISSE' | 'TOUS'
@@ -282,41 +283,34 @@ export function ReversementsPage() {
   return (
     <div className={styles.page}>
 
-      {/* ── Hero ── */}
-      <div className={styles.hero}>
-        <div className={styles.heroBlob} />
-        <div className={styles.heroContent}>
-          <div>
-            <h1 className={styles.heroTitle}>Reversements PDV</h1>
-            <p className={styles.heroSub}>
-              Suivi des encaissements effectués par vos points de vente partenaires
-            </p>
+      <PageHero
+        title="Reversements PDV"
+        subtitle="Suivi des encaissements effectués par vos points de vente partenaires"
+        extra={(
+          <div className={styles.filtres}>
+            {([
+              { key: 'EN_ATTENTE', label: '⏳ En attente' },
+              { key: 'ENCAISSE',   label: '✅ Encaissés' },
+              { key: 'TOUS',       label: 'Tous' },
+            ] as { key: Filtre; label: string }[]).map(f => (
+              <button
+                key={f.key}
+                className={`${styles.filtreBtn} ${filtre === f.key ? styles.filtreBtnActive : ''}`}
+                onClick={() => setFiltre(f.key)}
+              >
+                {f.label}
+              </button>
+            ))}
           </div>
-          {filtre === 'EN_ATTENTE' && totalAttente > 0 && (
-            <div className={styles.heroBadge}>
-              <span className={styles.heroBadgeLabel}>À recevoir</span>
-              <span className={styles.heroBadgeVal}>{fEur(totalAttente)}</span>
-            </div>
-          )}
-        </div>
-
-        {/* Filtres */}
-        <div className={styles.filtres}>
-          {([
-            { key: 'EN_ATTENTE', label: '⏳ En attente' },
-            { key: 'ENCAISSE',   label: '✅ Encaissés' },
-            { key: 'TOUS',       label: 'Tous' },
-          ] as { key: Filtre; label: string }[]).map(f => (
-            <button
-              key={f.key}
-              className={`${styles.filtreBtn} ${filtre === f.key ? styles.filtreBtnActive : ''}`}
-              onClick={() => setFiltre(f.key)}
-            >
-              {f.label}
-            </button>
-          ))}
-        </div>
-      </div>
+        )}
+      >
+        {filtre === 'EN_ATTENTE' && totalAttente > 0 && (
+          <div className={styles.heroBadge}>
+            <span className={styles.heroBadgeLabel}>À recevoir</span>
+            <span className={styles.heroBadgeVal}>{fEur(totalAttente)}</span>
+          </div>
+        )}
+      </PageHero>
 
       {/* ── Contenu ── */}
       <div className={styles.content}>

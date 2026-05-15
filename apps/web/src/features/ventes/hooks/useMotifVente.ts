@@ -1,3 +1,4 @@
+﻿import { generateUUID } from '@/lib/utils'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/lib/api'
 
@@ -22,7 +23,7 @@ export function useCreateMotifVente() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (libelle: string) =>
-      api.post<MotifVente>('/motifs-vente', { id: crypto.randomUUID(), libelle }),
+      api.post<MotifVente>('/motifs-vente', { id: generateUUID(), libelle }),
     onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
   })
 }
@@ -34,3 +35,7 @@ export function useDeleteMotifVente() {
     onSuccess:  () => qc.invalidateQueries({ queryKey: KEY }),
   })
 }
+
+
+
+

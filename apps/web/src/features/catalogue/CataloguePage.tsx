@@ -11,6 +11,7 @@ import type { Article }  from './types'
 import styles from './CataloguePage.module.css'
 
 import { MascoteBlock } from '@/components/MascoteBlock'
+import { PageHero } from '@/components/PageHero'
 import { HelpButton } from '@/components/HelpButton'
 
 type CatalogueTab = 'actifs' | 'retires'
@@ -92,15 +93,10 @@ export function CataloguePage() {
   return (
     <div className={styles.page}>
 
-      {/* ── Header ── */}
-      <header className={styles.header}>
-        <div>
-          <h1 className={styles['page-title']}>Catalogue</h1>
-          <p className={styles['page-subtitle']}>
-            {articles.length} article{articles.length !== 1 ? 's' : ''}
-            {debouncedSearch ? ` · résultats pour « ${debouncedSearch} »` : ''}
-          </p>
-        </div>
+      <PageHero
+        title="Catalogue"
+        subtitle={<>{articles.length} article{articles.length !== 1 ? 's' : ''}{debouncedSearch ? ` · résultats pour « ${debouncedSearch} »` : ''}</>}
+      >
         <div className={styles['header-actions']}>
           {tab === 'actifs' && (
             <ArticleQuota used={allActifs.length} max={features.maxArticles} />
@@ -133,7 +129,7 @@ export function CataloguePage() {
             </button>
           )}
         </div>
-      </header>
+      </PageHero>
 
       {/* ── Onglets ── */}
       <div className={styles['tab-bar']}  style={{ alignItems: 'center' }}>
