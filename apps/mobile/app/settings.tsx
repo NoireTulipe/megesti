@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useAuthStore } from '@/store/authStore'
 import { useThemeStore } from '@/store/themeStore'
 import { SumUp } from '@megesti/react-native-sumup'
+import { usePaymentModesStore, ALL_PAYMENT_MODES } from '@/store/paymentModesStore'
 import { Colors, Dark, Fonts, Radius, Shadow } from '@/constants/theme'
 
 type Tab = 'compte' | 'apparence' | 'paiement'
@@ -47,11 +48,14 @@ export default function SettingsScreen() {
   const toggleTheme = useThemeStore(s => s.toggle)
 
   const [tab, setTab] = useState<Tab>('compte')
-  const [sumupTerminal, setSumupTerminal] = useState<'air' | 'solo' | null>(null)
+  const enabledModes    = usePaymentModesStore(s => s.enabled)
+  const toggleMode      = usePaymentModesStore(s => s.toggle)
+  const sumupTerminal   = usePaymentModesStore(s => s.sumupTerminal)
+  const setTerminal     = usePaymentModesStore(s => s.setSumupTerminal)
   const [testingSumup, setTestingSumup] = useState(false)
 
   function cycleSumupTerminal() {
-    setSumupTerminal(prev => prev === 'air' ? 'solo' : prev === 'solo' ? null : 'air')
+    setTerminal(sumupTerminal === 'air' ? 'solo' : sumupTerminal === 'solo' ? null : 'air')
   }
 
   async function testSumupConnection() {
@@ -191,9 +195,24 @@ export default function SettingsScreen() {
         {tab === 'paiement' && (
           <>
             <View style={s.section}>
-              <Text style={[s.sectionTitle, isDark && s.sectionTitleDark]}>Mode de paiement</Text>
+              <Text style={[s.sectionTitle, isDark && s.sectionTitleDark]}>Modes disponibles à l'encaissement</Text>
               <View style={[s.sectionBody, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : Colors.white, borderWidth: isDark ? 1 : 0, borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'transparent', shadowColor: isDark ? 'transparent' : Colors.text, elevation: isDark ? 0 : 3 }]}>
-                <SettingRow label="PayPal" sub="À configurer" last isDark={isDark} />
+                {ALL_PAYMENT_MODES.filter(m => m.mode !== 'SUMUP').map((m, idx, arr) => (
+                  <SettingRow
+                    key={m.mode}
+                    label={`${m.emoji}  ${m.label}`}
+                    last={idx === arr.length - 1}
+                    isDark={isDark}
+                    right={
+                      <Switch
+                        value={enabledModes.includes(m.mode)}
+                        onValueChange={() => toggleMode(m.mode)}
+                        trackColor={{ false: Colors.creamDark, true: Colors.inkFaint }}
+                        thumbColor={enabledModes.includes(m.mode) ? Colors.ink : Colors.textSoft}
+                      />
+                    }
+                  />
+                ))}
               </View>
             </View>
 
@@ -201,27 +220,36 @@ export default function SettingsScreen() {
               <Text style={[s.sectionTitle, isDark && s.sectionTitleDark]}>SumUp</Text>
               <View style={[s.sectionBody, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : Colors.white, borderWidth: isDark ? 1 : 0, borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'transparent', shadowColor: isDark ? 'transparent' : Colors.text, elevation: isDark ? 0 : 3 }]}>
                 <SettingRow
-                  label="Terminal"
-                  sub={sumupTerminal === 'air' ? 'Air (Bluetooth)' : sumupTerminal === 'solo' ? 'Solo (4G autonome)' : 'Non configuré'}
-                  onPress={cycleSumupTerminal}
+                  label="📱  Activer SumUp"
+                  sub="Affiche SumUp comme mode de paiement"
+                  last={!enabledModes.includes('SUMUP')}
                   isDark={isDark}
+                  right={
+                    <Switch
+                      value={enabledModes.includes('SUMUP')}
+                      onValueChange={() => toggleMode('SUMUP')}
+                      trackColor={{ false: Colors.creamDark, true: Colors.inkFaint }}
+                      thumbColor={enabledModes.includes('SUMUP') ? Colors.ink : Colors.textSoft}
+                    />
+                  }
                 />
-                <SettingRow label="Clé d'affilié" sub="••••••••" isDark={isDark} />
-                <SettingRow label="Identifiant marchand" sub="••••••••" isDark={isDark} />
-                <SettingRow
-                  label="Tester la connexion"
-                  sub="Vérifier que le terminal répond"
-                  onPress={testSumupConnection}
-                  last
-                  isDark={isDark}
-                />
-              </View>
-            </View>
-
-            <View style={s.section}>
-              <Text style={[s.sectionTitle, isDark && s.sectionTitleDark]}>Autres terminaux</Text>
-              <View style={[s.sectionBody, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : Colors.white, borderWidth: isDark ? 1 : 0, borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'transparent', shadowColor: isDark ? 'transparent' : Colors.text, elevation: isDark ? 0 : 3 }]}>
-                <SettingRow label="Stripe Reader" sub="Terminal physique connecté" last isDark={isDark} />
+                {enabledModes.includes('SUMUP') && (
+                  <>
+                    <SettingRow
+                      label="Terminal"
+                      sub={sumupTerminal === 'air' ? 'Air (Bluetooth)' : sumupTerminal === 'solo' ? 'Solo (4G autonome)' : 'Non sélectionné — appuyer pour choisir'}
+                      onPress={cycleSumupTerminal}
+                      isDark={isDark}
+                    />
+                    <SettingRow
+                      label="Tester la connexion"
+                      sub="Vérifier que le terminal répond"
+                      onPress={testSumupConnection}
+                      last
+                      isDark={isDark}
+                    />
+                  </>
+                )}
               </View>
             </View>
           </>

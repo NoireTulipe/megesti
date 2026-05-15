@@ -18,6 +18,8 @@ import { useScannerStore } from '@/store/scannerStore'
 import { useCategoryColorsStore, CAT_PALETTE } from '@/store/categoryColorsStore'
 import { Colors, Dark, Fonts, Radius, Shadow, Gradients } from '@/constants/theme'
 import { useAppTheme } from '@/hooks/useAppTheme'
+import { usePaymentModesStore, ALL_PAYMENT_MODES } from '@/store/paymentModesStore'
+import { SumUp } from '@megesti/react-native-sumup'
 
 type PaymentMode = 'CB' | 'ESPECES' | 'CHEQUE' | 'VIREMENT' | 'SUMUP' | 'PDV'
 
@@ -25,17 +27,10 @@ interface CartItem {
   id: string
   articleId: string
   nom: string
-  prix: number        // prix actuel
-  prixOrigine: number  // prix d'origine (pour savoir si modifié)
+  prix: number
+  prixOrigine: number
   quantite: number
 }
-
-const PAYMENT_MODES: { mode: PaymentMode; label: string; emoji: string }[] = [
-  { mode: 'CB',      label: 'CB',      emoji: '💳' },
-  { mode: 'ESPECES', label: 'Espèces', emoji: '💶' },
-  { mode: 'CHEQUE',  label: 'Chèque',  emoji: '📝' },
-  { mode: 'SUMUP',   label: 'SumUp',   emoji: '📱' },
-]
 
 const CARD_IMG_H = 96  // hauteur de la zone image/contenu sous la barre accent
 
@@ -56,6 +51,14 @@ export default function CaisseScreen() {
 
   const catColors = useCategoryColorsStore(s => s.colors)
   function getCatColor(catId: string): string { return catColors[catId] || catColor(catId) }
+
+  const enabledModes = usePaymentModesStore(s => s.enabled)
+  const sumupTerminal = usePaymentModesStore(s => s.sumupTerminal)
+
+  // Modes affichés = modes activés dans les settings, SUMUP uniquement si module dispo
+  const PAYMENT_MODES = ALL_PAYMENT_MODES.filter(m =>
+    enabledModes.includes(m.mode) && (m.mode !== 'SUMUP' || SumUp.isAvailable())
+  )
 
   const { session, openSession, closeSession, refresh: refreshSession } = useLocalSession()
   const { pdvs, loading: pdvsLoading, error: pdvsError } = usePointsDeVente()

@@ -7,6 +7,7 @@ import { AuteurDetail } from './AuteurDetail'
 import { Modal } from '@/components/ui/Modal'
 import { usePlanFeatures } from '@/hooks/usePlanFeatures'
 import { HelpButton } from '@/components/HelpButton'
+import { MascoteBlock } from '@/components/MascoteBlock'
 import styles from './AuteursPage.module.css'
 
 type AuteurTab = 'me' | 'reseau'
@@ -116,23 +117,18 @@ export function AuteursPage() {
         )}
 
         {!isLoading && !isError && auteurs.length === 0 && (
-          <div className={styles['empty-state']}>
-            <div className={styles['empty-icon']}>
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#C4907C" strokeWidth="1.8" strokeLinecap="round">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
-              </svg>
+          debouncedSearch ? (
+            <div className={styles['empty-state']}>
+              <div className={styles['empty-icon']}>
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#C4907C" strokeWidth="1.8" strokeLinecap="round">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                </svg>
+              </div>
+              <div className={styles['empty-title']}>Aucun résultat pour « {debouncedSearch} »</div>
             </div>
-            <div className={styles['empty-title']}>
-              {debouncedSearch
-                ? `Aucun résultat pour « ${debouncedSearch} »`
-                : tab === 'me' ? 'Aucun auteur sous contrat' : 'Aucun auteur dans le réseau'}
-            </div>
-            <div className={styles['empty-desc']}>
-              {!debouncedSearch && (tab === 'me'
-                ? 'Créez un auteur puis ajoutez-lui un contrat depuis sa fiche.'
-                : 'Référencez ici les auteurs avec qui vous collaborez.')}
-            </div>
-          </div>
+          ) : (
+            <MascoteBlock slug="auteurs-vide" onCta={() => setShowCreate(true)} />
+          )
         )}
 
         {!isLoading && !isError && auteurs.length > 0 && (

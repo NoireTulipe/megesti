@@ -10,6 +10,7 @@ import { useAuthStore } from '@/store/authStore'
 import { useDevStore } from '@/store/devStore'
 import { useThemeStore } from '@/store/themeStore'
 import { useCategoryColorsStore } from '@/store/categoryColorsStore'
+import { usePaymentModesStore } from '@/store/paymentModesStore'
 import { DevMenu } from '@/components/DevMenu'
 import { initDb } from '@/lib/db'
 import { Colors, Dark, Fonts } from '@/constants/theme'
@@ -26,9 +27,10 @@ function AuthGate({ children }: { children: React.ReactNode }) {
   const isLoading = useAuthStore(s => s.isLoading)
   const [dbReady, setDbReady] = useState(false)
 
-  const hydrateDevUrl = useDevStore(s => s.hydrateApiUrl)
-  const hydrateTheme  = useThemeStore(s => s.hydrate)
-  const hydrateCatColors = useCategoryColorsStore(s => s.hydrate)
+  const hydrateDevUrl      = useDevStore(s => s.hydrateApiUrl)
+  const hydrateTheme       = useThemeStore(s => s.hydrate)
+  const hydrateCatColors   = useCategoryColorsStore(s => s.hydrate)
+  const hydratePaymentModes = usePaymentModesStore(s => s.hydrate)
   const isDark = useThemeStore(s => s.isDark)
 
   useEffect(() => {
@@ -37,6 +39,7 @@ function AuthGate({ children }: { children: React.ReactNode }) {
     hydrateDevUrl()
     hydrateTheme()
     hydrateCatColors()
+    hydratePaymentModes()
   }, [])
 
   if (isLoading || !dbReady) {

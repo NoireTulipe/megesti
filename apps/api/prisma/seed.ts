@@ -69,6 +69,12 @@ async function main() {
       { text: 'Au programme : un compte de résultat simplifié du CA au résultat net, une estimation de la valeur de ton stock, et des alertes sur les charges à venir pour piloter ta trésorerie en temps réel.' },
       { text: 'Pour que tout s\'affiche, il te faut au moins une session de caisse clôturée avec des ventes enregistrées. Lance ta première session et reviens ici — les chiffres t\'en apprendront plus sur ton activité que n\'importe quel tableur !', cta: { label: 'Aller à la Caisse →', href: '/ventes' } },
     ]},
+    { slug: 'auteurs-vide', description: 'Auteurs — aucun auteur enregistré (switch ME ou Réseau)', bulles: [
+      { title: 'Tes auteurs, centralisés ici ✍️', text: 'Cette page regroupe tous les auteurs avec qui tu travailles ou que tu suis. C\'est le point de départ pour gérer les contrats, calculer les droits et piloter tes reversements — tout ce qui touche à la relation auteur.' },
+      { text: '📂 L\'onglet Réseau te donne accès à la base partagée d\'auteurs référencés sur MeGesti — utile pour retrouver un auteur déjà enregistré par une autre maison, éviter les doublons et enrichir automatiquement les fiches.\n\n👥 L\'onglet ME liste les auteurs directement rattachés à ta maison d\'édition, avec leurs contrats, leurs œuvres et le calcul de leurs droits.' },
+      { text: '💡 Les auteurs ME — avec gestion de contrats et calcul automatique des droits — sont disponibles à partir du plan Édition. En plan Auto-édition, tu peux consulter le Réseau et importer des auteurs, mais la gestion contractuelle est réservée aux structures qui publient plusieurs auteurs.', cta: { label: 'Ajouter mon premier auteur →', href: '' } },
+    ]},
+
     { slug: 'maisons-vide', description: 'Maisons d\'édition — aucune entrée', bulles: [
       { title: 'Ton carnet de maisons d\'édition ! 📚', text: 'Ici, tu recenses les maisons d\'édition partenaires ou celles que tu surveilles — concurrentes, complémentaires, coéditrices potentielles… C\'est la mémoire de ton réseau professionnel éditorial.\n\nEt pourquoi pas y noter la maison d\'édition qui te fait de l\'œil… ou celle qui pourrait bien te faire signe un jour ? 😉' },
       { text: 'Pour chaque maison, tu notes ses contacts clés, son adresse, son site, ses spécialités… Plus besoin de chercher un numéro de téléphone en plein salon quand on n\'a pas le temps.' },
