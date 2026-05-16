@@ -14,6 +14,7 @@ import {
   useRayons, useCreateRayon, useUpdateRayon, useDeleteRayon,
   useCreateCategorie, useUpdateCategorie, useDeleteCategorie,
 } from '../catalogue/hooks/useRayons'
+import { Modal } from '@/components/ui/Modal'
 import type { Rayon, Categorie } from '../catalogue/types'
 import styles from './RayonsSection.module.css'
 
@@ -71,11 +72,14 @@ export function RayonsSection() {
   const updateCategorie = useUpdateCategorie()
   const deleteCategorie = useDeleteCategorie()
 
-  const [rayons, setRayons]           = useState<Rayon[]>([])
-  const [expanded, setExpanded]       = useState<Set<string>>(new Set())
+  const [rayons, setRayons]             = useState<Rayon[]>([])
+  const [expanded, setExpanded]         = useState<Set<string>>(new Set())
   const [newRayonName, setNewRayonName] = useState('')
   const [showNewRayon, setShowNewRayon] = useState(false)
-  const [activeId, setActiveId]       = useState<string | null>(null)
+  const [activeId, setActiveId]         = useState<string | null>(null)
+  const [catModal, setCatModal]         = useState<{ rayonId: string; rayonNom: string } | null>(null)
+  const [newCatName, setNewCatName]     = useState('')
+  const [submittingCat, setSubmittingCat] = useState(false)
 
   useEffect(() => { setRayons(rayonsFromApi) }, [rayonsFromApi])
 
@@ -164,11 +168,24 @@ export function RayonsSection() {
 
   // •"?•"? Catégories •"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?
 
-  async function handleAddCategorie(rayonId: string) {
-    const nom = prompt('Nom de la catégorie :')?.trim()
-    if (!nom) return
-    const id = generateUUID()
-    await createCategorie.mutateAsync({ id, rayonId, nom })
+  function openCatModal(rayonId: string) {
+    const rayon = rayons.find(r => r.id === rayonId)
+    setNewCatName('')
+    setCatModal({ rayonId, rayonNom: rayon?.nom ?? '' })
+  }
+
+  async function submitCatModal() {
+    const nom = newCatName.trim()
+    if (!nom || !catModal) return
+    setSubmittingCat(true)
+    try {
+      await createCategorie.mutateAsync({ id: generateUUID(), rayonId: catModal.rayonId, nom })
+      setCatModal(null)
+      setNewCatName('')
+      setExpanded(prev => new Set(prev).add(catModal.rayonId))
+    } finally {
+      setSubmittingCat(false)
+    }
   }
 
   async function handleRenameCategorie(id: string, rayonId: string, nom: string) {
@@ -226,7 +243,7 @@ export function RayonsSection() {
                   onToggleLibrairie={handleToggleLibrairie}
                   onUpdateTVA={handleUpdateTVA}
                   onDelete={handleDeleteRayon}
-                  onAddCategorie={handleAddCategorie}
+                  onAddCategorie={openCatModal}
                   onRenameCategorie={handleRenameCategorie}
                   onDeleteCategorie={handleDeleteCategorie}
                 />
@@ -279,8 +296,41 @@ export function RayonsSection() {
         ) : null}
       </div>
 
-      {/* •"?•"? Colonne droite : mascotte permanente •"?•"? */}
+      {/* Colonne droite : mascotte permanente */}
       <MascotSidebar state={mascotState} onCreateRayon={() => setShowNewRayon(true)} />
+
+      {/* Modale ajout catégorie */}
+      <Modal
+        isOpen={catModal !== null}
+        onClose={() => setCatModal(null)}
+        title={`Nouvelle catégorie`}
+        subtitle={catModal ? `dans le rayon « ${catModal.rayonNom} »` : undefined}
+        width={380}
+      >
+        <div className={styles.catModalBody}>
+          <input
+            className={styles.newInput}
+            placeholder="Nom de la catégorie (ex : Romans, BD, Affiches…)"
+            value={newCatName}
+            onChange={e => setNewCatName(e.target.value)}
+            onKeyDown={e => {
+              if (e.key === 'Enter')  submitCatModal()
+              if (e.key === 'Escape') setCatModal(null)
+            }}
+            autoFocus
+          />
+          <div className={styles.catModalActions}>
+            <button className={styles.btnCancel} onClick={() => setCatModal(null)}>Annuler</button>
+            <button
+              className={styles.btnConfirm}
+              onClick={submitCatModal}
+              disabled={!newCatName.trim() || submittingCat}
+            >
+              {submittingCat ? 'Création…' : 'Créer la catégorie'}
+            </button>
+          </div>
+        </div>
+      </Modal>
 
     </div>
   )
@@ -296,7 +346,7 @@ interface SortableRayonProps {
   onToggleLibrairie: (id: string, current: boolean) => Promise<void>
   onUpdateTVA:       (id: string, taux: number) => Promise<void>
   onDelete:          (id: string, nom: string) => Promise<void>
-  onAddCategorie:    (rayonId: string) => Promise<void>
+  onAddCategorie:    (rayonId: string) => void
   onRenameCategorie: (id: string, rayonId: string, nom: string) => Promise<void>
   onDeleteCategorie: (id: string, rayonId: string, nom: string) => Promise<void>
 }

@@ -45,7 +45,7 @@ export async function buildServer() {
   await mkdir(uploadsDir, { recursive: true })
   await app.register(staticPlugin, {
     root:   uploadsDir,
-    prefix: '/uploads',
+    prefix: '/api/uploads',
     decorateReply: false,
   })
 

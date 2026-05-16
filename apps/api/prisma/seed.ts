@@ -27,6 +27,10 @@ async function main() {
       { text: 'L\'onglet Catalogue affiche tous les produits actuellement disponibles à la vente. C\'est la vitrine active de ta maison d\'édition.' },
       { text: 'L\'onglet Retirés accueille les articles mis de côté. Ils ne sont plus en vente mais ne sont pas supprimés — tu peux les réactiver à tout moment.' },
     ]},
+    { slug: 'catalogue-lien-rayons', description: 'Catalogue — rappel discret vers réglages rayons/catégories', bulles: [
+      { text: 'Rayons, catégories, TVA, champs personnalisés… tout se configure dans les Réglages.', cta: { label: 'Réglages → Rayons & Catégories', href: '/reglages' } },
+    ]},
+
     { slug: 'catalogue-retires-vide', description: 'Catalogue / onglet Retirés — aucun article retiré', bulles: [
       { title: 'Vos articles retirés atterrissent ici 📦', text: 'Cet espace accueille les articles que vous avez mis de côté — produits épuisés, éditions terminées, références que vous ne souhaitez plus proposer pour l\'instant.\n\nUne fois retirés, ils disparaissent de la caisse, de l\'application mobile, et ne sont plus proposés à la vente.' },
       { text: 'Ils ne disparaissent pas de vos statistiques ni de votre historique de ventes — votre bilan reste intact. Et ils ne consomment plus de crédits dans votre quota d\'articles actifs.' },

@@ -65,7 +65,9 @@
       "Bash(read f *)",
       "Bash(Select-String -Pattern \"PageHero\")",
       "Bash(git -C \"C:/Users/DCFM/Documents/Bobo/megesti\" show HEAD:apps/web/src/features/ventes/VentesPage.tsx)",
-      "Bash(git -C \"C:/Users/DCFM/Documents/Bobo/megesti\" show HEAD:apps/web/src/features/stock/AjustementStock.tsx)"
+      "Bash(git -C \"C:/Users/DCFM/Documents/Bobo/megesti\" show HEAD:apps/web/src/features/stock/AjustementStock.tsx)",
+      "PowerShell(Test-Path *)",
+      "Bash(xxd)"
     ]
   }
 }

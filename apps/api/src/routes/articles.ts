@@ -12,7 +12,7 @@ const CreateArticleSchema = z.object({
   nom:             z.string().min(1),
   reference:       z.string().optional().nullable(),
   description:     z.string().optional().nullable(),
-  imageUrl:        z.string().regex(/^(https?:\/\/|\/uploads\/)/, 'URL absolue ou chemin /uploads/ attendu').optional().nullable().or(z.literal('')).transform((v) => v || null),
+  imageUrl:        z.string().regex(/^(https?:\/\/|\/api\/uploads\/|\/uploads\/)/, 'URL absolue ou chemin /api/uploads/ attendu').optional().nullable().or(z.literal('')).transform((v) => v || null),
   prixVenteHT:     z.number().nonnegative(),
   prixAchatHT:     z.number().nonnegative().optional().nullable(),
   prixAchatLotHT:  z.number().nonnegative().optional().nullable(),
@@ -32,7 +32,7 @@ const PatchArticleSchema = z.object({
   nom:             z.string().min(1).optional(),
   reference:       z.string().optional().nullable(),
   description:     z.string().optional().nullable(),
-  imageUrl:        z.string().regex(/^(https?:\/\/|\/uploads\/)/, 'URL absolue ou chemin /uploads/ attendu').optional().nullable().or(z.literal('')).transform((v) => v === undefined ? undefined : v || null),
+  imageUrl:        z.string().regex(/^(https?:\/\/|\/api\/uploads\/|\/uploads\/)/, 'URL absolue ou chemin /api/uploads/ attendu').optional().nullable().or(z.literal('')).transform((v) => v === undefined ? undefined : v || null),
   prixVenteHT:     z.number().nonnegative().optional(),
   prixAchatHT:     z.number().nonnegative().optional().nullable(),
   prixAchatLotHT:  z.number().nonnegative().optional().nullable(),
@@ -211,7 +211,7 @@ export const articleRoutes: FastifyPluginAsync = async (app) => {
 
     request.log.info(`[upload] Thumbnails générés -> ${uploadDir}`)
 
-    const thumbWebUrl = `/uploads/articles/${id}/thumb_web.jpg`
+    const thumbWebUrl = `/api/uploads/articles/${id}/thumb_web.jpg`
 
     await app.db.article.update({
       where: { id },
@@ -221,7 +221,7 @@ export const articleRoutes: FastifyPluginAsync = async (app) => {
     request.log.info(`[upload] Terminé — thumbWebUrl=${thumbWebUrl}`)
 
     return {
-      thumbAppUrl: `/uploads/articles/${id}/thumb_app.jpg`,
+      thumbAppUrl: `/api/uploads/articles/${id}/thumb_app.jpg`,
       thumbWebUrl,
     }
   })

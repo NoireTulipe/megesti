@@ -4,9 +4,10 @@ const BASE = import.meta.env['VITE_API_URL'] ?? 'http://localhost:3001/api'
 export function getImageUrl(imageUrl: string | null): string | null {
   if (!imageUrl) return null
   if (imageUrl.startsWith('http')) return imageUrl
-  // Chemin relatif → préfixer avec l'URL racine du serveur (sans /api)
-  const root = BASE.replace(/\/api$/, '')
-  return `${root}${imageUrl}`
+  // Les chemins /api/uploads/* sont déjà relatifs à la racine du serveur
+  // On préfixe avec l'origine (hôte + port) extraite de VITE_API_URL
+  const origin = BASE.replace(/\/api.*$/, '')
+  return `${origin}${imageUrl}`
 }
 
 function getToken(): string | null {

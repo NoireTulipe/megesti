@@ -224,6 +224,11 @@ export function CataloguePage() {
         />
       )}
 
+      {/* ── Rappel discret rayons (catalogue non vide, sans recherche active) ── */}
+      {allActifs.length > 0 && tab === 'actifs' && !debouncedSearch && (
+        <MascoteBlock slug="catalogue-lien-rayons" />
+      )}
+
       {/* ── Modales formulaire ── */}
       <Modal isOpen={showCreate} onClose={() => setShowCreate(false)} title="Nouvel article" size="xl">
         <ArticleForm onClose={() => setShowCreate(false)} />
