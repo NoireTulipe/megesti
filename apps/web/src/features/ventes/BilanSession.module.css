@@ -524,7 +524,10 @@
 }
 
 /* Lignes */
-.venteDetailScroll { flex: 1; overflow-y: auto; background: white; }
+.venteDetailScroll {
+  flex: 1; overflow-y: auto; background: white;
+  display: flex; flex-direction: column;
+}
 
 .venteDetailLigne {
   display: flex; align-items: center; gap: 14px;
@@ -539,23 +542,37 @@
 .venteDetailNom  {
   display: block; font-size: 0.9rem; font-weight: 600; color: var(--ink); margin-bottom: 3px;
 }
-.venteDetailQte  { font-size: 0.72rem; color: var(--text-soft); }
-
-.venteDetailRight {
-  display: flex; flex-direction: column; align-items: flex-end; gap: 3px; flex-shrink: 0;
+.venteDetailQte {
+  display: flex; align-items: center; gap: 4px; flex-wrap: wrap;
+  font-size: 0.72rem; color: var(--text-soft);
 }
-.venteDetailPrixWrap { display: flex; align-items: center; gap: 6px; }
-.venteDetailPrixBarre { font-size: 0.75rem; color: var(--text-soft); }
-.venteDetailPrixNormal { font-size: 0.85rem; font-weight: 600; color: var(--ink); }
-.venteDetailPrixRemise { font-size: 0.85rem; font-weight: 700; color: #15803D; }
+.venteDetailPrixBarre { font-size: 0.72rem; color: var(--text-soft); text-decoration: line-through; }
+.venteDetailPrixRemise { font-size: 0.72rem; font-weight: 700; color: #15803D; }
 .venteDetailRemiseBadge {
-  font-size: 0.6rem; font-weight: 700;
+  font-size: 0.58rem; font-weight: 700;
   background: #FEF3C7; color: #92400E;
-  border: 1px solid #FDE68A; border-radius: 20px; padding: 1px 7px;
+  border: 1px solid #FDE68A; border-radius: 20px; padding: 1px 6px;
+  margin-left: 2px;
 }
 .venteDetailLigneTotal {
   font-family: 'DM Serif Display', serif;
-  font-size: 1rem; color: var(--ink);
+  font-size: 1rem; color: var(--ink); flex-shrink: 0;
+}
+
+/* Magestine dans l'espace vide */
+.venteDetailMascot {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 12px; padding: 24px 20px;
+  opacity: 0.55;
+}
+.venteDetailMascotImg {
+  width: 72px; height: auto; object-fit: contain;
+}
+.venteDetailMascotText {
+  font-size: 0.78rem; color: var(--text-soft);
+  font-style: italic; text-align: center; margin: 0;
+  max-width: 200px; line-height: 1.55;
 }
 
 /* Footer */

@@ -22,11 +22,9 @@ export default function StockScreen() {
   const { isDark } = useAppTheme()
   const [search, setSearch] = useState('')
   const [selected, setSelected] = useState<string | null>(null)
-  const [editingStock, setEditingStock] = useState<string | null>(null)
-  const [stockValue, setStockValue] = useState('')
   const [photoSheet, setPhotoSheet] = useState<LocalArticle | null>(null)
   const [uploading, setUploading] = useState(false)
-  const { articles, pullFromServer, updateStock, uploadImage } = useLocalArticles()
+  const { articles, pullFromServer, uploadImage } = useLocalArticles()
   const { session } = useLocalSession()
   const addLog = useDevStore(s => s.addLog)
   const pendingPhotoUri = useScannerStore(s => s.pendingPhotoUri)
@@ -46,12 +44,6 @@ export default function StockScreen() {
     (exposedIds.length === 0 || exposedIds.includes(a.id)) &&
     (a.nom.toLowerCase().includes(search.toLowerCase()) || (a.isbn ?? '').includes(search))
   )
-
-  async function handleStockSubmit(articleId: string) {
-    const val = parseInt(stockValue, 10)
-    if (!isNaN(val) && val >= 0) await updateStock(articleId, val)
-    setEditingStock(null)
-  }
 
   // Caméra via expo-camera (évite le bug expo-image-picker + nouvelle archi RN)
   function openCameraCapture(article: LocalArticle) {
@@ -192,36 +184,22 @@ export default function StockScreen() {
                 )}
               </View>
 
-              {/* Stock éditable */}
-              <View style={styles.cardRight}>
+              {/* Stock → navigation vers écran de mouvement */}
+              <TouchableOpacity style={styles.cardRight}
+                onPress={() => router.push(`/stock-mouvement?articleId=${a.id}`)}>
                 <Text style={[styles.cardPrice, isDark && { color: Dark.text }]}>{a.prix_vente_ht.toFixed(2)} €</Text>
-                {editingStock === a.id ? (
-                  <TextInput
-                    style={styles.stockInput}
-                    value={stockValue}
-                    onChangeText={setStockValue}
-                    keyboardType="number-pad"
-                    autoFocus
-                    onBlur={() => handleStockSubmit(a.id)}
-                    onSubmitEditing={() => handleStockSubmit(a.id)}
-                    selectTextOnFocus
-                  />
-                ) : (
-                  <TouchableOpacity
-                    style={[
-                      styles.stockBadge,
-                      a.stock_local <= 0 ? styles.stockBadgeRupture : a.stock_local <= (a.stock_alerte || 3) ? styles.stockBadgeLow : styles.stockBadgeOk,
-                    ]}
-                    onPress={() => { setEditingStock(a.id); setStockValue(String(a.stock_local)) }}>
-                    <Text style={[
-                      styles.stockBadgeText,
-                      a.stock_local <= 0 ? styles.stockBadgeTextRupture : a.stock_local <= (a.stock_alerte || 3) ? styles.stockBadgeTextLow : styles.stockBadgeTextOk,
-                    ]}>
-                      {a.stock_local}
-                    </Text>
-                  </TouchableOpacity>
-                )}
-              </View>
+                <View style={[
+                  styles.stockBadge,
+                  a.stock_local <= 0 ? styles.stockBadgeRupture : a.stock_local <= (a.stock_alerte || 3) ? styles.stockBadgeLow : styles.stockBadgeOk,
+                ]}>
+                  <Text style={[
+                    styles.stockBadgeText,
+                    a.stock_local <= 0 ? styles.stockBadgeTextRupture : a.stock_local <= (a.stock_alerte || 3) ? styles.stockBadgeTextLow : styles.stockBadgeTextOk,
+                  ]}>
+                    {a.stock_local}
+                  </Text>
+                </View>
+              </TouchableOpacity>
             </TouchableOpacity>
           ))
         )}

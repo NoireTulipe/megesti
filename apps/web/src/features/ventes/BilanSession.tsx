@@ -434,36 +434,55 @@ export function BilanSession({ sessionId, ventes: ventesProp, frais: fraisProp, 
 
             {/* Lignes */}
             <div className={styles.venteDetailScroll}>
-              {selectedVente.lignes.map(l => {
-                const art      = articles.find(a => a.id === l.articleId)
-                const prixStd  = art ? parseFloat(art.prixVenteHT as string) : null
-                const prixUsed = parseFloat(l.prixUnitaireHT)
-                const modified = prixStd !== null && Math.abs(prixStd - prixUsed) > 0.005
-                return (
-                  <div key={l.id} className={styles.venteDetailLigne}>
-                    <div className={styles.venteDetailLeft}>
-                      <span className={styles.venteDetailNom}>{l.article.nom}</span>
-                      {l.quantite > 1 && (
-                        <span className={styles.venteDetailQte}>× {l.quantite} exemplaires</span>
-                      )}
-                    </div>
-                    <div className={styles.venteDetailRight}>
-                      <div className={styles.venteDetailPrixWrap}>
-                        {modified && (
-                          <s className={styles.venteDetailPrixBarre}>{fEur(prixStd!)}</s>
-                        )}
-                        <span className={modified ? styles.venteDetailPrixRemise : styles.venteDetailPrixNormal}>
-                          {fEur(prixUsed)}
+              <div>
+                {selectedVente.lignes.map(l => {
+                  const art      = articles.find(a => a.id === l.articleId)
+                  const prixStd  = art ? parseFloat(art.prixVenteHT as string) : null
+                  const prixUsed = parseFloat(l.prixUnitaireHT)
+                  const modified = prixStd !== null && Math.abs(prixStd - prixUsed) > 0.005
+                  return (
+                    <div key={l.id} className={styles.venteDetailLigne}>
+                      <div className={styles.venteDetailLeft}>
+                        <span className={styles.venteDetailNom}>{l.article.nom}</span>
+                        <span className={styles.venteDetailQte}>
+                          × {l.quantite} ex. à{' '}
+                          {modified && (
+                            <s className={styles.venteDetailPrixBarre}>{fEur(prixStd!)} </s>
+                          )}
+                          <span className={modified ? styles.venteDetailPrixRemise : ''}>
+                            {fEur(prixUsed)}
+                          </span>
+                          {' '}HT
+                          {modified && <span className={styles.venteDetailRemiseBadge}>remisé</span>}
                         </span>
-                        {modified && <span className={styles.venteDetailRemiseBadge}>remisé</span>}
                       </div>
                       <span className={styles.venteDetailLigneTotal}>
                         {fEur(parseFloat(l.totalLigneTTC))}
                       </span>
                     </div>
-                  </div>
-                )
-              })}
+                  )
+                })}
+              </div>
+
+              {/* Magestine — comble l'espace restant */}
+              <div className={styles.venteDetailMascot}>
+                <img
+                  src="/img/mascotte/m2.png"
+                  alt=""
+                  className={styles.venteDetailMascotImg}
+                />
+                <p className={styles.venteDetailMascotText}>
+                  {annulee
+                    ? 'Cette vente a été annulée et n\'est pas comptabilisée.'
+                    : selectedVente.lignes.some(l => {
+                        const art = articles.find(a => a.id === l.articleId)
+                        const std = art ? parseFloat(art.prixVenteHT as string) : null
+                        return std !== null && Math.abs(std - parseFloat(l.prixUnitaireHT)) > 0.005
+                      })
+                      ? 'Une remise a été appliquée sur cette transaction.'
+                      : 'Tous les détails de cette transaction sont affichés ci-dessus.'}
+                </p>
+              </div>
             </div>
 
             {/* Footer totaux */}

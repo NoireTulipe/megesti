@@ -663,53 +663,59 @@ export default function CaisseScreen() {
 
       {/* ── Grille produits (avec swipe pour changer de rayon) ── */}
       <GestureDetector gesture={swipeGesture}>
-      {grouped ? (
-        /* ── Mode groupé (rayons ou catégories) ── */
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: TAB_BAR_H + 100 }}
-          style={{ flex: 1 }}>
-          {grouped.map(section => (
-            <View key={section.label} ref={r => { sectionRefs.current.set(section.label, r) }}>
-              {/* Bandeau : fin pour rayon, normal pour catégorie */}
-              {section.isCategory ? (
-                <View style={[styles.catBandeau, { borderLeftColor: section.color }, isDark && { backgroundColor: Dark.surface }]}>
-                  <Text style={[styles.catBandeauTitle, isDark && { color: Dark.text }]}>{section.label}</Text>
+        <View style={{ flex: 1 }}>
+          {grouped ? (
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ paddingBottom: TAB_BAR_H + 100 }}
+              style={{ flex: 1 }}>
+              {grouped.map(section => (
+                <View key={section.label} ref={r => { sectionRefs.current.set(section.label, r) }}>
+                  {/* Bandeau : fin pour rayon, normal pour catégorie */}
+                  {section.isCategory ? (
+                    <View style={[styles.catBandeau, { borderLeftColor: section.color }, isDark && { backgroundColor: Dark.surface }]}>
+                      <Text style={[styles.catBandeauTitle, isDark && { color: Dark.text }]}>{section.label}</Text>
+                    </View>
+                  ) : (
+                    <View style={[styles.rayonBandeau, { borderLeftColor: section.color }, isDark && { backgroundColor: Dark.surface }]}>
+                      <Text style={[styles.rayonBandeauTitle, isDark && { color: Dark.text }]}>{section.label}</Text>
+                    </View>
+                  )}
+                  {/* Grille produits par sous-groupe */}
+                  <View style={styles.productGrid}>
+                    {section.cats.map((cat, ci) => {
+                      const rows: (typeof cat.articles)[] = []
+                      for (let i = 0; i < cat.articles.length; i += 2) rows.push(cat.articles.slice(i, i + 2))
+                      return (
+                        <View key={ci} style={ci > 0 ? styles.catGap : undefined}>
+                          {rows.map((row, ri) => (
+                            <View key={ri} style={styles.productRow}>
+                              {row.map(a => (
+                                <ProductCard key={a.id} article={a} isDark={isDark} addToCart={addToCart} cart={cart} getCatColor={getCatColor} />
+                              ))}
+                              {row.length === 1 && <View style={{ flex: 1, maxWidth: '48%' }} />}
+                            </View>
+                          ))}
+                        </View>
+                      )
+                    })}
+                  </View>
                 </View>
-              ) : (
-                <View style={[styles.rayonBandeau, { borderLeftColor: section.color }, isDark && { backgroundColor: Dark.surface }]}>
-                  <Text style={[styles.rayonBandeauTitle, isDark && { color: Dark.text }]}>{section.label}</Text>
+              ))}
+              {filtered.length === 0 && (
+                <View style={styles.emptyList}>
+                  <Text style={styles.emptyListEmoji}>📚</Text>
+                  <Text style={styles.emptyListText}>Aucun article trouvé</Text>
                 </View>
               )}
-              {/* Grille produits par sous-groupe */}
-              <View style={styles.productGrid}>
-                {section.cats.map((cat, ci) => {
-                  const rows: (typeof cat.articles)[] = []
-                  for (let i = 0; i < cat.articles.length; i += 2) rows.push(cat.articles.slice(i, i + 2))
-                  return (
-                    <View key={ci} style={ci > 0 ? styles.catGap : undefined}>
-                      {rows.map((row, ri) => (
-                        <View key={ri} style={styles.productRow}>
-                          {row.map(a => (
-                            <ProductCard key={a.id} article={a} isDark={isDark} addToCart={addToCart} cart={cart} getCatColor={getCatColor} />
-                          ))}
-                          {row.length === 1 && <View style={{ flex: 1, maxWidth: '48%' }} />}
-                        </View>
-                      ))}
-                    </View>
-                  )
-                })}
-              </View>
-            </View>
-          ))}
-          {filtered.length === 0 && (
+            </ScrollView>
+          ) : (
             <View style={styles.emptyList}>
               <Text style={styles.emptyListEmoji}>📚</Text>
               <Text style={styles.emptyListText}>Aucun article trouvé</Text>
             </View>
           )}
-        </ScrollView>
-      ) : null}
+        </View>
       </GestureDetector>
 
       {/* ── Barre panier ── */}
