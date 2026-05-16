@@ -1,0 +1,160 @@
+/* ── Backdrop ── */
+.backdrop {
+  position: fixed; inset: 0; z-index: 1100;
+  background: rgba(16,30,50,0.48);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px;
+  animation: fadeIn 0.2s ease both;
+}
+
+/* ── Panel ── */
+.panel {
+  position: relative; background: var(--white);
+  border-radius: 28px; width: 100%; max-width: 680px;
+  max-height: 90vh; overflow-y: auto;
+  box-shadow: 0 32px 80px rgba(16,30,50,0.24), 0 8px 24px rgba(16,30,50,0.10);
+  animation: slideUp 0.3s cubic-bezier(0.22,1,0.36,1) both;
+  display: flex; flex-direction: column; gap: 0;
+}
+.panel::-webkit-scrollbar { width: 6px; }
+.panel::-webkit-scrollbar-thumb { background: var(--cream-dark); border-radius: 3px; }
+
+/* Accent bar */
+.accent {
+  height: 4px; flex-shrink: 0; border-radius: 28px 28px 0 0;
+  background: linear-gradient(90deg, var(--terra,#C4847A) 0%, var(--gold,#C9933A) 55%, var(--sage,#6B8F71) 100%);
+}
+
+/* Décorations blobs */
+.deco { position: absolute; top: 4px; left: 0; right: 0; height: 140px; overflow: hidden; pointer-events: none; z-index: 0; opacity: 0.45; }
+.blobA {
+  position: absolute; right: -20px; top: -40px; width: 180px; height: 180px;
+  border-radius: 55% 45% 65% 35% / 50% 55% 45% 50%;
+  background: radial-gradient(circle, rgba(196,132,122,0.18) 0%, transparent 70%);
+  animation: floatA 12s ease-in-out infinite;
+}
+.blobB {
+  position: absolute; left: 15%; top: -30px; width: 130px; height: 130px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(139,123,171,0.12) 0%, transparent 70%);
+  animation: floatB 15s ease-in-out infinite;
+}
+
+/* Header */
+.header {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 16px; padding: 24px 28px 16px;
+  position: relative; z-index: 1;
+}
+.headerLeft { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.title {
+  font-family: 'DM Serif Display', serif; font-style: italic;
+  font-size: 1.45rem; color: var(--ink); margin: 0; line-height: 1.2;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.headerMeta { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+.rayonBadge {
+  font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.07em; color: var(--text-soft);
+  background: var(--cream); border: 1px solid var(--cream-dark);
+  padding: 2px 8px; border-radius: 20px;
+}
+.catBadge {
+  font-size: 0.72rem; color: var(--text-soft);
+  background: var(--cream); border: 1px solid var(--cream-dark);
+  padding: 2px 8px; border-radius: 20px;
+}
+.stockBadge {
+  font-size: 0.78rem; font-weight: 700;
+  border: 1.5px solid; padding: 3px 10px; border-radius: 20px;
+}
+.closeBtn {
+  flex-shrink: 0; width: 34px; height: 34px; border-radius: 50%;
+  border: 1.5px solid var(--cream-dark); background: var(--cream);
+  color: var(--text-mid); cursor: pointer; margin-top: 2px;
+  display: flex; align-items: center; justify-content: center;
+  transition: background var(--t), color var(--t), transform var(--t);
+  position: relative; z-index: 1;
+}
+.closeBtn:hover { background: var(--ink); color: #fff; border-color: var(--ink); transform: rotate(90deg); }
+
+/* Période */
+.periodRow {
+  display: flex; gap: 6px; padding: 0 28px 16px;
+  position: relative; z-index: 1;
+}
+.periodBtn {
+  height: 30px; padding: 0 14px;
+  border: 1.5px solid var(--cream-dark); border-radius: var(--r-pill, 999px);
+  background: var(--white); color: var(--text-soft);
+  font-size: 0.8rem; font-weight: 600; font-family: inherit; cursor: pointer;
+  transition: all var(--t,0.15s);
+}
+.periodBtn:hover { border-color: var(--ink-light); color: var(--ink); }
+.periodBtnActive {
+  background: var(--ink-mid, #3D2C1E); color: #fff; border-color: var(--ink-mid, #3D2C1E);
+  box-shadow: 0 2px 8px rgba(44,24,16,0.20);
+}
+
+/* Stats */
+.statsRow {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 10px; padding: 0 28px 20px;
+}
+.statCard {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 14px 10px; border-radius: 14px; border: 1.5px solid;
+}
+.statValue { font-size: 1.6rem; font-weight: 800; line-height: 1; }
+.statLabel { font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; }
+
+/* Sections chart */
+.chartSection { padding: 0 28px 24px; }
+.chartLabel {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.1em; color: var(--text-soft);
+  margin-bottom: 12px;
+}
+.chartLegend {
+  display: flex; align-items: center; gap: 10px;
+  margin-left: auto; font-size: 0.68rem; font-weight: 600;
+  color: var(--text-soft); text-transform: none; letter-spacing: 0;
+}
+.legendDot {
+  display: inline-block; width: 8px; height: 8px; border-radius: 50;
+  margin-right: 3px;
+}
+
+/* Tooltip */
+.tooltip {
+  background: rgba(16,30,50,0.88); backdrop-filter: blur(8px);
+  border-radius: 10px; padding: 10px 14px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+  display: flex; flex-direction: column; gap: 3px;
+}
+.tooltipDate  { font-size: 0.72rem; color: rgba(255,255,255,0.6); }
+.tooltipStock { font-size: 1rem; font-weight: 700; color: #fff; }
+.tooltipDelta { font-size: 0.78rem; font-weight: 600; }
+.tooltipMotif { font-size: 0.72rem; color: rgba(255,255,255,0.55); font-style: italic; }
+
+/* Empty / loading */
+.emptyState {
+  padding: 32px 28px; text-align: center;
+  font-size: 0.875rem; color: var(--text-soft); font-style: italic;
+}
+.loadingRow { display: flex; flex-direction: column; gap: 12px; padding: 0 28px 28px; }
+.skeleton {
+  height: 200px; border-radius: 12px;
+  background: linear-gradient(110deg, var(--cream-mid,#E8E0D6) 30%, var(--cream-dark,#D4C9BC) 50%, var(--cream-mid,#E8E0D6) 70%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+/* Animations */
+@keyframes fadeIn  { from { opacity:0 } to { opacity:1 } }
+@keyframes slideUp { from { opacity:0; transform:translateY(20px) scale(0.98) } to { opacity:1; transform:translateY(0) scale(1) } }
+@keyframes shimmer { 0% { background-position:200% 0 } 100% { background-position:-200% 0 } }
+@keyframes floatA  { 0%,100% { transform:translate(0,0) rotate(0deg) } 50% { transform:translate(-10px,12px) rotate(6deg) } }
+@keyframes floatB  { 0%,100% { transform:translate(0,0) } 50% { transform:translate(8px,-10px) } }

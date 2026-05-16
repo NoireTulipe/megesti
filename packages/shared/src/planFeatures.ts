@@ -15,6 +15,7 @@ export interface PlanFeatures {
   reglagesAvances:         boolean
   charges:                 boolean
   reversements:            boolean
+  stockAnalytics:          boolean
   facturationElectronique: boolean
   exportCsvPdf:            boolean
 }
@@ -26,7 +27,7 @@ export const PLAN_FEATURES: Record<PlanTier, PlanFeatures> = {
     contratsAuteurs:         true,  droitsAuteur:            true,
     depotsLibraires:         true,  imprimeurs:              true,
     reglagesAvances:         true,  charges:                 true,
-    reversements:            true,
+    reversements:            true,  stockAnalytics:          true,
     facturationElectronique: false, exportCsvPdf:            true,
   },
   AUTO_EDITION: {
@@ -35,7 +36,7 @@ export const PLAN_FEATURES: Record<PlanTier, PlanFeatures> = {
     contratsAuteurs:         false, droitsAuteur:            false,
     depotsLibraires:         false, imprimeurs:              false,
     reglagesAvances:         false, charges:                 false,
-    reversements:            false,
+    reversements:            false, stockAnalytics:          false,
     facturationElectronique: false, exportCsvPdf:            false,
   },
   EDITION: {
@@ -44,7 +45,7 @@ export const PLAN_FEATURES: Record<PlanTier, PlanFeatures> = {
     contratsAuteurs:         true,  droitsAuteur:            true,
     depotsLibraires:         true,  imprimeurs:              true,
     reglagesAvances:         true,  charges:                 true,
-    reversements:            true,
+    reversements:            true,  stockAnalytics:          true,
     facturationElectronique: true,  exportCsvPdf:            true,
   },
   EDITION_PRO: {
@@ -53,7 +54,7 @@ export const PLAN_FEATURES: Record<PlanTier, PlanFeatures> = {
     contratsAuteurs:         true,  droitsAuteur:            true,
     depotsLibraires:         true,  imprimeurs:              true,
     reglagesAvances:         true,  charges:                 true,
-    reversements:            true,
+    reversements:            true,  stockAnalytics:          true,
     facturationElectronique: true,  exportCsvPdf:            true,
   },
 }
@@ -76,6 +77,7 @@ export const UPGRADE_MESSAGE: Record<keyof PlanFeatures, string> = {
   depotsLibraires:         'Les dépôts libraires sont disponibles à partir du plan Edition.',
   charges:                 'La gestion des charges est disponible à partir du plan Edition.',
   reversements:            "L'encaissement par le point de vente et la gestion des reversements sont disponibles à partir du plan Edition.",
+  stockAnalytics:          "Les graphiques d'analyse de stock sont disponibles à partir du plan Edition.",
   facturationElectronique: 'La facturation électronique est disponible à partir du plan Edition.',
   exportCsvPdf:            'L\'export CSV/PDF est disponible à partir du plan Edition.',
 }

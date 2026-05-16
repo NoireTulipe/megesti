@@ -3,6 +3,8 @@ import { useArticles } from '@/features/catalogue/hooks/useArticles'
 import { useRayons }   from '@/features/catalogue/hooks/useRayons'
 import { AjustementStock }      from './AjustementStock'
 import { HistoriqueMouvements } from './HistoriqueMouvements'
+import { StockHistoriqueModal } from './StockHistoriqueModal'
+import { usePlanFeatures } from '@/hooks/usePlanFeatures'
 import type { Article } from '@/features/catalogue/types'
 import { PageHero } from '@/components/PageHero'
 import { SearchInput } from '@/components/SearchInput'
@@ -60,6 +62,9 @@ export function StockPage() {
   const [search,       setSearch]       = useState('')
   const [sortBy,       setSortBy]       = useState<'critique' | 'alpha'>('critique')
   const [editingId,    setEditingId]    = useState<string | null>(null)
+  const [analyticsArticle, setAnalyticsArticle] = useState<Article | null>(null)
+
+  const { can, upgradeMessage } = usePlanFeatures()
 
   const { data: rayons = [] }              = useRayons()
   const { data: articles = [], isLoading } = useArticles(rayonFilter || undefined, undefined, true)
@@ -264,6 +269,19 @@ export function StockPage() {
                             </a>
                           )}
                           <button
+                            className={styles.analyticsBtn}
+                            onClick={() => can('stockAnalytics') && setAnalyticsArticle(article)}
+                            title={can('stockAnalytics') ? 'Voir les graphiques de stock' : upgradeMessage('stockAnalytics')}
+                            style={{ opacity: can('stockAnalytics') ? 1 : 0.45, cursor: can('stockAnalytics') ? 'pointer' : 'default' }}
+                          >
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                              <line x1="18" y1="20" x2="18" y2="10"/>
+                              <line x1="12" y1="20" x2="12" y2="4"/>
+                              <line x1="6"  y1="20" x2="6"  y2="14"/>
+                            </svg>
+                            Graphiques
+                          </button>
+                          <button
                             className={styles.adjustBtn}
                             onClick={() => setEditingId(article.id)}
                           >
@@ -278,6 +296,13 @@ export function StockPage() {
             </div>
           )}
         </>
+      )}
+
+      {analyticsArticle && (
+        <StockHistoriqueModal
+          article={analyticsArticle}
+          onClose={() => setAnalyticsArticle(null)}
+        />
       )}
     </div>
   )

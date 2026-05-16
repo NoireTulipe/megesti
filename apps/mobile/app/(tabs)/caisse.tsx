@@ -235,21 +235,54 @@ export default function CaisseScreen() {
     return true
   }), [articles, exposedIds.join(','), selectedRayon, search, enabledCats])
 
-  // Groupement par rayon quand "Tous" est sélectionné
+  // Groupement hiérarchique rayon → catégorie (tri alpha dans chaque catégorie)
   const grouped = useMemo(() => {
-    if (selectedRayon || filtered.length === 0) return null
-    const map = new Map<string, typeof filtered>()
-    for (const a of filtered) {
-      const key = a.rayon_nom ?? 'Sans rayon'
-      if (!map.has(key)) map.set(key, [])
-      map.get(key)!.push(a)
+    if (filtered.length === 0) return null
+    if (selectedRayon) {
+      // Mode rayon unique : sections = catégories
+      const map = new Map<string, typeof filtered>()
+      for (const a of filtered) {
+        const key = a.categorie_nom ?? 'Sans catégorie'
+        if (!map.has(key)) map.set(key, [])
+        map.get(key)!.push(a)
+      }
+      for (const [, arts] of map) arts.sort((x, y) => x.nom.localeCompare(y.nom))
+      return Array.from(map.entries())
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([cat, articles]) => ({
+          label: cat,
+          articles,
+          color: getCatColor(articles[0]?.categorie_id ?? cat),
+          isCategory: true,
+        }))
     }
-    return Array.from(map.entries()).map(([rayon, articles]) => ({
-      rayon,
-      articles,
-      color: getCatColor(articles[0]?.categorie_id ?? rayon),
-    }))
-  }, [filtered, selectedRayon])
+    // Mode tous : sections = rayons, sous-groupes = catégories (sans titre)
+    const rayonMap = new Map<string, Map<string, typeof filtered>>()
+    for (const a of filtered) {
+      const rayon = a.rayon_nom ?? 'Sans rayon'
+      const cat = a.categorie_nom ?? 'Sans catégorie'
+      if (!rayonMap.has(rayon)) rayonMap.set(rayon, new Map())
+      const catMap = rayonMap.get(rayon)!
+      if (!catMap.has(cat)) catMap.set(cat, [])
+      catMap.get(cat)!.push(a)
+    }
+    const result: { label: string; color: string; isCategory: boolean; cats: { articles: typeof filtered }[] }[] = []
+    for (const [rayon, catMap] of rayonMap) {
+      const cats: { articles: typeof filtered }[] = []
+      for (const [, articles] of catMap) {
+        articles.sort((x, y) => x.nom.localeCompare(y.nom))
+        cats.push({ articles })
+      }
+      const firstArt = cats[0]?.articles[0]
+      result.push({
+        label: rayon,
+        color: getCatColor(firstArt?.categorie_id ?? rayon),
+        isCategory: false,
+        cats,
+      })
+    }
+    return result
+  }, [filtered, selectedRayon, catColors])
 
   const total = cart.reduce((s, i) => s + i.prix * i.quantite, 0)
   const flatListRef = useRef<FlatList<any>>(null)
@@ -640,30 +673,38 @@ export default function CaisseScreen() {
       {grouped ? (
         /* ── Mode groupé par rayon ── */
         <ScrollView
-          ref={flatListRef as any}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: TAB_BAR_H + 100 }}
           style={{ flex: 1 }}>
-          {grouped.map(({ rayon, articles: rayonArticles, color }) => (
-            <View key={rayon}
-              ref={r => { sectionRefs.current.set(rayon, r) }}
-              onLayout={() => {}}>
-              {/* En-tête de section */}
-              <View style={[styles.sectionHeader, isDark && { borderBottomColor: 'rgba(255,255,255,0.06)' }]}>
-                <View style={[styles.sectionHeaderAccent, { backgroundColor: color }]} />
-                <Text style={[styles.sectionHeaderTitle, isDark && { color: Dark.text }]}>{rayon}</Text>
-                <Text style={[styles.sectionHeaderCount, { color: color }]}>{rayonArticles.length}</Text>
-              </View>
-              {/* Grille 2 colonnes */}
-              <View style={styles.sectionGrid}>
-                <View style={styles.sectionGridRow}>
-                  {rayonArticles.map((a, idx) => (
-                    <ProductCard key={a.id} article={a} isDark={isDark} addToCart={addToCart} cart={cart} getCatColor={getCatColor} />
+          {grouped.map(({ rayon, articles: rayonArticles, color }) => {
+            // Rangées de 2
+            const rows: (typeof rayonArticles)[] = []
+            for (let i = 0; i < rayonArticles.length; i += 2) {
+              rows.push(rayonArticles.slice(i, i + 2))
+            }
+            return (
+              <View key={rayon} ref={r => { sectionRefs.current.set(rayon, r) }}>
+                {/* Bandeau rayon */}
+                <View style={[styles.sectionHeader, { borderLeftColor: color, borderLeftWidth: 4 }, isDark && { backgroundColor: Dark.surface, borderBottomColor: 'rgba(255,255,255,0.05)' }]}>
+                  <View>
+                    <Text style={[styles.sectionHeaderTitle, isDark && { color: Dark.text }]}>{rayon}</Text>
+                    <Text style={[styles.sectionHeaderCount, { color }]}>{rayonArticles.length} article{rayonArticles.length > 1 ? 's' : ''}</Text>
+                  </View>
+                </View>
+                {/* Grille 2 colonnes */}
+                <View style={styles.productGrid}>
+                  {rows.map((row, ri) => (
+                    <View key={ri} style={styles.productRow}>
+                      {row.map(a => (
+                        <ProductCard key={a.id} article={a} isDark={isDark} addToCart={addToCart} cart={cart} getCatColor={getCatColor} />
+                      ))}
+                      {row.length === 1 && <View style={{ flex: 1, maxWidth: '48%' }} />}
+                    </View>
                   ))}
                 </View>
               </View>
-            </View>
-          ))}
+            )
+          })}
           {filtered.length === 0 && (
             <View style={styles.emptyList}>
               <Text style={styles.emptyListEmoji}>📚</Text>
@@ -672,15 +713,15 @@ export default function CaisseScreen() {
           )}
         </ScrollView>
       ) : (
-        /* ── Mode rayon unique (FlatList existante) ── */
+        /* ── Mode rayon unique ── */
         <FlatList
           ref={flatListRef}
           data={filtered}
           keyExtractor={a => a.id}
           numColumns={2}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={[styles.productGrid, { paddingBottom: TAB_BAR_H + 100 }]}
-          columnWrapperStyle={{ gap: 10 }}
+          contentContainerStyle={{ paddingBottom: TAB_BAR_H + 100 }}
+          columnWrapperStyle={{ gap: 10, paddingHorizontal: 16 }}
           renderItem={({ item: a }) => (
             <ProductCard article={a} isDark={isDark} addToCart={addToCart} cart={cart} getCatColor={getCatColor} />
           )}
@@ -925,18 +966,18 @@ const styles = StyleSheet.create({
   catChipTextActive: { color: Colors.white },
 
   sectionHeader: {
-    flexDirection: 'row', alignItems: 'center', gap: 10,
-    paddingHorizontal: 20, paddingVertical: 12, marginTop: 4,
-    borderBottomWidth: 1, borderBottomColor: Colors.cream,
+    flexDirection: 'row', alignItems: 'center',
+    marginHorizontal: 16, marginTop: 12, marginBottom: 8,
+    paddingHorizontal: 14, paddingVertical: 14,
+    backgroundColor: Colors.white, borderRadius: Radius.lg,
+    borderLeftWidth: 4,
+    shadowColor: Colors.text, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 4, elevation: 2,
   },
-  sectionHeaderAccent: { width: 4, height: 22, borderRadius: 2 },
-  sectionHeaderTitle: { flex: 1, fontFamily: Fonts.displayItalic, fontSize: 18, color: Colors.text, fontStyle: 'italic' },
-  sectionHeaderCount: { fontFamily: Fonts.body, fontSize: 12, fontWeight: '700', minWidth: 22, textAlign: 'center',
-    backgroundColor: 'rgba(0,0,0,0.04)', borderRadius: Radius.full, paddingHorizontal: 8, paddingVertical: 3, overflow: 'hidden' },
-  sectionGrid: { paddingHorizontal: 16 },
-  sectionGridRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  sectionHeaderTitle: { fontFamily: Fonts.displayItalic, fontSize: 17, color: Colors.text, fontStyle: 'italic' },
+  sectionHeaderCount: { fontFamily: Fonts.body, fontSize: 11, fontWeight: '600', marginTop: 2 },
 
-  productGrid: { paddingHorizontal: 16, gap: 10 },
+  productGrid: { paddingHorizontal: 16 },
+  productRow: { flexDirection: 'row', gap: 10, marginBottom: 10 },
   productCard: {
     flex: 1, backgroundColor: Colors.white, borderRadius: Radius.lg, overflow: 'hidden',
     borderWidth: 2, borderColor: 'transparent',
