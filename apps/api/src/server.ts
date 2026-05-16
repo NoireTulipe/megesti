@@ -40,12 +40,21 @@ export async function buildServer() {
     limits: { fileSize: 10 * 1024 * 1024 },
   })
 
-  // Fichiers statiques (thumbnails) servis depuis /uploads
+  // Fichiers statiques (thumbnails)
   const uploadsDir = process.env['UPLOAD_DIR'] ?? path.join(process.cwd(), 'uploads')
   await mkdir(uploadsDir, { recursive: true })
+
+  // /api/uploads — passe par le proxy Caddy (/api/* → Fastify) : utilisé par le web et les nouveaux uploads
   await app.register(staticPlugin, {
     root:   uploadsDir,
     prefix: '/api/uploads',
+    decorateReply: false,
+  })
+
+  // /uploads — accès direct à Fastify : rétrocompat mobile (URLs mises en cache avant le changement de préfixe)
+  await app.register(staticPlugin, {
+    root:   uploadsDir,
+    prefix: '/uploads',
     decorateReply: false,
   })
 
