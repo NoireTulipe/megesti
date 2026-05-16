@@ -7,6 +7,7 @@ import { Modal } from '@/components/ui/Modal'
 import { DepotLibraireForm }   from './DepotLibraireForm'
 import { PageHero } from '@/components/PageHero'
 import { SearchInput } from '@/components/SearchInput'
+import { MascoteBlock } from '@/components/MascoteBlock'
 import sty from '@/features/auteurs/AuteursPage.module.css'
 
 export function DepotsLibrairesPage() {
@@ -60,16 +61,18 @@ export function DepotsLibrairesPage() {
         </div>
       )}
 
-      {!isLoading && !isError && items.length === 0 && (
+      {!isLoading && !isError && items.length === 0 && debounced && (
         <div className={sty['empty-state']}>
           <div className={sty['empty-icon']}>📦</div>
-          <div className={sty['empty-title']}>
-            {debounced ? `Aucun résultat pour « ${debounced} »` : 'Pas encore de dépôt libraire'}
-          </div>
-          <div className={sty['empty-desc']}>
-            {!debounced && 'Ajoutez les librairies qui distribuent vos livres en dépôt-vente.'}
-          </div>
+          <div className={sty['empty-title']}>Aucun résultat pour « {debounced} »</div>
         </div>
+      )}
+
+      {!isLoading && !isError && items.length === 0 && !debounced && (
+        <MascoteBlock
+          slug="depots-vide"
+          onCta={() => setShowCreate(true)}
+        />
       )}
 
       {!isLoading && !isError && items.length > 0 && (

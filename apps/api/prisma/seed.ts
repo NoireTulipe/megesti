@@ -75,6 +75,12 @@ async function main() {
       { text: '💡 Les auteurs ME — avec gestion de contrats et calcul automatique des droits — sont disponibles à partir du plan Édition. En plan Auto-édition, tu peux consulter le Réseau et importer des auteurs, mais la gestion contractuelle est réservée aux structures qui publient plusieurs auteurs.', cta: { label: 'Ajouter mon premier auteur →', href: '' } },
     ]},
 
+    { slug: 'depots-vide', description: 'Dépôts libraires — aucun dépôt enregistré', bulles: [
+      { title: 'Tes dépôts en librairie 📚', text: 'Tu confies des exemplaires de tes livres à une librairie partenaire — elle les expose, les vend pour toi à ton prix public, et te reverse ta part selon une commission convenue. C\'est le dépôt-vente : tu restes propriétaire des livres jusqu\'à leur vente, aucun intermédiaire ne te les rachète.' },
+      { text: 'Pour chaque dépôt, MeGesti suit les quantités envoyées, les quantités vendues et ce qu\'il reste en rayon. Fini les calculs sur un coin de nappe : tu sais à tout moment ce que chaque librairie te doit.' },
+      { text: 'Quand la librairie te verse ta part, enregistre le reversement ici. MeGesti met à jour le solde et conserve l\'historique — précieux pour ta comptabilité et tes relations partenaires.', cta: { label: 'Référencer ma première librairie →', href: '' } },
+    ]},
+
     { slug: 'maisons-vide', description: 'Maisons d\'édition — aucune entrée', bulles: [
       { title: 'Ton carnet de maisons d\'édition ! 📚', text: 'Ici, tu recenses les maisons d\'édition partenaires ou celles que tu surveilles — concurrentes, complémentaires, coéditrices potentielles… C\'est la mémoire de ton réseau professionnel éditorial.\n\nEt pourquoi pas y noter la maison d\'édition qui te fait de l\'œil… ou celle qui pourrait bien te faire signe un jour ? 😉' },
       { text: 'Pour chaque maison, tu notes ses contacts clés, son adresse, son site, ses spécialités… Plus besoin de chercher un numéro de téléphone en plein salon quand on n\'a pas le temps.' },
