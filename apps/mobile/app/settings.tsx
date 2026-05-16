@@ -119,7 +119,7 @@ export default function SettingsScreen() {
   function handleLogout() {
     Alert.alert('Déconnexion', 'Voulez-vous vous déconnecter ?', [
       { text: 'Annuler', style: 'cancel' },
-      { text: 'Déconnexion', style: 'destructive', onPress: () => logout() },
+      { text: 'Déconnexion', style: 'destructive', onPress: async () => { await logout(); router.replace('/') } },
     ])
   }
 
