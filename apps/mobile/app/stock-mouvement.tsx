@@ -118,7 +118,7 @@ export default function StockMouvementScreen() {
 
       <ScrollView contentContainerStyle={[s.body, { paddingBottom: insets.bottom + 24 }]} showsVerticalScrollIndicator={false}>
         {/* Stock actuel */}
-        <View style={[s.stockCard, isDark && { backgroundColor: Dark.surface }]}>
+        <View style={[s.stockCard, isDark && { backgroundColor: Dark.surface, shadowColor: 'transparent', elevation: 0 }]}>
           <Text style={[s.stockLabel, isDark && { color: Dark.textSoft }]}>Stock actuel</Text>
           <Text style={[s.stockVal, isDark && { color: Dark.text }]}>{stockActuel}</Text>
         </View>
@@ -126,21 +126,29 @@ export default function StockMouvementScreen() {
         {/* Sélecteur de mode */}
         <View style={s.modeRow}>
           {([
-            { m: '-' as Mode, label: 'Sortie',    emoji: '−', color: '#ef4444' },
-            { m: '=' as Mode, label: 'Affecter',  emoji: '=', color: Colors.ink },
-            { m: '+' as Mode, label: 'Entrée',    emoji: '+', color: Colors.sage },
-          ]).map(({ m, label, emoji, color }) => (
-            <TouchableOpacity key={m}
-              style={[s.modeBtn, mode === m && { borderColor: color, backgroundColor: color + '15' }]}
-              activeOpacity={0.7} onPress={() => { setMode(m); setQuantite(0) }}>
-              <Text style={[s.modeEmoji]}>{emoji}</Text>
-              <Text style={[s.modeLabel, mode === m && { color }]}>{label}</Text>
-            </TouchableOpacity>
-          ))}
+            { m: '-' as Mode, label: 'Sortie',    emoji: '−', outline: '#ef4444', bg: '#fef2f2', bgDark: 'rgba(239,68,68,0.15)', text: '#dc2626' },
+            { m: '=' as Mode, label: 'Affecter',  emoji: '=', outline: isDark ? 'rgba(255,255,255,0.5)' : Colors.inkLight, bg: isDark ? 'rgba(255,255,255,0.08)' : '#F0EEFA', bgDark: 'rgba(255,255,255,0.1)', text: isDark ? Dark.text : Colors.ink },
+            { m: '+' as Mode, label: 'Entrée',    emoji: '+', outline: '#22c55e', bg: '#f0fdf4', bgDark: 'rgba(34,197,94,0.12)', text: '#15803d' },
+          ]).map(({ m, label, emoji, outline, bg, bgDark, text }) => {
+            const active = mode === m
+            return (
+              <TouchableOpacity key={m}
+                style={[
+                  s.modeBtn,
+                  { borderColor: outline },
+                  active && { backgroundColor: isDark ? bgDark : bg, borderWidth: 2.5 },
+                  isDark && !active && { backgroundColor: Dark.surface },
+                ]}
+                activeOpacity={0.7} onPress={() => { setMode(m); setQuantite(0) }}>
+                <Text style={[s.modeEmoji]}>{emoji}</Text>
+                <Text style={[s.modeLabel, active && { color: text, fontWeight: '700' }, isDark && !active && { color: Dark.textSoft }]}>{label}</Text>
+              </TouchableOpacity>
+            )
+          })}
         </View>
 
         {/* Stepper quantité */}
-        <View style={[s.qteCard, isDark && { backgroundColor: Dark.surface }]}>
+        <View style={[s.qteCard, isDark && { backgroundColor: Dark.surface, shadowColor: 'transparent', elevation: 0 }]}>
           <Text style={[s.qteTitle, isDark && { color: Dark.textSoft }]}>
             {mode === '=' ? 'Nouvelle valeur' : mode === '+' ? 'Quantité à ajouter' : 'Quantité à retirer'}
           </Text>
@@ -150,7 +158,7 @@ export default function StockMouvementScreen() {
               <Text style={[s.qteBtnText, isDark && { color: Dark.text }]}>−</Text>
             </TouchableOpacity>
             <TextInput
-              style={[s.qteInput, isDark && { color: Dark.text, borderColor: 'rgba(255,255,255,0.1)' }]}
+              style={[s.qteInput, isDark && { color: Dark.text, borderColor: 'rgba(255,255,255,0.12)', backgroundColor: Dark.bg }]}
               keyboardType="number-pad"
               value={String(quantite)}
               onChangeText={t => setQuantite(Math.max(0, parseInt(t) || 0))}
@@ -173,14 +181,21 @@ export default function StockMouvementScreen() {
             <View style={s.motifGrid}>
               {MOTIFS_SORTIE.map(m => {
                 const active = motifType.type === m.type
-                const color = active ? '#ef4444' : undefined
                 return (
                   <TouchableOpacity key={m.type}
-                    style={[s.motifCard, active && { borderColor: '#ef4444', backgroundColor: '#fef2f2' },
-                      isDark && !active && { backgroundColor: Dark.surface }, isDark && active && { backgroundColor: 'rgba(239,68,68,0.12)' }]}
+                    style={[
+                      s.motifCard,
+                      active && { borderColor: '#ef4444', borderWidth: 2.5, backgroundColor: isDark ? 'rgba(239,68,68,0.15)' : '#fef2f2' },
+                      !active && isDark && { backgroundColor: Dark.surface, borderColor: 'rgba(255,255,255,0.08)' },
+                      !active && !isDark && { borderColor: Colors.creamDark },
+                    ]}
                     activeOpacity={0.7} onPress={() => setMotifType(m)}>
                     <Text style={s.motifEmoji}>{m.emoji}</Text>
-                    <Text style={[s.motifLabel, active && { color: '#ef4444', fontWeight: '700' }, isDark && !active && { color: Dark.text }]}>{m.label}</Text>
+                    <Text style={[
+                      s.motifLabel,
+                      active && { color: '#ef4444', fontWeight: '700' },
+                      isDark && !active && { color: Dark.text },
+                    ]}>{m.label}</Text>
                   </TouchableOpacity>
                 )
               })}
@@ -189,10 +204,10 @@ export default function StockMouvementScreen() {
         )}
 
         {/* Note libre */}
-        <View style={[s.noteCard, isDark && { backgroundColor: Dark.surface }]}>
+        <View style={[s.noteCard, isDark && { backgroundColor: Dark.surface, shadowColor: 'transparent', elevation: 0 }]}>
           <Text style={[s.noteTitle, isDark && { color: Dark.textSoft }]}>Note (optionnel)</Text>
           <TextInput
-            style={[s.noteInput, isDark && { color: Dark.text, borderColor: 'rgba(255,255,255,0.1)' }]}
+            style={[s.noteInput, isDark && { color: Dark.text, borderColor: 'rgba(255,255,255,0.1)', backgroundColor: Dark.bg }]}
             placeholder="Observation, référence…"
             placeholderTextColor={isDark ? 'rgba(255,255,255,0.3)' : Colors.textSoft}
             value={note}
@@ -202,12 +217,12 @@ export default function StockMouvementScreen() {
 
         {/* Prévisualisation */}
         {(quantite > 0 || mode === '=') && (
-          <View style={[s.preview, isDark && { backgroundColor: Dark.surface }]}>
+          <View style={[s.preview, isDark && { backgroundColor: Dark.surface, shadowColor: 'transparent', elevation: 0 }]}>
             <View style={s.previewRow}>
               <Text style={[s.previewLabel, isDark && { color: Dark.textSoft }]}>Stock actuel</Text>
               <Text style={[s.previewVal, isDark && { color: Dark.text }]}>{stockActuel}</Text>
             </View>
-            <View style={s.previewSep} />
+            <View style={[s.previewSep, isDark && { backgroundColor: 'rgba(255,255,255,0.06)' }]} />
             <View style={s.previewRow}>
               <Text style={[s.previewLabel, isDark && { color: Dark.textSoft }]}>Stock après</Text>
               <View style={s.previewAfter}>
@@ -275,7 +290,7 @@ const s = StyleSheet.create({
   // Mode
   modeRow: { flexDirection: 'row', gap: 10, marginBottom: 16 },
   modeBtn: {
-    flex: 1, borderRadius: Radius.lg, borderWidth: 2, borderColor: Colors.creamDark,
+    flex: 1, borderRadius: Radius.lg, borderWidth: 2,
     paddingVertical: 14, alignItems: 'center', gap: 4, backgroundColor: Colors.white,
   },
   modeEmoji: { fontSize: 24 },
@@ -302,7 +317,7 @@ const s = StyleSheet.create({
   motifTitle: { fontFamily: Fonts.body, fontSize: 13, color: Colors.textSoft, marginBottom: 10 },
   motifGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   motifCard: {
-    width: '48%', borderRadius: Radius.lg, borderWidth: 2, borderColor: 'transparent',
+    width: '48%', borderRadius: Radius.lg, borderWidth: 2, borderColor: Colors.creamDark,
     padding: 14, backgroundColor: Colors.white, alignItems: 'center', gap: 4,
     ...Shadow.card,
   },

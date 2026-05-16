@@ -47,7 +47,7 @@ export function AppLayout({ children }: AppLayoutProps) {
       />
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
         <Header />
-        <main style={{ flex: 1, overflowY: 'auto', position: 'relative', zIndex: 2 }}>
+        <main style={{ flex: 1, overflowY: 'auto', position: 'relative' }}>
           {children}
         </main>
       </div>

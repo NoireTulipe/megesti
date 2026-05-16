@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import * as SecureStore from 'expo-secure-store'
 import { api, setTokenGetter } from '@/lib/api'
+import { getDb } from '@/lib/db'
 
 const TOKEN_KEY = 'megesti_token'
 const USER_KEY  = 'megesti_user'
@@ -64,6 +65,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     await SecureStore.deleteItemAsync(TOKEN_KEY)
     await SecureStore.deleteItemAsync(USER_KEY)
     set({ token: null, user: null })
+    // Vider les tables locales pour ne pas garder les données du compte précédent
+    try {
+      const db = await getDb()
+      await db.execAsync('DELETE FROM ventes_locales')
+      await db.execAsync('DELETE FROM frais_locaux')
+      await db.execAsync('DELETE FROM sessions')
+      await db.execAsync('DELETE FROM articles')
+      await db.execAsync('DELETE FROM sync_queue')
+    } catch {}
   },
 
   // ── Hydrate depuis le SecureStore ──

@@ -82,6 +82,9 @@ export function useLocalArticles(ids?: string[]) {
       const db = await getDb()
       const filtered = articleIds ? data.filter(a => articleIds.includes(a.id)) : data
 
+      // Vider la table avant de la repeupler = source de vérité serveur
+      await db.execAsync('DELETE FROM articles')
+
       for (const a of filtered) {
         const imageUrl = fullUrl(a.imageUrl)
         const thumbAppUrl = imageUrl?.replace('thumb_web', 'thumb_app') ?? null
