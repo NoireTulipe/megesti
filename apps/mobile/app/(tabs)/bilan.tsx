@@ -174,18 +174,18 @@ async function loadBilan(from: string, to: string, mode: PeriodMode): Promise<Bi
 
 // ─── Composants ───────────────────────────────────────────────────────
 
-function ModeBar({ item, maxCa }: { item: ModePaiement; maxCa: number }) {
+function ModeBar({ item, maxCa, isDark }: { item: ModePaiement; maxCa: number; isDark: boolean }) {
   const pct = maxCa > 0 ? item.ca / maxCa : 0
   return (
     <View style={mb.row}>
       <Text style={mb.emoji}>{MODE_EMOJI[item.mode] ?? '💰'}</Text>
       <View style={{ flex: 1 }}>
         <View style={mb.labelRow}>
-          <Text style={mb.label}>{MODE_LABEL[item.mode] ?? item.mode}</Text>
-          <Text style={mb.count}>{item.count} vte{item.count > 1 ? 's' : ''}</Text>
+          <Text style={[mb.label, isDark && { color: Dark.text }]}>{MODE_LABEL[item.mode] ?? item.mode}</Text>
+          <Text style={[mb.count, isDark && { color: Dark.textSoft }]}>{item.count} vte{item.count > 1 ? 's' : ''}</Text>
           <Text style={mb.ca}>{item.ca.toFixed(0)} €</Text>
         </View>
-        <View style={mb.track}>
+        <View style={[mb.track, isDark && { backgroundColor: 'rgba(255,255,255,0.1)' }]}>
           <View style={[mb.fill, { width: `${Math.round(pct * 100)}%` }]} />
         </View>
       </View>
@@ -574,8 +574,8 @@ export default function BilanScreen() {
         {totaux.venteCount === 0 ? (
           <View style={[styles.emptyCard, isDark && { backgroundColor: Dark.surface, shadowColor: 'transparent', elevation: 0 }]}>
             <Text style={styles.emptyEmoji}>📊</Text>
-            <Text style={styles.emptyTitle}>Aucune vente sur cette période</Text>
-            <Text style={styles.emptySub}>Modifiez la période ou enregistrez des ventes.</Text>
+            <Text style={[styles.emptyTitle, isDark && { color: Dark.textSoft }]}>Aucune vente sur cette période</Text>
+            <Text style={[styles.emptySub, isDark && { color: Dark.textSoft }]}>Modifiez la période ou enregistrez des ventes.</Text>
           </View>
         ) : (
           <>
@@ -590,7 +590,7 @@ export default function BilanScreen() {
             {parMode.length > 0 && (
               <Section isDark={isDark} title="Modes de paiement">
                 {parMode.map(item => (
-                  <ModeBar key={item.mode} item={item} maxCa={maxModeCa} />
+                  <ModeBar key={item.mode} item={item} maxCa={maxModeCa} isDark={isDark} />
                 ))}
               </Section>
             )}
@@ -600,12 +600,12 @@ export default function BilanScreen() {
               <Section isDark={isDark} title={`Top articles (${topArticles.length})`}>
                 {topArticles.map((a, i) => (
                   <View key={i} style={styles.artRow}>
-                    <View style={styles.artRank}>
+                    <View style={[styles.artRank, isDark && { backgroundColor: 'rgba(255,255,255,0.08)' }]}>
                       <Text style={styles.artRankTxt}>{i + 1}</Text>
                     </View>
-                    <Text style={styles.artNom} numberOfLines={2}>{a.nom}</Text>
+                    <Text style={[styles.artNom, isDark && { color: Dark.text }]} numberOfLines={2}>{a.nom}</Text>
                     <View style={styles.artRight}>
-                      <Text style={styles.artQty}>×{a.qty}</Text>
+                      <Text style={[styles.artQty, isDark && { color: Dark.textSoft }]}>×{a.qty}</Text>
                       <Text style={styles.artCa}>{a.ca.toFixed(0)} €</Text>
                     </View>
                   </View>
@@ -618,8 +618,8 @@ export default function BilanScreen() {
               <Section isDark={isDark} title={`Top points de vente (${parPdv.length})`}>
                 {parPdv.map((p, i) => (
                   <View key={i} style={styles.pdvRow}>
-                    <Text style={styles.pdvNom} numberOfLines={1}>{p.nom}</Text>
-                    <Text style={styles.pdvCount}>{p.count} vte{p.count > 1 ? 's' : ''}</Text>
+                    <Text style={[styles.pdvNom, isDark && { color: Dark.text }]} numberOfLines={1}>{p.nom}</Text>
+                    <Text style={[styles.pdvCount, isDark && { color: Dark.textSoft }]}>{p.count} vte{p.count > 1 ? 's' : ''}</Text>
                     <Text style={styles.pdvCa}>{p.ca.toFixed(0)} €</Text>
                   </View>
                 ))}
@@ -630,15 +630,15 @@ export default function BilanScreen() {
             {sessions.length > 0 && (
               <Section isDark={isDark} title={`Top sessions (${sessions.length})`}>
                 {sessions.map((s, i) => (
-                  <View key={s.session_id} style={[styles.sesRow, i < sessions.length - 1 && styles.sesRowBorder]}>
+                  <View key={s.session_id} style={[styles.sesRow, i < sessions.length - 1 && (isDark ? { borderBottomColor: 'rgba(255,255,255,0.06)' } : styles.sesRowBorder)]}>
                     <View style={styles.sesLeft}>
-                      <Text style={styles.sesPdv} numberOfLines={1}>{s.pdv}</Text>
-                      <Text style={styles.sesDate}>{fmtDate(s.date)}</Text>
-                      {s.frais > 0 && <Text style={styles.sesFrais}>Frais : {s.frais.toFixed(0)} €</Text>}
+                      <Text style={[styles.sesPdv, isDark && { color: Dark.text }]} numberOfLines={1}>{s.pdv}</Text>
+                      <Text style={[styles.sesDate, isDark && { color: Dark.textSoft }]}>{fmtDate(s.date)}</Text>
+                      {s.frais > 0 && <Text style={[styles.sesFrais, isDark && { color: Dark.textSoft }]}>Frais : {s.frais.toFixed(0)} €</Text>}
                     </View>
                     <View style={styles.sesRight}>
-                      <Text style={styles.sesCa}>{s.ca.toFixed(0)} €</Text>
-                      <Text style={styles.sesVentes}>{s.venteCount} vte{s.venteCount > 1 ? 's' : ''}</Text>
+                      <Text style={[styles.sesCa, isDark && { color: Dark.text }]}>{s.ca.toFixed(0)} €</Text>
+                      <Text style={[styles.sesVentes, isDark && { color: Dark.textSoft }]}>{s.venteCount} vte{s.venteCount > 1 ? 's' : ''}</Text>
                     </View>
                   </View>
                 ))}
