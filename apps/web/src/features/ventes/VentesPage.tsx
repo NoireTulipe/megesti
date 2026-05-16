@@ -1,5 +1,6 @@
 import { generateUUID } from '@/lib/utils'
 import { useState, useMemo } from 'react'
+import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import { usePointsDeVente } from './hooks/usePointsDeVente'
 import { useSessionsCaisse, useOpenSessionCaisse, useCloseSessionCaisse } from './hooks/useSessionsCaisse'
@@ -886,7 +887,7 @@ export function VentesPage() {
       </div>
 
       {/* •"?•"? Modale bilan •"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"? */}
-      {showBilan && (
+      {showBilan && createPortal(
         <div className={styles.bilanOverlay}>
           <div className={styles.bilanPanel}>
             <BilanSession
@@ -900,7 +901,8 @@ export function VentesPage() {
               onClose={() => setShowBilan(false)}
             />
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       <VenteHorsSessionModal isOpen={showHorsSession} onClose={() => setShowHorsSession(false)} />
