@@ -224,6 +224,33 @@ Pour import KDP / Kobo / Bookelis / BoD / Librinova :
 
 ---
 
+## 5bis. État d'implémentation (mai 2026)
+
+| Domaine | Statut |
+|---|---|
+| Monorepo pnpm + packages shared/business | ✅ En place |
+| Backend Fastify + Prisma + PostgreSQL | ✅ En place |
+| Multi-tenant (tenantId + middleware) | ✅ En place (RLS PG non activé) |
+| Frontend React + Vite + Tailwind + shadcn/ui | ✅ En place |
+| React Query + Zustand | ✅ En place |
+| React Hook Form + Zod | ✅ En place |
+| Plan gating (planFeatures.ts + FeatureGate) | ✅ En place |
+| Conformité caisse (hash chain + archivage) | ✅ En place |
+| Droits d'auteur (calcul, références, retards) | ✅ En place |
+| Champs personnalisés (FormBuilder) | ✅ En place |
+| Admin panel (tenants, mascotte, popups) | ✅ En place |
+| App mobile React Native + Expo | ✅ En place (Android) |
+| BullMQ + Redis (jobs) | ✅ En place |
+| Stripe (abonnements SaaS) | ⏳ Schéma prêt, intégration à faire |
+| Upload image / Object Storage | ⏳ À faire |
+| SumUp SDK natif | ⏳ Stub uniquement |
+| Facturation électronique (PDP) | ⏳ Abstraction définie, intégration à faire |
+| Export comptable (FEC, Pennylane) | ⏳ À faire |
+| Tests d'intégration API | ⏳ À faire |
+| Monitoring (Sentry, Better Uptime) | ⏳ À faire |
+
+---
+
 ## 6. Outillage tiers à prévoir
 
 ### Avant le premier client payant

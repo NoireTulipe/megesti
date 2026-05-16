@@ -185,13 +185,21 @@
 }
 .btnBilan:hover { background: #DCFCE7; }
 
-.btnChanger {
-  height: 34px; padding: 0 14px; background: transparent;
-  border: 1.5px solid #BBF7D0; color: #166534; border-radius: 8px;
-  font-size: 0.8rem; font-weight: 500; cursor: pointer;
-  transition: background var(--t);
+.btnChangerPdv {
+  display: inline-flex; align-items: center; gap: 5px;
+  height: 24px; padding: 0 10px; flex-shrink: 0;
+  background: #fff; border: 1.5px solid #86EFAC; color: #15803D;
+  border-radius: var(--r-pill); font-size: 0.7rem; font-weight: 700;
+  cursor: pointer; white-space: nowrap; font-family: inherit;
+  box-shadow: 0 1px 4px rgba(34,197,94,0.12);
+  transition: background var(--t), border-color var(--t), box-shadow var(--t), transform var(--t);
 }
-.btnChanger:hover { background: #DCFCE7; }
+.btnChangerPdv:hover {
+  background: #DCFCE7; border-color: #4ADE80;
+  box-shadow: 0 2px 8px rgba(34,197,94,0.22);
+  transform: translateY(-1px);
+}
+.btnChangerPdv:active { transform: scale(0.97); }
 
 .btnFermer {
   height: 34px; padding: 0 14px; background: #FEF2F2;

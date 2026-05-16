@@ -185,18 +185,8 @@ export const droitsAuteurRoutes: FastifyPluginAsync = async (app) => {
       include: { auteur: { select: { id: true, prenom: true, nom: true } } },
     })
 
-    // Mettre à jour la prochaine date de versement sur le contrat
-    if (contrat.periodicite) {
-      const prochaine = prochaineDateVersement(
-        contrat.periodicite,
-        contrat.datesFixesJSON,
-        new Date(body.dateVersement),
-      )
-      await app.db.contratAuteur.update({
-        where: { id: contrat.id },
-        data:  { prochainVersement: prochaine },
-      })
-    }
+    // prochainVersement reste figé jusqu'au paiement effectif (PAYE).
+    // L'avancement se fait dans le PATCH ci-dessous.
 
     return reply.status(201).send(paiement)
   })
@@ -210,13 +200,31 @@ export const droitsAuteurRoutes: FastifyPluginAsync = async (app) => {
     const existing = await app.db.paiementDA.findFirst({ where: { id, tenantId } })
     if (!existing) return reply.notFound()
 
-    return app.db.paiementDA.update({
+    const updated = await app.db.paiementDA.update({
       where: { id },
       data: {
         ...body,
         ...(body.dateVersement ? { dateVersement: new Date(body.dateVersement) } : {}),
       },
     })
+
+    // Avancer prochainVersement uniquement au moment du paiement effectif.
+    // Tant que le paiement est PREVU (même en retard), la date d'échéance reste figée.
+    if (body.statut === 'PAYE') {
+      const contrat = await app.db.contratAuteur.findFirst({
+        where: { id: existing.contratId, tenantId },
+      })
+      if (contrat?.periodicite) {
+        const dateBase  = body.dateVersement ? new Date(body.dateVersement) : existing.dateVersement
+        const prochaine = prochaineDateVersement(contrat.periodicite, contrat.datesFixesJSON, dateBase)
+        await app.db.contratAuteur.update({
+          where: { id: contrat.id },
+          data:  { prochainVersement: prochaine },
+        })
+      }
+    }
+
+    return updated
   })
 
   // ── Appliquer la périodicité d'un contrat à tous les contrats de l'auteur ──

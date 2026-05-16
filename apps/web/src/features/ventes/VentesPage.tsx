@@ -380,6 +380,16 @@ export function VentesPage() {
         <div className={styles.sessionBarLeft}>
           <span className={styles.sessionBarDot} />
           <span className={styles.sessionBarPDV}>{activeSession.pointDeVente.nom}</span>
+          <button
+            className={styles.btnChangerPdv}
+            onClick={() => { setActiveSessionId(null); setCart([]) }}
+          >
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M16 3l4 4-4 4"/><path d="M20 7H4"/>
+              <path d="M8 21l-4-4 4-4"/><path d="M4 17h16"/>
+            </svg>
+            Changer de PdV
+          </button>
           {activeSession.nom && <span className={styles.sessionBarNom}>— {activeSession.nom}</span>}
           <span className={styles.sessionBarTime}>depuis {fmtTime(activeSession.dateOuverture)}</span>
         </div>
@@ -418,12 +428,6 @@ export function VentesPage() {
           </button>
           <button className={styles.btnBilan} onClick={() => setShowBilan(true)}>
             Bilan
-          </button>
-          <button
-            className={styles.btnChanger}
-            onClick={() => { setActiveSessionId(null); setCart([]) }}
-          >
-            … Changer
           </button>
           <button className={styles.btnFermer} onClick={() => setShowCloseModal(true)}>
             Fermer la session
@@ -505,7 +509,7 @@ export function VentesPage() {
                             className={`${styles.qtyBtn} ${l.quantite === 1 ? styles.qtyBtnDanger : ''}`}
                             onClick={() => updateQty(l.articleId, -1)}
                           >
-                            {l.quantite === 1 ? '?' : '?'}
+                            {l.quantite === 1 ? '✕' : '−'}
                           </button>
                           <span className={styles.qtyValue}>{l.quantite}</span>
                           <button className={styles.qtyBtn} onClick={() => updateQty(l.articleId, 1)}>+</button>
@@ -527,7 +531,7 @@ export function VentesPage() {
                               }}
                               autoFocus
                             />
-                            <button className={styles.prixEditSave} onClick={() => confirmPrixEdit(l.articleId)}>•o"</button>
+                            <button className={styles.prixEditSave} onClick={() => confirmPrixEdit(l.articleId)}>✓</button>
                             <button className={styles.prixEditCancel} onClick={() => { setEditPrixId(null); setEditPrixVal('') }}>✕</button>
                           </div>
                         ) : (
@@ -544,7 +548,7 @@ export function VentesPage() {
                             <span className={hasRemise ? styles.prixRemise : styles.prixNormal}>
                               {prixAff.toFixed(2)} €
                             </span>
-                            <span className={styles.editPrixIcon}>•oZ</span>
+                            <span className={styles.editPrixIcon}>✎</span>
                           </button>
                         )}
                         <span className={styles.cartLineSubtotal}>
@@ -628,7 +632,7 @@ export function VentesPage() {
               {fraisSession.filter(f => f.actif).reduce((s, f) => s + (f.montantHT ? parseFloat(f.montantHT) : 0), 0).toFixed(2)} € HT
             </span>
           )}
-          <span className={styles.sectionAccChevron} style={{ transform: fraisOpen ? 'rotate(180deg)' : undefined }}>•-•</span>
+          <svg className={styles.sectionAccChevron} style={{ transform: fraisOpen ? 'rotate(180deg)' : undefined }} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
 
         {fraisOpen && (
@@ -733,7 +737,7 @@ export function VentesPage() {
         <button className={styles.sectionAccHead} onClick={() => setVentesOpen(o => !o)}>
           <span className={styles.sectionAccTitle}>Ventes de la session</span>
           <span className={styles.sectionAccCount}>{ventes.filter(v => v.statut === 'VALIDEE').length}</span>
-          <span className={styles.sectionAccChevron} style={{ transform: ventesOpen ? 'rotate(180deg)' : undefined }}>•-•</span>
+          <svg className={styles.sectionAccChevron} style={{ transform: ventesOpen ? 'rotate(180deg)' : undefined }} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
 
         {ventesOpen && (
@@ -759,7 +763,7 @@ export function VentesPage() {
                     <div className={styles.venteSessionArticles}>
                       {v.lignes.map(l => (
                         <span key={l.id} className={styles.venteSessionPill}>
-                          {l.article.nom}{l.quantite > 1 ? ` •-${l.quantite}` : ''}
+                          {l.article.nom}{l.quantite > 1 ? ` ×${l.quantite}` : ''}
                         </span>
                       ))}
                     </div>
@@ -901,7 +905,7 @@ function ModalOuvrirSession({
             <option value="">— Sélectionner —</option>
             {salons.length > 0 && (
               <optgroup label="Salons &amp; événements">
-                {salons.map((p) => <option key={p.id} value={p.id}>•YZ• {p.nom}</option>)}
+                {salons.map((p) => <option key={p.id} value={p.id}>{p.nom}</option>)}
               </optgroup>
             )}
             {fixes.length > 0 && (
