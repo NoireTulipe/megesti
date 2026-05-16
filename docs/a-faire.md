@@ -11,13 +11,13 @@
 ### 0.1 Droits auteur : prochainVersement figé sur le retard
 **Comportement attendu** : si un versement est en retard, `prochainVersement` doit rester à la date originale jusqu'au paiement effectif (statut `PAYE`). Actuellement, créer un paiement en `PREVU` avance déjà la date.
 - `apps/api/src/routes/droits-auteur.ts` : déplacer la mise à jour de `prochainVersement` dans le PATCH qui passe en `PAYE`, pas dans le POST de création.
-- Afficher le montant en retard avec la date d'échéance originale côté UI.
+- Afficher le montant en retard avec la date d'échéance originale côté UI. **=> FAIT, à tester en pré-prod.**
 
 ### 0.2 Reversement bloqué plan Auto-éditeur
-En plan Auto-édition, quand une vente est enregistrée en caisse (session ouverte), le reversement de la session est créé mais le module Reversements est gated → l'éditeur ne peut pas encaisser. Décision à prendre : ouvrir le suivi des reversements pour toutes les sessions quel que soit le plan, ou adapter la règle métier.
+En plan Auto-édition, quand une vente est enregistrée en caisse (session ouverte), le reversement de la session est créé mais le module Reversements est gated → l'éditeur ne peut pas encaisser. Décision à prendre : ouvrir le suivi des reversements pour toutes les sessions quel que soit le plan, ou adapter la règle métier. **FAIT, à tester en pré-prod.**
 
 ### 0.3 Bug catalogue : images prises depuis l'app mobile
-Les images uploadées via l'app ne s'affichent pas correctement dans le catalogue web. À reproduire + corriger (URL de l'image ? CORS ? chemin relatif ?). => normalement c'est réglé à vérifier.
+Les images uploadées via l'app ne s'affichent pas correctement dans le catalogue web. À reproduire + corriger (URL de l'image ? CORS ? chemin relatif ?). **FAIT => normalement c'est réglé à vérifier.**
 
 ### 0.4 Dette technique : noImplicitAny
 `noImplicitAny: false` est un fix pragmatique actuel. À remettre à `true` et corriger les callbacks implicites restants dans les routes et composants. Pas urgent, mais avant toute commercialisation.

@@ -173,13 +173,24 @@ export const articleRoutes: FastifyPluginAsync = async (app) => {
     const { tenantId } = request.tenant
     const { id } = request.params as { id: string }
 
+    request.log.info(`[upload] Requête reçue — article=${id} tenant=${tenantId} content-type=${request.headers['content-type']}`)
+
     const existing = await app.db.article.findFirst({ where: { id, tenantId } })
-    if (!existing) return reply.notFound()
+    if (!existing) {
+      request.log.warn(`[upload] Article non trouvé: ${id}`)
+      return reply.notFound()
+    }
 
     const data = await request.file()
-    if (!data) return reply.badRequest('Aucun fichier reçu')
+    if (!data) {
+      request.log.warn(`[upload] Aucun fichier reçu — request.file() = undefined`)
+      return reply.badRequest('Aucun fichier reçu')
+    }
+
+    request.log.info(`[upload] Fichier reçu — fieldname=${data.fieldname} filename=${data.filename} mimetype=${data.mimetype}`)
 
     const buffer = await data.toBuffer()
+    request.log.info(`[upload] Buffer extrait — ${buffer.length} octets`)
 
     const uploadDir = path.join(
       process.env['UPLOAD_DIR'] ?? path.join(process.cwd(), 'uploads'),
@@ -198,13 +209,16 @@ export const articleRoutes: FastifyPluginAsync = async (app) => {
         .toFile(path.join(uploadDir, 'thumb_web.jpg')),
     ])
 
+    request.log.info(`[upload] Thumbnails générés -> ${uploadDir}`)
+
     const thumbWebUrl = `/uploads/articles/${id}/thumb_web.jpg`
 
-    // On stocke le thumb_web dans imageUrl (utilisé par le web SaaS)
     await app.db.article.update({
       where: { id },
       data:  { imageUrl: thumbWebUrl },
     })
+
+    request.log.info(`[upload] Terminé — thumbWebUrl=${thumbWebUrl}`)
 
     return {
       thumbAppUrl: `/uploads/articles/${id}/thumb_app.jpg`,

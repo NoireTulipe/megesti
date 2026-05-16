@@ -112,23 +112,28 @@ export function useLocalArticles(ids?: string[]) {
   }, [refresh])
 
   const uploadImage = useCallback(async (articleId: string, imageUri: string): Promise<string | null> => {
+    addLog('info', `[uploadImage] Début — article=${articleId} uri=${imageUri.substring(0, 50)}…`)
     try {
       const filename = imageUri.split('/').pop() ?? 'photo.jpg'
+      addLog('info', `[uploadImage] Construction FormData — filename=${filename}`)
       const formData = new FormData()
       formData.append('file', { uri: imageUri, name: filename, type: 'image/jpeg' } as any)
+      addLog('info', `[uploadImage] FormData construit, envoi fetch…`)
 
       const result = await api.upload<UploadResponse>(`/articles/${articleId}/image`, formData)
+      addLog('info', `[uploadImage] Réponse serveur: ${JSON.stringify(result)}`)
       const thumbUrl = fullUrl(result.thumbAppUrl)
 
       if (thumbUrl) {
+        addLog('info', `[uploadImage] Mise à jour DB locale: ${thumbUrl}`)
         const db = await getDb()
         await db.runAsync('UPDATE articles SET thumb_app_url = ? WHERE id = ?', [thumbUrl, articleId])
         await refresh()
       }
-      addLog('info', `Image mise à jour: ${articleId}`)
+      addLog('info', `[uploadImage] Succès: ${articleId}`)
       return thumbUrl
     } catch (e: any) {
-      addLog('error', `Échec upload image: ${e?.message}`)
+      addLog('error', `[uploadImage] ERREUR: ${e?.message} (status=${e?.status})`)
       return null
     }
   }, [refresh, addLog])

@@ -20,6 +20,7 @@ import { Colors, Dark, Fonts, Radius, Shadow, Gradients } from '@/constants/them
 import { useAppTheme } from '@/hooks/useAppTheme'
 import { usePaymentModesStore, ALL_PAYMENT_MODES, DEFAULT_PAYMENT_MODES } from '@/store/paymentModesStore'
 import { SumUp } from '@megesti/react-native-sumup'
+import { BarcodeIcon } from '@/components/BarcodeIcon'
 
 type PaymentMode = 'CB' | 'ESPECES' | 'CHEQUE' | 'VIREMENT' | 'PAYPAL' | 'SUMUP' | 'PDV'
 
@@ -494,6 +495,12 @@ export default function CaisseScreen() {
             <TextInput style={styles.searchInput} value={search} onChangeText={setSearch}
               placeholder="Titre, ISBN…" placeholderTextColor="rgba(255,255,255,0.45)" />
           </View>
+          <TouchableOpacity
+            style={styles.scanBtn}
+            activeOpacity={0.7}
+            onPress={() => router.push('/scanner?mode=vente')}>
+            <BarcodeIcon size={22} color={Colors.white} />
+          </TouchableOpacity>
         </View>
 
         {/* Rayons — toujours présent pour hauteur fixe du header */}
@@ -825,10 +832,11 @@ const styles = StyleSheet.create({
   remoteArrow: { fontFamily: Fonts.body, fontSize: 18, color: Colors.sage, fontWeight: '600' },
   remoteOr: { fontFamily: Fonts.body, fontSize: 12, color: Colors.textSoft, textAlign: 'center', marginBottom: 8, fontStyle: 'italic' },
 
-  searchRow: { flexDirection: 'row', paddingHorizontal: 20, marginBottom: 12 },
+  searchRow: { flexDirection: 'row', paddingHorizontal: 20, marginBottom: 12, gap: 10 },
   searchWrap: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: Radius.md, paddingHorizontal: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)' },
   searchIcon: { fontSize: 15, marginRight: 6 },
   searchInput: { flex: 1, fontFamily: Fonts.body, fontSize: 14, color: Colors.white, paddingVertical: 10 },
+  scanBtn: { width: 44, height: 44, borderRadius: Radius.md, backgroundColor: 'rgba(255,255,255,0.15)', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)' },
 
   rayonRow: { flexDirection: 'row', alignItems: 'center' },
   rayonArrow: { width: 32, alignItems: 'center', justifyContent: 'center', paddingVertical: 4 },

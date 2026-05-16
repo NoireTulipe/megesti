@@ -12,6 +12,7 @@ import { useCustomFields } from '@/features/reglages/hooks/useCustomFields'
 import { useCustomFieldValues, useSaveCustomFieldValues } from '@/features/reglages/hooks/useCustomFieldValues'
 import { validateCustomFields } from '@/lib/customFieldValidation'
 import { FIXED_SECTIONS } from '@/lib/fixedSections'
+import { usePlanFeatures } from '@/hooks/usePlanFeatures'
 import styles from '@/styles/entityForm.module.css'
 import fStyles from './PointDeVenteForm.module.css'
 
@@ -80,6 +81,9 @@ export function PointDeVenteForm({ onClose, pointDeVente }: Props) {
       })
     }
   }, [customValues, isEdit, setValue])
+
+  const { can, upgradeMessage } = usePlanFeatures()
+  const canReversements = can('reversements')
 
   const isError = isEdit ? update.isError : create.isError
 
@@ -177,12 +181,13 @@ export function PointDeVenteForm({ onClose, pointDeVente }: Props) {
           </button>
           <button
             type="button"
-            className={`${fStyles.encaissBtn} ${!encaissementDirect ? fStyles.encaissBtnActive : ''}`}
-            onClick={() => setValue('encaissementDirect', false)}
+            className={`${fStyles.encaissBtn} ${!encaissementDirect ? fStyles.encaissBtnActive : ''} ${!canReversements ? fStyles.encaissBtnLocked : ''}`}
+            onClick={() => canReversements && setValue('encaissementDirect', false)}
+            title={!canReversements ? upgradeMessage('reversements') : undefined}
           >
-            <span className={fStyles.encaissEmoji}>🏬</span>
+            <span className={fStyles.encaissEmoji}>{canReversements ? '🏬' : '🔒'}</span>
             <span className={fStyles.encaissLabel}>Par le point de vente</span>
-            <span className={fStyles.encaissDesc}>Le PDV encaisse, reverse ensuite</span>
+            <span className={fStyles.encaissDesc}>{canReversements ? 'Le PDV encaisse, reverse ensuite' : 'Plan Édition requis'}</span>
           </button>
         </div>
         <input type="hidden" {...register('encaissementDirect')} />

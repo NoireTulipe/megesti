@@ -19,7 +19,7 @@ interface SidebarProps {
 const NAV_FEATURE_GATES: Partial<Record<NavKey, keyof PlanFeatures>> = {
   depotsLibraires: 'depotsLibraires',
   droitsAuteur:    'droitsAuteur',
-  reversements:    'droitsAuteur',
+  reversements:    'reversements',
   charges:         'charges',
   imprimeurs:      'imprimeurs',
 }

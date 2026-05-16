@@ -1,5 +1,6 @@
 import type { FastifyPluginAsync } from 'fastify'
 import { z } from 'zod'
+import { getPlanFeatures } from '@megesti/shared'
 
 const ContactSchema = z.object({
   nom:          z.string().min(1),
@@ -58,6 +59,15 @@ export const pointDeVenteRoutes: FastifyPluginAsync = async (app) => {
   app.post('/', authAdmin, async (request, reply) => {
     const { tenantId } = request.tenant
     const { contacts, ...body } = CreateSchema.parse(request.body)
+
+    if (body.encaissementDirect === false && !getPlanFeatures(request.tenant.plan).reversements) {
+      return reply.status(402).send({
+        error:   'PlanUpgradeRequired',
+        feature: 'reversements',
+        message: "L'encaissement par le point de vente et la gestion des reversements sont disponibles à partir du plan Edition.",
+      })
+    }
+
     return reply.status(201).send(
       await app.db.pointDeVente.create({
         data: {
@@ -75,6 +85,14 @@ export const pointDeVenteRoutes: FastifyPluginAsync = async (app) => {
     const existing = await app.db.pointDeVente.findFirst({ where: { id, tenantId } })
     if (!existing) return reply.notFound()
     const { contacts, ...body } = PatchSchema.parse(request.body)
+
+    if (body.encaissementDirect === false && !getPlanFeatures(request.tenant.plan).reversements) {
+      return reply.status(402).send({
+        error:   'PlanUpgradeRequired',
+        feature: 'reversements',
+        message: "L'encaissement par le point de vente et la gestion des reversements sont disponibles à partir du plan Edition.",
+      })
+    }
 
     const rec = await app.db.$transaction(async (tx) => {
       if (contacts !== undefined) {

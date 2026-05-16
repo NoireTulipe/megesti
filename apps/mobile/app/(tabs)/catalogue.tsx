@@ -11,6 +11,7 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useLocalArticles, LocalArticle } from '@/hooks/useLocalArticles'
 import { useLocalSession } from '@/hooks/useLocalSession'
+import { useDevStore } from '@/store/devStore'
 import { Colors, Dark, Fonts, Radius, Shadow, Gradients } from '@/constants/theme'
 import { useAppTheme } from '@/hooks/useAppTheme'
 // ── Écran principal ──────────────────────────────────────────────────
@@ -26,6 +27,7 @@ export default function StockScreen() {
   const [uploading, setUploading] = useState(false)
   const { articles, pullFromServer, updateStock, uploadImage } = useLocalArticles()
   const { session } = useLocalSession()
+  const addLog = useDevStore(s => s.addLog)
   const [refreshing, setRefreshing] = useState(false)
 
   useFocusEffect(useCallback(() => { pullFromServer() }, [pullFromServer]))
@@ -49,33 +51,39 @@ export default function StockScreen() {
   }
 
   async function pickImage(source: 'camera' | 'gallery', article: LocalArticle) {
+    addLog('info', `[photo] pickImage déclenché — source=${source} article=${article.id}`)
     setPhotoSheet(null)
     setUploading(true)
     try {
       let result: ImagePicker.ImagePickerResult
       if (source === 'camera') {
+        addLog('info', '[photo] Demande permission caméra…')
         const perm = await ImagePicker.requestCameraPermissionsAsync()
+        addLog('info', `[photo] Permission caméra: ${perm.granted ? 'OK' : 'REFUSÉE'}`)
         if (!perm.granted) {
           Alert.alert('Permission refusée', 'Autorisez l\'accès à la caméra dans les paramètres.')
           setUploading(false)
           return
         }
+        addLog('info', '[photo] Lancement appareil photo…')
         result = await ImagePicker.launchCameraAsync({
           mediaTypes: ['images'],
           quality: 0.8,
-          allowsEditing: true,
-          aspect: [3, 4],
         })
       } else {
+        addLog('info', '[photo] Lancement galerie…')
         result = await ImagePicker.launchImageLibraryAsync({
           mediaTypes: ['images'],
           quality: 0.8,
-          allowsEditing: true,
-          aspect: [3, 4],
         })
       }
-      if (!result.canceled && result.assets[0]) {
-        await uploadImage(article.id, result.assets[0].uri)
+      addLog('info', `[photo] Résultat — canceled=${result.canceled} assets=${result.assets?.length ?? 0}`)
+      if (!result.canceled && result.assets?.[0]) {
+        const uri = result.assets[0].uri
+        addLog('info', `[photo] URI: ${uri.substring(0, 50)}…`)
+        await uploadImage(article.id, uri)
+      } else if (!result.canceled) {
+        addLog('warn', '[photo] PAS D\'ASSET — result.assets vide ou undefined')
       }
     } finally {
       setUploading(false)

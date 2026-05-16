@@ -20,6 +20,12 @@
 }
 .encaissBtn:hover { border-color: var(--rose-mid); transform: translateY(-2px); }
 .encaissBtnActive { border-color: var(--rose); background: var(--rose-light); }
+.encaissBtnLocked {
+  opacity: 0.55;
+  cursor: not-allowed;
+  background: var(--cream);
+}
+.encaissBtnLocked:hover { border-color: var(--cream-dark); transform: none; }
 
 .encaissEmoji { font-size: 1.5rem; }
 .encaissLabel {
