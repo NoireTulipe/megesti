@@ -43,6 +43,60 @@ function catColor(key: string): string {
   return CAT_PALETTE[Math.abs(h) % CAT_PALETTE.length]
 }
 
+// ── Carte produit ────────────────────────────────────────────────────
+
+function ProductCard({ article: a, isDark, addToCart, cart, getCatColor }: {
+  article: LocalArticle
+  isDark: boolean
+  addToCart: (a: LocalArticle) => void
+  cart: CartItem[]
+  getCatColor: (id: string) => string
+}) {
+  const rupture = a.stock_local <= 0
+  const stockLow = a.stock_local > 0 && a.stock_local <= (a.stock_alerte || 3)
+  const accent = getCatColor(a.categorie_id ?? a.rayon_nom ?? a.nom)
+  const inCartQty = cart.filter(i => i.articleId === a.id).reduce((s, i) => s + i.quantite, 0)
+  const inCart = inCartQty > 0
+  return (
+    <TouchableOpacity
+      style={[styles.productCard, isDark && { backgroundColor: Dark.surface, shadowColor: 'transparent', elevation: 0 }, inCart && { borderColor: accent, borderWidth: 2 }]}
+      activeOpacity={rupture ? 1 : 0.75}
+      onPress={() => addToCart(a)}>
+      <View style={[styles.productAccentBar, { backgroundColor: accent }]} />
+      <View style={styles.productInner}>
+        <View style={styles.productLeft}>
+          <Text style={[styles.productName, isDark && { color: Dark.text }]} numberOfLines={2}>{a.nom}</Text>
+          <Text style={[styles.productPrice, { color: accent }]}>
+            {a.prix_vente_ht.toFixed(2)} €
+          </Text>
+          <View style={styles.productStockRow}>
+            {rupture ? (
+              <Text style={styles.stockRupture}>Rupture</Text>
+            ) : stockLow ? (
+              <Text style={styles.stockLow}>⚠ {a.stock_local}</Text>
+            ) : (
+              <Text style={styles.stockOk}>{a.stock_local} ex.</Text>
+            )}
+          </View>
+        </View>
+        {a.thumb_app_url ? (
+          <Image source={a.thumb_app_url} style={styles.productThumb} contentFit="cover" cachePolicy="memory-disk" />
+        ) : (
+          <View style={[styles.productThumbEmpty, { backgroundColor: accent + '18' }]}>
+            <Text style={styles.productThumbEmoji}>📚</Text>
+          </View>
+        )}
+      </View>
+      {inCart && (
+        <View style={[styles.productCartBadge, { backgroundColor: accent }]}>
+          <Text style={styles.productCartBadgeText}>{inCartQty}</Text>
+        </View>
+      )}
+      {rupture && <View style={styles.productRuptureOverlay} />}
+    </TouchableOpacity>
+  )
+}
+
 // ── Composant principal ──────────────────────────────────────────────
 
 export default function CaisseScreen() {
@@ -181,8 +235,25 @@ export default function CaisseScreen() {
     return true
   }), [articles, exposedIds.join(','), selectedRayon, search, enabledCats])
 
+  // Groupement par rayon quand "Tous" est sélectionné
+  const grouped = useMemo(() => {
+    if (selectedRayon || filtered.length === 0) return null
+    const map = new Map<string, typeof filtered>()
+    for (const a of filtered) {
+      const key = a.rayon_nom ?? 'Sans rayon'
+      if (!map.has(key)) map.set(key, [])
+      map.get(key)!.push(a)
+    }
+    return Array.from(map.entries()).map(([rayon, articles]) => ({
+      rayon,
+      articles,
+      color: getCatColor(articles[0]?.categorie_id ?? rayon),
+    }))
+  }, [filtered, selectedRayon])
+
   const total = cart.reduce((s, i) => s + i.prix * i.quantite, 0)
   const flatListRef = useRef<FlatList<any>>(null)
+  const sectionRefs = useRef<Map<string, View | null>>(new Map())
 
   // Pull articles et mettre à jour la liste d'exposés de la session
   async function pullAndUpdateSession() {
@@ -195,18 +266,31 @@ export default function CaisseScreen() {
   useEffect(() => { if (hasSession) pullAndUpdateSession() }, [hasSession])
   useFocusEffect(useCallback(() => { if (hasSession) pullAndUpdateSession() }, [hasSession, pullFromServer]))
 
-  // ── Navigation rayons (swipe + flèches) ──
+  // ── Navigation rayons ──
+  function selectRayon(name: string | null) {
+    // En mode "Tous", scroller vers la section
+    if (!name && grouped) {
+      flatListRef.current?.scrollToOffset({ offset: 0, animated: true })
+    } else if (name && grouped) {
+      const ref = sectionRefs.current.get(name)
+      ref?.measureLayout(flatListRef.current as any, (_x: number, y: number) => {
+        flatListRef.current?.scrollToOffset({ offset: y - 8, animated: true })
+      }, () => {})
+    }
+    setSelectedRayon(name)
+  }
+
   function goNextRayon() {
     if (rayons.length === 0) return
-    if (selectedRayon === null) { setSelectedRayon(rayons[0].nom); return }
+    if (selectedRayon === null) { selectRayon(rayons[0].nom); return }
     const idx = rayons.findIndex(r => r.nom === selectedRayon)
-    setSelectedRayon(idx >= rayons.length - 1 ? null : rayons[idx + 1].nom)
+    selectRayon(idx >= rayons.length - 1 ? null : rayons[idx + 1].nom)
   }
   function goPrevRayon() {
     if (rayons.length === 0) return
-    if (selectedRayon === null) { setSelectedRayon(rayons[rayons.length - 1].nom); return }
+    if (selectedRayon === null) { selectRayon(rayons[rayons.length - 1].nom); return }
     const idx = rayons.findIndex(r => r.nom === selectedRayon)
-    setSelectedRayon(idx <= 0 ? null : rayons[idx - 1].nom)
+    selectRayon(idx <= 0 ? null : rayons[idx - 1].nom)
   }
 
   const swipeGesture = Gesture.Pan()
@@ -511,13 +595,13 @@ export default function CaisseScreen() {
           </TouchableOpacity>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.rayonTabs}>
             <TouchableOpacity style={[styles.rayonTab, !selectedRayon && styles.rayonTabActive]}
-              activeOpacity={0.7} onPress={() => setSelectedRayon(null)}>
+              activeOpacity={0.7} onPress={() => selectRayon(null)}>
               <Text style={[styles.rayonTabText, !selectedRayon && styles.rayonTabTextActive]}>Tous</Text>
             </TouchableOpacity>
             {rayons.map(r => (
               <TouchableOpacity key={r.nom}
                 style={[styles.rayonTab, selectedRayon === r.nom && styles.rayonTabActive]}
-                activeOpacity={0.7} onPress={() => setSelectedRayon(r.nom)}>
+                activeOpacity={0.7} onPress={() => selectRayon(r.nom)}>
                 <Text style={[styles.rayonTabText, selectedRayon === r.nom && styles.rayonTabTextActive]}>{r.nom}</Text>
               </TouchableOpacity>
             ))}
@@ -553,75 +637,61 @@ export default function CaisseScreen() {
 
       {/* ── Grille produits (avec swipe pour changer de rayon) ── */}
       <GestureDetector gesture={swipeGesture}>
-      <FlatList
-        ref={flatListRef}
-        data={filtered}
-        keyExtractor={a => a.id}
-        numColumns={2}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={[styles.productGrid, { paddingBottom: TAB_BAR_H + 100 }]}
-        columnWrapperStyle={{ gap: 10 }}
-        renderItem={({ item: a }) => {
-          const rupture = a.stock_local <= 0
-          const stockLow = a.stock_local > 0 && a.stock_local <= (a.stock_alerte || 3)
-          const accent = getCatColor(a.categorie_id ?? a.rayon_nom ?? a.nom)
-          const inCartQty = cart.filter(i => i.articleId === a.id).reduce((s, i) => s + i.quantite, 0)
-          const inCart = inCartQty > 0
-          return (
-            <TouchableOpacity
-              style={[styles.productCard, isDark && { backgroundColor: Dark.surface, shadowColor: 'transparent', elevation: 0 }, inCart && { borderColor: accent, borderWidth: 2 }]}
-              activeOpacity={rupture ? 1 : 0.75}
-              onPress={() => addToCart(a)}>
-              {/* Barre accent colorée */}
-              <View style={[styles.productAccentBar, { backgroundColor: accent }]} />
-              {/* Corps : texte gauche + image droite */}
-              <View style={styles.productInner}>
-                <View style={styles.productLeft}>
-                  <Text style={[styles.productName, isDark && { color: Dark.text }]} numberOfLines={3}>{a.nom}</Text>
-                  <Text style={[styles.productPrice, { color: accent }]}>
-                    {a.prix_vente_ht.toFixed(2)} €
-                  </Text>
-                  <View style={styles.productStockRow}>
-                    {rupture ? (
-                      <Text style={styles.stockRupture}>Rupture</Text>
-                    ) : stockLow ? (
-                      <Text style={styles.stockLow}>⚠ {a.stock_local} ex.</Text>
-                    ) : (
-                      <Text style={styles.stockOk}>{a.stock_local} ex.</Text>
-                    )}
-                  </View>
-                </View>
-                {a.thumb_app_url ? (
-                  <Image
-                    source={a.thumb_app_url}
-                    style={styles.productThumb}
-                    contentFit="cover"
-                    cachePolicy="memory-disk"
-                  />
-                ) : (
-                  <View style={[styles.productThumbEmpty, { backgroundColor: accent + '18' }]}>
-                    <Text style={styles.productThumbEmoji}>📚</Text>
-                  </View>
-                )}
+      {grouped ? (
+        /* ── Mode groupé par rayon ── */
+        <ScrollView
+          ref={flatListRef as any}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: TAB_BAR_H + 100 }}
+          style={{ flex: 1 }}>
+          {grouped.map(({ rayon, articles: rayonArticles, color }) => (
+            <View key={rayon}
+              ref={r => { sectionRefs.current.set(rayon, r) }}
+              onLayout={() => {}}>
+              {/* En-tête de section */}
+              <View style={[styles.sectionHeader, isDark && { borderBottomColor: 'rgba(255,255,255,0.06)' }]}>
+                <View style={[styles.sectionHeaderAccent, { backgroundColor: color }]} />
+                <Text style={[styles.sectionHeaderTitle, isDark && { color: Dark.text }]}>{rayon}</Text>
+                <Text style={[styles.sectionHeaderCount, { color: color }]}>{rayonArticles.length}</Text>
               </View>
-              {/* Badge panier */}
-              {inCart && (
-                <View style={[styles.productCartBadge, { backgroundColor: accent }]}>
-                  <Text style={styles.productCartBadgeText}>{inCartQty}</Text>
+              {/* Grille 2 colonnes */}
+              <View style={styles.sectionGrid}>
+                <View style={styles.sectionGridRow}>
+                  {rayonArticles.map((a, idx) => (
+                    <ProductCard key={a.id} article={a} isDark={isDark} addToCart={addToCart} cart={cart} getCatColor={getCatColor} />
+                  ))}
                 </View>
-              )}
-              {/* Overlay rupture */}
-              {rupture && <View style={styles.productRuptureOverlay} />}
-            </TouchableOpacity>
-          )
-        }}
-        ListEmptyComponent={
-          <View style={styles.emptyList}>
-            <Text style={styles.emptyListEmoji}>📚</Text>
-            <Text style={styles.emptyListText}>Aucun article trouvé</Text>
-          </View>
-        }
-      />
+              </View>
+            </View>
+          ))}
+          {filtered.length === 0 && (
+            <View style={styles.emptyList}>
+              <Text style={styles.emptyListEmoji}>📚</Text>
+              <Text style={styles.emptyListText}>Aucun article trouvé</Text>
+            </View>
+          )}
+        </ScrollView>
+      ) : (
+        /* ── Mode rayon unique (FlatList existante) ── */
+        <FlatList
+          ref={flatListRef}
+          data={filtered}
+          keyExtractor={a => a.id}
+          numColumns={2}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={[styles.productGrid, { paddingBottom: TAB_BAR_H + 100 }]}
+          columnWrapperStyle={{ gap: 10 }}
+          renderItem={({ item: a }) => (
+            <ProductCard article={a} isDark={isDark} addToCart={addToCart} cart={cart} getCatColor={getCatColor} />
+          )}
+          ListEmptyComponent={
+            <View style={styles.emptyList}>
+              <Text style={styles.emptyListEmoji}>📚</Text>
+              <Text style={styles.emptyListText}>Aucun article trouvé</Text>
+            </View>
+          }
+        />
+      )}
       </GestureDetector>
 
       {/* ── Barre panier ── */}
@@ -853,6 +923,18 @@ const styles = StyleSheet.create({
   catChipAll: { backgroundColor: Colors.text, borderColor: Colors.text },
   catChipText: { fontFamily: Fonts.body, fontSize: 11, fontWeight: '600', color: Colors.textMid },
   catChipTextActive: { color: Colors.white },
+
+  sectionHeader: {
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+    paddingHorizontal: 20, paddingVertical: 12, marginTop: 4,
+    borderBottomWidth: 1, borderBottomColor: Colors.cream,
+  },
+  sectionHeaderAccent: { width: 4, height: 22, borderRadius: 2 },
+  sectionHeaderTitle: { flex: 1, fontFamily: Fonts.displayItalic, fontSize: 18, color: Colors.text, fontStyle: 'italic' },
+  sectionHeaderCount: { fontFamily: Fonts.body, fontSize: 12, fontWeight: '700', minWidth: 22, textAlign: 'center',
+    backgroundColor: 'rgba(0,0,0,0.04)', borderRadius: Radius.full, paddingHorizontal: 8, paddingVertical: 3, overflow: 'hidden' },
+  sectionGrid: { paddingHorizontal: 16 },
+  sectionGridRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
 
   productGrid: { paddingHorizontal: 16, gap: 10 },
   productCard: {

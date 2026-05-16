@@ -13,6 +13,7 @@ import { HistoriqueHorsSession } from './HistoriqueHorsSession'
 import { useArticles } from '@/features/catalogue/hooks/useArticles'
 import { useFranchiseTVA } from '@/hooks/useFranchiseTVA'
 import { useRayons } from '@/features/catalogue/hooks/useRayons'
+import { getImageUrl } from '@/lib/api'
 import { Modal } from '@/components/ui/Modal'
 import { HelpButton } from '@/components/HelpButton'
 import { PageHero } from '@/components/PageHero'
@@ -145,6 +146,36 @@ export function VentesPage() {
     if (search) list = list.filter((a) => a.nom.toLowerCase().includes(search.toLowerCase()))
     return list
   }, [articles, selectedRayonId, search])
+
+  // Groupement par catégorie (ou par rayon si "Tous" sans filtre rayon)
+  const articleGroups = useMemo(() => {
+    if (search) return [{ label: null as string | null, articles: filteredArticles }]
+
+    if (selectedRayonId) {
+      // Rayon sélectionné → grouper par catégorie
+      const map = new Map<string, { label: string; articles: typeof filteredArticles }>()
+      const sans: typeof filteredArticles = []
+      for (const a of filteredArticles) {
+        if (a.categorie) {
+          if (!map.has(a.categorieId!)) map.set(a.categorieId!, { label: a.categorie.nom, articles: [] })
+          map.get(a.categorieId!)!.articles.push(a)
+        } else {
+          sans.push(a)
+        }
+      }
+      const groups = Array.from(map.values())
+      if (sans.length) groups.push({ label: 'Sans catégorie', articles: sans })
+      return groups
+    }
+
+    // "Tous" → grouper par rayon
+    const map = new Map<string, { label: string; articles: typeof filteredArticles }>()
+    for (const a of filteredArticles) {
+      if (!map.has(a.rayonId)) map.set(a.rayonId, { label: a.rayon.nom, articles: [] })
+      map.get(a.rayonId)!.articles.push(a)
+    }
+    return Array.from(map.values())
+  }, [filteredArticles, search, selectedRayonId])
 
   // •"?•"? Cart helpers •"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?
   function addToCart(article: typeof articles[number]) {
@@ -470,18 +501,70 @@ export function VentesPage() {
             />
           </div>
 
-          {/* Grille articles */}
+          {/* Grille articles groupée */}
           <div className={styles.articleGrid}>
-            {filteredArticles.map((a) => (
-              <button key={a.id} className={styles.articleTile} onClick={() => addToCart(a)}>
-                <span className={styles.tileNom}>{a.nom}</span>
-                <span className={styles.tilePrix}>{Number(a.prixVenteHT).toFixed(2)} €</span>
-                <span className={stockClass(a)}>Stock : {a.stock}</span>
-              </button>
-            ))}
             {filteredArticles.length === 0 && (
               <p className={styles.noArticles}>Aucun article{search ? ` pour « ${search} »` : ''}.</p>
             )}
+            {articleGroups.map((group, gi) => (
+              <div key={gi} className={styles.catGroup}>
+                {group.label && (
+                  <div className={styles.catGroupHeader}>
+                    <span className={styles.catGroupLabel}>{group.label}</span>
+                  </div>
+                )}
+                <div className={styles.catGroupGrid}>
+                  {group.articles.map((a) => {
+                    const imgUrl    = getImageUrl(a.imageUrl)
+                    const inCartQty = cart.filter(l => l.articleId === a.id).reduce((s, l) => s + l.quantite, 0)
+                    const rupture   = a.stock <= 0
+                    const stockLow  = !rupture && a.stockAlerte > 0 && a.stock <= a.stockAlerte
+                    const stockWarn = !rupture && !stockLow && a.stockTension > 0 && a.stock <= a.stockTension
+                    return (
+                      <button
+                        key={a.id}
+                        className={`${styles.articleTile} ${inCartQty > 0 ? styles.tileInCart : ''} ${rupture ? styles.tileRupture : ''}`}
+                        onClick={() => addToCart(a)}
+                        disabled={rupture}
+                      >
+                        {/* Image */}
+                        <div className={styles.tileImgWrap}>
+                          {imgUrl ? (
+                            <img src={imgUrl} alt={a.nom} className={styles.tileImg} />
+                          ) : (
+                            <div className={styles.tileImgEmpty}>
+                              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                                <rect x="3" y="3" width="18" height="18" rx="3"/>
+                                <circle cx="8.5" cy="8.5" r="1.5"/>
+                                <polyline points="21 15 16 10 5 21"/>
+                              </svg>
+                            </div>
+                          )}
+                          {rupture && (
+                            <div className={styles.tileRuptureOverlay}>
+                              <span className={styles.tileRuptureBadge}>Rupture</span>
+                            </div>
+                          )}
+                          {inCartQty > 0 && (
+                            <div className={styles.tileCartBadge}>{inCartQty}</div>
+                          )}
+                        </div>
+                        {/* Contenu */}
+                        <div className={styles.tileContent}>
+                          <span className={styles.tileNom}>{a.nom}</span>
+                          <div className={styles.tileMeta}>
+                            <span className={styles.tilePrix}>{Number(a.prixVenteHT).toFixed(2)} €</span>
+                            <span className={stockLow ? styles.tileStockAlert : stockWarn ? styles.tileStockWarn : styles.tileStock}>
+                              {a.stock} ex.
+                            </span>
+                          </div>
+                        </div>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 
