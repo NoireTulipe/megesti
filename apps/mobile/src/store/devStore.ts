@@ -42,7 +42,10 @@ export const useDevStore = create<DevState>((set, get) => ({
     await SecureStore.setItemAsync(DEV_API_KEY, url)
     // Mettre à jour Config aussi
     ;(Config as any).apiBaseUrl = url
-    get().addLog('info', `API URL → ${url}`)
+    // uploadBaseUrl = racine du serveur (sans /api)
+    const uploadBase = url.replace(/\/api\/?$/, '')
+    ;(Config as any).uploadBaseUrl = uploadBase
+    get().addLog('info', `API URL → ${url} (upload → ${uploadBase})`)
   },
 
   addLog: (level: LogLevel, message: string) => {

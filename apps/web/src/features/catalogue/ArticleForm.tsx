@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { useQueryClient } from '@tanstack/react-query'
 import { useCreateArticle, useUpdateArticle, useSetArticleActif } from './hooks/useArticles'
 import { useRayons } from './hooks/useRayons'
 import { useAuteurs } from '../auteurs/hooks/useAuteurs'
@@ -55,6 +56,7 @@ interface Props {
 
 export function ArticleForm({ onClose, article }: Props) {
   const isEdit          = Boolean(article)
+  const qc              = useQueryClient()
   const createArticle   = useCreateArticle()
   const updateArticle   = useUpdateArticle()
   const setActif        = useSetArticleActif()
@@ -78,10 +80,11 @@ export function ArticleForm({ onClose, article }: Props) {
 
   // Image — état local unifié (création + édition)
   const [currentImageUrl, setCurrentImageUrl] = useState<string | null>(article?.imageUrl ?? null)
-  const [pendingFile,  setPendingFile]  = useState<File | null>(null)
-  const [previewUrl,   setPreviewUrl]   = useState<string | null>(null)
-  const [deleteImage,  setDeleteImage]  = useState(false)
-  const [uploadError,  setUploadError]  = useState<string | null>(null)
+  const [pendingFile,    setPendingFile]    = useState<File | null>(null)
+  const [previewUrl,     setPreviewUrl]     = useState<string | null>(null)
+  const [deleteImage,    setDeleteImage]    = useState(false)
+  const [uploadError,    setUploadError]    = useState<string | null>(null)
+  const [uploadingImage, setUploadingImage] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -261,14 +264,18 @@ export function ArticleForm({ onClose, article }: Props) {
 
     // Upload de l'image en attente (après création pour avoir l'ID en base)
     if (pendingFile) {
+      setUploadingImage(true)
       const formData = new FormData()
       formData.append('file', pendingFile)
       try {
         await api.upload<{ thumbWebUrl: string }>(`/articles/${entityId}/image`, formData)
+        await qc.invalidateQueries({ queryKey: ['articles'] })
       } catch {
+        setUploadingImage(false)
         setUploadError("L'article a été sauvegardé mais l'image n'a pas pu être uploadée. Réessayez depuis la fiche.")
         return
       }
+      setUploadingImage(false)
     }
 
     const allValues    = getValues() as Record<string, unknown>
@@ -637,10 +644,25 @@ export function ArticleForm({ onClose, article }: Props) {
         </div>
       )}
 
+      {uploadingImage && (
+        <div className={styles.uploadBanner}>
+          <svg className={styles.uploadBannerSpinner} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+            <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+          </svg>
+          <span>
+            <em className={styles.uploadBannerName}>MeGesti</em> enregistre votre image…
+          </span>
+        </div>
+      )}
+
       <div className={styles.actions}>
-        <button type="button" className={styles.btnSecondary} onClick={onClose}>Annuler</button>
+        <button type="button" className={styles.btnSecondary} onClick={onClose} disabled={isSubmitting}>Annuler</button>
         <button type="submit" className={styles.btnPrimary} disabled={isSubmitting}>
-          {isSubmitting ? 'Enregistrement…' : isEdit ? 'Enregistrer' : 'Créer l\'article'}
+          {uploadingImage
+            ? 'Image en cours…'
+            : isSubmitting
+              ? 'Enregistrement…'
+              : isEdit ? 'Enregistrer' : 'Créer l\'article'}
         </button>
       </div>
     </form>

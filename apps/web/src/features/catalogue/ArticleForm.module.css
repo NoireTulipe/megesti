@@ -67,6 +67,35 @@
 .imageBtnDelete { color: var(--terra); border-color: var(--terra-light); }
 .imageBtnDelete:hover:not(:disabled) { background: var(--terra-faint); border-color: var(--terra); }
 
+/* ── Banner upload image ── */
+.uploadBanner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #fdf5f4, #f5f0f9);
+  border: 1.5px solid rgba(196, 132, 122, 0.25);
+  border-radius: 12px;
+  font-size: 0.85rem;
+  color: var(--ink-mid);
+  animation: fadeUp 0.25s ease both;
+}
+.uploadBannerName {
+  font-family: 'DM Serif Display', serif;
+  font-style: italic;
+  color: var(--rose);
+  font-size: 0.9rem;
+}
+.uploadBannerSpinner {
+  flex-shrink: 0;
+  color: var(--rose);
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 .imagePendingBadge {
   font-size: 0.68rem;
   font-weight: 600;
