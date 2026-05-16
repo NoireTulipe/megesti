@@ -15,6 +15,7 @@ import { DualRangeSlider } from '@/components/DualRangeSlider'
 import { useFranchiseTVA } from '@/hooks/useFranchiseTVA'
 import { usePlanFeatures } from '@/hooks/usePlanFeatures'
 import { useMonTenant } from '@/features/reglages/hooks/useMonTenant'
+import { api, getImageUrl } from '@/lib/api'
 import type { Article } from './types'
 import styles from './ArticleForm.module.css'
 
@@ -33,7 +34,6 @@ const schema = z.object({
   nom:             z.string().min(1, 'Requis'),
   reference:       z.string().optional(),
   description:     z.string().optional(),
-  imageUrl:        z.string().optional(),
   prixVenteHT:     z.coerce.number({ invalid_type_error: 'Nombre requis' }).min(0, 'Doit être … 0'),
   prixAchatHT:     optNum,
   prixAchatLotHT:  optNum,
@@ -76,6 +76,39 @@ export function ArticleForm({ onClose, article }: Props) {
   )
   const [auteurSearch, setAuteurSearch] = useState('')
 
+  // Image — état local unifié (création + édition)
+  const [currentImageUrl, setCurrentImageUrl] = useState<string | null>(article?.imageUrl ?? null)
+  const [pendingFile,  setPendingFile]  = useState<File | null>(null)
+  const [previewUrl,   setPreviewUrl]   = useState<string | null>(null)
+  const [deleteImage,  setDeleteImage]  = useState(false)
+  const [uploadError,  setUploadError]  = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    return () => { if (previewUrl) URL.revokeObjectURL(previewUrl) }
+  }, [previewUrl])
+
+  function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (previewUrl) URL.revokeObjectURL(previewUrl)
+    setPendingFile(file)
+    setPreviewUrl(URL.createObjectURL(file))
+    setDeleteImage(false)
+    setUploadError(null)
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
+
+  function handleDeleteImage() {
+    if (previewUrl) URL.revokeObjectURL(previewUrl)
+    setPendingFile(null)
+    setPreviewUrl(null)
+    setCurrentImageUrl(null)
+    setDeleteImage(true)
+  }
+
+  const displayImage = previewUrl ?? (currentImageUrl ? getImageUrl(currentImageUrl) : null)
+
   const { register, handleSubmit, control, setValue, getValues, setError, clearErrors,
           formState: { errors, isSubmitting } } = useForm<FormValues>({
       resolver: zodResolver(schema),
@@ -85,7 +118,6 @@ export function ArticleForm({ onClose, article }: Props) {
         nom:             article.nom,
         reference:       article.reference ?? '',
         description:     article.description ?? '',
-        imageUrl:        article.imageUrl ?? '',
         prixVenteHT:     Number(article.prixVenteHT),
         prixAchatHT:     article.prixAchatHT    != null ? Number(article.prixAchatHT)    : undefined,
         prixAchatLotHT:  article.prixAchatLotHT != null ? Number(article.prixAchatLotHT) : undefined,
@@ -201,9 +233,8 @@ export function ArticleForm({ onClose, article }: Props) {
       rayonId:         values.rayonId,
       categorieId:     values.categorieId || null,
       nom:             values.nom,
-      reference:       values.reference       || null,
-      description:     values.description     || null,
-      imageUrl:        values.imageUrl         || null,
+      reference:       values.reference   || null,
+      description:     values.description || null,
       prixVenteHT:     values.prixVenteHT,
       prixAchatHT:     values.prixAchatHT     ?? null,
       prixAchatLotHT:  values.prixAchatLotHT  ?? null,
@@ -217,10 +248,27 @@ export function ArticleForm({ onClose, article }: Props) {
       imprimeurId:     values.imprimeurId || null,
     }
     const entityId = isEdit ? article!.id : generateUUID()
+    const fullPayload = {
+      ...payload,
+      // Suppression explicite demandée par l'utilisateur
+      ...(deleteImage ? { imageUrl: null } : {}),
+    }
     if (isEdit) {
-      await updateArticle.mutateAsync({ id: entityId, ...payload })
+      await updateArticle.mutateAsync({ id: entityId, ...fullPayload })
     } else {
-      await createArticle.mutateAsync({ id: entityId, ...payload })
+      await createArticle.mutateAsync({ id: entityId, ...fullPayload })
+    }
+
+    // Upload de l'image en attente (après création pour avoir l'ID en base)
+    if (pendingFile) {
+      const formData = new FormData()
+      formData.append('file', pendingFile)
+      try {
+        await api.upload<{ thumbWebUrl: string }>(`/articles/${entityId}/image`, formData)
+      } catch {
+        setUploadError("L'article a été sauvegardé mais l'image n'a pas pu être uploadée. Réessayez depuis la fiche.")
+        return
+      }
     }
 
     const allValues    = getValues() as Record<string, unknown>
@@ -298,15 +346,60 @@ export function ArticleForm({ onClose, article }: Props) {
           />
           {errors.nom && <span className={styles.error}>{errors.nom.message}</span>}
         </div>
-        <div className={styles.row2}>
-          <div className={styles.field}>
-            <label className={styles.label} htmlFor="reference">Référence</label>
-            <input id="reference" className={styles.input} {...register('reference')} placeholder="SKU, code interne…" />
-          </div>
-          <div className={styles.field}>
-            <label className={styles.label} htmlFor="imageUrl">Image (URL)</label>
-            <input id="imageUrl" className={styles.input} {...register('imageUrl')} placeholder="https://…" />
-          </div>
+        <div className={styles.field}>
+          <label className={styles.label} htmlFor="reference">Référence</label>
+          <input id="reference" className={styles.input} {...register('reference')} placeholder="SKU, code interne…" />
+        </div>
+
+        {/* Image — disponible en création ET en édition */}
+        <div className={styles.field}>
+          <label className={styles.label}>Image</label>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            style={{ display: 'none' }}
+            onChange={handleFileSelect}
+          />
+          {displayImage ? (
+            <div className={styles.imagePreviewWrap}>
+              <img src={displayImage} alt="Illustration" className={styles.imagePreview} />
+              <div className={styles.imageActions}>
+                {pendingFile && (
+                  <span className={styles.imagePendingBadge}>Sera sauvegardée à la validation</span>
+                )}
+                <button
+                  type="button"
+                  className={styles.imageBtn}
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  Remplacer
+                </button>
+                <button
+                  type="button"
+                  className={`${styles.imageBtn} ${styles.imageBtnDelete}`}
+                  onClick={handleDeleteImage}
+                >
+                  Supprimer
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              type="button"
+              className={styles.imageUploadZone}
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                <rect x="3" y="3" width="18" height="18" rx="3"/>
+                <circle cx="8.5" cy="8.5" r="1.5"/>
+                <polyline points="21 15 16 10 5 21"/>
+              </svg>
+              <span>Ajouter une image</span>
+              <span className={styles.imageUploadHint}>JPG, PNG ou WebP · max 10 Mo</span>
+            </button>
+          )}
+          {uploadError && <span className={styles.error}>{uploadError}</span>}
         </div>
         <div className={styles.field}>
           <label className={styles.label} htmlFor="description">Description</label>
