@@ -43,7 +43,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   login: async (email, password) => {
     const data = await api.post<{ token: string }>('/auth/login', { email, password })
     const token = data.token
-    const payload = JSON.parse(atob(token.split('.')[1]))
+    const payload = JSON.parse(atob(token.split('.')[1] ?? ''))
 
     const user: AuthUser = {
       id:         payload.sub ?? payload.userId,

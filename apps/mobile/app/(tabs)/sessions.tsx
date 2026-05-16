@@ -184,9 +184,8 @@ export default function SessionsScreen() {
 
               {/* Autres sessions ouvertes — cartes compactes */}
               {openSessions.filter(s => s.id !== session?.id).map(s => (
-                <TouchableOpacity key={s.id}
-                  style={[styles.compactCard, isDark && { backgroundColor: Dark.surface, shadowColor: 'transparent', elevation: 0 }]}
-                  activeOpacity={0.8}>
+                <View key={s.id}
+                  style={[styles.compactCard, isDark && { backgroundColor: Dark.surface, shadowColor: 'transparent', elevation: 0 }]}>
                   <View style={[styles.compactAccent, { backgroundColor: Colors.sage }]} />
                   <View style={styles.compactBody}>
                     <View style={styles.compactTop}>
@@ -202,12 +201,18 @@ export default function SessionsScreen() {
                     <Text style={[styles.compactDate, isDark && { color: Dark.textSoft }]}>
                       {fmtDate(s.dateOuverture)} · {fmtTime(s.dateOuverture)}
                     </Text>
-                    <TouchableOpacity style={styles.switchBtn} activeOpacity={0.7}
-                      onPress={() => switchToSession(s)}>
-                      <Text style={styles.switchBtnText}>Travailler sur cette session</Text>
-                    </TouchableOpacity>
+                    <View style={styles.compactBtnRow}>
+                      <TouchableOpacity style={styles.switchBtn} activeOpacity={0.7}
+                        onPress={() => switchToSession(s)}>
+                        <Text style={styles.switchBtnText}>Travailler</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity style={styles.detailBtn} activeOpacity={0.7}
+                        onPress={() => router.push(`/session-detail?id=${s.id}`)}>
+                        <Text style={styles.detailBtnText}>📋 Détail</Text>
+                      </TouchableOpacity>
+                    </View>
                   </View>
-                </TouchableOpacity>
+                </View>
               ))}
             </>
           )
@@ -223,8 +228,10 @@ export default function SessionsScreen() {
             </View>
           ) : (
             historySessions.map(s => (
-              <View key={s.id}
-                style={[styles.compactCard, isDark && { backgroundColor: Dark.surface, shadowColor: 'transparent', elevation: 0 }]}>
+              <TouchableOpacity key={s.id}
+                style={[styles.compactCard, isDark && { backgroundColor: Dark.surface, shadowColor: 'transparent', elevation: 0 }]}
+                activeOpacity={0.8}
+                onPress={() => router.push(`/session-detail?id=${s.id}`)}>
                 <View style={[styles.compactAccent, { backgroundColor: Colors.textSoft }]} />
                 <View style={styles.compactBody}>
                   <View style={styles.compactTop}>
@@ -243,12 +250,15 @@ export default function SessionsScreen() {
                     </Text>
                     {s.dateFermeture && (
                       <Text style={[styles.compactDate, isDark && { color: Dark.textSoft }]}>
-                        {' → '}fermée le {fmtDate(s.dateFermeture)}
+                        {' → '}fermée {fmtDate(s.dateFermeture)}
                       </Text>
                     )}
                   </View>
+                  <Text style={[styles.detailHint, isDark && { color: Dark.textSoft }]}>
+                    Appuyer pour voir le détail →
+                  </Text>
                 </View>
-              </View>
+              </TouchableOpacity>
             ))
           )
         )}
@@ -317,11 +327,16 @@ const styles = StyleSheet.create({
   compactDate: { fontFamily: Fonts.body, fontSize: 11, color: Colors.textSoft },
   compactMeta: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: 6 },
 
+  compactBtnRow: { flexDirection: 'row', gap: 8, marginTop: 8 },
   switchBtn: {
     backgroundColor: Colors.sage, paddingHorizontal: 14, paddingVertical: 7, borderRadius: Radius.full,
-    alignSelf: 'flex-start', marginTop: 8,
   },
   switchBtnText: { fontFamily: Fonts.body, fontSize: 11, fontWeight: '700', color: Colors.white },
+  detailBtn: {
+    backgroundColor: Colors.inkFaint, paddingHorizontal: 14, paddingVertical: 7, borderRadius: Radius.full,
+  },
+  detailBtnText: { fontFamily: Fonts.body, fontSize: 11, fontWeight: '700', color: Colors.ink },
+  detailHint: { fontFamily: Fonts.body, fontSize: 11, color: Colors.textSoft, marginTop: 6, fontStyle: 'italic' },
 
   // Empty
   emptyCard: { backgroundColor: Colors.white, borderRadius: Radius.xl, padding: 32, alignItems: 'center', shadowColor: Colors.text, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.08, shadowRadius: 16, elevation: 4, marginTop: 8 },

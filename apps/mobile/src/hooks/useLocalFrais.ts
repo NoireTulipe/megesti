@@ -12,6 +12,7 @@ export interface LocalFrais {
   montant_ht: number | null
   date: string
   synced: number
+  actif: number
 }
 
 export interface CreateFraisInput {
@@ -46,7 +47,7 @@ export function useLocalFrais(sessionId?: string) {
 
   const refresh = useCallback(async () => {
     const db = await getDb()
-    const where = sessionId ? 'WHERE session_id = ?' : ''
+    const where = sessionId ? 'WHERE session_id = ? AND actif = 1' : 'WHERE actif = 1'
     const params = sessionId ? [sessionId] : []
     const rows = await db.getAllAsync<LocalFrais>(
       `SELECT * FROM frais_locaux ${where} ORDER BY date DESC`,

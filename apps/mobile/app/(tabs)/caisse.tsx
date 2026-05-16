@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import {
   View, Text, TouchableOpacity, ScrollView, TextInput,
-  StyleSheet, Modal, FlatList, useWindowDimensions,
+  StyleSheet, Modal, FlatList, useWindowDimensions, Alert,
 } from 'react-native'
 import { Image } from 'expo-image'
 import { GestureDetector, Gesture } from 'react-native-gesture-handler'
@@ -30,6 +30,7 @@ interface CartItem {
   prix: number
   prixOrigine: number
   quantite: number
+  tauxTva: number
 }
 
 const CARD_IMG_H = 96  // hauteur de la zone image/contenu sous la barre accent
@@ -220,7 +221,7 @@ export default function CaisseScreen() {
     if (!selectedPdvId) return
     const pdv = pdvs.find(p => p.id === selectedPdvId)
     if (!pdv) return
-    const fond = pdv.encaissementDirect ? 0 : (parseFloat(fondCaisse) || 0)
+    const fond = pdv.encaissementDirect ? (parseFloat(fondCaisse) || 0) : 0
     try {
       const articleIds = await pullFromServer()
       await openSession(selectedPdvId, pdv.nom, fond, articleIds)
@@ -228,7 +229,30 @@ export default function CaisseScreen() {
     } catch (e: any) { addLog('error', `Erreur ouverture: ${e?.message}`) }
   }
 
-  async function handleCloseSession() { closeSession(0) }
+  function handleCloseSession() {
+    if (typeof (Alert as any).prompt === 'function') {
+      // iOS — input natif
+      ;(Alert as any).prompt(
+        'Fermer la session',
+        'Fond de caisse restant (€)',
+        [
+          { text: 'Annuler', style: 'cancel' },
+          { text: 'Confirmer', onPress: (v: string) => closeSession(parseFloat(v?.replace(',', '.') ?? '0') || 0) },
+        ],
+        'plain-text', '0', 'decimal-pad'
+      )
+    } else {
+      // Android — confirmation simple, fond = 0
+      Alert.alert(
+        'Fermer la session',
+        'Confirmer la fermeture ? Le fond de clôture sera enregistré à 0 €.',
+        [
+          { text: 'Annuler', style: 'cancel' },
+          { text: 'Fermer', style: 'destructive', onPress: () => closeSession(0) },
+        ]
+      )
+    }
+  }
 
   const [editingPrice, setEditingPrice] = useState<string | null>(null)
   const [editPriceVal, setEditPriceVal] = useState('')
@@ -244,7 +268,7 @@ export default function CaisseScreen() {
           ? { ...i, quantite: i.quantite + 1 } : i)
       }
       const prix = article.prix_vente_ht
-      return [...prev, { id: Date.now().toString(), articleId: article.id, nom: article.nom, prix, prixOrigine: prix, quantite: 1 }]
+      return [...prev, { id: Date.now().toString(), articleId: article.id, nom: article.nom, prix, prixOrigine: prix, quantite: 1, tauxTva: article.taux_tva }]
     })
   }
 
@@ -275,7 +299,7 @@ export default function CaisseScreen() {
     if (cart.length === 0 || submitting) return
     setSaleError(null)
     setSubmitting(true)
-    const payment = encaissementDirect ? 'PDV' : selectedPayment
+    const payment = encaissementDirect ? selectedPayment : 'PDV'
     try {
       // ── Encaissement SumUp : déclencher le terminal avant d'enregistrer ──
       if (payment === 'SUMUP') {
@@ -297,6 +321,7 @@ export default function CaisseScreen() {
           nom: item.nom,
           quantite: item.quantite,
           prixUnitaireHT: item.prix,
+          tauxTva: item.tauxTva,
         })),
       })
       setCart([]); setShowCart(false); setShowConfirm(false)
@@ -380,7 +405,7 @@ export default function CaisseScreen() {
                   </TouchableOpacity>
                 ))
               )}
-              {selectedPdvId && !pdvs.find(p => p.id === selectedPdvId)?.encaissementDirect && (
+              {selectedPdvId && pdvs.find(p => p.id === selectedPdvId)?.encaissementDirect && (
                 <>
                   <Text style={styles.sectionLabel}>Fond de caisse (€)</Text>
                   <TextInput style={styles.modalInput} value={fondCaisse} onChangeText={setFondCaisse}
@@ -394,7 +419,7 @@ export default function CaisseScreen() {
                 </TouchableOpacity>
                 {(() => {
                   const sel = pdvs.find(p => p.id === selectedPdvId)
-                  const canOpen = !!selectedPdvId && (!!sel?.encaissementDirect || !!fondCaisse)
+                  const canOpen = !!selectedPdvId && (!sel?.encaissementDirect || !!fondCaisse)
                   return (
                     <TouchableOpacity onPress={canOpen ? handleOpenSession : undefined}
                       activeOpacity={canOpen ? 0.85 : 1} style={styles.modalBtnConfirm}>
@@ -704,7 +729,7 @@ export default function CaisseScreen() {
                 <Text style={styles.confirmErrorHint}>Les articles seront resynchronisés. Réessayez.</Text>
               </View>
             )}
-            {!encaissementDirect && (
+            {encaissementDirect && (
               <>
                 <Text style={styles.confirmSectionLabel}>Mode de paiement</Text>
                 <View style={styles.confirmPayRow}>
