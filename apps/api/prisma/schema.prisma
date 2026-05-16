@@ -30,10 +30,10 @@ model Tenant {
   ville                String?
   pays                 String?  @default("FR")
   numeroTVA            String?
-  // Facturation électronique — superpdp.tech
-  pdpClientId          String?  // client_id OAuth2 superpdp (par entreprise)
-  pdpClientSecret      String?  // client_secret — chiffrer avant prod
-  pdpLastInvoiceId     String?  // dernier ID reçu pour le polling
+  // Facturation électronique
+  // Les credentials superpdp.tech sont dans le .env du serveur (compte MeGesti global)
+  // pdpLastInvoiceId : dernier ID reçu pour le polling de réception, par tenant
+  pdpLastInvoiceId     String?
   facturesCredit       Int      @default(0) // crédits supplémentaires achetés via Stripe
   actif                Boolean  @default(true)
   createdAt            DateTime @default(now())

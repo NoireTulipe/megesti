@@ -1,30 +1,27 @@
 import type { PrismaClient } from '@prisma/client'
-import { createPdpService } from '../services/SuperPdpService.js'
+import { getPdpService } from '../services/SuperPdpService.js'
 
 /**
  * Job BullMQ — polling des factures reçues pour tous les tenants configurés.
  * Fréquence recommandée : toutes les 5 minutes.
  */
 export async function pollFactures(db: PrismaClient): Promise<void> {
+  // Vérifie que les credentials MeGesti sont configurés
+  let pdp: ReturnType<typeof getPdpService>
+  try { pdp = getPdpService() } catch {
+    console.warn('[pollFactures] SUPERPDP_CLIENT_ID/SECRET manquants — polling ignoré')
+    return
+  }
+
   const tenants = await db.tenant.findMany({
-    where: {
-      actif:          true,
-      pdpClientId:    { not: null },
-      pdpClientSecret:{ not: null },
-    },
-    select: {
-      id:              true,
-      pdpClientId:     true,
-      pdpClientSecret: true,
-      pdpLastInvoiceId:true,
-    },
+    where:  { actif: true },
+    select: { id: true, pdpLastInvoiceId: true, siret: true },
   })
 
   for (const tenant of tenants) {
-    if (!tenant.pdpClientId || !tenant.pdpClientSecret) continue
+    if (!tenant.siret) continue  // pas de SIRET configuré = pas de factures attendues
 
     try {
-      const pdp       = createPdpService(tenant.pdpClientId, tenant.pdpClientSecret)
       const factures  = await pdp.listerRecu(tenant.pdpLastInvoiceId ?? undefined)
 
       if (!factures.length) continue

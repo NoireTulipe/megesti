@@ -70,7 +70,10 @@
       "Bash(xxd)",
       "WebFetch(domain:www.superpdp.tech)",
       "WebFetch(domain:raw.githubusercontent.com)",
-      "Bash(pnpm *)"
+      "Bash(pnpm *)",
+      "Bash(findstr DATABASE_URL)",
+      "PowerShell(psql *)",
+      "PowerShell(Get-Process *)"
     ]
   }
 }

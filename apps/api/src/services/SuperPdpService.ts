@@ -119,8 +119,16 @@ export class SuperPdpService implements InvoiceTransmissionService {
   }
 }
 
-// ── Factory : instancie le service pour un tenant donné ───────────────────────
+// ── Factory : instance globale (un seul compte superpdp pour tout MeGesti) ────
 
-export function createPdpService(clientId: string, clientSecret: string): SuperPdpService {
-  return new SuperPdpService(clientId, clientSecret)
+let _instance: SuperPdpService | null = null
+
+export function getPdpService(): SuperPdpService {
+  if (!_instance) {
+    const id     = process.env['SUPERPDP_CLIENT_ID']
+    const secret = process.env['SUPERPDP_CLIENT_SECRET']
+    if (!id || !secret) throw new Error('SUPERPDP_CLIENT_ID / SUPERPDP_CLIENT_SECRET manquants dans .env')
+    _instance = new SuperPdpService(id, secret)
+  }
+  return _instance
 }

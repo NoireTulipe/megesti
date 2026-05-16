@@ -118,7 +118,8 @@ export default function CaisseScreen() {
     activeModes.includes(m.mode) && (m.mode !== 'SUMUP' || SumUp.isAvailable())
   )
 
-  const { session, openSession, closeSession, refresh: refreshSession } = useLocalSession()
+  const { session, openSession, closeSession, refresh: refreshSession, validateWithServer } = useLocalSession()
+  useEffect(() => { validateWithServer() }, []) // une fois au montage
   const { pdvs, loading: pdvsLoading, error: pdvsError } = usePointsDeVente()
   const { articles, pullFromServer } = useLocalArticles()
   const { createVente } = useLocalVentes(session?.id)
@@ -341,28 +342,14 @@ export default function CaisseScreen() {
   }
 
   function handleCloseSession() {
-    if (typeof (Alert as any).prompt === 'function') {
-      // iOS — input natif
-      ;(Alert as any).prompt(
-        'Fermer la session',
-        'Fond de caisse restant (€)',
-        [
-          { text: 'Annuler', style: 'cancel' },
-          { text: 'Confirmer', onPress: (v: string) => closeSession(parseFloat(v?.replace(',', '.') ?? '0') || 0) },
-        ],
-        'plain-text', '0', 'decimal-pad'
-      )
-    } else {
-      // Android — confirmation simple, fond = 0
-      Alert.alert(
-        'Fermer la session',
-        'Confirmer la fermeture ? Le fond de clôture sera enregistré à 0 €.',
-        [
-          { text: 'Annuler', style: 'cancel' },
-          { text: 'Fermer', style: 'destructive', onPress: () => closeSession(0) },
-        ]
-      )
-    }
+    Alert.alert(
+      'Fermer la session',
+      'Confirmer la fermeture de la session ?',
+      [
+        { text: 'Annuler', style: 'cancel' },
+        { text: 'Fermer', style: 'destructive', onPress: () => closeSession(0) },
+      ]
+    )
   }
 
   const [editingPrice, setEditingPrice] = useState<string | null>(null)

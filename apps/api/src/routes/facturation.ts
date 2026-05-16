@@ -1,7 +1,7 @@
 import type { FastifyPluginAsync } from 'fastify'
 import { z } from 'zod'
 import { getPlanFeatures } from '@megesti/shared'
-import { createPdpService } from '../services/SuperPdpService.js'
+import { getPdpService } from '../services/SuperPdpService.js'
 import { generateUbl } from '../services/UblGenerator.js'
 
 const EmettreSchema = z.object({
@@ -102,11 +102,12 @@ export const facturationRoutes: FastifyPluginAsync = async (app) => {
       })
     }
 
-    // ── Vérification config PDP ─────────────────────────────────────────────
-    if (!tenant?.pdpClientId || !tenant?.pdpClientSecret) {
-      return reply.status(422).send({
-        error:   'PdpNonConfigured',
-        message: 'Configurez vos identifiants superpdp.tech dans les réglages de votre compte.',
+    // ── Service PDP global (compte MeGesti) ────────────────────────────────
+    let pdp: ReturnType<typeof getPdpService>
+    try { pdp = getPdpService() } catch {
+      return reply.status(503).send({
+        error:   'PdpNonDisponible',
+        message: 'Le service de facturation n\'est pas encore configuré sur ce serveur. Contactez le support MeGesti.',
       })
     }
 
@@ -122,7 +123,6 @@ export const facturationRoutes: FastifyPluginAsync = async (app) => {
     const xmlContent = generateUbl({ ...body, dateEmission: new Date(body.dateEmission) }, emetteur)
 
     // ── Envoi à superpdp ────────────────────────────────────────────────────
-    const pdp = createPdpService(tenant.pdpClientId, tenant.pdpClientSecret)
     const { pdpId, statut } = await pdp.emettre(xmlContent)
 
     // ── Calcul totaux ───────────────────────────────────────────────────────
@@ -193,32 +193,27 @@ export const facturationRoutes: FastifyPluginAsync = async (app) => {
     return { count }
   })
 
-  // ── Config PDP (réglages tenant) ───────────────────────────────────────────
+  // ── Identité légale (SIRET, adresse — pour les factures) ───────────────────
 
-  app.get('/config', auth, async (request) => {
+  app.get('/identite', auth, async (request) => {
     const { tenantId } = request.tenant
-    const tenant = await app.db.tenant.findUnique({
+    return app.db.tenant.findUnique({
       where:  { id: tenantId },
-      select: { pdpClientId: true, siret: true, adresseLigne1: true, adresseLigne2: true, codePostal: true, ville: true, pays: true, numeroTVA: true },
+      select: { siret: true, adresseLigne1: true, adresseLigne2: true, codePostal: true, ville: true, pays: true, numeroTVA: true },
     })
-    // Ne jamais retourner le client_secret
-    return { ...tenant, pdpConfigured: !!tenant?.pdpClientId }
   })
 
-  app.patch('/config', authEditor, async (request, reply) => {
+  app.patch('/identite', authEditor, async (request, reply) => {
     const { tenantId } = request.tenant
     const body = z.object({
-      pdpClientId:     z.string().optional().nullable(),
-      pdpClientSecret: z.string().optional().nullable(),
-      siret:           z.string().optional().nullable(),
-      adresseLigne1:   z.string().optional().nullable(),
-      adresseLigne2:   z.string().optional().nullable(),
-      codePostal:      z.string().optional().nullable(),
-      ville:           z.string().optional().nullable(),
-      pays:            z.string().optional().nullable(),
-      numeroTVA:       z.string().optional().nullable(),
+      siret:         z.string().optional().nullable(),
+      adresseLigne1: z.string().optional().nullable(),
+      adresseLigne2: z.string().optional().nullable(),
+      codePostal:    z.string().optional().nullable(),
+      ville:         z.string().optional().nullable(),
+      pays:          z.string().optional().nullable(),
+      numeroTVA:     z.string().optional().nullable(),
     }).parse(request.body)
-
     return app.db.tenant.update({ where: { id: tenantId }, data: body })
   })
 }

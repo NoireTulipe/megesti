@@ -46,22 +46,48 @@ export default function DashboardScreen() {
   const { session, refresh: refreshSession } = useLocalSession()
   const { pdvs } = usePointsDeVente()
   const { ventes,  refresh: refreshVentes  } = useLocalVentes()
+  const addLog = useDevStore(s => s.addLog)
 
-  // Logo et nom de la ME depuis /mon-tenant
+  // Logo
   const [meLogo, setMeLogo] = useState<string | null>(null)
+
+  // Stats session — source de vérité = serveur, fallback = local
+  const ventesSession = ventes.filter(v => v.session_id === session?.id)
+  const caLocal       = ventesSession.reduce((s, v) => s + v.total_ttc, 0)
+  const [caServeur,    setCaServeur]    = useState<number | null>(null)
+  const [caFromServer, setCaFromServer] = useState(false)
+
+  const refreshStats = useCallback(async () => {
+    if (!session?.id) {
+      setCaServeur(null)
+      setCaFromServer(false)
+      return
+    }
+    try {
+      const s = await api.get<any>(`/sessions-caisse/${session.id}`)
+      const ca = s.ventes
+        ?.filter((v: any) => v.statut !== 'ANNULEE')
+        ?.reduce((sum: number, v: any) => sum + (v.totalTTC ?? 0), 0) ?? 0
+      setCaServeur(ca)
+      setCaFromServer(true)
+    } catch {
+      // Hors-ligne → fallback local
+      setCaServeur(null)
+      setCaFromServer(false)
+    }
+  }, [session?.id])
 
   useFocusEffect(useCallback(() => {
     refreshUser().catch(() => {})
     refreshSession()
     refreshVentes()
+    refreshStats()
     api.get<{ logo: string | null }>('/mon-tenant')
       .then(d => setMeLogo(buildUrl(d.logo)))
       .catch(() => {})
-  }, [refreshSession, refreshVentes, refreshUser]))
+  }, [refreshSession, refreshVentes, refreshUser, refreshStats]))
 
-  // Stats session courante
-  const ventesSession = ventes.filter(v => v.session_id === session?.id)
-  const caSession     = ventesSession.reduce((s, v) => s + v.total_ttc, 0)
+  const caSession    = caFromServer && caServeur != null ? caServeur : caLocal
   const articleCount  = session?.articles_exposes
     ? (JSON.parse(session.articles_exposes) as string[]).length : 0
 
@@ -147,7 +173,10 @@ export default function DashboardScreen() {
               </View>
               <View style={styles.statDiv} />
               <View style={styles.stat}>
-                <Text style={styles.statVal}>{caSession.toFixed(0)} €</Text>
+                <View style={styles.statValRow}>
+                  <Text style={styles.statVal}>{caSession.toFixed(0)} €</Text>
+                  {caFromServer && <Text style={styles.cloudIcon}> ☁️</Text>}
+                </View>
                 <Text style={styles.statLbl}>CA</Text>
               </View>
               <View style={styles.statDiv} />
@@ -323,6 +352,8 @@ const styles = StyleSheet.create({
   },
   stat: { flex: 1, alignItems: 'center' },
   statVal: { fontFamily: Fonts.body, fontSize: 20, fontWeight: '700', color: Colors.white },
+  statValRow: { flexDirection: 'row', alignItems: 'center' },
+  cloudIcon: { fontSize: 11 },
   statLbl: { fontFamily: Fonts.body, fontSize: 10, color: 'rgba(255,255,255,0.55)', marginTop: 2 },
   statDiv: { width: 1, height: 28, backgroundColor: 'rgba(255,255,255,0.18)' },
 
