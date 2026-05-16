@@ -27,7 +27,9 @@ const QUICK_ACTIONS = [
 
 function buildUrl(path: string | null): string | null {
   if (!path) return null
-  return path.startsWith('http') ? path : `${Config.uploadBaseUrl}${path}`
+  if (path.startsWith('http')) return path
+  const base = Config.apiBaseUrl.replace(/\/api\/?$/, '')
+  return `${base}${path}`
 }
 
 // ─── Écran ─────────────────────────────────────────────────────────────

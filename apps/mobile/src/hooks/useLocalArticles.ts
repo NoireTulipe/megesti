@@ -42,11 +42,13 @@ interface UploadResponse {
   thumbWebUrl: string
 }
 
-/** URL complète depuis un chemin relatif ou absolu renvoyé par l'API */
+/** URL complète depuis un chemin relatif ou absolu renvoyé par l'API.
+ *  Dérive la racine du serveur depuis apiBaseUrl (enlève /api final). */
 function fullUrl(path: string | null): string | null {
   if (!path) return null
   if (path.startsWith('http')) return path
-  return `${Config.uploadBaseUrl}${path}`
+  const base = Config.apiBaseUrl.replace(/\/api\/?$/, '')
+  return `${base}${path}`
 }
 
 export function useLocalArticles(ids?: string[]) {
