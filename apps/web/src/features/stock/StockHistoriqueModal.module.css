@@ -99,7 +99,7 @@
 
 /* Stats */
 .statsRow {
-  display: grid; grid-template-columns: repeat(3, 1fr);
+  display: grid; grid-template-columns: repeat(4, 1fr);
   gap: 10px; padding: 0 28px 20px;
 }
 .statCard {

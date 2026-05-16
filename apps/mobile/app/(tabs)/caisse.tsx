@@ -301,15 +301,6 @@ export default function CaisseScreen() {
 
   // ── Navigation rayons ──
   function selectRayon(name: string | null) {
-    // En mode "Tous", scroller vers la section
-    if (!name && grouped) {
-      flatListRef.current?.scrollToOffset({ offset: 0, animated: true })
-    } else if (name && grouped) {
-      const ref = sectionRefs.current.get(name)
-      ref?.measureLayout(flatListRef.current as any, (_x: number, y: number) => {
-        flatListRef.current?.scrollToOffset({ offset: y - 8, animated: true })
-      }, () => {})
-    }
     setSelectedRayon(name)
   }
 
@@ -671,40 +662,44 @@ export default function CaisseScreen() {
       {/* ── Grille produits (avec swipe pour changer de rayon) ── */}
       <GestureDetector gesture={swipeGesture}>
       {grouped ? (
-        /* ── Mode groupé par rayon ── */
+        /* ── Mode groupé (rayons ou catégories) ── */
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: TAB_BAR_H + 100 }}
           style={{ flex: 1 }}>
-          {grouped.map(({ rayon, articles: rayonArticles, color }) => {
-            // Rangées de 2
-            const rows: (typeof rayonArticles)[] = []
-            for (let i = 0; i < rayonArticles.length; i += 2) {
-              rows.push(rayonArticles.slice(i, i + 2))
-            }
-            return (
-              <View key={rayon} ref={r => { sectionRefs.current.set(rayon, r) }}>
-                {/* Bandeau rayon */}
-                <View style={[styles.sectionHeader, { borderLeftColor: color, borderLeftWidth: 4 }, isDark && { backgroundColor: Dark.surface, borderBottomColor: 'rgba(255,255,255,0.05)' }]}>
-                  <View>
-                    <Text style={[styles.sectionHeaderTitle, isDark && { color: Dark.text }]}>{rayon}</Text>
-                    <Text style={[styles.sectionHeaderCount, { color }]}>{rayonArticles.length} article{rayonArticles.length > 1 ? 's' : ''}</Text>
-                  </View>
+          {grouped.map(section => (
+            <View key={section.label} ref={r => { sectionRefs.current.set(section.label, r) }}>
+              {/* Bandeau : fin pour rayon, normal pour catégorie */}
+              {section.isCategory ? (
+                <View style={[styles.catBandeau, { borderLeftColor: section.color }, isDark && { backgroundColor: Dark.surface }]}>
+                  <Text style={[styles.catBandeauTitle, isDark && { color: Dark.text }]}>{section.label}</Text>
                 </View>
-                {/* Grille 2 colonnes */}
-                <View style={styles.productGrid}>
-                  {rows.map((row, ri) => (
-                    <View key={ri} style={styles.productRow}>
-                      {row.map(a => (
-                        <ProductCard key={a.id} article={a} isDark={isDark} addToCart={addToCart} cart={cart} getCatColor={getCatColor} />
+              ) : (
+                <View style={[styles.rayonBandeau, { borderLeftColor: section.color }, isDark && { backgroundColor: Dark.surface }]}>
+                  <Text style={[styles.rayonBandeauTitle, isDark && { color: Dark.text }]}>{section.label}</Text>
+                </View>
+              )}
+              {/* Grille produits par sous-groupe */}
+              <View style={styles.productGrid}>
+                {section.cats.map((cat, ci) => {
+                  const rows: (typeof cat.articles)[] = []
+                  for (let i = 0; i < cat.articles.length; i += 2) rows.push(cat.articles.slice(i, i + 2))
+                  return (
+                    <View key={ci} style={ci > 0 ? styles.catGap : undefined}>
+                      {rows.map((row, ri) => (
+                        <View key={ri} style={styles.productRow}>
+                          {row.map(a => (
+                            <ProductCard key={a.id} article={a} isDark={isDark} addToCart={addToCart} cart={cart} getCatColor={getCatColor} />
+                          ))}
+                          {row.length === 1 && <View style={{ flex: 1, maxWidth: '48%' }} />}
+                        </View>
                       ))}
-                      {row.length === 1 && <View style={{ flex: 1, maxWidth: '48%' }} />}
                     </View>
-                  ))}
-                </View>
+                  )
+                })}
               </View>
-            )
-          })}
+            </View>
+          ))}
           {filtered.length === 0 && (
             <View style={styles.emptyList}>
               <Text style={styles.emptyListEmoji}>📚</Text>
@@ -712,27 +707,7 @@ export default function CaisseScreen() {
             </View>
           )}
         </ScrollView>
-      ) : (
-        /* ── Mode rayon unique ── */
-        <FlatList
-          ref={flatListRef}
-          data={filtered}
-          keyExtractor={a => a.id}
-          numColumns={2}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: TAB_BAR_H + 100 }}
-          columnWrapperStyle={{ gap: 10, paddingHorizontal: 16 }}
-          renderItem={({ item: a }) => (
-            <ProductCard article={a} isDark={isDark} addToCart={addToCart} cart={cart} getCatColor={getCatColor} />
-          )}
-          ListEmptyComponent={
-            <View style={styles.emptyList}>
-              <Text style={styles.emptyListEmoji}>📚</Text>
-              <Text style={styles.emptyListText}>Aucun article trouvé</Text>
-            </View>
-          }
-        />
-      )}
+      ) : null}
       </GestureDetector>
 
       {/* ── Barre panier ── */}
@@ -965,19 +940,30 @@ const styles = StyleSheet.create({
   catChipText: { fontFamily: Fonts.body, fontSize: 11, fontWeight: '600', color: Colors.textMid },
   catChipTextActive: { color: Colors.white },
 
-  sectionHeader: {
-    flexDirection: 'row', alignItems: 'center',
-    marginHorizontal: 16, marginTop: 12, marginBottom: 8,
-    paddingHorizontal: 14, paddingVertical: 14,
+  // Bandeau rayon (fin, Tous mode)
+  rayonBandeau: {
+    marginHorizontal: 16, marginTop: 12, marginBottom: 6,
+    paddingHorizontal: 12, paddingVertical: 10,
+    backgroundColor: Colors.white, borderRadius: Radius.md,
+    borderLeftWidth: 3,
+    shadowColor: Colors.text, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.03, shadowRadius: 3, elevation: 1,
+  },
+  rayonBandeauTitle: { fontFamily: Fonts.displayItalic, fontSize: 16, color: Colors.text, fontStyle: 'italic' },
+
+  // Bandeau catégorie (mode rayon unique)
+  catBandeau: {
+    marginHorizontal: 16, marginTop: 14, marginBottom: 8,
+    paddingHorizontal: 14, paddingVertical: 12,
     backgroundColor: Colors.white, borderRadius: Radius.lg,
     borderLeftWidth: 4,
     shadowColor: Colors.text, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 4, elevation: 2,
   },
-  sectionHeaderTitle: { fontFamily: Fonts.displayItalic, fontSize: 17, color: Colors.text, fontStyle: 'italic' },
-  sectionHeaderCount: { fontFamily: Fonts.body, fontSize: 11, fontWeight: '600', marginTop: 2 },
+  catBandeauTitle: { fontFamily: Fonts.displayItalic, fontSize: 17, color: Colors.text, fontStyle: 'italic' },
 
+  // Grille produits
   productGrid: { paddingHorizontal: 16 },
   productRow: { flexDirection: 'row', gap: 10, marginBottom: 10 },
+  catGap: { marginTop: 8 },
   productCard: {
     flex: 1, backgroundColor: Colors.white, borderRadius: Radius.lg, overflow: 'hidden',
     borderWidth: 2, borderColor: 'transparent',

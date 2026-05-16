@@ -2,23 +2,37 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/lib/api'
 
 export type TypeMouvement = 'ENTREE' | 'SORTIE_DON' | 'SORTIE_PERTE' | 'SORTIE_VOL' | 'SORTIE_DEGRADATION' | 'AJUSTEMENT'
+export type StockEventType = TypeMouvement | 'VENTE'
 
-export const MVT_LABELS: Record<TypeMouvement, string> = {
+export const MVT_LABELS: Record<StockEventType, string> = {
   ENTREE:              'Entrée stock',
   SORTIE_DON:          'Don',
   SORTIE_PERTE:        'Perte',
   SORTIE_VOL:          'Vol',
   SORTIE_DEGRADATION:  'Dégradation',
   AJUSTEMENT:          'Ajustement',
+  VENTE:               'Vente',
 }
 
-export const MVT_EMOJI: Record<TypeMouvement, string> = {
+export const MVT_EMOJI: Record<StockEventType, string> = {
   ENTREE:              '📥',
   SORTIE_DON:          '🎁',
   SORTIE_PERTE:        '📦',
   SORTIE_VOL:          '🚨',
   SORTIE_DEGRADATION:  '💧',
   AJUSTEMENT:          '⚖️',
+  VENTE:               '🛒',
+}
+
+export interface StockEvent {
+  id:            string
+  type:          StockEventType
+  delta:         number
+  stockApres:    number
+  motif:         string | null
+  createdAt:     string
+  venteNumero?:  number
+  modePaiement?: string
 }
 
 export interface MouvementStock {
@@ -60,6 +74,14 @@ export function useMouvements(period: MvtPeriod, articleId?: string) {
       if (articleId) params.set('articleId', articleId)
       return api.get<MouvementStock[]>(`/mouvements-stock?${params}`)
     },
+  })
+}
+
+export function useStockTimeline(articleId: string, period: MvtPeriod) {
+  return useQuery({
+    queryKey: ['stockTimeline', articleId, period],
+    queryFn:  () => api.get<StockEvent[]>(`/articles/${articleId}/stock-timeline?period=${period}`),
+    enabled:  !!articleId,
   })
 }
 

@@ -5,8 +5,8 @@ import {
   XAxis, YAxis, Tooltip, ResponsiveContainer,
   ReferenceLine, CartesianGrid,
 } from 'recharts'
-import { useMouvements, MVT_LABELS } from './hooks/useMouvementsStock'
-import type { MvtPeriod, TypeMouvement } from './hooks/useMouvementsStock'
+import { useStockTimeline, MVT_LABELS } from './hooks/useMouvementsStock'
+import type { MvtPeriod, StockEventType } from './hooks/useMouvementsStock'
 import type { Article } from '@/features/catalogue/types'
 import styles from './StockHistoriqueModal.module.css'
 
@@ -58,8 +58,8 @@ function AreaTooltip({ active, payload }: any) {
     <div className={styles.tooltip}>
       <div className={styles.tooltipDate}>{d.fullDate}</div>
       <div className={styles.tooltipStock}>{d.stock} ex.</div>
-      <div className={styles.tooltipDelta} style={{ color: d.delta > 0 ? '#22C55E' : '#EF4444' }}>
-        {d.delta > 0 ? `+${d.delta}` : d.delta} — {MVT_LABELS[d.type as TypeMouvement]}
+      <div className={styles.tooltipDelta} style={{ color: d.delta > 0 ? '#22C55E' : d.type === 'VENTE' ? '#3B82F6' : '#EF4444' }}>
+        {d.delta > 0 ? `+${d.delta}` : d.delta} — {MVT_LABELS[d.type as StockEventType]}
       </div>
       {d.motif && <div className={styles.tooltipMotif}>{d.motif}</div>}
     </div>
@@ -89,43 +89,39 @@ interface Props {
 
 export function StockHistoriqueModal({ article, onClose }: Props) {
   const [period, setPeriod] = useState<MvtPeriod>('30d')
-  const { data: mouvements = [], isLoading } = useMouvements(period, article.id)
+  const { data: events = [], isLoading } = useStockTimeline(article.id, period)
 
   const stats = useMemo(() => {
-    const entrees = mouvements.filter(m => m.delta > 0).reduce((s, m) => s + m.delta, 0)
-    const sorties = mouvements.filter(m => m.delta < 0).reduce((s, m) => s + Math.abs(m.delta), 0)
-    return { entrees, sorties, solde: entrees - sorties }
-  }, [mouvements])
+    const entrees = events.filter(e => e.delta > 0).reduce((s, e) => s + e.delta, 0)
+    const sorties = events.filter(e => e.delta < 0).reduce((s, e) => s + Math.abs(e.delta), 0)
+    const ventes  = events.filter(e => e.type === 'VENTE').reduce((s, e) => s + Math.abs(e.delta), 0)
+    return { entrees, sorties, ventes, solde: entrees - sorties }
+  }, [events])
 
-  const areaData = useMemo(() => {
-    if (!mouvements.length) return []
-    return [...mouvements]
-      .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
-      .map(m => ({
-        label:    fmtAxisTick(m.createdAt, period),
-        fullDate: fmtFull(m.createdAt),
-        stock:    m.stockApres,
-        delta:    m.delta,
-        type:     m.type,
-        motif:    m.motif,
-      }))
-  }, [mouvements, period])
+  const areaData = useMemo(() =>
+    events.map(e => ({
+      label:    fmtAxisTick(e.createdAt, period),
+      fullDate: fmtFull(e.createdAt),
+      stock:    e.stockApres,
+      delta:    e.delta,
+      type:     e.type,
+      motif:    e.motif,
+    }))
+  , [events, period])
 
   const barData = useMemo(() => {
-    if (!mouvements.length) return []
-    const map = new Map<string, { label: string; entrees: number; sorties: number }>()
-    const sorted = [...mouvements].sort((a, b) =>
-      new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-    )
-    for (const m of sorted) {
-      const key = bucketKey(m.createdAt, period)
-      if (!map.has(key)) map.set(key, { label: bucketLabel(key, period), entrees: 0, sorties: 0 })
+    if (!events.length) return []
+    const map = new Map<string, { label: string; entrees: number; ventes: number; sorties: number }>()
+    for (const e of events) {
+      const key = bucketKey(e.createdAt, period)
+      if (!map.has(key)) map.set(key, { label: bucketLabel(key, period), entrees: 0, ventes: 0, sorties: 0 })
       const b = map.get(key)!
-      if (m.delta > 0) b.entrees += m.delta
-      else b.sorties += Math.abs(m.delta)
+      if (e.delta > 0)          b.entrees += e.delta
+      else if (e.type === 'VENTE') b.ventes  += Math.abs(e.delta)
+      else                         b.sorties += Math.abs(e.delta)
     }
     return Array.from(map.values())
-  }, [mouvements, period])
+  }, [events, period])
 
   const stockAlerte  = article.stockAlerte  > 0 ? article.stockAlerte  : null
   const stockTension = article.stockTension > 0 ? article.stockTension : null
@@ -183,9 +179,13 @@ export function StockHistoriqueModal({ article, onClose }: Props) {
             <div className={styles.statValue} style={{ color:'#166534' }}>+{stats.entrees}</div>
             <div className={styles.statLabel} style={{ color:'#15803D' }}>Entrées</div>
           </div>
+          <div className={styles.statCard} style={{ borderColor:'#BFDBFE', background:'#EFF6FF' }}>
+            <div className={styles.statValue} style={{ color:'#1D4ED8' }}>−{stats.ventes}</div>
+            <div className={styles.statLabel} style={{ color:'#2563EB' }}>Ventes</div>
+          </div>
           <div className={styles.statCard} style={{ borderColor:'#FECACA', background:'#FEF2F2' }}>
             <div className={styles.statValue} style={{ color:'#B91C1C' }}>−{stats.sorties}</div>
-            <div className={styles.statLabel} style={{ color:'#DC2626' }}>Sorties</div>
+            <div className={styles.statLabel} style={{ color:'#DC2626' }}>Autres sorties</div>
           </div>
           <div className={styles.statCard}
             style={{ borderColor: stats.solde >= 0 ? '#BBF7D0' : '#FECACA',
@@ -249,7 +249,8 @@ export function StockHistoriqueModal({ article, onClose }: Props) {
                   Entrées & Sorties
                   <span className={styles.chartLegend}>
                     <span className={styles.legendDot} style={{ background:'#22C55E' }} />Entrées
-                    <span className={styles.legendDot} style={{ background:'#EF4444' }} />Sorties
+                    <span className={styles.legendDot} style={{ background:'#3B82F6' }} />Ventes
+                    <span className={styles.legendDot} style={{ background:'#EF4444' }} />Autres sorties
                   </span>
                 </div>
                 <ResponsiveContainer width="100%" height={150}>
@@ -259,8 +260,9 @@ export function StockHistoriqueModal({ article, onClose }: Props) {
                       axisLine={false} tickLine={false} />
                     <YAxis tick={{ fontSize: 10, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
                     <Tooltip content={<BarTooltip />} />
-                    <Bar dataKey="entrees" name="Entrées" fill="#22C55E" radius={[4,4,0,0]} maxBarSize={40} />
-                    <Bar dataKey="sorties" name="Sorties" fill="#EF4444" radius={[4,4,0,0]} maxBarSize={40} />
+                    <Bar dataKey="entrees" name="Entrées"        fill="#22C55E" radius={[4,4,0,0]} maxBarSize={36} />
+                    <Bar dataKey="ventes"  name="Ventes"         fill="#3B82F6" radius={[4,4,0,0]} maxBarSize={36} />
+                    <Bar dataKey="sorties" name="Autres sorties" fill="#EF4444" radius={[4,4,0,0]} maxBarSize={36} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>

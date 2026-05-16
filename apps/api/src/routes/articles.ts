@@ -273,6 +273,84 @@ export const articleRoutes: FastifyPluginAsync = async (app) => {
     return { months }
   })
 
+  // ── Timeline stock : mouvements manuels + ventes fusionnés ──
+  app.get('/:id/stock-timeline', auth, async (request, reply) => {
+    const { tenantId } = request.tenant
+    const { id }       = request.params as { id: string }
+    const { period = '30d' } = request.query as { period?: string }
+
+    const article = await app.db.article.findFirst({ where: { id, tenantId } })
+    if (!article) return reply.notFound()
+
+    const dateFrom = new Date()
+    if (period === '7d')  dateFrom.setDate(dateFrom.getDate() - 7)
+    if (period === '30d') dateFrom.setDate(dateFrom.getDate() - 30)
+    if (period === '3m')  dateFrom.setMonth(dateFrom.getMonth() - 3)
+    if (period === '12m') dateFrom.setFullYear(dateFrom.getFullYear() - 1)
+    dateFrom.setHours(0, 0, 0, 0)
+
+    // Mouvements manuels (ENTREE, SORTIE_*, AJUSTEMENT)
+    const mouvements = await app.db.mouvementStock.findMany({
+      where: { articleId: id, tenantId, createdAt: { gte: dateFrom } },
+      orderBy: { createdAt: 'asc' },
+    })
+
+    // Lignes de ventes validées sur la période
+    const lignes = await app.db.ligneVente.findMany({
+      where: {
+        articleId: id,
+        vente: { tenantId, statut: 'VALIDEE', dateVente: { gte: dateFrom } },
+      },
+      include: {
+        vente: { select: { id: true, dateVente: true, numero: true, modePaiement: true } },
+      },
+    })
+
+    // Regrouper les lignes par vente (une vente = un seul événement)
+    const venteMap = new Map<string, { vente: typeof lignes[0]['vente']; quantite: number }>()
+    for (const l of lignes) {
+      if (!venteMap.has(l.vente.id)) venteMap.set(l.vente.id, { vente: l.vente, quantite: 0 })
+      venteMap.get(l.vente.id)!.quantite += l.quantite
+    }
+
+    // Fusionner et trier par date ASC
+    type RawEvent = {
+      id: string; type: string; delta: number
+      stockApres: number | null; motif: string | null
+      createdAt: Date; venteNumero?: number; modePaiement?: string
+    }
+    const events: RawEvent[] = [
+      ...mouvements.map(m => ({
+        id: m.id, type: m.type, delta: m.delta,
+        stockApres: m.stockApres, motif: m.motif, createdAt: m.createdAt,
+      })),
+      ...Array.from(venteMap.values()).map(({ vente, quantite }) => ({
+        id: vente.id, type: 'VENTE', delta: -quantite,
+        stockApres: null, motif: `Vente #${vente.numero}`,
+        createdAt: new Date(vente.dateVente),
+        venteNumero: vente.numero, modePaiement: vente.modePaiement,
+      })),
+    ].sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
+
+    // Reconstruction du stock vers l'arrière depuis le stock actuel.
+    // Pour les mouvements : on fait confiance au stockApres stocké (anchor).
+    // Pour les ventes : on utilise le stock courant reconstitué.
+    let running = article.stock
+    for (let i = events.length - 1; i >= 0; i--) {
+      const e = events[i]
+      if (e.stockApres !== null) {
+        // Mouvement avec stockApres connu → anchor fiable
+        running = e.stockApres - e.delta
+      } else {
+        // Vente sans stockApres → on reconstitue
+        e.stockApres = running
+        running = running - e.delta
+      }
+    }
+
+    return events.map(e => ({ ...e, createdAt: e.createdAt.toISOString() }))
+  })
+
   app.delete('/:id', authAdmin, async (request, reply) => {
     const { tenantId } = request.tenant
     const { id } = request.params as { id: string }

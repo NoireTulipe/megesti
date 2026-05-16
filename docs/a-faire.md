@@ -24,6 +24,21 @@ Les images uploadées via l'app ne s'affichent pas correctement dans le catalogu
 
 ---
 
+## Chantier 1 — Upload image dans les articles
+
+FAIT - Validé
+
+---
+
+## Chantier 2 — Visualisation stock avancée
+
+`StockPage` affiche liste + historique en tableau (`HistoriqueMouvements`). Reste :
+- Courbe temporelle entrées/sorties par article sur période choisie (sélecteur date)
+- Histogramme récapitulatif par rayon sur la même période
+- Composant `Sparkline` déjà disponible — voir si suffisant ou intégrer recharts
+
+---
+
 ## Chantier 3 — Plan gating : compléter
 
 Architecture en place (`planFeatures.ts`, `FeatureGate`, middleware tenant). Reste :
