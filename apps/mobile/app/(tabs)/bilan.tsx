@@ -7,6 +7,7 @@ import { useFocusEffect } from 'expo-router'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { getDb } from '@/lib/db'
+import { api } from '@/lib/api'
 import { Colors, Dark, Fonts, Radius, Shadow, Gradients } from '@/constants/theme'
 import { useAppTheme } from '@/hooks/useAppTheme'
 
@@ -66,7 +67,7 @@ async function loadBilan(from: string, to: string, mode: PeriodMode): Promise<Bi
   const [ventesRows, fraisRow, sessionsRows, fraisRows] = await Promise.all([
     db.getAllAsync<{ id: string; mode_paiement: string; total_ttc: number; lignes_json: string; session_id: string | null; date_vente: string }>(
       `SELECT id, mode_paiement, total_ttc, lignes_json, session_id, date_vente
-       FROM ventes_locales WHERE date_vente BETWEEN ? AND ? ORDER BY date_vente`,
+       FROM ventes_locales WHERE date_vente BETWEEN ? AND ? AND statut != 'ANNULEE' ORDER BY date_vente`,
       [from, to],
     ),
     db.getFirstAsync<{ total: number }>(
@@ -445,10 +446,44 @@ export default function BilanScreen() {
 
   const [data,       setData]       = useState<BilanData>(EMPTY)
   const [refreshing, setRefreshing] = useState(false)
+  const [fromServer, setFromServer] = useState(false)
 
   const load = useCallback(async () => {
-    const result = await loadBilan(activeRange[0], activeRange[1], mode)
-    setData(result)
+    const local = await loadBilan(activeRange[0], activeRange[1], mode)
+    if (local.totaux.ca > 0 || local.totaux.venteCount > 0) {
+      setFromServer(false)
+      setData(local)
+      return
+    }
+    // Fallback serveur si SQLite locale vide (ex: après réinstall)
+    try {
+      const [from, to] = activeRange
+      const resp = await api.get<any>(
+        `/rapports/ventes?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`
+      )
+      const ca = Number(resp?.summary?.totalTTC ?? 0)
+      if (ca > 0) {
+        const count  = Number(resp.summary?.nbVentes ?? 0)
+        const parMode: ModePaiement[] = (resp.caParMode ?? []).map((r: any) => ({
+          mode: String(r.mode), ca: Number(r.ca ?? 0), count: Number(r.nb ?? 0),
+        }))
+        const topArticles: TopArticle[] = (resp.topArticles ?? []).slice(0, 8).map((r: any) => ({
+          nom: String(r.nom ?? '?'), qty: Number(r.quantite ?? 0), ca: Number(r.ca ?? 0),
+        }))
+        const parPdv: ParPdv[] = (resp.caParPDV ?? []).slice(0, 5).map((r: any) => ({
+          nom: String(r.nom ?? 'PDV'), ca: Number(r.ca ?? 0), count: Number(r.nbVentes ?? 0),
+        }))
+        setFromServer(true)
+        setData({
+          ...EMPTY,
+          totaux: { ca, venteCount: count, fraisTotal: 0, net: ca, sessionCount: 0, panierMoyen: count > 0 ? ca / count : 0 },
+          parMode, topArticles, parPdv,
+        })
+        return
+      }
+    } catch {}
+    setFromServer(false)
+    setData(local)
   }, [activeRange, mode])
 
   useFocusEffect(useCallback(() => { load() }, [load]))
@@ -501,6 +536,11 @@ export default function BilanScreen() {
 
         {/* ── Carte résumé ── */}
         <LinearGradient colors={isDark ? Gradients.bilanDark : Gradients.bilan} style={styles.summaryCard} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
+          {fromServer && (
+            <Text style={{ fontFamily: Fonts.body, fontSize: 10, color: 'rgba(255,255,255,0.6)', marginBottom: 4, textAlign: 'center' }}>
+              ☁️ Données serveur
+            </Text>
+          )}
           <Text style={styles.summaryLbl}>Net estimé</Text>
           <Text style={styles.summaryNet}>{totaux.net.toFixed(2)} €</Text>
 

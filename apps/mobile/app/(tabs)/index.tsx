@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
 import { Image } from 'expo-image'
-import { router } from 'expo-router'
+import { router, useFocusEffect } from 'expo-router'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useAuthStore } from '@/store/authStore'
@@ -48,17 +48,14 @@ export default function DashboardScreen() {
   // Logo et nom de la ME depuis /mon-tenant
   const [meLogo, setMeLogo] = useState<string | null>(null)
 
-  useEffect(() => {
-    // Refresh user en arrière-plan (fix sessions pré-JWT enrichi)
+  useFocusEffect(useCallback(() => {
     refreshUser().catch(() => {})
-    // Données locales
     refreshSession()
     refreshVentes()
-    // Logo ME
     api.get<{ logo: string | null }>('/mon-tenant')
       .then(d => setMeLogo(buildUrl(d.logo)))
       .catch(() => {})
-  }, [])
+  }, [refreshSession, refreshVentes, refreshUser]))
 
   // Stats session courante
   const ventesSession = ventes.filter(v => v.session_id === session?.id)
