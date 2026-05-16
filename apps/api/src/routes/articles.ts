@@ -336,13 +336,10 @@ export const articleRoutes: FastifyPluginAsync = async (app) => {
     // Pour les mouvements : on fait confiance au stockApres stocké (anchor).
     // Pour les ventes : on utilise le stock courant reconstitué.
     let running = article.stock
-    for (let i = events.length - 1; i >= 0; i--) {
-      const e = events[i]
+    for (const e of [...events].reverse()) {
       if (e.stockApres !== null) {
-        // Mouvement avec stockApres connu → anchor fiable
         running = e.stockApres - e.delta
       } else {
-        // Vente sans stockApres → on reconstitue
         e.stockApres = running
         running = running - e.delta
       }

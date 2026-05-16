@@ -205,7 +205,7 @@ export function StockHistoriqueModal({ article, onClose }: Props) {
           </div>
         )}
 
-        {!isLoading && mouvements.length === 0 && (
+        {!isLoading && events.length === 0 && (
           <div className={styles.emptyState}>
             Aucun mouvement de stock sur cette période.
           </div>

@@ -239,24 +239,26 @@ export default function CaisseScreen() {
   const grouped = useMemo(() => {
     if (filtered.length === 0) return null
     if (selectedRayon) {
-      // Mode rayon unique : sections = catégories
+      // Mode rayon unique : sections = catégories (avec leur bandeau coloré)
       const map = new Map<string, typeof filtered>()
       for (const a of filtered) {
         const key = a.categorie_nom ?? 'Sans catégorie'
         if (!map.has(key)) map.set(key, [])
         map.get(key)!.push(a)
       }
-      for (const [, arts] of map) arts.sort((x, y) => x.nom.localeCompare(y.nom))
       return Array.from(map.entries())
         .sort(([a], [b]) => a.localeCompare(b))
-        .map(([cat, articles]) => ({
-          label: cat,
-          articles,
-          color: getCatColor(articles[0]?.categorie_id ?? cat),
-          isCategory: true,
-        }))
+        .map(([cat, articles]) => {
+          articles.sort((x, y) => x.nom.localeCompare(y.nom))
+          return {
+            label: cat,
+            color: getCatColor(articles[0]?.categorie_id ?? cat),
+            isCategory: true,
+            cats: [{ articles }],
+          }
+        })
     }
-    // Mode tous : sections = rayons, sous-groupes = catégories (sans titre)
+    // Mode tous : sections = rayons, sous-groupes = catégories (espacement subtil, sans titre)
     const rayonMap = new Map<string, Map<string, typeof filtered>>()
     for (const a of filtered) {
       const rayon = a.rayon_nom ?? 'Sans rayon'
@@ -266,9 +268,9 @@ export default function CaisseScreen() {
       if (!catMap.has(cat)) catMap.set(cat, [])
       catMap.get(cat)!.push(a)
     }
-    const result: { label: string; color: string; isCategory: boolean; cats: { articles: typeof filtered }[] }[] = []
+    const result: { label: string; color: string; isCategory: boolean; cats: { articles: LocalArticle[] }[] }[] = []
     for (const [rayon, catMap] of rayonMap) {
-      const cats: { articles: typeof filtered }[] = []
+      const cats: { articles: LocalArticle[] }[] = []
       for (const [, articles] of catMap) {
         articles.sort((x, y) => x.nom.localeCompare(y.nom))
         cats.push({ articles })
