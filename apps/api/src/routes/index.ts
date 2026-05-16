@@ -30,6 +30,8 @@ import { droitsAuteurRoutes }    from './droits-auteur.js'
 import { contactsTenantRoutes }  from './contacts-tenant.js'
 import { mascoteDialogRoutes }   from './mascote-dialogs.js'
 import { popupRoutes }           from './popups.js'
+import { facturationRoutes }     from './facturation.js'
+import { stripeRoutes }          from './stripe.js'
 
 export const routes: FastifyPluginAsync = async (app) => {
   await app.register(authRoutes,        { prefix: '/auth' })
@@ -63,4 +65,6 @@ export const routes: FastifyPluginAsync = async (app) => {
   await app.register(contactsTenantRoutes, { prefix: '/contacts-tenant' })
   await app.register(mascoteDialogRoutes,  { prefix: '/mascote-dialogs' })
   await app.register(popupRoutes,          { prefix: '/popups' })
+  await app.register(facturationRoutes,    { prefix: '/facturation' })
+  await app.register(stripeRoutes,         { prefix: '/stripe' })
 }

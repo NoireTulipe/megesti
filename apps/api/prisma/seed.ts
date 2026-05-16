@@ -79,6 +79,16 @@ async function main() {
       { text: '💡 Les auteurs ME — avec gestion de contrats et calcul automatique des droits — sont disponibles à partir du plan Édition. En plan Auto-édition, tu peux consulter le Réseau et importer des auteurs, mais la gestion contractuelle est réservée aux structures qui publient plusieurs auteurs.', cta: { label: 'Ajouter mon premier auteur →', href: '' } },
     ]},
 
+    { slug: 'facturation-quota-epuise', description: 'Facturation — quota mensuel épuisé, proposition de rechargement', bulles: [
+      { title: 'Notre facturier est vide !', text: 'Vous avez utilisé toutes vos factures du mois. Pas de panique : rechargez votre facturier en un clic et continuez à émettre sans interruption.' },
+      { text: 'Le rechargement est immédiat. Vos factures sont disponibles dès la confirmation du paiement.', cta: { label: 'Recharger mon facturier →', href: '' } },
+    ]},
+
+    { slug: 'facturation-pdp-non-configure', description: 'Facturation — identifiants superpdp manquants', bulles: [
+      { title: 'Configuration requise', text: 'Pour émettre des factures électroniques, renseignez vos identifiants superpdp.tech dans les réglages de votre compte (section Facturation électronique).' },
+      { text: 'Il vous faut un compte sur superpdp.tech avec une application créée pour votre entreprise. L\'opération prend 5 minutes.', cta: { label: 'Réglages → Facturation', href: '/reglages' } },
+    ]},
+
     { slug: 'depots-vide', description: 'Dépôts libraires — aucun dépôt enregistré', bulles: [
       { title: 'Tes dépôts en librairie 📚', text: 'Tu confies des exemplaires de tes livres à une librairie partenaire — elle les expose, les vend pour toi à ton prix public, et te reverse ta part selon une commission convenue. C\'est le dépôt-vente : tu restes propriétaire des livres jusqu\'à leur vente, aucun intermédiaire ne te les rachète.' },
       { text: 'Pour chaque dépôt, MeGesti suit les quantités envoyées, les quantités vendues et ce qu\'il reste en rayon. Fini les calculs sur un coin de nappe : tu sais à tout moment ce que chaque librairie te doit.' },

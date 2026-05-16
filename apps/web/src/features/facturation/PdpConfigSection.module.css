@@ -1,0 +1,44 @@
+.section { display: flex; flex-direction: column; gap: 32px; max-width: 720px; }
+.loading  { color: var(--text-soft); font-style: italic; font-size: 0.85rem; }
+
+.group { display: flex; flex-direction: column; gap: 14px; }
+.groupTitle {
+  font-family: 'DM Serif Display', serif; font-size: 1.05rem; color: var(--ink); margin: 0;
+}
+.groupDesc { font-size: 0.82rem; color: var(--text-soft); margin: 0; line-height: 1.6; }
+
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.fieldFull { grid-column: 1 / -1; }
+
+.field { display: flex; flex-direction: column; gap: 4px; }
+.label { font-size: 0.78rem; font-weight: 600; color: var(--ink); }
+.input {
+  height: 40px; padding: 0 12px;
+  border: 1.5px solid var(--cream-dark); border-radius: var(--r-input);
+  font-size: 0.875rem; font-family: inherit; background: var(--white); color: var(--ink);
+  outline: none; transition: border-color var(--t), box-shadow var(--t);
+}
+.input:focus { border-color: var(--terra); box-shadow: 0 0 0 3px var(--terra-glow); }
+.hint { font-size: 0.7rem; color: var(--text-soft); }
+.link { color: var(--terra); text-decoration: underline; }
+
+.configuredBadge {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 0.78rem; font-weight: 600; color: #15803D;
+  background: #F0FDF4; border: 1.5px solid #BBF7D0;
+  border-radius: var(--r-pill); padding: 5px 14px;
+  align-self: flex-start;
+}
+
+.actions { display: flex; align-items: center; gap: 14px; }
+.savedMsg { font-size: 0.82rem; color: #15803D; font-weight: 600; }
+.btnSave {
+  height: 40px; padding: 0 22px;
+  background: linear-gradient(135deg, var(--terra), var(--terra-dark));
+  color: #fff; border: none; border-radius: var(--r-pill);
+  font-size: 0.875rem; font-weight: 600; cursor: pointer; font-family: inherit;
+  box-shadow: 0 4px 14px rgba(196,144,124,0.35);
+  transition: box-shadow var(--t), transform var(--t);
+}
+.btnSave:hover:not(:disabled) { box-shadow: 0 8px 24px rgba(196,144,124,0.5); transform: translateY(-1px); }
+.btnSave:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }

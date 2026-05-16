@@ -1,0 +1,193 @@
+.page {
+  display: flex; flex-direction: column; height: 100%;
+  padding: 0 44px; overflow: hidden;
+  animation: fadeUp 0.5s cubic-bezier(0.22,1,0.36,1) both;
+  position: relative; z-index: 1;
+}
+
+/* Tabs */
+.tabBar {
+  display: inline-flex; align-self: flex-start; gap: 2px;
+  background: var(--white); border: 1.5px solid var(--cream-dark);
+  border-radius: var(--r-pill); padding: 4px; margin-bottom: 24px;
+  box-shadow: var(--shadow-card);
+}
+.tab {
+  height: 36px; padding: 0 18px; border-radius: var(--r-pill);
+  background: transparent; border: none;
+  font-size: 0.85rem; font-weight: 500; color: var(--text-soft); cursor: pointer;
+  transition: background var(--t), color var(--t);
+  white-space: nowrap;
+}
+.tab:hover { color: var(--ink-mid); }
+.tabActive {
+  background: var(--ink-mid); color: var(--white); font-weight: 600;
+  box-shadow: 0 2px 8px rgba(44,24,16,0.18);
+}
+
+/* Recharger btn */
+.btnRecharger {
+  height: 38px; padding: 0 18px;
+  background: linear-gradient(135deg, #B91C1C, #DC2626);
+  color: #fff; border: none; border-radius: var(--r-pill);
+  font-size: 0.875rem; font-weight: 600; cursor: pointer;
+  box-shadow: 0 4px 14px rgba(185,28,28,0.35);
+  transition: box-shadow var(--t), transform var(--t);
+}
+.btnRecharger:hover { box-shadow: 0 6px 20px rgba(185,28,28,0.5); transform: translateY(-1px); }
+
+/* Overview */
+.overview { display: flex; flex-direction: column; gap: 20px; overflow-y: auto; padding-bottom: 40px; }
+.overviewCard {
+  background: var(--white); border: 1.5px solid var(--cream-dark);
+  border-radius: var(--r-card); padding: 24px;
+  box-shadow: var(--shadow-card); display: flex; flex-direction: column; gap: 12px;
+}
+.overviewCardTitle {
+  font-family: 'DM Serif Display', serif; font-size: 1rem; color: var(--ink); margin: 0;
+}
+
+/* Gauge */
+.gauge { display: flex; flex-direction: column; gap: 6px; }
+.gaugeBar {
+  height: 8px; border-radius: 4px; background: var(--cream-dark); overflow: hidden;
+}
+.gaugeFill { height: 100%; border-radius: 4px; transition: width 0.5s ease; }
+.gaugeLabels { display: flex; justify-content: space-between; font-size: 0.8rem; }
+.gaugeTotal { color: var(--text-soft); display: flex; align-items: center; gap: 6px; }
+.creditsBadge {
+  font-size: 0.65rem; font-weight: 700; background: #EFF6FF; color: #2563EB;
+  border: 1px solid #BFDBFE; border-radius: 20px; padding: 1px 7px;
+}
+
+.overviewGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.statCard {
+  background: var(--white); border: 1.5px solid var(--cream-dark);
+  border-radius: var(--r-card); padding: 20px; text-align: center;
+  box-shadow: var(--shadow-card);
+}
+.statVal { display: block; font-size: 2rem; font-weight: 800; color: var(--ink); line-height: 1; }
+.statLabel { font-size: 0.75rem; color: var(--text-soft); margin-top: 4px; display: block; }
+
+.successBanner {
+  padding: 12px 20px; background: #F0FDF4; border: 1.5px solid #BBF7D0;
+  border-radius: var(--r-card); color: #15803D; font-size: 0.875rem; font-weight: 600;
+}
+
+/* Form */
+.emettreWrap { overflow-y: auto; padding-bottom: 40px; }
+.form { display: flex; flex-direction: column; gap: 24px; max-width: 800px; }
+.formGrid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.field { display: flex; flex-direction: column; gap: 4px; }
+.label { font-size: 0.78rem; font-weight: 600; color: var(--ink); }
+.req   { color: #DC2626; }
+.input {
+  height: 40px; padding: 0 12px;
+  border: 1.5px solid var(--cream-dark); border-radius: var(--r-input);
+  font-size: 0.875rem; font-family: inherit; background: var(--white);
+  color: var(--ink); outline: none;
+  transition: border-color var(--t), box-shadow var(--t);
+}
+.input:focus { border-color: var(--terra); box-shadow: 0 0 0 3px var(--terra-glow); }
+
+.sectionLabel {
+  font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.1em; color: var(--terra);
+}
+.lignesSection { display: flex; flex-direction: column; gap: 8px; }
+.lignesHeader  { display: flex; justify-content: space-between; align-items: center; }
+.lignesHead {
+  display: flex; gap: 8px; padding: 0 4px;
+  font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.07em; color: var(--text-soft);
+}
+.ligneRow { display: flex; align-items: center; gap: 8px; }
+.ligneDesc { flex: 3; }
+.ligneNum  { width: 80px; text-align: right; }
+.ligneTotal {
+  width: 100px; text-align: right;
+  font-size: 0.875rem; font-weight: 600; color: var(--ink);
+}
+.btnAddLigne {
+  font-size: 0.78rem; font-weight: 600; color: var(--terra);
+  background: var(--terra-faint,#fdf5f4); border: 1.5px solid var(--terra-light);
+  border-radius: var(--r-pill); padding: 4px 14px; cursor: pointer;
+  font-family: inherit; transition: background var(--t);
+}
+.btnAddLigne:hover { background: var(--terra-light); }
+.btnRemoveLigne {
+  width: 28px; height: 28px; border-radius: 50%; background: none;
+  border: 1.5px solid var(--cream-dark); color: var(--text-soft);
+  cursor: pointer; font-size: 0.8rem; flex-shrink: 0;
+  transition: background var(--t), color var(--t);
+}
+.btnRemoveLigne:hover { background: #FEF2F2; color: #DC2626; border-color: #FECACA; }
+
+.totauxBlock {
+  display: flex; flex-direction: column; gap: 6px; align-self: flex-end;
+  min-width: 260px; padding: 16px 20px;
+  background: var(--cream); border-radius: var(--r-card);
+  border: 1.5px solid var(--cream-dark);
+}
+.totauxRow {
+  display: flex; justify-content: space-between;
+  font-size: 0.82rem; color: var(--text-soft);
+}
+.totauxRowBig {
+  display: flex; justify-content: space-between;
+  font-size: 1.1rem; font-weight: 700; color: var(--ink);
+  border-top: 1.5px solid var(--cream-dark); padding-top: 8px; margin-top: 4px;
+}
+
+.formActions { display: flex; gap: 10px; }
+.btnPrimary {
+  height: 44px; padding: 0 24px;
+  background: linear-gradient(135deg, var(--terra), var(--terra-dark));
+  color: #fff; border: none; border-radius: var(--r-pill);
+  font-size: 0.875rem; font-weight: 600; cursor: pointer; font-family: inherit;
+  box-shadow: 0 4px 14px rgba(196,144,124,0.38);
+  transition: box-shadow var(--t), transform var(--t); white-space: nowrap;
+}
+.btnPrimary:hover:not(:disabled) { box-shadow: 0 8px 24px rgba(196,144,124,0.5); transform: translateY(-1px); }
+.btnPrimary:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
+
+.errorMsg { font-size: 0.85rem; color: #B91C1C; font-weight: 500; }
+
+/* Lists */
+.listWrap { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-bottom: 40px; }
+.empty { font-size: 0.875rem; color: var(--text-soft); font-style: italic; padding: 20px 0; }
+
+.factureRow {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  padding: 16px 20px; background: var(--white);
+  border: 1.5px solid var(--cream-dark); border-radius: var(--r-card);
+  box-shadow: var(--shadow-card);
+  transition: border-color var(--t), box-shadow var(--t);
+}
+.factureRow:hover { border-color: rgba(196,144,124,0.4); box-shadow: var(--shadow-hover); }
+.factureRowUnread { border-color: #BFDBFE; cursor: pointer; }
+.factureRowUnread:hover { border-color: #93C5FD; }
+
+.factureLeft  { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.factureRight { display: flex; align-items: center; gap: 14px; flex-shrink: 0; }
+
+.factureNum  { font-size: 0.85rem; font-weight: 700; color: var(--ink); white-space: nowrap; }
+.factureDest { font-size: 0.875rem; font-weight: 600; color: var(--ink); }
+.factureSiret { font-size: 0.72rem; color: var(--text-soft); }
+.factureDate  { font-size: 0.78rem; color: var(--text-soft); white-space: nowrap; }
+.factureMontant {
+  font-family: 'DM Serif Display', serif; font-size: 1rem; color: var(--ink); white-space: nowrap;
+}
+.statutBadge {
+  font-size: 0.68rem; font-weight: 700; padding: 3px 10px;
+  border-radius: 20px; white-space: nowrap;
+}
+.unreadDot {
+  width: 8px; height: 8px; border-radius: 50%; background: #2563EB; flex-shrink: 0;
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.2);
+}
+
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(16px) }
+  to   { opacity:1; transform:translateY(0) }
+}

@@ -268,19 +268,28 @@ export function StockPage() {
                               🖨️ Commander
                             </a>
                           )}
-                          <button
-                            className={styles.analyticsBtn}
-                            onClick={() => can('stockAnalytics') && setAnalyticsArticle(article)}
-                            title={can('stockAnalytics') ? 'Voir les graphiques de stock' : upgradeMessage('stockAnalytics')}
-                            style={{ opacity: can('stockAnalytics') ? 1 : 0.45, cursor: can('stockAnalytics') ? 'pointer' : 'default' }}
-                          >
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                              <line x1="18" y1="20" x2="18" y2="10"/>
-                              <line x1="12" y1="20" x2="12" y2="4"/>
-                              <line x1="6"  y1="20" x2="6"  y2="14"/>
-                            </svg>
-                            Graphiques
-                          </button>
+                          {can('stockAnalytics') ? (
+                            <button
+                              className={styles.analyticsBtn}
+                              onClick={() => setAnalyticsArticle(article)}
+                              title="Voir les graphiques de stock"
+                            >
+                              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                                <line x1="18" y1="20" x2="18" y2="10"/>
+                                <line x1="12" y1="20" x2="12" y2="4"/>
+                                <line x1="6"  y1="20" x2="6"  y2="14"/>
+                              </svg>
+                              Graphiques
+                            </button>
+                          ) : (
+                            <span className={styles.analyticsBtnLocked} title={upgradeMessage('stockAnalytics')}>
+                              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                              </svg>
+                              Plan Édition
+                            </span>
+                          )}
                           <button
                             className={styles.adjustBtn}
                             onClick={() => setEditingId(article.id)}

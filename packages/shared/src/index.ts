@@ -12,6 +12,9 @@ export type {
 
 // Plan features
 export type { PlanTier, PlanFeatures } from './planFeatures'
+
+// Facturation électronique
+export type { FormatFacture, LigneFacture, FacturePayload, EmissionResult, FactureRecueBrute, InvoiceTransmissionService } from './types/invoice'
 export { PLAN_FEATURES, PLAN_LABELS, UPGRADE_MESSAGE, getPlanFeatures, canUseFeature } from './planFeatures'
 
 // Constants

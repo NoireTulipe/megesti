@@ -1,7 +1,6 @@
 import { create } from 'zustand'
 import * as SecureStore from 'expo-secure-store'
 import { api, setTokenGetter } from '@/lib/api'
-import { getDb } from '@/lib/db'
 
 const TOKEN_KEY = 'megesti_token'
 const USER_KEY  = 'megesti_user'

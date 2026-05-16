@@ -67,7 +67,10 @@
       "Bash(git -C \"C:/Users/DCFM/Documents/Bobo/megesti\" show HEAD:apps/web/src/features/ventes/VentesPage.tsx)",
       "Bash(git -C \"C:/Users/DCFM/Documents/Bobo/megesti\" show HEAD:apps/web/src/features/stock/AjustementStock.tsx)",
       "PowerShell(Test-Path *)",
-      "Bash(xxd)"
+      "Bash(xxd)",
+      "WebFetch(domain:www.superpdp.tech)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(pnpm *)"
     ]
   }
 }

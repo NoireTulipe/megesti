@@ -17,6 +17,7 @@ export interface PlanFeatures {
   reversements:            boolean
   stockAnalytics:          boolean
   facturationElectronique: boolean
+  facturesEmissionMois:   number   // quota d'émission mensuel ; réception toujours illimitée
   exportCsvPdf:            boolean
 }
 
@@ -28,7 +29,8 @@ export const PLAN_FEATURES: Record<PlanTier, PlanFeatures> = {
     depotsLibraires:         true,  imprimeurs:              true,
     reglagesAvances:         true,  charges:                 true,
     reversements:            true,  stockAnalytics:          true,
-    facturationElectronique: false, exportCsvPdf:            true,
+    facturationElectronique: true,  facturesEmissionMois:    50,
+    exportCsvPdf:            true,
   },
   AUTO_EDITION: {
     maxArticles:             20,    maxUsers:                1,
@@ -37,7 +39,8 @@ export const PLAN_FEATURES: Record<PlanTier, PlanFeatures> = {
     depotsLibraires:         false, imprimeurs:              false,
     reglagesAvances:         false, charges:                 false,
     reversements:            false, stockAnalytics:          false,
-    facturationElectronique: false, exportCsvPdf:            false,
+    facturationElectronique: true,  facturesEmissionMois:    5,
+    exportCsvPdf:            false,
   },
   EDITION: {
     maxArticles:             40,    maxUsers:                3,
@@ -46,7 +49,8 @@ export const PLAN_FEATURES: Record<PlanTier, PlanFeatures> = {
     depotsLibraires:         true,  imprimeurs:              true,
     reglagesAvances:         true,  charges:                 true,
     reversements:            true,  stockAnalytics:          true,
-    facturationElectronique: true,  exportCsvPdf:            true,
+    facturationElectronique: true,  facturesEmissionMois:    50,
+    exportCsvPdf:            true,
   },
   EDITION_PRO: {
     maxArticles:             null,  maxUsers:                10,
@@ -55,7 +59,8 @@ export const PLAN_FEATURES: Record<PlanTier, PlanFeatures> = {
     depotsLibraires:         true,  imprimeurs:              true,
     reglagesAvances:         true,  charges:                 true,
     reversements:            true,  stockAnalytics:          true,
-    facturationElectronique: true,  exportCsvPdf:            true,
+    facturationElectronique: true,  facturesEmissionMois:    500,
+    exportCsvPdf:            true,
   },
 }
 
@@ -78,7 +83,8 @@ export const UPGRADE_MESSAGE: Record<keyof PlanFeatures, string> = {
   charges:                 'La gestion des charges est disponible à partir du plan Edition.',
   reversements:            "L'encaissement par le point de vente et la gestion des reversements sont disponibles à partir du plan Edition.",
   stockAnalytics:          "Les graphiques d'analyse de stock sont disponibles à partir du plan Edition.",
-  facturationElectronique: 'La facturation électronique est disponible à partir du plan Edition.',
+  facturationElectronique:  'La facturation électronique est disponible à partir du plan Edition.',
+  facturesEmissionMois:     'Quota mensuel de factures émises selon votre plan.',
   exportCsvPdf:            'L\'export CSV/PDF est disponible à partir du plan Edition.',
 }
 

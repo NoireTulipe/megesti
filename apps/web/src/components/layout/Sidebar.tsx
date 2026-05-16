@@ -5,6 +5,7 @@ import { NAV_MAIN, NAV_RESEAU, NAV_ADMIN, type NavKey, type NavItem } from '@/co
 import { useMonTenant } from '@/features/reglages/hooks/useMonTenant'
 import { useAuthStore } from '@/store/authStore'
 import { usePlanFeatures } from '@/hooks/usePlanFeatures'
+import { useNonLusCount } from '@/features/facturation/hooks/useFacturation'
 import type { PlanFeatures } from '@megesti/shared'
 import styles from './Sidebar.module.css'
 
@@ -20,6 +21,7 @@ const NAV_FEATURE_GATES: Partial<Record<NavKey, keyof PlanFeatures>> = {
   depotsLibraires: 'depotsLibraires',
   droitsAuteur:    'droitsAuteur',
   reversements:    'reversements',
+  facturation:     'facturationElectronique',
   charges:         'charges',
   imprimeurs:      'imprimeurs',
 }
@@ -30,6 +32,7 @@ export function Sidebar({ active, onNav, collapsed, onToggle }: SidebarProps) {
   const { data: tenant } = useMonTenant()
   const user = useAuthStore(s => s.user)
   const { can, upgradeMessage } = usePlanFeatures()
+  const { data: nonLus } = useNonLusCount()
 
   const tenantName = tenant?.name ?? 'Megesti'
 
@@ -38,6 +41,8 @@ export function Sidebar({ active, onNav, collapsed, onToggle }: SidebarProps) {
       const requiredFeature = NAV_FEATURE_GATES[item.key]
       const locked = requiredFeature ? !can(requiredFeature) : false
       const tooltip = locked && requiredFeature ? upgradeMessage(requiredFeature) : undefined
+      const badge = item.key === 'facturation' && (nonLus?.count ?? 0) > 0
+        ? nonLus!.count : undefined
       return (
         <NavButton
           key={item.key}
@@ -46,6 +51,7 @@ export function Sidebar({ active, onNav, collapsed, onToggle }: SidebarProps) {
           collapsed={collapsed}
           locked={locked}
           tooltip={tooltip}
+          badge={badge}
           onClick={() => !locked && onNav(item.key)}
         />
       )
@@ -107,10 +113,11 @@ interface NavButtonProps {
   collapsed: boolean
   locked: boolean
   tooltip?: string
+  badge?: number
   onClick: () => void
 }
 
-function NavButton({ item, isActive, collapsed, locked, tooltip, onClick }: NavButtonProps) {
+function NavButton({ item, isActive, collapsed, locked, tooltip, badge, onClick }: NavButtonProps) {
   return (
     <button
       className={`${styles.navItem} ${isActive ? styles.active : ''} ${locked ? styles.locked : ''}`}
@@ -118,8 +125,20 @@ function NavButton({ item, isActive, collapsed, locked, tooltip, onClick }: NavB
       title={collapsed ? (locked ? tooltip : item.label) : (locked ? tooltip : undefined)}
       style={{ opacity: locked ? 0.4 : 1, cursor: locked ? 'not-allowed' : 'pointer' }}
     >
-      <div className={styles.iconWrap}>
+      <div className={styles.iconWrap} style={{ position: 'relative' }}>
         <item.Icon size={15} color={isActive ? 'white' : 'rgba(255,255,255,0.7)'} />
+        {badge !== undefined && badge > 0 && (
+          <span style={{
+            position: 'absolute', top: -5, right: -6,
+            background: '#EF4444', color: '#fff',
+            fontSize: 9, fontWeight: 800, lineHeight: 1,
+            minWidth: 14, height: 14, borderRadius: 7,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: '0 3px', border: '1.5px solid rgba(0,0,0,0.3)',
+          }}>
+            {badge > 99 ? '99+' : badge}
+          </span>
+        )}
       </div>
       <span className={`${styles.navLabel} ${collapsed ? styles.navLabelHidden : styles.navLabelVisible}`}>
         {item.label}

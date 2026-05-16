@@ -42,6 +42,27 @@ export function useLocalSession() {
 
   useEffect(() => { refresh() }, [refresh])
 
+  // Valider la session locale contre le serveur (appelé au démarrage)
+  async function validateWithServer() {
+    const db = await getDb()
+    const local = await db.getFirstAsync<LocalSession>(
+      'SELECT * FROM sessions WHERE statut = ? ORDER BY date_ouverture DESC LIMIT 1',
+      ['OUVERTE'],
+    )
+    if (!local) return
+    try {
+      const data = await api.get<any[]>('/sessions-caisse?statut=OUVERTE')
+      const stillOpen = data.some((s: any) => s.id === local.id)
+      if (!stillOpen) {
+        addLog('warn', `Session ${local.id} fermée ailleurs → mise à jour locale`)
+        await db.runAsync(`UPDATE sessions SET statut = 'FERMEE', synced = 1 WHERE id = ?`, [local.id])
+        await refresh()
+      }
+    } catch {
+      // serveur injoignable, on garde l'état local
+    }
+  }
+
   async function openSession(pdvId: string, pdvNom: string, fondOuverture: number, articleIds: string[], salonId?: string) {
     const id = generateUUID()
     const db = await getDb()
@@ -75,19 +96,39 @@ export function useLocalSession() {
   async function closeSession(fondFermeture: number) {
     if (!session) return
     const db = await getDb()
+    const sessionId = session.id
+
+    // Essayer le serveur d'abord
+    let synced = 0
+    try {
+      await api.patch(`/sessions-caisse/${sessionId}/fermer`, { fondFermeture })
+      synced = 1
+      addLog('info', `Session fermée sur le serveur: fond final ${fondFermeture.toFixed(2)} €`)
+    } catch (e: any) {
+      // 400 "déjà fermée" → on marque comme synced
+      if (e?.status === 400 && e?.message?.includes('déjà fermée')) {
+        synced = 1
+        addLog('warn', 'Session déjà fermée sur le serveur')
+      } else {
+        addLog('warn', `Session fermée en local (serveur injoignable): ${e.message}`)
+      }
+    }
+
     await db.runAsync(
-      `UPDATE sessions SET statut = 'FERMEE', fond_fermeture = ?, synced = 0 WHERE id = ?`,
-      [fondFermeture, session.id],
+      `UPDATE sessions SET statut = 'FERMEE', fond_fermeture = ?, synced = ? WHERE id = ?`,
+      [fondFermeture, synced, sessionId],
     )
-    await syncEngine.enqueue('session_close', session.id, 'close', {
-      fondFermeture,
-      dateFermeture: new Date().toISOString(),
-    })
-    addLog('info', `Session fermée: fond final ${fondFermeture.toFixed(2)} €`)
+
+    if (!synced) {
+      await syncEngine.enqueue('session_close', sessionId, 'close', {
+        fondFermeture,
+        dateFermeture: new Date().toISOString(),
+      })
+    }
     await refresh()
   }
 
-  return { session, loading, refresh, openSession, closeSession }
+  return { session, loading, refresh, openSession, closeSession, validateWithServer }
 }
 
 export interface SessionWithStats extends LocalSession {

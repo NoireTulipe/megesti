@@ -1,14 +1,15 @@
 import {
   LayoutGrid, BookOpen, Package, Users, Home, FileText,
   Settings, BookMarked, Store, ShoppingCart, Printer,
-  TrendingUp, ArrowDownToLine, Scale, Receipt, Coins,
+  TrendingUp, ArrowDownToLine, Scale, Receipt, Coins, FileCheck,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
 export type NavKey =
   | 'dashboard' | 'catalog' | 'sales' | 'pointsDeVente' | 'stock'
   | 'authors' | 'maisonsEdition' | 'depotsLibraires' | 'salons' | 'imprimeurs'
-  | 'droitsAuteur' | 'comptabilite' | 'bilan' | 'charges' | 'reversements' | 'settings'
+  | 'droitsAuteur' | 'comptabilite' | 'bilan' | 'charges' | 'reversements'
+  | 'facturation' | 'settings'
 
 export interface NavItem {
   key: NavKey
@@ -39,6 +40,7 @@ export const NAV_ADMIN: NavItem[] = [
   { key: 'bilan',         label: 'Bilan',         Icon: Scale,           route: '/bilan' },
   { key: 'charges',       label: 'Charges',       Icon: Receipt,         route: '/charges' },
   { key: 'reversements',  label: 'Reversements',  Icon: ArrowDownToLine, route: '/reversements' },
+  { key: 'facturation',   label: 'Facturation',   Icon: FileCheck,       route: '/facturation' },
   { key: 'settings',      label: 'Réglages',      Icon: Settings,        route: '/reglages' },
 ]
 

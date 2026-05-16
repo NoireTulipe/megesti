@@ -22,6 +22,19 @@ model Tenant {
   logo                 String?  // URL du logo uploadé
   siteWeb              String?  // URL du site internet de la ME
   presentation         String?  // Texte de présentation libre
+  // Coordonnées légales (nécessaires pour la facturation électronique)
+  siret                String?
+  adresseLigne1        String?
+  adresseLigne2        String?
+  codePostal           String?
+  ville                String?
+  pays                 String?  @default("FR")
+  numeroTVA            String?
+  // Facturation électronique — superpdp.tech
+  pdpClientId          String?  // client_id OAuth2 superpdp (par entreprise)
+  pdpClientSecret      String?  // client_secret — chiffrer avant prod
+  pdpLastInvoiceId     String?  // dernier ID reçu pour le polling
+  facturesCredit       Int      @default(0) // crédits supplémentaires achetés via Stripe
   actif                Boolean  @default(true)
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
@@ -53,6 +66,63 @@ model Tenant {
   paiementsDA            PaiementDA[]
   charges                Charge[]
   motifsVente            MotifVente[]
+  facturesEmises         FactureEmission[]
+  facturesRecues         FactureReception[]
+}
+
+// ─── Facturation électronique ─────────────────────────────────────────────────
+
+enum StatutFactureEmission {
+  BROUILLON   // générée localement, non envoyée
+  ENVOYEE     // soumise à superpdp
+  ACCEPTEE    // confirmée par le destinataire (fr:212)
+  REFUSEE     // rejetée par le destinataire (fr:220)
+  ANNULEE     // annulée (fr:317)
+}
+
+model FactureEmission {
+  id                String                @id @default(uuid())
+  tenantId          String
+  numero            String                // numéro séquentiel conforme (ex: F-2026-001)
+  statut            StatutFactureEmission @default(BROUILLON)
+  destinataireSiret String?
+  destinataireNom   String?
+  montantHT         Decimal               @db.Decimal(12, 2)
+  montantTVA        Decimal               @db.Decimal(12, 2)
+  montantTTC        Decimal               @db.Decimal(12, 2)
+  format            String                @default("ubl")
+  pdpId             String?               // ID retourné par superpdp après envoi
+  dateEmission      DateTime
+  dateEcheance      DateTime?
+  contenuXml        String?               // UBL/Factur-X brut (stocké pour archivage 10 ans)
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([tenantId, dateEmission])
+  @@index([pdpId])
+}
+
+model FactureReception {
+  id              String   @id @default(uuid())
+  tenantId        String
+  pdpId           String                // ID chez superpdp
+  emetteurSiret   String?
+  emetteurNom     String?
+  montantTTC      Decimal  @db.Decimal(12, 2)
+  dateReception   DateTime
+  statut          String   @default("RECUE")
+  contenuXml      String?              // contenu brut pour archivage
+  lu              Boolean  @default(false)
+  createdAt       DateTime @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, pdpId])
+  @@index([tenantId])
+  @@index([tenantId, lu])
 }
 
 // ─── Admin ───────────────────────────────────────────────────────────────────

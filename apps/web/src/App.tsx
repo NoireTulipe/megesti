@@ -20,6 +20,7 @@ import { BilanPage }          from '@/features/comptabilite/BilanPage'
 import { ChargesPage }        from '@/features/charges/ChargesPage'
 import { ReversementsPage }   from '@/features/reversements/ReversementsPage'
 import { DroitsAuteurPage }   from '@/features/droitsAuteur/DroitsAuteurPage'
+import { FacturationPage }    from '@/features/facturation/FacturationPage'
 
 export default function App() {
   return (
@@ -47,6 +48,7 @@ export default function App() {
               <Route path="/charges"         element={<ChargesPage />} />
               <Route path="/reversements"     element={<ReversementsPage />} />
               <Route path="/droits-auteur"   element={<DroitsAuteurPage />} />
+              <Route path="/facturation"     element={<FacturationPage />} />
               <Route path="/reglages"         element={<ReglagesPage />} />
               <Route path="/compte"           element={<ComptePage />} />
             </Routes>

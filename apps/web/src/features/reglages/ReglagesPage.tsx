@@ -3,6 +3,7 @@ import { FormBuilder }      from '@/components/FormBuilder'
 import { ThesaurusSection } from './ThesaurusSection'
 import { RayonsSection }    from './RayonsSection'
 import { TypesDASection }   from './TypesDASection'
+import { PdpConfigSection } from '../facturation/PdpConfigSection'
 import { useRayons }        from '../catalogue/hooks/useRayons'
 import { useMonTenant, useUpdateMonTenant } from './hooks/useMonTenant'
 import { usePlanFeatures } from '@/hooks/usePlanFeatures'
@@ -11,13 +12,14 @@ import { PageHero } from '@/components/PageHero'
 import styles from './ReglagesPage.module.css'
 import type { EntityType } from '@megesti/shared'
 
-type Tab = 'champs' | 'rayons' | 'thesaurus' | 'droits' | 'fiscal'
+type Tab = 'champs' | 'rayons' | 'thesaurus' | 'droits' | 'fiscal' | 'facturation'
 type Niveau = 'classique' | 'avance'
 
 const CLASSIQUE: { key: Tab; label: string; emoji: string; desc: string }[] = [
-  { key: 'rayons',  label: 'Rayons & Catégories', emoji: '🗂️', desc: 'Organisez votre catalogue' },
-  { key: 'droits',  label: 'Barèmes DA',           emoji: '📄', desc: "Formules de droits d'auteur" },
-  { key: 'fiscal',  label: 'Paramètres fiscaux',   emoji: '🧾', desc: 'TVA et régime fiscal' },
+  { key: 'rayons',       label: 'Rayons & Catégories',    emoji: '🗂️', desc: 'Organisez votre catalogue' },
+  { key: 'droits',       label: 'Barèmes DA',              emoji: '📄', desc: "Formules de droits d'auteur" },
+  { key: 'fiscal',       label: 'Paramètres fiscaux',      emoji: '🧾', desc: 'TVA et régime fiscal' },
+  { key: 'facturation',  label: 'Facturation électronique',emoji: '⚡', desc: 'Identifiants superpdp.tech' },
 ]
 
 const AVANCE: { key: Tab; label: string; emoji: string; desc: string }[] = [
@@ -256,6 +258,9 @@ export function ReglagesPage() {
 
         {/* ── Thésaurus ── */}
         {tab === 'thesaurus' && <ThesaurusSection />}
+
+        {/* ── Facturation électronique ── */}
+        {tab === 'facturation' && <PdpConfigSection />}
       </div>
     </div>
   )

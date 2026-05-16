@@ -32,13 +32,99 @@ FAIT - Validé
 
 ## Chantier 2 — Visualisation stock avancée
 
-`StockPage` affiche liste + historique en tableau (`HistoriqueMouvements`). Reste :
-- Courbe temporelle entrées/sorties par article sur période choisie (sélecteur date)
-- Histogramme récapitulatif par rayon sur la même période
-- Composant `Sparkline` déjà disponible — voir si suffisant ou intégrer recharts
+FAIT - Validé
 
 ---
 
+## Chantier 2 bis (on a oublié et c'est pourtant la clé de la réussite) - Le service Réception/Emission de facture électronique
+
+Plan Auto-Editeur : réception illimité - 5 factures par mois + accès à l'achat de facturier
+Plan Editeur : réception illimité - 50 factures par mois + accès à l'achat de facturier
+Plan Editeur Pro : réception illimité - 500 factures par mois + accès à l'achat de facturier
+
+On passera par https://www.superpdp.tech (0,0025 €/transaction — superpdp facture François, qui revend des crédits aux tenants via Stripe).
+
+Pour le test en mode bac à sable : `ngrok http 3001` → URL HTTPS pour les webhooks superpdp en local.
+
+Voir si on ne peut pas mutualiser le code pour un SaaS de facturier. A réfléchir pour plus tard.
+
+---
+
+### Plan de route
+
+#### Prérequis — avant toute ligne de code
+- [x] Lire la doc API superpdp : OAuth2 client_credentials, `POST /v1.beta/invoices`, polling `GET /v1.beta/invoices`, `POST /v1.beta/invoice_events`
+- [ ] Credentials sandbox superpdp.tech (client_id + client_secret)
+- [ ] Tester le script `quick_start.js` pour valider l'accès sandbox
+- [ ] Packs Stripe calibrés et STRIPE_SECRET_KEY + STRIPE_WEBHOOK_SECRET en .env
+- [ ] ngrok lancé pour les tests webhook en local : `ngrok http 3001`
+
+---
+
+#### Phase 1 — Fondations ✅ FAIT
+
+**Schéma Prisma — 3 ajouts**
+- `FactureEmission` : id, tenantId, numero, statut (BROUILLON/ENVOYEE/ACCEPTEE/REFUSEE/ANNULEE), destinataireSiret, destinataireNom, montantHT/TVA/TTC, format, pdpId (retourné par superpdp), dateEmission
+- `FactureReception` : id, tenantId, emetteurSiret, emetteurNom, montantTTC, dateReception, pdpId, lienTelechargement
+- Champ `facturesCredit Int @default(0)` sur `Tenant` (crédits supplémentaires achetés)
+
+**Abstraction `InvoiceTransmissionService`** *(déjà planifiée dans les décisions techniques)*
+```typescript
+// packages/shared/src/services/InvoiceTransmissionService.ts
+interface InvoiceTransmissionService {
+  emettre(payload: FacturePayload): Promise<{ pdpId: string; statut: string }>
+  getStatut(pdpId: string): Promise<string>
+}
+// Implémentation : apps/api/src/services/SuperPdpService.ts
+```
+
+**Endpoint webhook réception**
+`POST /api/pdp/webhook` → valide la signature superpdp → crée `FactureReception` → déclenche notification (BullMQ job)
+
+**Middleware quota**
+`checkFactureQuota(tenantId)` : `COUNT(FactureEmission mois courant)` comparé à `planFeatures.facturesEmissionMois + tenant.facturesCredit` → 402 si dépassé
+
+---
+
+#### Phase 2 — Émission ✅ FAIT (UBL généré, route POST /facturation/emissions, quota check)
+
+- Génération du format attendu par superpdp (Factur-X ou autre — à confirmer avec la doc)
+- Appel `SuperPdpService.emettre()` → stockage en base → suivi statut via webhook ou polling
+- Décrémentation `facturesCredit` si quota plan dépassé
+
+---
+
+#### Phase 3 — Rechargement de crédits ✅ FAIT (QuotaDepaseModal + Stripe Checkout + webhook)
+
+**Modale "Oups, plus de crédits"** — déclenchée avant toute émission si quota = 0 :
+- Magestine (slug CMS `facturation-quota-epuise`) : *"Notre facturier est vide ! Vous avez utilisé vos N factures du mois. Rechargez en un clic pour continuer."*
+- Bouton CTA avec le prix : *"Recharger — 10 crédits pour X €"*
+- Stripe Checkout one-time → webhook `checkout.session.completed` → incrémente `facturesCredit`
+- Rechargement immédiat
+
+---
+
+#### Phase 4 — Interface web ✅ FAIT (FacturationPage + PdpConfigSection dans Réglages + badge sidebar)
+
+- Route `/facturation` (gated Edition+)
+- Onglet **Émissions** : liste, statuts PDP en temps réel, téléchargement Factur-X, bouton "Nouvelle facture"
+- Onglet **Réceptions** : liste, téléchargement
+- Formulaire d'émission : SIRET destinataire, lignes, TVA auto, numérotation automatique conforme
+- Badge discret dans la sidebar/header : *"N factures restantes"* → *"0 — Recharger"* en rouge si vide
+
+---
+
+#### Phase 5 — Mobile ⏳ À FAIRE
+
+- Notification in-app quand facture reçue (via BullMQ job → push ou badge)
+- *(Compagnon v2)* View facture dans l'app mobile
+
+---
+
+#### Note SaaS de facturier
+`InvoiceTransmissionService` proprement abstrait + modèles `FactureEmission/Réception` isolés = noyau d'un micro-SaaS de facturation B2B extractible sans dette technique. Respecter l'architecture dès v1.
+
+---
 ## Chantier 3 — Plan gating : compléter
 
 Architecture en place (`planFeatures.ts`, `FeatureGate`, middleware tenant). Reste :
