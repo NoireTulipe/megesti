@@ -320,7 +320,7 @@ export function RayonsSection() {
             autoFocus
           />
           <div className={styles.catModalActions}>
-            <button className={styles.btnCancel} onClick={() => setCatModal(null)}>Annuler</button>
+            <button className={styles.btnModalSecondary} onClick={() => setCatModal(null)}>Annuler</button>
             <button
               className={styles.btnConfirm}
               onClick={submitCatModal}

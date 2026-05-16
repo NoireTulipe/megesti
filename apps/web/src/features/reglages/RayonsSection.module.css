@@ -343,6 +343,15 @@
 .catModalBody { display: flex; flex-direction: column; gap: 16px; }
 .catModalActions { display: flex; gap: 8px; justify-content: flex-end; }
 
+.btnModalSecondary {
+  height: 38px; padding: 0 20px;
+  background: var(--white); border: 1.5px solid var(--cream-dark);
+  border-radius: var(--r-pill, 999px); color: var(--text-mid);
+  font-size: 0.875rem; font-weight: 500; font-family: inherit;
+  cursor: pointer; transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.btnModalSecondary:hover { border-color: var(--ink-light); color: var(--ink); background: var(--cream); }
+
 .newInput {
   flex: 1;
   padding: 8px 12px;
