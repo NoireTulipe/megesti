@@ -15,18 +15,28 @@ export interface EntrepriseResult {
 }
 
 interface ApiEntreprise {
-  nom?:              string
-  nom_raison_sociale?: string
-  siren?:            string
-  siret?:            string
-  adresse?:          string
-  codePostal?:       string
-  ville?:            string
-  libelleNaf?:       string
-  libelle_naf?:      string
-  categorieJuridique?: string
-  forme_juridique?:  string
-  [key: string]:     unknown
+  nom?:                       string
+  nom_raison_sociale?:        string
+  denominationSociale?:       string
+  denomination?:              string
+  name?:                      string
+  nomCommercial?:             string
+  raison_sociale?:            string
+  siren?:                     string
+  siret?:                     string
+  siretSiegeSocial?:          string
+  adresse?:                   string
+  address?:                   string
+  codePostal?:                string
+  code_postal?:               string
+  ville?:                     string
+  city?:                      string
+  libelleActivitePrincipale?: string
+  libelleNaf?:                string
+  libelle_naf?:               string
+  categorieJuridique?:        string
+  forme_juridique?:           string
+  [key: string]:              unknown
 }
 
 interface ApiResponse {
@@ -35,15 +45,20 @@ interface ApiResponse {
 }
 
 function toResult(r: ApiEntreprise): EntrepriseResult {
+  // eslint-disable-next-line no-console
+  console.debug('[rechercheEntreprise] raw:', JSON.stringify(r))
+  const nom =
+    r.nom ?? r.nom_raison_sociale ?? r.denominationSociale ?? r.denomination ??
+    r.name ?? r.nomCommercial ?? r.raison_sociale ?? ''
   return {
-    nom:              r.nom ?? r.nom_raison_sociale ?? '',
-    siren:            r.siren ?? '',
-    siret:            r.siret ?? '',
-    adresse:          r.adresse ?? '',
-    codePostal:       r.codePostal ?? undefined,
-    ville:            r.ville ?? undefined,
-    libelleActivite:  r.libelleNaf ?? r.libelle_naf ?? undefined,
-    formeJuridique:   r.forme_juridique ?? r.categorieJuridique ?? undefined,
+    nom,
+    siren:           r.siren ?? '',
+    siret:           r.siret ?? r.siretSiegeSocial ?? '',
+    adresse:         r.adresse ?? r.address ?? '',
+    codePostal:      r.codePostal ?? r.code_postal ?? undefined,
+    ville:           r.ville ?? r.city ?? undefined,
+    libelleActivite: r.libelleActivitePrincipale ?? r.libelleNaf ?? r.libelle_naf ?? undefined,
+    formeJuridique:  r.forme_juridique ?? r.categorieJuridique ?? undefined,
   }
 }
 
