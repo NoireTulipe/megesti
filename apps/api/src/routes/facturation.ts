@@ -88,7 +88,7 @@ export const facturationRoutes: FastifyPluginAsync = async (app) => {
       app.db.factureEmission.count({
         where: { tenantId, dateEmission: { gte: debut }, statut: { not: 'BROUILLON' } },
       }),
-      app.db.tenant.findUnique({ where: { id: tenantId }, select: { facturesCredit: true, pdpClientId: true, pdpClientSecret: true, name: true, siret: true, adresseLigne1: true, codePostal: true, ville: true, numeroTVA: true } }),
+      app.db.tenant.findUnique({ where: { id: tenantId }, select: { facturesCredit: true, name: true, siret: true, adresseLigne1: true, codePostal: true, ville: true, numeroTVA: true } }),
     ])
 
     const credits   = tenant?.facturesCredit ?? 0
@@ -111,6 +111,8 @@ export const facturationRoutes: FastifyPluginAsync = async (app) => {
       })
     }
 
+    if (!tenant) return reply.status(500).send({ error: 'TenantIntrouvable' })
+
     // ── Génération UBL ──────────────────────────────────────────────────────
     const emetteur = {
       nom:     tenant.name,
@@ -120,7 +122,11 @@ export const facturationRoutes: FastifyPluginAsync = async (app) => {
       ville:   tenant.ville ?? '',
       tvaNum:  tenant.numeroTVA ?? '',
     }
-    const xmlContent = generateUbl({ ...body, dateEmission: new Date(body.dateEmission) }, emetteur)
+    const xmlContent = generateUbl({
+      ...body,
+      dateEmission: new Date(body.dateEmission),
+      dateEcheance: body.dateEcheance ? new Date(body.dateEcheance) : undefined,
+    }, emetteur)
 
     // ── Envoi à superpdp ────────────────────────────────────────────────────
     const { pdpId, statut } = await pdp.emettre(xmlContent)
