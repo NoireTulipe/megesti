@@ -35,6 +35,8 @@ model Tenant {
   // pdpLastInvoiceId : dernier ID reçu pour le polling de réception, par tenant
   pdpLastInvoiceId     String?
   facturesCredit       Int      @default(0) // crédits supplémentaires achetés via Stripe
+  franchiseTva         Boolean  @default(false) // art. 293 B CGI — pas de TVA collectée
+  assujettUnique       Boolean  @default(false) // groupe TVA — note BG-1 obligatoire
   actif                Boolean  @default(true)
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt

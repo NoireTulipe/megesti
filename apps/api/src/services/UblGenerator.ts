@@ -14,12 +14,14 @@ interface LigneFacture {
 }
 
 interface Emetteur {
-  nom:     string
-  siret:   string
-  adresse: string
-  cp:      string
-  ville:   string
-  tvaNum:  string
+  nom:            string
+  siret:          string
+  adresse:        string
+  cp:             string
+  ville:          string
+  tvaNum:         string
+  franchiseTva?:  boolean   // art. 293 B CGI — pas de TVA collectée
+  assujettUnique?: boolean  // groupe TVA — note BG-1 obligatoire
 }
 
 interface FactureData {
@@ -44,14 +46,27 @@ function esc(s: string): string {
     .replace(/"/g, '&quot;')
 }
 
+// SIREN = 9 premiers chiffres du SIRET (schemeID 0225 pour routage Peppol)
+function toSiren(siret: string): string {
+  return siret.replace(/\D/g, '').substring(0, 9)
+}
+
 export function generateUbl(data: FactureData, emetteur: Emetteur): string {
+  const franchise = emetteur.franchiseTva === true
   let montantHT = 0, montantTVA = 0
 
   const lignesXml = data.lignes.map((l, i) => {
-    const ht  = Math.round(l.prixUnitaireHT * l.quantite * 100) / 100
-    const tva = Math.round(ht * l.tauxTVA / 100 * 100) / 100
+    const taux = franchise ? 0 : l.tauxTVA
+    const ht   = Math.round(l.prixUnitaireHT * l.quantite * 100) / 100
+    const tva  = Math.round(ht * taux / 100 * 100) / 100
     montantHT  += ht
     montantTVA += tva
+
+    // Franchise TVA → catégorie E (exempt), sinon S (standard) ou Z (taux 0%)
+    const taxCatId = franchise ? 'E' : (taux === 0 ? 'Z' : 'S')
+    const exemptionXml = franchise
+      ? '<cbc:TaxExemptionReasonCode>VATEX-EU-132</cbc:TaxExemptionReasonCode>'
+      : ''
 
     return `
   <cac:InvoiceLine>
@@ -61,8 +76,9 @@ export function generateUbl(data: FactureData, emetteur: Emetteur): string {
     <cac:Item>
       <cbc:Description>${esc(l.description)}</cbc:Description>
       <cac:ClassifiedTaxCategory>
-        <cbc:ID>S</cbc:ID>
-        <cbc:Percent>${l.tauxTVA}</cbc:Percent>
+        <cbc:ID>${taxCatId}</cbc:ID>
+        <cbc:Percent>${taux}</cbc:Percent>
+        ${exemptionXml}
         <cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme>
       </cac:ClassifiedTaxCategory>
     </cac:Item>
@@ -76,6 +92,19 @@ export function generateUbl(data: FactureData, emetteur: Emetteur): string {
   montantTVA = Math.round(montantTVA * 100) / 100
   const montantTTC = Math.round((montantHT + montantTVA) * 100) / 100
 
+  // Note assujetti unique (BG-1 obligatoire si groupe TVA)
+  const noteAssujetti = emetteur.assujettUnique
+    ? `<cbc:Note subjectCode="TXD">MEMBRE_ASSUJETTI_UNIQUE</cbc:Note>`
+    : ''
+
+  // Note franchise TVA (mention légale obligatoire art. 293 B CGI)
+  const noteFranchise = franchise
+    ? `<cbc:Note>TVA non applicable - article 293 B du CGI</cbc:Note>`
+    : ''
+
+  const destSiret = data.destinataireSiret ?? ''
+  const destSiren = toSiren(destSiret)
+
   return `<?xml version="1.0" encoding="UTF-8"?>
 <ubl:Invoice xmlns:ubl="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"
   xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
@@ -87,10 +116,12 @@ export function generateUbl(data: FactureData, emetteur: Emetteur): string {
   ${data.dateEcheance ? `<cbc:DueDate>${fDate(data.dateEcheance)}</cbc:DueDate>` : ''}
   <cbc:InvoiceTypeCode>380</cbc:InvoiceTypeCode>
   <cbc:DocumentCurrencyCode>EUR</cbc:DocumentCurrencyCode>
+  ${noteAssujetti}
+  ${noteFranchise}
 
   <cac:AccountingSupplierParty>
     <cac:Party>
-      <cbc:EndpointID schemeID="0009">${esc(emetteur.siret)}</cbc:EndpointID>
+      <cbc:EndpointID schemeID="0225">${esc(toSiren(emetteur.siret))}</cbc:EndpointID>
       <cac:PartyName><cbc:Name>${esc(emetteur.nom)}</cbc:Name></cac:PartyName>
       <cac:PostalAddress>
         <cbc:StreetName>${esc(emetteur.adresse)}</cbc:StreetName>
@@ -98,10 +129,10 @@ export function generateUbl(data: FactureData, emetteur: Emetteur): string {
         <cbc:CityName>${esc(emetteur.ville)}</cbc:CityName>
         <cac:Country><cbc:IdentificationCode>FR</cbc:IdentificationCode></cac:Country>
       </cac:PostalAddress>
-      <cac:PartyTaxScheme>
+      ${!franchise ? `<cac:PartyTaxScheme>
         <cbc:CompanyID>${esc(emetteur.tvaNum)}</cbc:CompanyID>
         <cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme>
-      </cac:PartyTaxScheme>
+      </cac:PartyTaxScheme>` : ''}
       <cac:PartyLegalEntity>
         <cbc:RegistrationName>${esc(emetteur.nom)}</cbc:RegistrationName>
         <cbc:CompanyID schemeID="0009">${esc(emetteur.siret)}</cbc:CompanyID>
@@ -111,9 +142,9 @@ export function generateUbl(data: FactureData, emetteur: Emetteur): string {
 
   <cac:AccountingCustomerParty>
     <cac:Party>
-      ${data.destinataireSiret ? `<cbc:EndpointID schemeID="0009">${esc(data.destinataireSiret)}</cbc:EndpointID>` : ''}
-      ${data.destinataireNom   ? `<cac:PartyName><cbc:Name>${esc(data.destinataireNom)}</cbc:Name></cac:PartyName>` : ''}
-      ${data.destinataireSiret ? `<cac:PartyLegalEntity><cbc:CompanyID schemeID="0009">${esc(data.destinataireSiret)}</cbc:CompanyID></cac:PartyLegalEntity>` : ''}
+      ${destSiren ? `<cbc:EndpointID schemeID="0225">${esc(destSiren)}</cbc:EndpointID>` : ''}
+      ${data.destinataireNom ? `<cac:PartyName><cbc:Name>${esc(data.destinataireNom)}</cbc:Name></cac:PartyName>` : ''}
+      ${destSiret ? `<cac:PartyLegalEntity><cbc:CompanyID schemeID="0009">${esc(destSiret)}</cbc:CompanyID></cac:PartyLegalEntity>` : ''}
     </cac:Party>
   </cac:AccountingCustomerParty>
 

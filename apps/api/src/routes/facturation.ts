@@ -88,7 +88,7 @@ export const facturationRoutes: FastifyPluginAsync = async (app) => {
       app.db.factureEmission.count({
         where: { tenantId, dateEmission: { gte: debut }, statut: { not: 'BROUILLON' } },
       }),
-      app.db.tenant.findUnique({ where: { id: tenantId }, select: { facturesCredit: true, name: true, siret: true, adresseLigne1: true, codePostal: true, ville: true, numeroTVA: true } }),
+      app.db.tenant.findUnique({ where: { id: tenantId }, select: { facturesCredit: true, name: true, siret: true, adresseLigne1: true, codePostal: true, ville: true, numeroTVA: true, franchiseTva: true, assujettUnique: true } }),
     ])
 
     const credits   = tenant?.facturesCredit ?? 0
@@ -115,12 +115,14 @@ export const facturationRoutes: FastifyPluginAsync = async (app) => {
 
     // ── Génération UBL ──────────────────────────────────────────────────────
     const emetteur = {
-      nom:     tenant.name,
-      siret:   tenant.siret ?? '',
-      adresse: tenant.adresseLigne1 ?? '',
-      cp:      tenant.codePostal ?? '',
-      ville:   tenant.ville ?? '',
-      tvaNum:  tenant.numeroTVA ?? '',
+      nom:            tenant.name,
+      siret:          tenant.siret ?? '',
+      adresse:        tenant.adresseLigne1 ?? '',
+      cp:             tenant.codePostal ?? '',
+      ville:          tenant.ville ?? '',
+      tvaNum:         tenant.numeroTVA ?? '',
+      franchiseTva:   tenant.franchiseTva,
+      assujettUnique: tenant.assujettUnique,
     }
     const xmlContent = generateUbl({
       ...body,
