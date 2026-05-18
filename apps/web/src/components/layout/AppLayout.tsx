@@ -37,7 +37,7 @@ export function AppLayout({ children }: AppLayoutProps) {
 
   return (
     <HelpProvider>
-    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
+    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', isolation: 'isolate' }}>
       <PageBlobs />
       <Sidebar
         active={activeNav}

@@ -400,10 +400,45 @@ export function FacturationPage() {
 
         {/* ── Émettre ── */}
         {tab === 'emettre' && (
-          <EmissionForm
-            onSent={() => setTab('emissions')}
-            onQuotaDepasse={() => setQuotaModal(true)}
-          />
+          <div className={styles.emettreLayout}>
+            <EmissionForm
+              onSent={() => setTab('emissions')}
+              onQuotaDepasse={() => setQuotaModal(true)}
+            />
+            <aside className={styles.mascotPanel}>
+              <img src="/img/mascotte/m2.png" alt="MeGestine" className={styles.mascotImg} />
+              <div className={styles.mascotBubble}>
+                <p className={styles.mascotBubbleTitle}>Facturation électronique</p>
+                <p className={styles.mascotBubbleText}>
+                  Chaque facture est générée au format <strong>UBL 2.1 / Factur-X</strong>, conforme à
+                  la norme européenne <strong>EN 16931</strong> — obligatoire pour le B2B dès 2026.
+                </p>
+              </div>
+              {quota && (
+                <div className={styles.mascotQuota}>
+                  <span
+                    className={styles.mascotQuotaCount}
+                    style={{ color: quota.restant === 0 ? '#B91C1C' : quota.restant <= 5 ? '#D97706' : '#15803D' }}
+                  >
+                    {quota.restant}
+                  </span>
+                  <span className={styles.mascotQuotaLabel}>
+                    {quota.restant === 0
+                      ? 'Quota épuisé'
+                      : `facture${quota.restant > 1 ? 's' : ''} restante${quota.restant > 1 ? 's' : ''}`}
+                  </span>
+                  <span className={styles.mascotQuotaMeta}>
+                    sur {quota.quotaMois + quota.creditsSupp} ce mois
+                  </span>
+                  {quota.restant === 0 && (
+                    <button className={styles.rechargeInline} onClick={() => setQuotaModal(true)}>
+                      Recharger →
+                    </button>
+                  )}
+                </div>
+              )}
+            </aside>
+          </div>
         )}
 
         {/* ── Émissions ── */}

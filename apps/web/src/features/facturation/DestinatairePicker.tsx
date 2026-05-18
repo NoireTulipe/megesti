@@ -73,14 +73,25 @@ export function DestinatairePicker({ onChange }: Props) {
 
   // ── Mode carte : société confirmée ────────────────────────────────────────────
   if (selected) {
+    const localite = [selected.codePostal, selected.ville].filter(Boolean).join(' ')
     return (
       <div className={styles.destCard}>
         <div className={styles.destCardIcon}>✓</div>
         <div className={styles.destCardInfo}>
-          <div className={styles.destCardNom}>{selected.nom}</div>
-          <div className={styles.destCardMeta}>SIRET {selected.siret}</div>
+          <p className={styles.destCardNom}>{selected.nom}</p>
+          <div className={styles.destCardRow}>
+            {selected.formeJuridique && (
+              <span className={styles.destCardTag}>{selected.formeJuridique}</span>
+            )}
+            <span className={styles.destCardMeta}>SIRET {selected.siret || selected.siren}</span>
+          </div>
           {selected.adresse && (
-            <div className={styles.destCardMeta}>{selected.adresse}</div>
+            <span className={styles.destCardMeta}>
+              {selected.adresse}{localite && !selected.adresse.includes(localite) ? `, ${localite}` : ''}
+            </span>
+          )}
+          {selected.libelleActivite && (
+            <span className={styles.destCardActivite}>{selected.libelleActivite}</span>
           )}
         </div>
         <button type="button" className={styles.destCardModify} onClick={handleReset}>

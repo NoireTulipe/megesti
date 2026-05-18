@@ -4,10 +4,14 @@
 const BASE = 'https://api.recherche-entreprises.fabrique.social.gouv.fr/api/v1'
 
 export interface EntrepriseResult {
-  nom:     string
-  siren:   string
-  siret:   string   // siret du siège social
-  adresse: string
+  nom:              string
+  siren:            string
+  siret:            string   // siret du siège social
+  adresse:          string
+  codePostal?:      string
+  ville?:           string
+  libelleActivite?: string   // libellé NAF
+  formeJuridique?:  string
 }
 
 interface ApiEntreprise {
@@ -16,6 +20,12 @@ interface ApiEntreprise {
   siren?:            string
   siret?:            string
   adresse?:          string
+  codePostal?:       string
+  ville?:            string
+  libelleNaf?:       string
+  libelle_naf?:      string
+  categorieJuridique?: string
+  forme_juridique?:  string
   [key: string]:     unknown
 }
 
@@ -26,10 +36,14 @@ interface ApiResponse {
 
 function toResult(r: ApiEntreprise): EntrepriseResult {
   return {
-    nom:     r.nom ?? r.nom_raison_sociale ?? '',
-    siren:   r.siren ?? '',
-    siret:   r.siret ?? '',
-    adresse: r.adresse ?? '',
+    nom:              r.nom ?? r.nom_raison_sociale ?? '',
+    siren:            r.siren ?? '',
+    siret:            r.siret ?? '',
+    adresse:          r.adresse ?? '',
+    codePostal:       r.codePostal ?? undefined,
+    ville:            r.ville ?? undefined,
+    libelleActivite:  r.libelleNaf ?? r.libelle_naf ?? undefined,
+    formeJuridique:   r.forme_juridique ?? r.categorieJuridique ?? undefined,
   }
 }
 

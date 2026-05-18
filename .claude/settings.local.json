@@ -77,7 +77,10 @@
       "Bash(Select-Object Name, FullName)",
       "Bash(xargs grep -l \"facture\\\\|invoice\")",
       "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(json.dumps\\(d.get\\('scripts',{}\\), indent=2\\)\\)\")",
-      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(json.dumps\\({k:d[k] for k in ['name','scripts','main','exports'] if k in d}, indent=2\\)\\)\")"
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(json.dumps\\({k:d[k] for k in ['name','scripts','main','exports'] if k in d}, indent=2\\)\\)\")",
+      "Bash(ls apps/web/public/img/mascotte/)",
+      "Bash(ls apps/web/public/img/)",
+      "Bash(ls apps/web/public/)"
     ]
   }
 }

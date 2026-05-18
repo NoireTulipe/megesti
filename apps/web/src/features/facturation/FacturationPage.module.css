@@ -131,6 +131,46 @@
 .recentDate  { font-size: 0.78rem; color: var(--text-soft); white-space: nowrap; }
 .recentMontant { font-size: 0.9rem; font-weight: 700; color: var(--ink); white-space: nowrap; }
 
+/* ── Onglet Émettre : layout 2 colonnes ────────────────────────── */
+.emettreLayout {
+  display: flex; gap: 32px; align-items: flex-start;
+}
+.emettreLayout .invoiceForm { flex: 1; max-width: none; }
+
+/* Panneau mascotte */
+.mascotPanel {
+  width: 230px; flex-shrink: 0; display: flex; flex-direction: column; gap: 14px;
+  position: sticky; top: 0;
+}
+.mascotImg { width: 100%; max-width: 180px; display: block; margin: 0 auto; }
+.mascotBubble {
+  background: var(--white); border: 1.5px solid var(--cream-dark);
+  border-radius: var(--r-card); padding: 14px 16px;
+  box-shadow: var(--shadow-card); position: relative;
+}
+.mascotBubble::before {
+  content: ''; position: absolute; top: -9px; left: 50%; transform: translateX(-50%);
+  border: 5px solid transparent; border-bottom-color: var(--cream-dark);
+}
+.mascotBubble::after {
+  content: ''; position: absolute; top: -7px; left: 50%; transform: translateX(-50%);
+  border: 5px solid transparent; border-bottom-color: var(--white);
+}
+.mascotBubbleTitle {
+  font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--terra); margin: 0 0 6px;
+}
+.mascotBubbleText { font-size: 0.8rem; line-height: 1.55; color: var(--ink); margin: 0; }
+.mascotQuota {
+  background: var(--white); border: 1.5px solid var(--cream-dark);
+  border-radius: var(--r-card); padding: 14px 16px;
+  box-shadow: var(--shadow-card);
+  display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center;
+}
+.mascotQuotaCount { font-family: 'DM Serif Display', serif; font-size: 2.4rem; line-height: 1; font-weight: 400; }
+.mascotQuotaLabel { font-size: 0.78rem; font-weight: 700; color: var(--ink); }
+.mascotQuotaMeta  { font-size: 0.7rem; color: var(--text-soft); }
+
 /* ── Invoice form ──────────────────────────────────────────────── */
 .invoiceForm {
   display: flex; flex-direction: column; gap: 0;
@@ -186,25 +226,38 @@
 
 /* Carte société confirmée */
 .destCard {
-  display: flex; align-items: flex-start; gap: 14px;
-  padding: 14px 16px; border-radius: var(--r-card);
-  background: #F0FDF4; border: 1.5px solid #86EFAC;
+  display: flex; align-items: flex-start; gap: 16px;
+  padding: 18px 20px; border-radius: var(--r-card);
+  background: linear-gradient(135deg, #F0FDF4, #FAFFFE);
+  border: 1.5px solid #86EFAC;
+  box-shadow: 0 2px 12px rgba(34,197,94,0.08);
 }
 .destCardIcon {
-  flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%;
-  background: #22C55E; color: white; font-size: 0.875rem; font-weight: 700;
+  flex-shrink: 0; width: 36px; height: 36px; border-radius: 50%;
+  background: linear-gradient(135deg, #22C55E, #15803D);
+  color: white; font-size: 1rem; font-weight: 700;
   display: flex; align-items: center; justify-content: center; margin-top: 1px;
 }
-.destCardInfo { flex: 1; min-width: 0; }
-.destCardNom  { font-weight: 700; font-size: 0.95rem; color: var(--ink); }
-.destCardMeta { font-size: 0.78rem; color: #4B7A52; margin-top: 2px; }
-.destCardModify {
-  flex-shrink: 0; font-size: 0.78rem; font-weight: 600; color: #15803D;
-  background: none; border: 1.5px solid #86EFAC; border-radius: var(--r-pill);
-  padding: 4px 12px; cursor: pointer; font-family: inherit;
-  transition: background var(--t);
+.destCardInfo { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.destCardNom  {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.1rem; color: var(--ink); line-height: 1.2; margin: 0;
 }
-.destCardModify:hover { background: #DCFCE7; }
+.destCardRow  { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.destCardTag  {
+  font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em;
+  color: #15803D; background: #DCFCE7; border-radius: 4px; padding: 1px 6px;
+}
+.destCardMeta { font-size: 0.78rem; color: #4B7A52; }
+.destCardActivite { font-size: 0.75rem; color: var(--text-soft); font-style: italic; margin-top: 2px; }
+.destCardModify {
+  flex-shrink: 0; align-self: flex-start;
+  font-size: 0.75rem; font-weight: 600; color: #15803D;
+  background: none; border: 1.5px solid #86EFAC; border-radius: var(--r-pill);
+  padding: 5px 14px; cursor: pointer; font-family: inherit;
+  transition: background var(--t), border-color var(--t);
+}
+.destCardModify:hover { background: #DCFCE7; border-color: #4ADE80; }
 
 /* Autocomplete dropdown */
 .autocompleteDropdown {
