@@ -80,6 +80,21 @@ export class SuperPdpService implements InvoiceTransmissionService {
     return res.json() as Promise<FactureRecueBrute[]>
   }
 
+  // ── Statut d'une facture émise ────────────────────────────────────────────
+
+  async getStatutEmis(pdpId: string): Promise<{ statut: string; enInvoice: boolean }> {
+    const token = await this.getToken()
+    const res = await fetch(`${BASE_URL}/v1.beta/invoices/${pdpId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    if (!res.ok) {
+      const text = await res.text()
+      throw new Error(`SuperPDP getStatut error ${res.status}: ${text}`)
+    }
+    const data = await res.json() as { status?: string; en_invoice?: boolean }
+    return { statut: data.status ?? '', enInvoice: data.en_invoice ?? false }
+  }
+
   // ── Téléchargement ────────────────────────────────────────────────────────
 
   async telecharger(pdpId: string): Promise<string> {
