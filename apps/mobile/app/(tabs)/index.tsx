@@ -46,48 +46,40 @@ export default function DashboardScreen() {
   const { session, refresh: refreshSession } = useLocalSession()
   const { pdvs } = usePointsDeVente()
   const { ventes,  refresh: refreshVentes  } = useLocalVentes()
-  const addLog = useDevStore(s => s.addLog)
 
-  // Logo
+  // Logo et nom de la ME depuis /mon-tenant
   const [meLogo, setMeLogo] = useState<string | null>(null)
 
-  // Stats session — source de vérité = serveur, fallback = local
-  const ventesSession = ventes.filter(v => v.session_id === session?.id)
-  const caLocal       = ventesSession.reduce((s, v) => s + v.total_ttc, 0)
+  // CA serveur (source de vérité)
   const [caServeur,    setCaServeur]    = useState<number | null>(null)
   const [caFromServer, setCaFromServer] = useState(false)
 
-  const refreshStats = useCallback(async () => {
-    if (!session?.id) {
-      setCaServeur(null)
-      setCaFromServer(false)
-      return
-    }
-    try {
-      const s = await api.get<any>(`/sessions-caisse/${session.id}`)
-      const ca = s.ventes
-        ?.filter((v: any) => v.statut !== 'ANNULEE')
-        ?.reduce((sum: number, v: any) => sum + (v.totalTTC ?? 0), 0) ?? 0
-      setCaServeur(ca)
-      setCaFromServer(true)
-    } catch {
-      // Hors-ligne → fallback local
-      setCaServeur(null)
-      setCaFromServer(false)
-    }
-  }, [session?.id])
-
   useFocusEffect(useCallback(() => {
-    refreshUser().catch(() => {})
-    refreshSession()
-    refreshVentes()
-    refreshStats()
-    api.get<{ logo: string | null }>('/mon-tenant')
-      .then(d => setMeLogo(buildUrl(d.logo)))
-      .catch(() => {})
-  }, [refreshSession, refreshVentes, refreshUser, refreshStats]))
+    // Ne pas retourner de Promise — React l'interprèterait comme une cleanup function
+    void (async () => {
+      refreshUser().catch(() => {})
+      refreshSession()
+      refreshVentes()
+      const sid = session?.id
+      if (sid) {
+        api.get<any>(`/sessions-caisse/${sid}`)
+          .then(s => {
+            const ca = s.ventes?.filter((v: any) => v.statut !== 'ANNULEE').reduce((sum: number, v: any) => sum + (Number(v.totalTTC) || 0), 0) ?? 0
+            setCaServeur(ca)
+            setCaFromServer(true)
+          })
+          .catch(() => { setCaServeur(null); setCaFromServer(false) })
+      }
+      api.get<{ logo: string | null }>('/mon-tenant')
+        .then(d => setMeLogo(buildUrl(d.logo)))
+        .catch(() => {})
+    })()
+  }, [refreshSession, refreshVentes, refreshUser, session?.id]))
 
-  const caSession    = caFromServer && caServeur != null ? caServeur : caLocal
+  // Stats session courante — serveur prioritaire, local fallback
+  const ventesSession = ventes.filter(v => v.session_id === session?.id)
+  const caLocal       = ventesSession.reduce((s, v) => s + v.total_ttc, 0)
+  const caSession     = caFromServer && caServeur != null ? caServeur : caLocal
   const articleCount  = session?.articles_exposes
     ? (JSON.parse(session.articles_exposes) as string[]).length : 0
 

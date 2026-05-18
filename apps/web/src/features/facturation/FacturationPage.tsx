@@ -6,6 +6,7 @@ import {
   useCreateEmission, useProchainNumero,
   type StatutEmission, type LigneEmission,
 } from './hooks/useFacturation'
+import { DestinatairePicker } from './DestinatairePicker'
 import { QuotaDepaseModal } from './QuotaDepaseModal'
 import styles from './FacturationPage.module.css'
 
@@ -76,8 +77,7 @@ function EmissionForm({ onSent, onQuotaDepasse }: { onSent: () => void; onQuotaD
 
   const [dateEm,    setDateEm]    = useState(today)
   const [dateEch,   setDateEch]   = useState(in30)
-  const [destSiret, setDestSiret] = useState('')
-  const [destNom,   setDestNom]   = useState('')
+  const [destinataire, setDestinataire] = useState({ nom: '', siret: '', adresse: '' })
   const [lignes,    setLignes]    = useState<LigneEmission[]>([
     { description: '', quantite: 1, prixUnitaireHT: 0, tauxTVA: 5.5 },
   ])
@@ -112,8 +112,9 @@ function EmissionForm({ onSent, onQuotaDepasse }: { onSent: () => void; onQuotaD
         id: generateUUID(), numero: nextNum.numero,
         dateEmission: `${dateEm}T00:00:00.000Z`,
         dateEcheance: `${dateEch}T00:00:00.000Z`,
-        destinataireSiret: destSiret || null,
-        destinataireNom:   destNom   || null,
+        destinataireSiret:   destinataire.siret   || null,
+        destinataireNom:     destinataire.nom     || null,
+        destinataireAdresse: destinataire.adresse || null,
         lignes,
       })
       onSent()
@@ -149,18 +150,12 @@ function EmissionForm({ onSent, onQuotaDepasse }: { onSent: () => void; onQuotaD
       {/* Destinataire */}
       <div className={styles.invoiceSection}>
         <p className={styles.invoiceSectionLabel}>Destinataire</p>
-        <div className={styles.destGrid}>
-          <div className={styles.destField}>
-            <label className={styles.destLabel}>Raison sociale</label>
-            <input className={styles.destInput} value={destNom} onChange={e => setDestNom(e.target.value)}
-              placeholder="Société destinataire" required />
-          </div>
-          <div className={styles.destField}>
-            <label className={styles.destLabel}>SIRET</label>
-            <input className={styles.destInput} value={destSiret} onChange={e => setDestSiret(e.target.value)}
-              placeholder="14 chiffres" maxLength={14} />
-          </div>
-        </div>
+        <DestinatairePicker
+          nom={destinataire.nom}
+          siret={destinataire.siret}
+          adresse={destinataire.adresse}
+          onChange={setDestinataire}
+        />
       </div>
 
       {/* Lignes */}

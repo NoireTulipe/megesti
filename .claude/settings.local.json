@@ -73,7 +73,9 @@
       "Bash(pnpm *)",
       "Bash(findstr DATABASE_URL)",
       "PowerShell(psql *)",
-      "PowerShell(Get-Process *)"
+      "PowerShell(Get-Process *)",
+      "Bash(Select-Object Name, FullName)",
+      "Bash(xargs grep -l \"facture\\\\|invoice\")"
     ]
   }
 }

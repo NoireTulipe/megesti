@@ -43,7 +43,11 @@ export default function SessionsScreen() {
   const [historySessions, setHistorySessions] = useState<RemoteSession[]>([])
   const [refreshing, setRefreshing] = useState(false)
 
-  // Pull frais depuis le serveur au focus
+  // Stats serveur pour la session active (source de vérité)
+  const [serverCA, setServerCA] = useState<number | null>(null)
+  const [serverVenteCount, setServerVenteCount] = useState<number | null>(null)
+  const [fromServer, setFromServer] = useState(false)
+
   const fetchSessions = useCallback(async () => {
     try {
       const [open, closed] = await Promise.all([
@@ -55,17 +59,35 @@ export default function SessionsScreen() {
     } catch {}
   }, [])
 
+  const fetchActiveStats = useCallback(async (sid: string) => {
+    try {
+      const detail = await api.get<any>(`/sessions-caisse/${sid}`)
+      const validees = (detail.ventes ?? []).filter((v: any) => v.statut !== 'ANNULEE')
+      setServerCA(validees.reduce((s: number, v: any) => s + (Number(v.totalTTC) || 0), 0))
+      setServerVenteCount(validees.length)
+      setFromServer(true)
+    } catch {
+      setFromServer(false)
+    }
+  }, [])
+
   useFocusEffect(useCallback(() => {
-    fetchSessions()
-    refreshSession()
-    refreshVentes()
-  }, [fetchSessions, refreshSession, refreshVentes]))
+    void (async () => {
+      fetchSessions()
+      refreshSession()
+      refreshVentes()
+      if (session?.id) fetchActiveStats(session.id)
+    })()
+  }, [fetchSessions, refreshSession, refreshVentes, fetchActiveStats, session?.id]))
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true)
-    await fetchSessions()
+    await Promise.all([
+      fetchSessions(),
+      session?.id ? fetchActiveStats(session.id) : Promise.resolve(),
+    ])
     setRefreshing(false)
-  }, [fetchSessions])
+  }, [fetchSessions, fetchActiveStats, session?.id])
 
   // Basculer sur une autre session
   async function switchToSession(s: RemoteSession) {
@@ -87,8 +109,11 @@ export default function SessionsScreen() {
     router.push('/caisse')
   }
 
-  // CA de la session active (depuis les ventes locales)
-  const caSession = ventes.reduce((s, v) => s + v.total_ttc, 0)
+  // Stats affichées : serveur si connecté, local sinon
+  const ventesActives = ventes.filter(v => v.statut !== 'ANNULEE')
+  const caLocal = ventesActives.reduce((s, v) => s + v.total_ttc, 0)
+  const caSession = fromServer && serverCA != null ? serverCA : caLocal
+  const venteCount = fromServer && serverVenteCount != null ? serverVenteCount : ventesActives.length
 
   return (
     <View style={[styles.shell, isDark && { backgroundColor: Dark.bg }]}>
@@ -151,17 +176,20 @@ export default function SessionsScreen() {
                   <Text style={styles.heroDate}>{fmtDate(session.date_ouverture)}</Text>
                   <View style={styles.heroStats}>
                     <View style={styles.heroStat}>
-                      <Text style={styles.heroStatValue}>{ventes.length}</Text>
+                      <Text style={styles.heroStatValue}>{venteCount}</Text>
                       <Text style={styles.heroStatLabel}>ventes</Text>
                     </View>
                     <View style={styles.heroStatDivider} />
                     <View style={styles.heroStat}>
-                      <Text style={styles.heroStatValue}>{caSession.toFixed(0)} €</Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                        <Text style={styles.heroStatValue}>{caSession.toFixed(0)} €</Text>
+                        {fromServer && <Text style={{ fontSize: 10, opacity: 0.7 }}>☁️</Text>}
+                      </View>
                       <Text style={styles.heroStatLabel}>CA</Text>
                     </View>
                     <View style={styles.heroStatDivider} />
                     <View style={styles.heroStat}>
-                      <Text style={styles.heroStatValue}>{session.fond_ouverture.toFixed(0)} €</Text>
+                      <Text style={styles.heroStatValue}>{Number(session.fond_ouverture).toFixed(0)} €</Text>
                       <Text style={styles.heroStatLabel}>fond</Text>
                     </View>
                   </View>
