@@ -6,37 +6,41 @@ const BASE = 'https://api.recherche-entreprises.fabrique.social.gouv.fr/api/v1'
 export interface EntrepriseResult {
   nom:              string
   siren:            string
-  siret:            string   // siret du siège social
+  siret:            string
   adresse:          string
   codePostal?:      string
   ville?:           string
-  libelleActivite?: string   // libellé NAF
+  libelleActivite?: string
   formeJuridique?:  string
 }
 
+// Établissement retourné par l'API fabrique.social.gouv.fr
+interface ApiEtablissement {
+  siret?:                        string
+  address?:                      string
+  adresse?:                      string
+  codePostalEtablissement?:      string
+  libelleCommuneEtablissement?:  string
+  activitePrincipaleEtablissement?: string
+  [key: string]:                 unknown
+}
+
 interface ApiEntreprise {
-  nom?:                       string
-  nom_raison_sociale?:        string
-  denominationSociale?:       string
-  denomination?:              string
-  name?:                      string
-  nomCommercial?:             string
-  raison_sociale?:            string
-  siren?:                     string
-  siret?:                     string
-  siretSiegeSocial?:          string
-  adresse?:                   string
-  address?:                   string
-  codePostal?:                string
-  code_postal?:               string
-  ville?:                     string
-  city?:                      string
-  libelleActivitePrincipale?: string
-  libelleNaf?:                string
-  libelle_naf?:               string
-  categorieJuridique?:        string
-  forme_juridique?:           string
-  [key: string]:              unknown
+  // Nom — l'API retourne "label" et non "nom"
+  label?:                        string
+  highlightLabel?:               string
+  simpleLabel?:                  string
+  nom?:                          string
+  nom_raison_sociale?:           string
+  // Identifiants
+  siren?:                        string
+  // Établissement siège (SIRET + adresse sont ici, pas à la racine)
+  firstMatchingEtablissement?:   ApiEtablissement
+  allMatchingEtablissements?:    ApiEtablissement[]
+  // Activité et forme juridique
+  activitePrincipale?:           string
+  categorieJuridiqueUniteLegale?: string
+  [key: string]:                 unknown
 }
 
 interface ApiResponse {
@@ -45,20 +49,16 @@ interface ApiResponse {
 }
 
 function toResult(r: ApiEntreprise): EntrepriseResult {
-  // eslint-disable-next-line no-console
-  console.debug('[rechercheEntreprise] raw:', JSON.stringify(r))
-  const nom =
-    r.nom ?? r.nom_raison_sociale ?? r.denominationSociale ?? r.denomination ??
-    r.name ?? r.nomCommercial ?? r.raison_sociale ?? ''
+  const etab = r.firstMatchingEtablissement ?? r.allMatchingEtablissements?.[0]
   return {
-    nom,
+    nom:             r.label ?? r.highlightLabel ?? r.simpleLabel ?? r.nom ?? r.nom_raison_sociale ?? '',
     siren:           r.siren ?? '',
-    siret:           r.siret ?? r.siretSiegeSocial ?? '',
-    adresse:         r.adresse ?? r.address ?? '',
-    codePostal:      r.codePostal ?? r.code_postal ?? undefined,
-    ville:           r.ville ?? r.city ?? undefined,
-    libelleActivite: r.libelleActivitePrincipale ?? r.libelleNaf ?? r.libelle_naf ?? undefined,
-    formeJuridique:  r.forme_juridique ?? r.categorieJuridique ?? undefined,
+    siret:           etab?.siret ?? '',
+    adresse:         etab?.address ?? etab?.adresse ?? '',
+    codePostal:      etab?.codePostalEtablissement ?? undefined,
+    ville:           etab?.libelleCommuneEtablissement ?? undefined,
+    libelleActivite: r.activitePrincipale ?? etab?.activitePrincipaleEtablissement ?? undefined,
+    formeJuridique:  r.categorieJuridiqueUniteLegale ?? undefined,
   }
 }
 
