@@ -9,35 +9,42 @@ export interface DestinataireFilled {
   adresse: string
 }
 
-interface Props extends DestinataireFilled {
+interface Props {
   onChange: (v: DestinataireFilled) => void
 }
 
-export function DestinatairePicker({ nom, siret, adresse, onChange }: Props) {
-  const [nomQuery, setNomQuery]         = useState(nom)
-  const [showDropdown, setShowDropdown] = useState(false)
-  const containerRef                    = useRef<HTMLDivElement>(null)
-  const onChangeFn                      = useRef(onChange)
-  const lastAutoFilledSiret             = useRef('')
-  onChangeFn.current = onChange
+export function DestinatairePicker({ onChange }: Props) {
+  const [nomInput,      setNomInput]      = useState('')
+  const [siretInput,    setSiretInput]    = useState('')
+  const [selected,      setSelected]      = useState<EntrepriseResult | null>(null)
+  const [showDropdown,  setShowDropdown]  = useState(false)
+  const containerRef  = useRef<HTMLDivElement>(null)
+  const onChangeFn    = useRef(onChange)
+  const lastAutoSiret = useRef('')
+  onChangeFn.current  = onChange
 
-  const siretClean      = siret.replace(/\D/g, '')
+  const siretClean      = siretInput.replace(/\D/g, '')
   const isSiretComplete = siretClean.length === 14
-  const searchQuery     = isSiretComplete ? siretClean : nomQuery
+  const searchQuery     = isSiretComplete ? siretClean : nomInput
 
   const { data: results = [], isFetching } = useRechercheEntreprise(searchQuery)
 
-  // Auto-remplissage quand le SIRET à 14 chiffres revient un résultat
+  // Auto-sélection quand SIRET complet et résultat reçu
   useEffect(() => {
-    if (isSiretComplete && results.length > 0 && lastAutoFilledSiret.current !== siretClean) {
-      lastAutoFilledSiret.current = siretClean
-      const r = results[0]
-      onChangeFn.current({ nom: r.nom, siret: r.siret, adresse: r.adresse })
-      setNomQuery(r.nom)
-    }
+    if (!isSiretComplete) return
+    const r = results[0]
+    if (!r) return
+    // siret retourné par l'API peut être vide → on garde ce que l'utilisateur a saisi
+    const siret = r.siret || siretClean
+    if (lastAutoSiret.current === siret) return
+    lastAutoSiret.current = siret
+    const filled = { nom: r.nom, siret, adresse: r.adresse }
+    setSelected({ ...r, siret })
+    setSiretInput(siret)
+    onChangeFn.current(filled)
   }, [isSiretComplete, siretClean, results])
 
-  // Fermeture du dropdown au clic extérieur
+  // Fermeture dropdown au clic extérieur
   useEffect(() => {
     function close(e: MouseEvent) {
       if (!containerRef.current?.contains(e.target as Node)) setShowDropdown(false)
@@ -47,11 +54,43 @@ export function DestinatairePicker({ nom, siret, adresse, onChange }: Props) {
   }, [])
 
   function handleSelect(r: EntrepriseResult) {
-    onChangeFn.current({ nom: r.nom, siret: r.siret, adresse: r.adresse })
-    setNomQuery(r.nom)
+    const siret = r.siret || r.siren
+    const filled = { nom: r.nom, siret, adresse: r.adresse }
+    setSelected({ ...r, siret })
+    setSiretInput(siret)
+    setNomInput(r.nom)
     setShowDropdown(false)
+    onChangeFn.current(filled)
   }
 
+  function handleReset() {
+    setSelected(null)
+    setSiretInput('')
+    setNomInput('')
+    lastAutoSiret.current = ''
+    onChangeFn.current({ nom: '', siret: '', adresse: '' })
+  }
+
+  // ── Mode carte : société confirmée ────────────────────────────────────────────
+  if (selected) {
+    return (
+      <div className={styles.destCard}>
+        <div className={styles.destCardIcon}>✓</div>
+        <div className={styles.destCardInfo}>
+          <div className={styles.destCardNom}>{selected.nom}</div>
+          <div className={styles.destCardMeta}>SIRET {selected.siret}</div>
+          {selected.adresse && (
+            <div className={styles.destCardMeta}>{selected.adresse}</div>
+          )}
+        </div>
+        <button type="button" className={styles.destCardModify} onClick={handleReset}>
+          Modifier
+        </button>
+      </div>
+    )
+  }
+
+  // ── Mode recherche ─────────────────────────────────────────────────────────────
   return (
     <div ref={containerRef}>
       <div className={styles.destGrid}>
@@ -61,18 +100,16 @@ export function DestinatairePicker({ nom, siret, adresse, onChange }: Props) {
           <label className={styles.destLabel}>Raison sociale</label>
           <input
             className={styles.destInput}
-            value={nomQuery}
+            value={nomInput}
             onChange={e => {
-              setNomQuery(e.target.value)
-              onChange({ nom: e.target.value, siret, adresse })
+              setNomInput(e.target.value)
               setShowDropdown(true)
             }}
             onFocus={() => { if (results.length > 0) setShowDropdown(true) }}
             onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
             placeholder="Société destinataire"
-            required
           />
-          {showDropdown && !isSiretComplete && nomQuery.length >= 3 && (
+          {showDropdown && !isSiretComplete && nomInput.length >= 3 && (
             <div className={styles.autocompleteDropdown}>
               {isFetching && (
                 <div className={styles.autocompleteLoading}>Recherche…</div>
@@ -99,32 +136,20 @@ export function DestinatairePicker({ nom, siret, adresse, onChange }: Props) {
         <div className={styles.destField}>
           <label className={styles.destLabel}>
             SIRET
-            {isSiretComplete && <span className={styles.siretOk}>✓</span>}
+            {isSiretComplete && !isFetching && <span className={styles.siretOk}> ✓</span>}
+            {isSiretComplete && isFetching  && <span className={styles.siretLoading}> …</span>}
           </label>
           <input
             className={styles.destInput}
-            value={siret}
+            value={siretInput}
             onChange={e => {
-              lastAutoFilledSiret.current = ''  // reset pour permettre un nouvel auto-fill
-              onChange({ nom, siret: e.target.value, adresse })
+              lastAutoSiret.current = ''
+              setSiretInput(e.target.value)
             }}
             placeholder="14 chiffres"
             maxLength={14}
           />
         </div>
-
-        {/* Adresse — apparaît après sélection */}
-        {adresse && (
-          <div className={`${styles.destField} ${styles.destAdresseRow}`}>
-            <label className={styles.destLabel}>Adresse</label>
-            <input
-              className={styles.destInput}
-              value={adresse}
-              onChange={e => onChange({ nom, siret, adresse: e.target.value })}
-              placeholder="Adresse du destinataire"
-            />
-          </div>
-        )}
 
       </div>
     </div>

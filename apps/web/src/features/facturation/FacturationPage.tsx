@@ -105,6 +105,7 @@ function EmissionForm({ onSent, onQuotaDepasse }: { onSent: () => void; onQuotaD
     e.preventDefault()
     setError(null)
     if (!nextNum?.numero) return
+    if (!destinataire.nom.trim()) { setError('Veuillez renseigner le destinataire.'); return }
     if (lignes.some(l => !l.description.trim())) { setError('Chaque ligne doit avoir une description.'); return }
     if (totaux.ttc <= 0) { setError('Le total ne peut pas être nul.'); return }
     try {
@@ -150,12 +151,7 @@ function EmissionForm({ onSent, onQuotaDepasse }: { onSent: () => void; onQuotaD
       {/* Destinataire */}
       <div className={styles.invoiceSection}>
         <p className={styles.invoiceSectionLabel}>Destinataire</p>
-        <DestinatairePicker
-          nom={destinataire.nom}
-          siret={destinataire.siret}
-          adresse={destinataire.adresse}
-          onChange={setDestinataire}
-        />
+        <DestinatairePicker onChange={setDestinataire} />
       </div>
 
       {/* Lignes */}
