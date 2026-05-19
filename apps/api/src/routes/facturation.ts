@@ -2,6 +2,7 @@ import type { FastifyPluginAsync } from 'fastify'
 import { z } from 'zod'
 import { getPlanFeatures } from '@megesti/shared'
 import { getPdpService } from '../services/SuperPdpService.js'
+import { getAfnorService, isAfnorEnabled, siretToSiren } from '../services/AfnorFlowService.js'
 import { generateUbl } from '../services/UblGenerator.js'
 
 const EmettreSchema = z.object({
@@ -102,15 +103,6 @@ export const facturationRoutes: FastifyPluginAsync = async (app) => {
       })
     }
 
-    // ── Service PDP global (compte MeGesti) ────────────────────────────────
-    let pdp: ReturnType<typeof getPdpService>
-    try { pdp = getPdpService() } catch {
-      return reply.status(503).send({
-        error:   'PdpNonDisponible',
-        message: 'Le service de facturation n\'est pas encore configuré sur ce serveur. Contactez le support MeGesti.',
-      })
-    }
-
     if (!tenant) return reply.status(500).send({ error: 'TenantIntrouvable' })
 
     if (!tenant.siret) {
@@ -120,65 +112,90 @@ export const facturationRoutes: FastifyPluginAsync = async (app) => {
       })
     }
 
-    // ── Génération UBL ──────────────────────────────────────────────────────
-    const emetteur = {
-      nom:            tenant.name,
-      siret:          tenant.siret ?? '',
-      adresse:        tenant.adresseLigne1 ?? '',
-      cp:             tenant.codePostal ?? '',
-      ville:          tenant.ville ?? '',
-      tvaNum:         tenant.numeroTVA ?? '',
-      franchiseTva:   tenant.franchiseTva,
-      assujettUnique: tenant.assujettUnique,
+    // ── Calcul totaux ───────────────────────────────────────────────────────
+    let montantHT = 0, montantTVA = 0
+    for (const l of body.lignes) {
+      const ht   = Math.round(l.prixUnitaireHT * l.quantite * 100) / 100
+      montantHT  += ht
+      montantTVA += Math.round(ht * l.tauxTVA / 100 * 100) / 100
     }
+    montantHT  = Math.round(montantHT  * 100) / 100
+    montantTVA = Math.round(montantTVA * 100) / 100
+
+    // ── Génération UBL ──────────────────────────────────────────────────────
     const xmlContent = generateUbl({
       ...body,
       dateEmission: new Date(body.dateEmission),
       dateEcheance: body.dateEcheance ? new Date(body.dateEcheance) : undefined,
-    }, emetteur)
+    }, {
+      nom:            tenant.name,
+      siret:          tenant.siret,
+      adresse:        tenant.adresseLigne1 ?? '',
+      cp:             tenant.codePostal    ?? '',
+      ville:          tenant.ville         ?? '',
+      tvaNum:         tenant.numeroTVA     ?? '',
+      franchiseTva:   tenant.franchiseTva,
+      assujettUnique: tenant.assujettUnique,
+    })
 
-    // ── Envoi à superpdp ────────────────────────────────────────────────────
-    const { pdpId, statut } = await pdp.emettre(xmlContent)
+    // ── Persistance en BROUILLON (résilience : on sauvegarde avant d'envoyer) ─
+    const facture = await app.db.factureEmission.create({
+      data: {
+        id:                  body.id,
+        tenantId,
+        numero:              body.numero,
+        statut:              'BROUILLON',
+        destinataireSiret:   body.destinataireSiret   ?? null,
+        destinataireNom:     body.destinataireNom     ?? null,
+        destinataireAdresse: body.destinataireAdresse ?? null,
+        montantHT,
+        montantTVA,
+        montantTTC:          montantHT + montantTVA,
+        format:              'ubl',
+        dateEmission:        new Date(body.dateEmission),
+        dateEcheance:        body.dateEcheance ? new Date(body.dateEcheance) : null,
+        contenuXml:          xmlContent,
+      },
+    })
 
-    // ── Calcul totaux ───────────────────────────────────────────────────────
-    let montantHT = 0, montantTVA = 0
-    for (const l of body.lignes) {
-      const ht  = l.prixUnitaireHT * l.quantite
-      montantHT  += ht
-      montantTVA += ht * l.tauxTVA / 100
+    // ── Envoi au PDP (AFNOR ou SuperPDP selon PDP_MODE) ─────────────────────
+    let pdpId: string
+    try {
+      if (isAfnorEnabled()) {
+        const siren  = siretToSiren(tenant.siret)
+        const result = await getAfnorService().emettre(xmlContent, body.numero, siren)
+        pdpId = result.flowId
+      } else {
+        let pdp: ReturnType<typeof getPdpService>
+        try { pdp = getPdpService() } catch {
+          throw new Error('Le service de facturation n\'est pas encore configuré sur ce serveur.')
+        }
+        const result = await pdp.emettre(xmlContent)
+        pdpId = result.pdpId
+      }
+    } catch (emissionErr: unknown) {
+      // Laisse en BROUILLON — l'utilisateur peut réessayer
+      return reply.status(503).send({
+        error:     'EmissionEchouee',
+        factureId: facture.id,
+        message:   'La facture a été créée mais l\'envoi a échoué. Réessayez depuis vos factures émises.',
+        detail:    (emissionErr as Error).message,
+      })
     }
 
-    // ── Persistance ─────────────────────────────────────────────────────────
-    const facture = await app.db.$transaction(async (tx) => {
-      const f = await tx.factureEmission.create({
-        data: {
-          id:                body.id,
-          tenantId,
-          numero:            body.numero,
-          statut:            'ENVOYEE',
-          destinataireSiret:   body.destinataireSiret   ?? null,
-          destinataireNom:     body.destinataireNom     ?? null,
-          destinataireAdresse: body.destinataireAdresse ?? null,
-          montantHT:         montantHT,
-          montantTVA:        montantTVA,
-          montantTTC:        montantHT + montantTVA,
-          format:            'ubl',
-          pdpId,
-          dateEmission:      new Date(body.dateEmission),
-          dateEcheance:      body.dateEcheance ? new Date(body.dateEcheance) : null,
-          contenuXml:        xmlContent,
-        },
+    // ── Mise à jour : BROUILLON → ENVOYEE + décrément crédits si besoin ─────
+    const factureEnvoyee = await app.db.$transaction(async (tx) => {
+      const f = await tx.factureEmission.update({
+        where: { id: facture.id },
+        data:  { statut: 'ENVOYEE', pdpId },
       })
-
-      // Décrémente les crédits supplémentaires si le quota plan est dépassé
       if (emises >= features.facturesEmissionMois && credits > 0) {
         await tx.tenant.update({ where: { id: tenantId }, data: { facturesCredit: { decrement: 1 } } })
       }
-
       return f
     })
 
-    return reply.status(201).send(facture)
+    return reply.status(201).send(factureEnvoyee)
   })
 
   // ── Factures reçues ────────────────────────────────────────────────────────

@@ -2,6 +2,7 @@ import fp from 'fastify-plugin'
 import type { FastifyPluginAsync } from 'fastify'
 import { createArchiveQueue, createArchiveWorker } from '../jobs/archive-journaliere.js'
 import { createPollFacturesQueue, createPollFacturesWorker } from '../jobs/poll-factures-job.js'
+import { createPollAfnorQueue, createPollAfnorWorker } from '../jobs/poll-afnor-job.js'
 
 const plugin: FastifyPluginAsync = async (app) => {
   const connection = { host: app.redis.options.host ?? 'localhost', port: app.redis.options.port ?? 6379 }
@@ -31,11 +32,25 @@ const plugin: FastifyPluginAsync = async (app) => {
     { name: 'poll-factures', data: {} },
   )
 
+  // ── Polling AFNOR (si PDP_MODE=afnor) — toutes les 5 minutes ─────────────
+  const afnorQueue  = createPollAfnorQueue(connection)
+  const afnorWorker = createPollAfnorWorker(connection, app.db, app.log)
+
+  afnorWorker.on('failed', (job, err) => app.log.error({ jobId: job?.id, err }, 'poll-afnor échoué'))
+
+  await afnorQueue.upsertJobScheduler(
+    'poll-afnor-recurrents',
+    { every: 5 * 60 * 1000 },
+    { name: 'poll-afnor', data: {} },
+  )
+
   app.addHook('onClose', async () => {
     await archiveWorker.close()
     await archiveQueue.close()
     await pollWorker.close()
     await pollQueue.close()
+    await afnorWorker.close()
+    await afnorQueue.close()
   })
 }
 
