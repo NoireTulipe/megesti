@@ -85,15 +85,19 @@ function EmissionForm({ onSent, onQuotaDepasse }: { onSent: () => void; onQuotaD
 
   const totaux = useMemo(() => {
     let ht = 0, tva = 0
+    const tvaParTaux = new Map<number, number>()
     for (const l of lignes) {
       const lht = Math.round(l.prixUnitaireHT * l.quantite * 100) / 100
+      const ltva = Math.round(lht * l.tauxTVA / 100 * 100) / 100
       ht  += lht
-      tva += Math.round(lht * l.tauxTVA / 100 * 100) / 100
+      tva += ltva
+      tvaParTaux.set(l.tauxTVA, Math.round(((tvaParTaux.get(l.tauxTVA) ?? 0) + ltva) * 100) / 100)
     }
     return {
-      ht:  Math.round(ht  * 100) / 100,
-      tva: Math.round(tva * 100) / 100,
-      ttc: Math.round((ht + tva) * 100) / 100,
+      ht:        Math.round(ht  * 100) / 100,
+      tva:       Math.round(tva * 100) / 100,
+      ttc:       Math.round((ht + tva) * 100) / 100,
+      tvaParTaux: Array.from(tvaParTaux.entries()).filter(([, v]) => v > 0).sort(([a], [b]) => a - b),
     }
   }, [lignes])
 
@@ -158,44 +162,67 @@ function EmissionForm({ onSent, onQuotaDepasse }: { onSent: () => void; onQuotaD
       <div className={styles.invoiceSection}>
         <p className={styles.invoiceSectionLabel}>Lignes</p>
 
-        <div className={styles.lignesTable}>
-          <div className={styles.lignesTableHead}>
-            <span style={{ flex: 4 }}>Description</span>
-            <span className={styles.ligneHeadNum}>Qté</span>
-            <span className={styles.ligneHeadNum}>Prix HT/u.</span>
-            <span className={styles.ligneHeadNum}>TVA</span>
-            <span className={styles.ligneHeadNum}>Total HT</span>
-            <span style={{ width: 28 }} />
-          </div>
+        <table className={styles.lignesTable}>
+          <colgroup>
+            <col className={styles.colDesc} />
+            <col className={styles.colQte} />
+            <col className={styles.colPrix} />
+            <col className={styles.colTva} />
+            <col className={styles.colTot} />
+            <col className={styles.colDel} />
+          </colgroup>
+          <thead>
+            <tr>
+              <th>Description</th>
+              <th>Qté</th>
+              <th>Prix HT / u.</th>
+              <th>TVA</th>
+              <th>Total HT</th>
+              <th />
+            </tr>
+          </thead>
+          <tbody>
+            {lignes.map((l, i) => (
+              <tr key={i}>
+                <td>
+                  <input className={styles.ligneInput}
+                    placeholder="Description de la prestation…"
+                    value={l.description} onChange={e => updateLigne(i, 'description', e.target.value)} required />
+                </td>
+                <td>
+                  <input className={`${styles.ligneInput} ${styles.ligneRight}`}
+                    type="number" min="0.01" step="0.01" value={l.quantite}
+                    onChange={e => updateLigne(i, 'quantite', Number(e.target.value))} />
+                </td>
+                <td>
+                  <input className={`${styles.ligneInput} ${styles.ligneRight}`}
+                    type="number" min="0" step="0.01" value={l.prixUnitaireHT}
+                    onChange={e => updateLigne(i, 'prixUnitaireHT', Number(e.target.value))} />
+                </td>
+                <td>
+                  <select className={`${styles.ligneInput} ${styles.ligneRight}`}
+                    value={l.tauxTVA} onChange={e => updateLigne(i, 'tauxTVA', Number(e.target.value))}>
+                    {TVA_OPTIONS.map(t => <option key={t} value={t}>{t} %</option>)}
+                  </select>
+                </td>
+                <td className={styles.ligneTotal}>
+                  {fEur(Math.round(l.prixUnitaireHT * l.quantite * 100) / 100)}
+                </td>
+                <td>
+                  {lignes.length > 1 && (
+                    <button type="button" className={styles.ligneRemove}
+                      onClick={() => setLignes(prev => prev.filter((_, j) => j !== i))}>✕</button>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
 
-          {lignes.map((l, i) => (
-            <div key={i} className={styles.ligneRow}>
-              <input className={`${styles.ligneInput} ${styles.ligneDesc}`}
-                placeholder="Description de la prestation…"
-                value={l.description} onChange={e => updateLigne(i, 'description', e.target.value)} required />
-              <input className={`${styles.ligneInput} ${styles.ligneNum}`}
-                type="number" min="0.01" step="0.01" value={l.quantite}
-                onChange={e => updateLigne(i, 'quantite', Number(e.target.value))} />
-              <input className={`${styles.ligneInput} ${styles.ligneNum}`}
-                type="number" min="0" step="0.01" value={l.prixUnitaireHT}
-                onChange={e => updateLigne(i, 'prixUnitaireHT', Number(e.target.value))} />
-              <select className={`${styles.ligneInput} ${styles.ligneNum}`}
-                value={l.tauxTVA} onChange={e => updateLigne(i, 'tauxTVA', Number(e.target.value))}>
-                {TVA_OPTIONS.map(t => <option key={t} value={t}>{t} %</option>)}
-              </select>
-              <span className={styles.ligneTotal}>{fEur(l.prixUnitaireHT * l.quantite)}</span>
-              {lignes.length > 1 && (
-                <button type="button" className={styles.ligneRemove}
-                  onClick={() => setLignes(prev => prev.filter((_, j) => j !== i))}>✕</button>
-              )}
-            </div>
-          ))}
-
-          <button type="button" className={styles.addLigneBtn}
-            onClick={() => setLignes(prev => [...prev, { description: '', quantite: 1, prixUnitaireHT: 0, tauxTVA: 5.5 }])}>
-            + Ajouter une ligne
-          </button>
-        </div>
+        <button type="button" className={styles.addLigneBtn}
+          onClick={() => setLignes(prev => [...prev, { description: '', quantite: 1, prixUnitaireHT: 0, tauxTVA: 5.5 }])}>
+          + Ajouter une ligne
+        </button>
       </div>
 
       {/* Totaux */}
@@ -205,10 +232,15 @@ function EmissionForm({ onSent, onQuotaDepasse }: { onSent: () => void; onQuotaD
             <span>Total HT</span>
             <span>{fEur(totaux.ht)}</span>
           </div>
-          <div className={styles.totauxLine}>
-            <span>TVA</span>
-            <span>{fEur(totaux.tva)}</span>
-          </div>
+          {totaux.tvaParTaux.length > 1
+            ? totaux.tvaParTaux.map(([taux, tva]) => (
+                <div key={taux} className={styles.totauxLine}>
+                  <span>TVA {taux} %</span>
+                  <span>{fEur(tva)}</span>
+                </div>
+              ))
+            : <div className={styles.totauxLine}><span>TVA</span><span>{fEur(totaux.tva)}</span></div>
+          }
           <div className={styles.totauxLineBig}>
             <span>Total TTC</span>
             <span className={styles.totauxTTC}>{fEur(totaux.ttc)}</span>

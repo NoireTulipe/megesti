@@ -53,20 +53,26 @@ function toSiren(siret: string): string {
 
 export function generateUbl(data: FactureData, emetteur: Emetteur): string {
   const franchise = emetteur.franchiseTva === true
+
+  // ── Calcul des totaux et regroupement par taux TVA ─────────────────────────
+  type TvaGroup = { base: number; tva: number; catId: string }
+  const tvaGroups = new Map<number, TvaGroup>()
   let montantHT = 0, montantTVA = 0
 
   const lignesXml = data.lignes.map((l, i) => {
-    const taux = franchise ? 0 : l.tauxTVA
-    const ht   = Math.round(l.prixUnitaireHT * l.quantite * 100) / 100
-    const tva  = Math.round(ht * taux / 100 * 100) / 100
-    montantHT  += ht
-    montantTVA += tva
+    const taux   = franchise ? 0 : l.tauxTVA
+    const ht     = Math.round(l.prixUnitaireHT * l.quantite * 100) / 100
+    const tva    = Math.round(ht * taux / 100 * 100) / 100
+    const catId  = franchise ? 'E' : (taux === 0 ? 'Z' : 'S')
+    montantHT   += ht
+    montantTVA  += tva
 
-    // Franchise TVA → catégorie E (exempt), sinon S (standard) ou Z (taux 0%)
-    const taxCatId = franchise ? 'E' : (taux === 0 ? 'Z' : 'S')
-    const exemptionXml = franchise
-      ? '<cbc:TaxExemptionReasonCode>VATEX-EU-132</cbc:TaxExemptionReasonCode>'
-      : ''
+    const g = tvaGroups.get(taux)
+    if (g) { g.base += ht; g.tva += tva }
+    else tvaGroups.set(taux, { base: ht, tva, catId })
+
+    const exemptXml = franchise
+      ? '<cbc:TaxExemptionReasonCode>VATEX-EU-132</cbc:TaxExemptionReasonCode>' : ''
 
     return `
   <cac:InvoiceLine>
@@ -76,9 +82,9 @@ export function generateUbl(data: FactureData, emetteur: Emetteur): string {
     <cac:Item>
       <cbc:Description>${esc(l.description)}</cbc:Description>
       <cac:ClassifiedTaxCategory>
-        <cbc:ID>${taxCatId}</cbc:ID>
+        <cbc:ID>${catId}</cbc:ID>
         <cbc:Percent>${taux}</cbc:Percent>
-        ${exemptionXml}
+        ${exemptXml}
         <cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme>
       </cac:ClassifiedTaxCategory>
     </cac:Item>
@@ -91,6 +97,25 @@ export function generateUbl(data: FactureData, emetteur: Emetteur): string {
   montantHT  = Math.round(montantHT  * 100) / 100
   montantTVA = Math.round(montantTVA * 100) / 100
   const montantTTC = Math.round((montantHT + montantTVA) * 100) / 100
+
+  // ── TaxSubtotal EN 16931 : un bloc par taux (obligatoire pour Peppol) ──────
+  const taxSubtotalsXml = Array.from(tvaGroups.entries()).map(([taux, g]) => {
+    const base = Math.round(g.base * 100) / 100
+    const tva  = Math.round(g.tva  * 100) / 100
+    const exempt = franchise
+      ? '<cbc:TaxExemptionReasonCode>VATEX-EU-132</cbc:TaxExemptionReasonCode>' : ''
+    return `
+  <cac:TaxSubtotal>
+    <cbc:TaxableAmount currencyID="EUR">${base.toFixed(2)}</cbc:TaxableAmount>
+    <cbc:TaxAmount currencyID="EUR">${tva.toFixed(2)}</cbc:TaxAmount>
+    <cac:TaxCategory>
+      <cbc:ID>${g.catId}</cbc:ID>
+      <cbc:Percent>${taux}</cbc:Percent>
+      ${exempt}
+      <cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme>
+    </cac:TaxCategory>
+  </cac:TaxSubtotal>`
+  }).join('')
 
   // Note assujetti unique (BG-1 obligatoire si groupe TVA)
   const noteAssujetti = emetteur.assujettUnique
@@ -150,6 +175,7 @@ export function generateUbl(data: FactureData, emetteur: Emetteur): string {
 
   <cac:TaxTotal>
     <cbc:TaxAmount currencyID="EUR">${montantTVA.toFixed(2)}</cbc:TaxAmount>
+  ${taxSubtotalsXml}
   </cac:TaxTotal>
 
   <cac:LegalMonetaryTotal>
