@@ -26,12 +26,25 @@ export interface EmissionResult {
 }
 
 export interface FactureRecueBrute {
-  id:           string
-  created_at:   string
-  sender_name?: string
+  id:            string | number
+  created_at:    string
+  sender_name?:  string
   sender_siren?: string
   total_amount?: number | string
   [key: string]: unknown
+}
+
+export interface EvenementFactureBrut {
+  id:           string | number
+  invoice_id:   string | number
+  status_code:  string
+  created_at:   string
+  [key: string]: unknown
+}
+
+export interface PagePdp<T> {
+  data:      T[]
+  has_after: boolean
 }
 
 // ── Interface d'abstraction PDP ───────────────────────────────────────────────

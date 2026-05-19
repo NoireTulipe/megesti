@@ -113,6 +113,13 @@ export const facturationRoutes: FastifyPluginAsync = async (app) => {
 
     if (!tenant) return reply.status(500).send({ error: 'TenantIntrouvable' })
 
+    if (!tenant.siret) {
+      return reply.status(422).send({
+        error:   'SiretManquant',
+        message: 'Votre SIRET n\'est pas configuré. Renseignez-le dans Réglages → Identité légale avant d\'émettre une facture.',
+      })
+    }
+
     // ── Génération UBL ──────────────────────────────────────────────────────
     const emetteur = {
       nom:            tenant.name,
@@ -149,8 +156,9 @@ export const facturationRoutes: FastifyPluginAsync = async (app) => {
           tenantId,
           numero:            body.numero,
           statut:            'ENVOYEE',
-          destinataireSiret: body.destinataireSiret ?? null,
-          destinataireNom:   body.destinataireNom   ?? null,
+          destinataireSiret:   body.destinataireSiret   ?? null,
+          destinataireNom:     body.destinataireNom     ?? null,
+          destinataireAdresse: body.destinataireAdresse ?? null,
           montantHT:         montantHT,
           montantTVA:        montantTVA,
           montantTTC:        montantHT + montantTVA,
@@ -207,20 +215,22 @@ export const facturationRoutes: FastifyPluginAsync = async (app) => {
     const { tenantId } = request.tenant
     return app.db.tenant.findUnique({
       where:  { id: tenantId },
-      select: { siret: true, adresseLigne1: true, adresseLigne2: true, codePostal: true, ville: true, pays: true, numeroTVA: true },
+      select: { siret: true, adresseLigne1: true, adresseLigne2: true, codePostal: true, ville: true, pays: true, numeroTVA: true, franchiseTva: true, assujettUnique: true },
     })
   })
 
   app.patch('/identite', authEditor, async (request, reply) => {
     const { tenantId } = request.tenant
     const body = z.object({
-      siret:         z.string().optional().nullable(),
-      adresseLigne1: z.string().optional().nullable(),
-      adresseLigne2: z.string().optional().nullable(),
-      codePostal:    z.string().optional().nullable(),
-      ville:         z.string().optional().nullable(),
-      pays:          z.string().optional().nullable(),
-      numeroTVA:     z.string().optional().nullable(),
+      siret:          z.string().optional().nullable(),
+      adresseLigne1:  z.string().optional().nullable(),
+      adresseLigne2:  z.string().optional().nullable(),
+      codePostal:     z.string().optional().nullable(),
+      ville:          z.string().optional().nullable(),
+      pays:           z.string().optional().nullable(),
+      numeroTVA:      z.string().optional().nullable(),
+      franchiseTva:   z.boolean().optional(),
+      assujettUnique: z.boolean().optional(),
     }).parse(request.body)
     return app.db.tenant.update({ where: { id: tenantId }, data: body })
   })

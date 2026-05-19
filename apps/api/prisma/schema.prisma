@@ -18,7 +18,7 @@ model Tenant {
   stripeCustomerId     String?
   stripeSubscriptionId String?
   stripePriceId        String?
-  franchiseBaseVA      Boolean  @default(false) // art. 293 B CGI — non assujetti TVA
+  franchiseBaseVA      Boolean  @default(false) // @deprecated — utiliser franchiseTva
   logo                 String?  // URL du logo uploadé
   siteWeb              String?  // URL du site internet de la ME
   presentation         String?  // Texte de présentation libre
@@ -34,6 +34,7 @@ model Tenant {
   // Les credentials superpdp.tech sont dans le .env du serveur (compte MeGesti global)
   // pdpLastInvoiceId : dernier ID reçu pour le polling de réception, par tenant
   pdpLastInvoiceId     String?
+  pdpLastEventId       String?  // dernier invoice_event_id traité (polling statuts émis)
   facturesCredit       Int      @default(0) // crédits supplémentaires achetés via Stripe
   franchiseTva         Boolean  @default(false) // art. 293 B CGI — pas de TVA collectée
   assujettUnique       Boolean  @default(false) // groupe TVA — note BG-1 obligatoire
@@ -87,8 +88,9 @@ model FactureEmission {
   tenantId          String
   numero            String                // numéro séquentiel conforme (ex: F-2026-001)
   statut            StatutFactureEmission @default(BROUILLON)
-  destinataireSiret String?
-  destinataireNom   String?
+  destinataireSiret   String?
+  destinataireNom     String?
+  destinataireAdresse String?
   montantHT         Decimal               @db.Decimal(12, 2)
   montantTVA        Decimal               @db.Decimal(12, 2)
   montantTTC        Decimal               @db.Decimal(12, 2)
@@ -102,7 +104,7 @@ model FactureEmission {
 
   tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
-  @@index([tenantId])
+  @@unique([tenantId, numero])
   @@index([tenantId, dateEmission])
   @@index([pdpId])
 }

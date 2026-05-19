@@ -1,20 +1,17 @@
 import type { PrismaClient } from '@prisma/client'
 import { getPdpService } from '../services/SuperPdpService.js'
 
-// Correspondance statuts SuperPDP → StatutFactureEmission
-const STATUT_MAP: Record<string, string> = {
-  'fr:210': 'ENVOYEE',   // reçue par le destinataire
-  'fr:211': 'ENVOYEE',   // en cours de traitement
+// Événements SuperPDP → StatutFactureEmission
+const STATUT_MAP: Record<string, 'ACCEPTEE' | 'REFUSEE' | 'ANNULEE'> = {
   'fr:212': 'ACCEPTEE',  // acceptée / encaissée
   'fr:220': 'REFUSEE',   // refusée
-}
-
-function mapStatut(pdpStatut: string): string | null {
-  return STATUT_MAP[pdpStatut] ?? null
+  'fr:317': 'ANNULEE',   // annulée
 }
 
 /**
- * Job BullMQ — vérifie le statut SuperPDP des factures encore en attente (ENVOYEE).
+ * Job BullMQ — poll de GET /v1.beta/invoice_events pour mettre à jour
+ * le statut des FactureEmission. 1 seul appel API (paginé) pour tous les tenants,
+ * au lieu de N appels individuels par facture ENVOYEE.
  * Fréquence recommandée : toutes les 5 minutes.
  */
 export async function pollStatutsEmissions(db: PrismaClient): Promise<void> {
@@ -24,32 +21,49 @@ export async function pollStatutsEmissions(db: PrismaClient): Promise<void> {
     return
   }
 
-  // Factures émises encore en attente de réponse
-  const enAttente = await db.factureEmission.findMany({
-    where: {
-      statut: 'ENVOYEE',
-      pdpId:  { not: null },
-    },
-    select: { id: true, pdpId: true, tenantId: true },
+  // Récupère le dernier event_id traité (global, pas par tenant car compte MeGesti unique)
+  const meta = await db.tenant.findFirst({
+    where:  { actif: true },
+    select: { pdpLastEventId: true },
   })
+  const sinceId = meta?.pdpLastEventId ?? undefined
 
-  if (!enAttente.length) return
+  const evenements = await pdp.listerEvenements(sinceId)
+  if (!evenements.length) return
 
-  for (const facture of enAttente) {
-    if (!facture.pdpId) continue
-    try {
-      const { statut: pdpStatut } = await pdp.getStatutEmis(facture.pdpId)
-      const nouveauStatut = mapStatut(pdpStatut)
+  let dernierEventId = sinceId
 
-      if (nouveauStatut && nouveauStatut !== 'ENVOYEE') {
-        await db.factureEmission.update({
-          where: { id: facture.id },
-          data:  { statut: nouveauStatut as 'ACCEPTEE' | 'REFUSEE' },
-        })
-        console.log(`[pollStatuts] facture=${facture.id} → ${nouveauStatut}`)
-      }
-    } catch (err: unknown) {
-      console.error(`[pollStatuts] facture=${facture.id} erreur:`, (err as Error).message)
+  for (const evt of evenements) {
+    const eventId   = String(evt.id)
+    const pdpId     = String(evt.invoice_id)
+    const statutPdp = evt.status_code
+
+    // Avance le curseur
+    if (!dernierEventId || BigInt(eventId) > BigInt(dernierEventId)) {
+      dernierEventId = eventId
     }
+
+    const nouveauStatut = STATUT_MAP[statutPdp]
+    if (!nouveauStatut) continue
+
+    // Retrouve la FactureEmission correspondante
+    const facture = await db.factureEmission.findFirst({
+      where: { pdpId, statut: 'ENVOYEE' },
+    })
+    if (!facture) continue
+
+    await db.factureEmission.update({
+      where: { id: facture.id },
+      data:  { statut: nouveauStatut },
+    })
+    console.log(`[pollStatuts] facture=${facture.id} pdpId=${pdpId} → ${nouveauStatut}`)
+  }
+
+  // Persiste le dernier eventId sur tous les tenants actifs (compte global)
+  if (dernierEventId && dernierEventId !== sinceId) {
+    await db.tenant.updateMany({
+      where: { actif: true },
+      data:  { pdpLastEventId: dernierEventId },
+    })
   }
 }

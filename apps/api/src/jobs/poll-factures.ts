@@ -19,36 +19,41 @@ export async function pollFactures(db: PrismaClient): Promise<void> {
   })
 
   for (const tenant of tenants) {
-    if (!tenant.siret) continue  // pas de SIRET configuré = pas de factures attendues
+    if (!tenant.siret) continue
 
     try {
-      const factures  = await pdp.listerRecu(tenant.pdpLastInvoiceId ?? undefined)
-
+      const factures = await pdp.listerRecu(tenant.pdpLastInvoiceId ?? undefined)
       if (!factures.length) continue
 
       let lastId = tenant.pdpLastInvoiceId
 
       for (const f of factures) {
-        // Évite les doublons
+        const pdpId = String(f.id)
+
         const exists = await db.factureReception.findUnique({
-          where: { tenantId_pdpId: { tenantId: tenant.id, pdpId: f.id } },
+          where: { tenantId_pdpId: { tenantId: tenant.id, pdpId } },
         })
         if (exists) continue
 
+        // Télécharge le XML brut pour archivage 10 ans (obligation légale)
+        let contenuXml: string | null = null
+        try { contenuXml = await pdp.telecharger(pdpId) } catch { /* non bloquant */ }
+
         await db.factureReception.create({
           data: {
-            tenantId:     tenant.id,
-            pdpId:        f.id,
-            emetteurNom:  String(f.sender_name  ?? ''),
-            emetteurSiret:String(f.sender_siren ?? ''),
-            montantTTC:   Number(f.total_amount ?? 0),
+            tenantId:      tenant.id,
+            pdpId,
+            emetteurNom:   String(f.sender_name  ?? ''),
+            emetteurSiret: String(f.sender_siren ?? ''),
+            montantTTC:    Number(f.total_amount ?? 0),
             dateReception: new Date(f.created_at),
-            statut:       'RECUE',
+            statut:        'RECUE',
+            contenuXml,
           },
         })
 
-        // Mémorise le dernier ID pour le prochain polling
-        if (!lastId || f.id > lastId) lastId = f.id
+        // Mémorise le plus grand ID (bigint stocké en string — comparaison numérique)
+        if (!lastId || BigInt(pdpId) > BigInt(lastId)) lastId = pdpId
       }
 
       if (lastId && lastId !== tenant.pdpLastInvoiceId) {
@@ -58,7 +63,6 @@ export async function pollFactures(db: PrismaClient): Promise<void> {
         })
       }
     } catch (err: unknown) {
-      // Log sans bloquer les autres tenants
       console.error(`[pollFactures] tenant=${tenant.id} erreur:`, (err as Error).message)
     }
   }

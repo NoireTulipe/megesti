@@ -1,4 +1,4 @@
-import type { InvoiceTransmissionService, EmissionResult, FactureRecueBrute } from '@megesti/shared'
+import type { InvoiceTransmissionService, EmissionResult, FactureRecueBrute, EvenementFactureBrut, PagePdp } from '@megesti/shared'
 
 const BASE_URL = 'https://api.superpdp.tech'
 
@@ -61,38 +61,69 @@ export class SuperPdpService implements InvoiceTransmissionService {
     return { pdpId: data.id, statut: data.status ?? 'ENVOYEE' }
   }
 
-  // ── Réception (polling) ───────────────────────────────────────────────────
+  // ── Réception (polling paginé) ────────────────────────────────────────────
+  // Retourne TOUTES les factures reçues depuis sinceId en bouclant sur has_after.
 
   async listerRecu(sinceId?: string): Promise<FactureRecueBrute[]> {
-    const token = await this.getToken()
-    const params = new URLSearchParams({ order: 'desc' })
-    if (sinceId) params.set('starting_after_id', sinceId)
+    const token  = await this.getToken()
+    const result: FactureRecueBrute[] = []
+    let   cursor = sinceId
 
-    const res = await fetch(`${BASE_URL}/v1.beta/invoices?${params}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
+    do {
+      const params = new URLSearchParams()
+      if (cursor) params.set('starting_after_id', cursor)
 
-    if (!res.ok) {
-      const text = await res.text()
-      throw new Error(`SuperPDP listing error ${res.status}: ${text}`)
-    }
+      const res = await fetch(`${BASE_URL}/v1.beta/invoices?${params}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (!res.ok) {
+        const text = await res.text()
+        throw new Error(`SuperPDP listing error ${res.status}: ${text}`)
+      }
 
-    return res.json() as Promise<FactureRecueBrute[]>
+      const page = await res.json() as PagePdp<FactureRecueBrute>
+      result.push(...page.data)
+
+      // Avance le curseur vers le dernier ID reçu pour la prochaine page
+      const last = page.data.at(-1)
+      cursor = last ? String(last.id) : cursor
+
+      if (!page.has_after) break
+    } while (true)
+
+    return result
   }
 
-  // ── Statut d'une facture émise ────────────────────────────────────────────
+  // ── Événements (polling paginé) ────────────────────────────────────────────
+  // Retourne TOUS les invoice_events depuis sinceId (statuts des factures émises).
 
-  async getStatutEmis(pdpId: string): Promise<{ statut: string; enInvoice: boolean }> {
-    const token = await this.getToken()
-    const res = await fetch(`${BASE_URL}/v1.beta/invoices/${pdpId}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-    if (!res.ok) {
-      const text = await res.text()
-      throw new Error(`SuperPDP getStatut error ${res.status}: ${text}`)
-    }
-    const data = await res.json() as { status?: string; en_invoice?: boolean }
-    return { statut: data.status ?? '', enInvoice: data.en_invoice ?? false }
+  async listerEvenements(sinceId?: string): Promise<EvenementFactureBrut[]> {
+    const token  = await this.getToken()
+    const result: EvenementFactureBrut[] = []
+    let   cursor = sinceId
+
+    do {
+      const params = new URLSearchParams()
+      if (cursor) params.set('starting_after_id', cursor)
+
+      const res = await fetch(`${BASE_URL}/v1.beta/invoice_events?${params}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (!res.ok) {
+        const text = await res.text()
+        throw new Error(`SuperPDP events error ${res.status}: ${text}`)
+      }
+
+      const page = await res.json() as PagePdp<EvenementFactureBrut>
+      result.push(...page.data)
+
+      const last = page.data.at(-1)
+      cursor = last ? String(last.id) : cursor
+
+      if (!page.has_after) break
+    } while (true)
+
+    return result
   }
 
   // ── Téléchargement ────────────────────────────────────────────────────────
