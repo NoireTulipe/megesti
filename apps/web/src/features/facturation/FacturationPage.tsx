@@ -3,9 +3,10 @@ import { useState, useMemo, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import {
   useQuota, useEmissions, useReceptions, useMarquerLu,
-  useCreateEmission, useProchainNumero,
+  useCreateEmission, useProchainNumero, useRetryEmission,
   type StatutEmission, type LigneEmission, type FactureReception,
 } from './hooks/useFacturation'
+import { FactureReceptionModal } from './FactureReceptionModal'
 import { DestinatairePicker } from './DestinatairePicker'
 import { QuotaDepaseModal } from './QuotaDepaseModal'
 import styles from './FacturationPage.module.css'
@@ -271,6 +272,7 @@ export function FacturationPage() {
   const { data: emissions  } = useEmissions()
   const { data: receptions } = useReceptions()
   const marquerLu            = useMarquerLu()
+  const retryEmission        = useRetryEmission()
 
   useEffect(() => {
     if (searchParams.get('rechargement') === 'ok') setTab('overview')
@@ -508,6 +510,15 @@ export function FacturationPage() {
                       <div className={styles.factureCardNum}>{f.numero}</div>
                       <div className={styles.factureCardDest}>{f.destinataireNom ?? '—'}</div>
                       {f.destinataireSiret && <div className={styles.factureCardSiret}>{f.destinataireSiret}</div>}
+                      {f.statut === 'BROUILLON' && (
+                        <button
+                          className={styles.retryBtn}
+                          disabled={retryEmission.isPending}
+                          onClick={() => retryEmission.mutate(f.id)}
+                        >
+                          {retryEmission.isPending ? 'Envoi…' : '↻ Réessayer l\'envoi'}
+                        </button>
+                      )}
                     </div>
                     <div className={styles.factureCardRight}>
                       <div className={styles.factureCardDate}>{fDate(f.dateEmission)}</div>
@@ -568,61 +579,11 @@ export function FacturationPage() {
 
       {showQuotaModal && <QuotaDepaseModal onClose={() => setQuotaModal(false)} />}
 
-      {/* ── Modal lecture facture reçue ── */}
       {selectedReception && (
-        <div className={styles.receptionOverlay} onClick={() => setSelectedReception(null)}>
-          <div className={styles.receptionModal} onClick={e => e.stopPropagation()}>
-
-            <div className={styles.receptionModalHeader}>
-              <div className={styles.receptionModalAccent} />
-              <div className={styles.receptionModalHeaderContent}>
-                <p className={styles.receptionModalEmetteur}>
-                  {selectedReception.emetteurNom ?? 'Émetteur inconnu'}
-                </p>
-                {selectedReception.emetteurSiret && (
-                  <p className={styles.receptionModalSiret}>SIRET {selectedReception.emetteurSiret}</p>
-                )}
-              </div>
-              <button className={styles.receptionModalClose} onClick={() => setSelectedReception(null)}>✕</button>
-            </div>
-
-            <div className={styles.receptionModalBody}>
-              <div className={styles.receptionModalRow}>
-                <span className={styles.receptionModalLabel}>Date de réception</span>
-                <span className={styles.receptionModalValue}>{fDate(selectedReception.dateReception)}</span>
-              </div>
-              <div className={styles.receptionModalRow}>
-                <span className={styles.receptionModalLabel}>Montant TTC</span>
-                <span className={`${styles.receptionModalValue} ${styles.receptionModalMontant}`}>
-                  {fEur(selectedReception.montantTTC)}
-                </span>
-              </div>
-              <div className={styles.receptionModalRow}>
-                <span className={styles.receptionModalLabel}>Référence PDP</span>
-                <span className={styles.receptionModalValue} style={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>
-                  {selectedReception.pdpId}
-                </span>
-              </div>
-              <div className={styles.receptionModalRow}>
-                <span className={styles.receptionModalLabel}>Statut</span>
-                <span className={styles.receptionModalValue}>{selectedReception.lu ? 'Lue' : 'Nouvelle'}</span>
-              </div>
-
-              {selectedReception.contenuXml && (
-                <div className={styles.receptionModalXmlBlock}>
-                  <p className={styles.receptionModalLabel} style={{ marginBottom: 8 }}>Contenu XML (UBL)</p>
-                  <pre className={styles.receptionModalXml}>{selectedReception.contenuXml.substring(0, 2000)}{selectedReception.contenuXml.length > 2000 ? '\n…' : ''}</pre>
-                </div>
-              )}
-            </div>
-
-            <div className={styles.receptionModalFooter}>
-              <button className={styles.receptionModalBtn} onClick={() => setSelectedReception(null)}>
-                Fermer
-              </button>
-            </div>
-          </div>
-        </div>
+        <FactureReceptionModal
+          facture={selectedReception}
+          onClose={() => setSelectedReception(null)}
+        />
       )}
     </div>
   )

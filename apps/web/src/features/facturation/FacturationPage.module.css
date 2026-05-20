@@ -271,6 +271,17 @@
 }
 .destCardModify:hover { background: #DCFCE7; border-color: #4ADE80; }
 
+/* Bouton réessayer envoi (BROUILLON) */
+.retryBtn {
+  margin-top: 8px; font-size: 0.75rem; font-weight: 600;
+  color: var(--terra); background: var(--terra-faint,#fdf5f4);
+  border: 1.5px solid var(--terra-light); border-radius: var(--r-pill);
+  padding: 4px 12px; cursor: pointer; font-family: inherit;
+  transition: background var(--t);
+}
+.retryBtn:hover    { background: rgba(196,144,124,0.2); }
+.retryBtn:disabled { opacity: 0.6; cursor: wait; }
+
 /* Autocomplete dropdown */
 .autocompleteDropdown {
   position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 50;

@@ -198,6 +198,42 @@ export const facturationRoutes: FastifyPluginAsync = async (app) => {
     return reply.status(201).send(factureEnvoyee)
   })
 
+  // ── Réessayer l'envoi d'un BROUILLON ──────────────────────────────────────
+
+  app.post('/emissions/:id/emettre', authEditor, async (request, reply) => {
+    const { tenantId } = request.tenant
+    const { id } = request.params as { id: string }
+
+    const facture = await app.db.factureEmission.findFirst({
+      where: { id, tenantId, statut: 'BROUILLON' },
+    })
+    if (!facture)         return reply.status(404).send({ error: 'BrouillonIntrouvable' })
+    if (!facture.contenuXml) return reply.status(422).send({ error: 'XmlManquant' })
+
+    let pdpId: string
+    try {
+      if (isAfnorEnabled()) {
+        const tenant = await app.db.tenant.findUnique({ where: { id: tenantId }, select: { siret: true } })
+        if (!tenant?.siret) throw new Error('SIRET manquant')
+        const result = await getAfnorService().emettre(facture.contenuXml, facture.numero, siretToSiren(tenant.siret))
+        pdpId = result.flowId
+      } else {
+        let pdp: ReturnType<typeof getPdpService>
+        try { pdp = getPdpService() } catch { throw new Error('Service PDP non configuré') }
+        const result = await pdp.emettre(facture.contenuXml)
+        pdpId = result.pdpId
+      }
+    } catch (err: unknown) {
+      return reply.status(503).send({ error: 'EmissionEchouee', detail: (err as Error).message })
+    }
+
+    const updated = await app.db.factureEmission.update({
+      where: { id },
+      data:  { statut: 'ENVOYEE', pdpId },
+    })
+    return reply.send(updated)
+  })
+
   // ── Factures reçues ────────────────────────────────────────────────────────
 
   app.get('/receptions', auth, async (request) => {

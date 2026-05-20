@@ -111,7 +111,18 @@ export function useCreateEmission() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (payload: CreateEmissionPayload) => api.post<FactureEmission>('/facturation/emissions', payload),
-    onSuccess: () => {
+    // onSettled : invalide même si l'envoi PDP échoue (le BROUILLON doit apparaître)
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: ['facturation'] })
+    },
+  })
+}
+
+export function useRetryEmission() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => api.post<FactureEmission>(`/facturation/emissions/${id}/emettre`, {}),
+    onSettled: () => {
       qc.invalidateQueries({ queryKey: ['facturation'] })
     },
   })
