@@ -42,6 +42,9 @@ export async function pollAfnor(db: PrismaClient): Promise<void> {
       trackUpdatedAt(recues)
 
       for (const flow of recues) {
+        // Ignore les doublons "i_" (même facture, vue différente)
+        if (flow.flowId.startsWith('i_')) continue
+
         const exists = await db.factureReception.findUnique({
           where: { tenantId_pdpId: { tenantId: tenant.id, pdpId: flow.flowId } },
         })

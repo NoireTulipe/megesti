@@ -1,6 +1,56 @@
 import type { PrismaClient } from '@prisma/client'
 import { getPdpService } from '../services/SuperPdpService.js'
 
+// ── Extraction des infos clés depuis JSON SuperPDP, UBL ou CII ────────────────
+
+interface InfosFacture { nom: string; siret: string; montant: number }
+
+function extraireInfosFacture(contenu: string): InfosFacture {
+  const vide: InfosFacture = { nom: '', siret: '', montant: 0 }
+  if (!contenu) return vide
+
+  try {
+    // ── 1. JSON SuperPDP (en_invoice) ──────────────────────────────────────────
+    if (contenu.trimStart().startsWith('{')) {
+      const data = JSON.parse(contenu) as Record<string, unknown>
+      const inv  = (data['en_invoice'] ?? data) as Record<string, unknown>
+      const seller = inv['seller'] as Record<string, unknown> | undefined
+      const totals = inv['totals'] as Record<string, unknown> | undefined
+      const tvaAmt = totals?.['total_vat_amount'] as Record<string, unknown> | undefined
+      const ids    = seller?.['identifiers'] as Array<Record<string, unknown>> | undefined
+      const ttcRaw = totals?.['total_with_vat'] ?? totals?.['amount_due_for_payment'] ?? tvaAmt?.['value']
+      return {
+        nom:     String(seller?.['name'] ?? ''),
+        siret:   String(ids?.[0]?.['value'] ?? ''),
+        montant: parseFloat(String(ttcRaw ?? '0')) || 0,
+      }
+    }
+  } catch { /* pas du JSON */ }
+
+  // ── 2. UBL : <RegistrationName> dans SupplierParty + <TaxInclusiveAmount> ──
+  const ublSellerName = contenu.match(
+    /<[^>]*AccountingSupplierParty[^>]*>[\s\S]*?<[^>]*RegistrationName[^>]*>(.*?)<\/[^>]*RegistrationName>/
+  )?.[1]
+  const ublTotal = contenu.match(/<[^>]*TaxInclusiveAmount[^>]*>([\d.]+)</)?.[1]
+
+  // ── 3. CII : <ram:Name> dans SellerTradeParty + <GrandTotalAmount> ─────────
+  const ciiSellerName = contenu.match(
+    /<[^>]*SellerTradeParty[^>]*>[\s\S]*?<[^>]*Name[^>]*>(.*?)<\/[^>]*Name>/
+  )?.[1]
+  const ciiTotal = contenu.match(/<[^>]*GrandTotalAmount[^>]*>([\d.]+)</)?.[1]
+
+  // Identifiant vendeur UBL/CII : schemeID="0225" dans supplier section
+  const sellerId = contenu.match(
+    /<[^>]*AccountingSupplierParty[^>]*>[\s\S]*?schemeID="0225"[^>]*>(.*?)<\/|<[^>]*SellerTradeParty[^>]*>[\s\S]*?schemeID="0225"[^>]*>(.*?)<\//
+  )
+
+  return {
+    nom:     ublSellerName ?? ciiSellerName ?? '',
+    siret:   sellerId?.[1] ?? sellerId?.[2] ?? '',
+    montant: parseFloat(ublTotal ?? ciiTotal ?? '0') || 0,
+  }
+}
+
 /**
  * Job BullMQ — polling des factures reçues pour tous les tenants configurés.
  * Fréquence recommandée : toutes les 5 minutes.
@@ -30,12 +80,15 @@ export async function pollFactures(db: PrismaClient): Promise<void> {
       for (const f of factures) {
         const pdpId = String(f.id)
 
+        // Ignore les doublons préfixés "i_" (même facture, vue destinataire vs réseau)
+        if (pdpId.startsWith('i_')) continue
+
         const exists = await db.factureReception.findUnique({
           where: { tenantId_pdpId: { tenantId: tenant.id, pdpId } },
         })
         if (exists) continue
 
-        // Télécharge le contenu complet (JSON SuperPDP) pour archivage et affichage
+        // Télécharge le contenu pour archivage et extraction des données
         let contenuXml: string | null = null
         let emetteurNom   = String(f.sender_name  ?? '')
         let emetteurSiret = String(f.sender_siren ?? '')
@@ -43,18 +96,11 @@ export async function pollFactures(db: PrismaClient): Promise<void> {
 
         try {
           contenuXml = await pdp.telecharger(pdpId)
-          // L'API SuperPDP propriétaire retourne le JSON complet dans telecharger()
-          const data = JSON.parse(contenuXml) as Record<string, unknown>
-          const inv  = (data['en_invoice'] ?? data) as Record<string, unknown>
-          const seller  = inv['seller']  as Record<string, unknown> | undefined
-          const totals  = inv['totals']  as Record<string, unknown> | undefined
-          const tvaAmt  = totals?.['total_vat_amount'] as Record<string, unknown> | undefined
-          if (seller?.['name'])          emetteurNom   = String(seller['name'])
-          const ids = seller?.['identifiers'] as Array<Record<string, unknown>> | undefined
-          if (ids?.[0]?.['value'])       emetteurSiret = String(ids[0]['value'])
-          const ttc = totals?.['total_with_vat'] ?? totals?.['amount_due_for_payment'] ?? tvaAmt?.['value']
-          if (ttc) montantTTC = parseFloat(String(ttc)) || montantTTC
-        } catch { /* non bloquant — on garde les valeurs de la liste */ }
+          const extracted = extraireInfosFacture(contenuXml)
+          if (extracted.nom)     emetteurNom   = extracted.nom
+          if (extracted.siret)   emetteurSiret = extracted.siret
+          if (extracted.montant) montantTTC    = extracted.montant
+        } catch { /* non bloquant */ }
 
         await db.factureReception.create({
           data: {

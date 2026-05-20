@@ -51,12 +51,122 @@ interface PdpInvoice {
   notes?:            Array<{ subject_code?: string; note?: string }>
 }
 
+function txt(xml: string, tag: string): string {
+  return xml.match(new RegExp(`<[^>]*${tag}[^>]*>([^<]*)<`))?.[1]?.trim() ?? ''
+}
+
 function parseContenu(raw: string | null): PdpInvoice | null {
   if (!raw) return null
-  try {
-    const data = JSON.parse(raw) as Record<string, unknown>
-    return ((data['en_invoice'] ?? data) as PdpInvoice)
-  } catch { return null }
+
+  // ── JSON SuperPDP ──────────────────────────────────────────────────────────
+  if (raw.trimStart().startsWith('{')) {
+    try {
+      const data = JSON.parse(raw) as Record<string, unknown>
+      return (data['en_invoice'] ?? data) as PdpInvoice
+    } catch { /* pas du JSON valide */ }
+  }
+
+  // ── UBL ────────────────────────────────────────────────────────────────────
+  if (raw.includes('<Invoice') || raw.includes('ubl:Invoice')) {
+    const sellerBlock = raw.match(/<[^>]*AccountingSupplierParty[^>]*>([\s\S]*?)<\/[^>]*AccountingSupplierParty>/)?.[1] ?? ''
+    const buyerBlock  = raw.match(/<[^>]*AccountingCustomerParty[^>]*>([\s\S]*?)<\/[^>]*AccountingCustomerParty>/)?.[1] ?? ''
+    const lines: PdpLine[] = []
+    let lineMatch: RegExpExecArray | null
+    const lineRe = /<[^>]*InvoiceLine[^>]*>([\s\S]*?)<\/[^>]*InvoiceLine>/g
+    while ((lineMatch = lineRe.exec(raw)) !== null) {
+      const lb = lineMatch[1]
+      lines.push({
+        identifier: txt(lb, 'ID'),
+        name: txt(lb, 'Name') || txt(lb, 'Description'),
+        invoiced_quantity: txt(lb, 'InvoicedQuantity'),
+        invoiced_quantity_code: lb.match(/unitCode="([^"]+)"/)?.[1],
+        net_amount: txt(lb, 'LineExtensionAmount'),
+        price_details: { item_net_price: txt(lb, 'PriceAmount') },
+        vat_information: { vat_category_rate: txt(lb, 'Percent') },
+      })
+    }
+    const vatRows: PdpVatRow[] = []
+    const subRe = /<[^>]*TaxSubtotal[^>]*>([\s\S]*?)<\/[^>]*TaxSubtotal>/g
+    let subMatch: RegExpExecArray | null
+    while ((subMatch = subRe.exec(raw)) !== null) {
+      const sb = subMatch[1]
+      vatRows.push({
+        vat_category_taxable_amount: txt(sb, 'TaxableAmount'),
+        vat_category_tax_amount:     txt(sb, 'TaxAmount'),
+        vat_category_rate:           txt(sb, 'Percent'),
+      })
+    }
+    return {
+      number:           txt(raw, 'ID'),
+      issue_date:       txt(raw, 'IssueDate'),
+      payment_due_date: txt(raw, 'DueDate'),
+      currency_code:    txt(raw, 'DocumentCurrencyCode'),
+      seller:  { name: txt(sellerBlock, 'RegistrationName') || txt(sellerBlock, 'Name') },
+      buyer:   { name: txt(buyerBlock,  'RegistrationName') || txt(buyerBlock,  'Name') },
+      totals:  {
+        total_without_vat: txt(raw, 'TaxExclusiveAmount'),
+        total_vat_amount:  txt(raw, 'TaxAmount'),
+        total_with_vat:    txt(raw, 'TaxInclusiveAmount'),
+        amount_due_for_payment: txt(raw, 'PayableAmount'),
+      },
+      vat_break_down: vatRows,
+      lines,
+    }
+  }
+
+  // ── CII ────────────────────────────────────────────────────────────────────
+  if (raw.includes('CrossIndustryInvoice')) {
+    const sellerBlock = raw.match(/<[^>]*SellerTradeParty[^>]*>([\s\S]*?)<\/[^>]*SellerTradeParty>/)?.[1] ?? ''
+    const buyerBlock  = raw.match(/<[^>]*BuyerTradeParty[^>]*>([\s\S]*?)<\/[^>]*BuyerTradeParty>/)?.[1]  ?? ''
+    const summBlock   = raw.match(/<[^>]*SpecifiedTradeSettlementHeaderMonetarySummation[^>]*>([\s\S]*?)<\/[^>]*SpecifiedTradeSettlementHeaderMonetarySummation>/)?.[1] ?? ''
+    const lines: PdpLine[] = []
+    const lineRe = /<[^>]*IncludedSupplyChainTradeLineItem[^>]*>([\s\S]*?)<\/[^>]*IncludedSupplyChainTradeLineItem>/g
+    let lineMatch: RegExpExecArray | null
+    while ((lineMatch = lineRe.exec(raw)) !== null) {
+      const lb = lineMatch[1]
+      lines.push({
+        identifier: txt(lb, 'LineID'),
+        name: txt(lb, 'Name') || txt(lb, 'Description'),
+        invoiced_quantity: txt(lb, 'BilledQuantity'),
+        invoiced_quantity_code: lb.match(/unitCode="([^"]+)"/)?.[1],
+        net_amount: txt(lb, 'LineTotalAmount'),
+        price_details: { item_net_price: txt(lb, 'ChargeAmount') },
+        vat_information: { vat_category_rate: txt(lb, 'RateApplicablePercent') },
+      })
+    }
+    const vatRows: PdpVatRow[] = []
+    const taxRe = /<[^>]*ApplicableTradeTax[^>]*>([\s\S]*?)<\/[^>]*ApplicableTradeTax>/g
+    let taxMatch: RegExpExecArray | null
+    while ((taxMatch = taxRe.exec(raw)) !== null) {
+      const tb = taxMatch[1]
+      if (!tb.includes('BasisAmount')) continue // skip line-level entries
+      vatRows.push({
+        vat_category_taxable_amount: txt(tb, 'BasisAmount'),
+        vat_category_tax_amount:     txt(tb, 'CalculatedAmount'),
+        vat_category_rate:           txt(tb, 'RateApplicablePercent'),
+      })
+    }
+    const dueDateRaw = raw.match(/<[^>]*DueDateDateTime[^>]*>[\s\S]*?<[^>]*DateTimeString[^>]*>(\d{8})<\//)
+    const dueDate = dueDateRaw?.[1] ? `${dueDateRaw[1].slice(0,4)}-${dueDateRaw[1].slice(4,6)}-${dueDateRaw[1].slice(6,8)}` : undefined
+    return {
+      number:           txt(raw, 'ID'),
+      issue_date:       undefined, // format YYYYMMDD → à convertir si besoin
+      payment_due_date: dueDate,
+      currency_code:    txt(raw, 'InvoiceCurrencyCode'),
+      seller: { name: txt(sellerBlock, 'Name') },
+      buyer:  { name: txt(buyerBlock,  'Name') },
+      totals: {
+        total_without_vat:      txt(summBlock, 'TaxBasisTotalAmount'),
+        total_vat_amount:       txt(summBlock, 'TaxTotalAmount'),
+        total_with_vat:         txt(summBlock, 'GrandTotalAmount'),
+        amount_due_for_payment: txt(summBlock, 'DuePayableAmount'),
+      },
+      vat_break_down: vatRows,
+      lines,
+    }
+  }
+
+  return null
 }
 
 function fEur(v: string | number | undefined) {
