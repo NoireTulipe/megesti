@@ -114,6 +114,7 @@ export function DestinatairePicker({ onChange }: Props) {
             value={nomInput}
             onChange={e => {
               setNomInput(e.target.value)
+              onChangeFn.current({ nom: e.target.value, siret: siretInput, adresse: '' })
               setShowDropdown(true)
             }}
             onFocus={() => { if (results.length > 0) setShowDropdown(true) }}
@@ -156,6 +157,7 @@ export function DestinatairePicker({ onChange }: Props) {
             onChange={e => {
               lastAutoSiret.current = ''
               setSiretInput(e.target.value)
+              onChangeFn.current({ nom: nomInput, siret: e.target.value, adresse: '' })
             }}
             placeholder="14 chiffres"
             maxLength={14}

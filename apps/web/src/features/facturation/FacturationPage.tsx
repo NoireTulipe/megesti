@@ -4,7 +4,7 @@ import { useSearchParams } from 'react-router-dom'
 import {
   useQuota, useEmissions, useReceptions, useMarquerLu,
   useCreateEmission, useProchainNumero,
-  type StatutEmission, type LigneEmission,
+  type StatutEmission, type LigneEmission, type FactureReception,
 } from './hooks/useFacturation'
 import { DestinatairePicker } from './DestinatairePicker'
 import { QuotaDepaseModal } from './QuotaDepaseModal'
@@ -262,9 +262,10 @@ function EmissionForm({ onSent, onQuotaDepasse }: { onSent: () => void; onQuotaD
 // ── Page principale ────────────────────────────────────────────────────────────
 
 export function FacturationPage() {
-  const [tab, setTab]                   = useState<Tab>('overview')
-  const [showQuotaModal, setQuotaModal] = useState(false)
-  const [searchParams]                  = useSearchParams()
+  const [tab, setTab]                           = useState<Tab>('overview')
+  const [showQuotaModal, setQuotaModal]         = useState(false)
+  const [selectedReception, setSelectedReception] = useState<FactureReception | null>(null)
+  const [searchParams]                          = useSearchParams()
 
   const { data: quota }      = useQuota()
   const { data: emissions  } = useEmissions()
@@ -307,10 +308,9 @@ export function FacturationPage() {
       {/* ── Tabs ── */}
       <div className={styles.tabs}>
         {([
-          ['overview',   '🏠', 'Tableau de bord'],
-          ['emettre',    '✦',  'Émettre'],
-          ['emissions',  '↗',  `Émises (${emissions?.length ?? 0})`],
-          ['receptions', '↙',  `Reçues${nonLus > 0 ? ` · ${nonLus} new` : ` (${receptions?.length ?? 0})`}`],
+          ['overview',  '🏠', 'Tableau de bord'],
+          ['emettre',   '✦',  'Émettre'],
+          ['emissions', '↗',  `Émises (${emissions?.length ?? 0})`],
         ] as [Tab, string, string][]).map(([key, icon, label]) => (
           <button key={key}
             className={`${styles.tab} ${tab === key ? styles.tabActive : ''}`}
@@ -320,6 +320,19 @@ export function FacturationPage() {
             {label}
           </button>
         ))}
+        <button
+          className={`${styles.tab} ${tab === 'receptions' ? styles.tabActive : ''}`}
+          onClick={() => setTab('receptions')}
+        >
+          <span className={styles.tabIcon}>↙</span>
+          Reçues
+          {nonLus > 0 && (
+            <span className={styles.tabBadge}>
+              {nonLus} nouvelle{nonLus > 1 ? 's' : ''}
+            </span>
+          )}
+          {nonLus === 0 && ` (${receptions?.length ?? 0})`}
+        </button>
       </div>
 
       <div className={styles.body}>
@@ -524,10 +537,13 @@ export function FacturationPage() {
             {receptions?.map(f => (
               <div key={f.id}
                 className={`${styles.factureCard} ${!f.lu ? styles.factureCardUnread : ''}`}
-                onClick={() => !f.lu && marquerLu.mutate(f.id)}
-                style={{ cursor: f.lu ? 'default' : 'pointer' }}
+                onClick={() => {
+                  if (!f.lu) marquerLu.mutate(f.id)
+                  setSelectedReception(f)
+                }}
+                style={{ cursor: 'pointer' }}
               >
-                {!f.lu && <div className={styles.unreadBadge}>Nouveau</div>}
+                {!f.lu && <div className={styles.unreadBadge}>Nouvelle facture</div>}
                 <div className={styles.factureCardAccent} style={{ background: f.lu ? '#9CA3AF' : '#3B82F6' }} />
                 <div className={styles.factureCardBody}>
                   <div className={styles.factureCardLeft}>
@@ -540,7 +556,7 @@ export function FacturationPage() {
                     <span className={styles.statutPill}
                       style={{ color: f.lu ? '#6B7280' : '#2563EB', background: f.lu ? '#F3F4F6' : '#EFF6FF' }}>
                       <span style={{ width: 6, height: 6, borderRadius: '50%', background: f.lu ? '#9CA3AF' : '#3B82F6', display: 'inline-block', marginRight: 5 }} />
-                      {f.lu ? 'Lu' : 'Non lu'}
+                      {f.lu ? 'Lue' : 'Nouvelle'}
                     </span>
                   </div>
                 </div>
@@ -551,6 +567,63 @@ export function FacturationPage() {
       </div>
 
       {showQuotaModal && <QuotaDepaseModal onClose={() => setQuotaModal(false)} />}
+
+      {/* ── Modal lecture facture reçue ── */}
+      {selectedReception && (
+        <div className={styles.receptionOverlay} onClick={() => setSelectedReception(null)}>
+          <div className={styles.receptionModal} onClick={e => e.stopPropagation()}>
+
+            <div className={styles.receptionModalHeader}>
+              <div className={styles.receptionModalAccent} />
+              <div className={styles.receptionModalHeaderContent}>
+                <p className={styles.receptionModalEmetteur}>
+                  {selectedReception.emetteurNom ?? 'Émetteur inconnu'}
+                </p>
+                {selectedReception.emetteurSiret && (
+                  <p className={styles.receptionModalSiret}>SIRET {selectedReception.emetteurSiret}</p>
+                )}
+              </div>
+              <button className={styles.receptionModalClose} onClick={() => setSelectedReception(null)}>✕</button>
+            </div>
+
+            <div className={styles.receptionModalBody}>
+              <div className={styles.receptionModalRow}>
+                <span className={styles.receptionModalLabel}>Date de réception</span>
+                <span className={styles.receptionModalValue}>{fDate(selectedReception.dateReception)}</span>
+              </div>
+              <div className={styles.receptionModalRow}>
+                <span className={styles.receptionModalLabel}>Montant TTC</span>
+                <span className={`${styles.receptionModalValue} ${styles.receptionModalMontant}`}>
+                  {fEur(selectedReception.montantTTC)}
+                </span>
+              </div>
+              <div className={styles.receptionModalRow}>
+                <span className={styles.receptionModalLabel}>Référence PDP</span>
+                <span className={styles.receptionModalValue} style={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>
+                  {selectedReception.pdpId}
+                </span>
+              </div>
+              <div className={styles.receptionModalRow}>
+                <span className={styles.receptionModalLabel}>Statut</span>
+                <span className={styles.receptionModalValue}>{selectedReception.lu ? 'Lue' : 'Nouvelle'}</span>
+              </div>
+
+              {selectedReception.contenuXml && (
+                <div className={styles.receptionModalXmlBlock}>
+                  <p className={styles.receptionModalLabel} style={{ marginBottom: 8 }}>Contenu XML (UBL)</p>
+                  <pre className={styles.receptionModalXml}>{selectedReception.contenuXml.substring(0, 2000)}{selectedReception.contenuXml.length > 2000 ? '\n…' : ''}</pre>
+                </div>
+              )}
+            </div>
+
+            <div className={styles.receptionModalFooter}>
+              <button className={styles.receptionModalBtn} onClick={() => setSelectedReception(null)}>
+                Fermer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

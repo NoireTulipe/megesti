@@ -37,6 +37,7 @@ export interface FactureReception {
   dateReception: string
   statut:        string
   lu:            boolean
+  contenuXml:    string | null
   createdAt:     string
 }
 

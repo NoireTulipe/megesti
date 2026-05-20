@@ -75,7 +75,18 @@
   color: var(--terra); font-weight: 700;
   border-bottom-color: var(--terra);
 }
-.tabIcon { font-size: 0.8rem; opacity: 0.7; }
+.tabIcon  { font-size: 0.8rem; opacity: 0.7; }
+.tabBadge {
+  display: inline-flex; align-items: center;
+  margin-left: 6px; padding: 1px 8px;
+  background: #EFF6FF; color: #2563EB;
+  border-radius: var(--r-pill); font-size: 0.7rem; font-weight: 700;
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.7; }
+}
 
 /* ── Body ──────────────────────────────────────────────────────── */
 .body { flex: 1; overflow-y: auto; padding: 32px 44px 60px; }
@@ -435,3 +446,74 @@
   from { opacity:0; transform:translateY(16px) }
   to   { opacity:1; transform:translateY(0) }
 }
+
+/* ── Modal facture reçue ─────────────────────────────────────────── */
+.receptionOverlay {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(26,24,37,0.45); backdrop-filter: blur(3px);
+  display: flex; align-items: center; justify-content: center; padding: 24px;
+}
+.receptionModal {
+  background: var(--white); border-radius: var(--r-card);
+  box-shadow: 0 24px 64px rgba(0,0,0,0.18);
+  width: 100%; max-width: 520px; max-height: 80vh;
+  display: flex; flex-direction: column; overflow: hidden;
+  animation: fadeUp 0.25s cubic-bezier(0.22,1,0.36,1) both;
+}
+.receptionModalHeader {
+  display: flex; align-items: flex-start; gap: 16px;
+  padding: 24px 24px 20px; border-bottom: 1.5px solid var(--cream-dark);
+  background: linear-gradient(135deg, #EFF6FF, #F8FBFF);
+}
+.receptionModalAccent {
+  flex-shrink: 0; width: 4px; align-self: stretch;
+  background: linear-gradient(180deg, #3B82F6, #6366F1);
+  border-radius: 2px;
+}
+.receptionModalHeaderContent { flex: 1; min-width: 0; }
+.receptionModalEmetteur {
+  font-family: 'DM Serif Display', serif; font-size: 1.25rem;
+  color: var(--ink); margin: 0 0 4px; line-height: 1.2;
+}
+.receptionModalSiret { font-size: 0.78rem; color: var(--text-soft); margin: 0; }
+.receptionModalClose {
+  flex-shrink: 0; width: 30px; height: 30px; border-radius: 50%;
+  background: none; border: 1.5px solid var(--cream-dark);
+  color: var(--text-soft); cursor: pointer; font-size: 0.75rem;
+  display: flex; align-items: center; justify-content: center;
+  transition: background var(--t), color var(--t);
+}
+.receptionModalClose:hover { background: #FEF2F2; color: #DC2626; border-color: #FECACA; }
+
+.receptionModalBody {
+  flex: 1; overflow-y: auto; padding: 20px 24px;
+  display: flex; flex-direction: column; gap: 0;
+}
+.receptionModalRow {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 16px;
+  padding: 12px 0; border-bottom: 1px solid var(--cream-dark);
+}
+.receptionModalRow:last-child { border-bottom: none; }
+.receptionModalLabel { font-size: 0.78rem; color: var(--text-soft); font-weight: 500; flex-shrink: 0; }
+.receptionModalValue { font-size: 0.875rem; color: var(--ink); text-align: right; }
+.receptionModalMontant { font-family: 'DM Serif Display', serif; font-size: 1.4rem; color: var(--ink); }
+
+.receptionModalXmlBlock { margin-top: 8px; }
+.receptionModalXml {
+  background: var(--cream); border: 1.5px solid var(--cream-dark); border-radius: 8px;
+  padding: 12px; font-size: 0.72rem; line-height: 1.5; color: var(--text-soft);
+  overflow-x: auto; white-space: pre; font-family: 'Courier New', monospace;
+  max-height: 200px; overflow-y: auto;
+}
+
+.receptionModalFooter {
+  padding: 16px 24px; border-top: 1.5px solid var(--cream-dark);
+  display: flex; justify-content: flex-end;
+}
+.receptionModalBtn {
+  font-size: 0.875rem; font-weight: 600; color: var(--ink);
+  background: var(--cream); border: 1.5px solid var(--cream-dark);
+  border-radius: var(--r-pill); padding: 8px 20px; cursor: pointer;
+  font-family: inherit; transition: background var(--t);
+}
+.receptionModalBtn:hover { background: var(--cream-dark); }
