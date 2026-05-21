@@ -1,5 +1,6 @@
 import type { PrismaClient } from '@prisma/client'
 import { getPdpService } from '../services/SuperPdpService.js'
+import { isAfnorEnabled } from '../services/AfnorFlowService.js'
 
 // ── Extraction des infos clés depuis JSON SuperPDP, UBL ou CII ────────────────
 
@@ -56,7 +57,9 @@ function extraireInfosFacture(contenu: string): InfosFacture {
  * Fréquence recommandée : toutes les 5 minutes.
  */
 export async function pollFactures(db: PrismaClient): Promise<void> {
-  // Vérifie que les credentials MeGesti sont configurés
+  // En mode AFNOR, poll-afnor.ts gère la réception — on ne duplique pas
+  if (isAfnorEnabled()) return
+
   let pdp: ReturnType<typeof getPdpService>
   try { pdp = getPdpService() } catch {
     console.warn('[pollFactures] SUPERPDP_CLIENT_ID/SECRET manquants — polling ignoré')
