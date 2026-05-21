@@ -15,6 +15,8 @@ export type { PlanTier, PlanFeatures } from './planFeatures'
 
 // Facturation électronique
 export type { FormatFacture, LigneFacture, FacturePayload, EmissionResult, FactureRecueBrute, EvenementFactureBrut, PagePdp, InvoiceTransmissionService } from './types/invoice'
+export type { FactureParsee, LigneFactureParsee, TvaDetail, PartieFacture } from './services/parseFacture'
+export { parseFacture } from './services/parseFacture'
 export type { EntrepriseResult } from './services/rechercheEntreprise'
 export { rechercherEntreprises, rechercherParSiret } from './services/rechercheEntreprise'
 export { PLAN_FEATURES, PLAN_LABELS, UPGRADE_MESSAGE, getPlanFeatures, canUseFeature } from './planFeatures'
