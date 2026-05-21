@@ -45,7 +45,6 @@ export async function pollAfnor(db: PrismaClient): Promise<void> {
 
       for (const flow of recues) {
         console.log(`[pollAfnor] flow flowId=${flow.flowId} ack=${flow.acknowledgement?.status}`)
-        if (flow.flowId.startsWith('i_')) continue
 
         const exists = await db.factureReception.findUnique({
           where: { tenantId_pdpId: { tenantId: tenant.id, pdpId: flow.flowId } },
