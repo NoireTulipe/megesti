@@ -127,18 +127,29 @@ export class SuperPdpService implements InvoiceTransmissionService {
   }
 
   // ── Téléchargement ────────────────────────────────────────────────────────
+  // Tente d'abord le XML (contient les noms de produits), sinon fallback JSON.
 
   async telecharger(pdpId: string): Promise<string> {
     const token = await this.getToken()
+
+    // Essai 1 : XML UBL (plus riche — contient les libellés de lignes)
+    for (const fmt of ['ubl', 'cii'] as const) {
+      try {
+        const r = await fetch(`${BASE_URL}/v1.beta/invoices/${pdpId}?format=${fmt}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        if (r.ok) {
+          const text = await r.text()
+          if (text.trimStart().startsWith('<')) return text  // c'est du XML
+        }
+      } catch { /* essai suivant */ }
+    }
+
+    // Essai 2 : JSON (fallback — pas de noms de produits dans les lignes)
     const res = await fetch(`${BASE_URL}/v1.beta/invoices/${pdpId}`, {
       headers: { Authorization: `Bearer ${token}` },
     })
-
-    if (!res.ok) {
-      const text = await res.text()
-      throw new Error(`SuperPDP download error ${res.status}: ${text}`)
-    }
-
+    if (!res.ok) throw new Error(`SuperPDP download error ${res.status}: ${await res.text()}`)
     return res.text()
   }
 

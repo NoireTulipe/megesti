@@ -244,7 +244,7 @@ export function FactureReceptionModal({ facture, onClose }: Props) {
         <div className={styles.header}>
           <div className={styles.headerLeft}>
             <p className={styles.invoiceNum}>
-              {inv?.number ?? facture.pdpId}
+              {(inv?.number && inv.number.length > 2) ? inv.number : `Réf. ${facture.pdpId}`}
             </p>
             <p className={styles.invoiceDates}>
               Émise le {fDate(inv?.issue_date)}
@@ -273,7 +273,7 @@ export function FactureReceptionModal({ facture, onClose }: Props) {
               <p className={styles.partyRole}>Destinataire</p>
               <p className={styles.partyName}>{buyer?.name ?? '—'}</p>
               {buyer?.identifiers?.[0] && (
-                <p className={styles.partySub}>ID {buyer.identifiers[0].value}</p>
+                <p className={styles.partySub}>Réf. {buyer.identifiers[0].value}</p>
               )}
             </div>
           </div>
