@@ -28,6 +28,7 @@ export async function pollAfnor(db: PrismaClient): Promise<void> {
     const siren = siretToSiren(tenant.siret)
     const since = tenant.pdpAfnorSyncAt ?? undefined
     let maxUpdatedAt: Date | undefined = since
+    console.log(`[pollAfnor] tenant=${tenant.id} siren=${siren} since=${since?.toISOString() ?? 'début'}`)
 
     function trackUpdatedAt(flows: AfnorFlow[]) {
       for (const f of flows) {
@@ -39,19 +40,25 @@ export async function pollAfnor(db: PrismaClient): Promise<void> {
     try {
       // ── 1. Factures reçues ───────────────────────────────────────────────
       const recues = await afnor.rechercherFlows(siren, ['SupplierInvoice'], ['In'], since)
+      console.log(`[pollAfnor] SupplierInvoice In : ${recues.length} flow(s) trouvé(s)`)
       trackUpdatedAt(recues)
 
       for (const flow of recues) {
-        // Ignore les doublons "i_" (même facture, vue différente)
+        console.log(`[pollAfnor] flow flowId=${flow.flowId} ack=${flow.acknowledgement?.status}`)
         if (flow.flowId.startsWith('i_')) continue
 
         const exists = await db.factureReception.findUnique({
           where: { tenantId_pdpId: { tenantId: tenant.id, pdpId: flow.flowId } },
         })
-        if (exists) continue
+        if (exists) { console.log(`[pollAfnor] déjà en base, skip`); continue }
 
         let xml: string | null = null
-        try { xml = await afnor.telecharger(flow.flowId, siren) } catch { /* non bloquant */ }
+        try {
+          xml = await afnor.telecharger(flow.flowId, siren)
+          console.log(`[pollAfnor] contenu téléchargé (${xml.length} chars) : ${xml.substring(0, 120)}…`)
+        } catch (e) {
+          console.error(`[pollAfnor] téléchargement échoué:`, (e as Error).message)
+        }
 
         await db.factureReception.create({
           data: {
