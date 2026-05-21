@@ -1,56 +1,8 @@
 import type { PrismaClient } from '@prisma/client'
 import { getPdpService } from '../services/SuperPdpService.js'
 import { isAfnorEnabled } from '../services/AfnorFlowService.js'
+import { extraireInfosFacture } from './parse-facture.js'
 
-// ── Extraction des infos clés depuis JSON SuperPDP, UBL ou CII ────────────────
-
-interface InfosFacture { nom: string; siret: string; montant: number }
-
-function extraireInfosFacture(contenu: string): InfosFacture {
-  const vide: InfosFacture = { nom: '', siret: '', montant: 0 }
-  if (!contenu) return vide
-
-  try {
-    // ── 1. JSON SuperPDP (en_invoice) ──────────────────────────────────────────
-    if (contenu.trimStart().startsWith('{')) {
-      const data = JSON.parse(contenu) as Record<string, unknown>
-      const inv  = (data['en_invoice'] ?? data) as Record<string, unknown>
-      const seller = inv['seller'] as Record<string, unknown> | undefined
-      const totals = inv['totals'] as Record<string, unknown> | undefined
-      const tvaAmt = totals?.['total_vat_amount'] as Record<string, unknown> | undefined
-      const ids    = seller?.['identifiers'] as Array<Record<string, unknown>> | undefined
-      const ttcRaw = totals?.['total_with_vat'] ?? totals?.['amount_due_for_payment'] ?? tvaAmt?.['value']
-      return {
-        nom:     String(seller?.['name'] ?? ''),
-        siret:   String(ids?.[0]?.['value'] ?? ''),
-        montant: parseFloat(String(ttcRaw ?? '0')) || 0,
-      }
-    }
-  } catch { /* pas du JSON */ }
-
-  // ── 2. UBL : <RegistrationName> dans SupplierParty + <TaxInclusiveAmount> ──
-  const ublSellerName = contenu.match(
-    /<[^>]*AccountingSupplierParty[^>]*>[\s\S]*?<[^>]*RegistrationName[^>]*>(.*?)<\/[^>]*RegistrationName>/
-  )?.[1]
-  const ublTotal = contenu.match(/<[^>]*TaxInclusiveAmount[^>]*>([\d.]+)</)?.[1]
-
-  // ── 3. CII : <ram:Name> dans SellerTradeParty + <GrandTotalAmount> ─────────
-  const ciiSellerName = contenu.match(
-    /<[^>]*SellerTradeParty[^>]*>[\s\S]*?<[^>]*Name[^>]*>(.*?)<\/[^>]*Name>/
-  )?.[1]
-  const ciiTotal = contenu.match(/<[^>]*GrandTotalAmount[^>]*>([\d.]+)</)?.[1]
-
-  // Identifiant vendeur UBL/CII : schemeID="0225" dans supplier section
-  const sellerId = contenu.match(
-    /<[^>]*AccountingSupplierParty[^>]*>[\s\S]*?schemeID="0225"[^>]*>(.*?)<\/|<[^>]*SellerTradeParty[^>]*>[\s\S]*?schemeID="0225"[^>]*>(.*?)<\//
-  )
-
-  return {
-    nom:     ublSellerName ?? ciiSellerName ?? '',
-    siret:   sellerId?.[1] ?? sellerId?.[2] ?? '',
-    montant: parseFloat(ublTotal ?? ciiTotal ?? '0') || 0,
-  }
-}
 
 /**
  * Job BullMQ — polling des factures reçues pour tous les tenants configurés.

@@ -1,6 +1,7 @@
 import type { PrismaClient } from '@prisma/client'
 import { getAfnorService, siretToSiren } from '../services/AfnorFlowService.js'
 import type { AfnorFlow } from '../services/AfnorFlowService.js'
+import { extraireInfosFacture } from './parse-facture.js'
 
 /**
  * Job BullMQ — polling AFNOR Flow API.
@@ -59,13 +60,14 @@ export async function pollAfnor(db: PrismaClient): Promise<void> {
           console.error(`[pollAfnor] téléchargement échoué:`, (e as Error).message)
         }
 
+        const infos = extraireInfosFacture(xml ?? '')
         await db.factureReception.create({
           data: {
             tenantId:      tenant.id,
             pdpId:         flow.flowId,
-            emetteurNom:   '',   // TODO: extraire du XML (contenuXml)
-            emetteurSiret: '',
-            montantTTC:    0,
+            emetteurNom:   infos.nom,
+            emetteurSiret: infos.siret,
+            montantTTC:    infos.montant,
             dateReception: new Date(flow.submittedAt),
             statut:        'RECUE',
             contenuXml:    xml,

@@ -155,7 +155,8 @@ function parseContenu(raw: string | null): PdpInvoice | null {
 
   // ── CII (CrossIndustryInvoice) ─────────────────────────────────────────────
   if (raw.includes('CrossIndustryInvoice')) {
-    const docB    = raw.match(/<[^>]*ExchangedDocument[^>]*>([\s\S]*?)<\/[^>]*ExchangedDocument>/)?.[1] ?? ''
+    // ExchangedDocument seulement — pas ExchangedDocumentContext
+    const docB    = raw.match(/<[^>]*ExchangedDocument(?!Context)[^>]*>([\s\S]*?)<\/[^>]*ExchangedDocument(?!Context)>/)?.[1] ?? ''
     const sellerB = raw.match(/<[^>]*SellerTradeParty[^>]*>([\s\S]*?)<\/[^>]*SellerTradeParty>/)?.[1] ?? ''
     const buyerB  = raw.match(/<[^>]*BuyerTradeParty[^>]*>([\s\S]*?)<\/[^>]*BuyerTradeParty>/)?.[1]  ?? ''
     const summB   = raw.match(/<[^>]*SpecifiedTradeSettlementHeaderMonetarySummation[^>]*>([\s\S]*?)<\/[^>]*SpecifiedTradeSettlementHeaderMonetarySummation>/)?.[1] ?? ''
