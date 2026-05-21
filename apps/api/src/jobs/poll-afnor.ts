@@ -13,8 +13,8 @@ import type { AfnorFlow } from '../services/AfnorFlowService.js'
  */
 export async function pollAfnor(db: PrismaClient): Promise<void> {
   let afnor: ReturnType<typeof getAfnorService>
-  try { afnor = getAfnorService() } catch {
-    console.warn('[pollAfnor] credentials manquants — polling ignoré')
+  try { afnor = getAfnorService() } catch (e) {
+    console.warn('[pollAfnor] service indisponible:', (e as Error).message)
     return
   }
 
