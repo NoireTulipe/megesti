@@ -71,10 +71,12 @@ function arr<T>(v: T | T[] | undefined): T[] {
 // ── Parseur XML commun ────────────────────────────────────────────────────────
 
 const PARSER = new XMLParser({
-  ignoreAttributes:  false,
+  ignoreAttributes:    false,
   attributeNamePrefix: '@_',
-  textNodeName:      '#text',
-  removeNSPrefix:    true,   // ram:Name → Name, cbc:ID → ID, peu importe le préfixe
+  textNodeName:        '#text',
+  removeNSPrefix:      true,    // ram:Name → Name, cbc:ID → ID
+  parseTagValue:       false,   // garde "000000001" comme string, pas 1
+  parseAttributeValue: false,   // idem pour les attributs
   isArray: (name) => [
     'InvoiceLine', 'TaxSubtotal', 'Note',
     'IncludedSupplyChainTradeLineItem', 'ApplicableTradeTax',
