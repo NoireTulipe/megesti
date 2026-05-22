@@ -80,6 +80,7 @@ export const facturationRoutes: FastifyPluginAsync = async (app) => {
   app.post('/emissions', authEditor, async (request, reply) => {
     const { tenantId, plan } = request.tenant
     const body = EmettreSchema.parse(request.body)
+    app.log.info({ tenantId, numero: body.numero }, '[emission] démarrage')
 
     // ── Vérification quota ──────────────────────────────────────────────────
     const features  = getPlanFeatures(plan)
@@ -106,11 +107,13 @@ export const facturationRoutes: FastifyPluginAsync = async (app) => {
     if (!tenant) return reply.status(500).send({ error: 'TenantIntrouvable' })
 
     if (!tenant.siret) {
+      app.log.warn({ tenantId }, '[emission] SIRET manquant')
       return reply.status(422).send({
         error:   'SiretManquant',
         message: 'Votre SIRET n\'est pas configuré. Renseignez-le dans Réglages → Identité légale avant d\'émettre une facture.',
       })
     }
+    app.log.info({ tenantId, siret: tenant.siret, restant }, '[emission] quota OK')
 
     // ── Calcul totaux ───────────────────────────────────────────────────────
     let montantHT = 0, montantTVA = 0
@@ -159,12 +162,17 @@ export const facturationRoutes: FastifyPluginAsync = async (app) => {
     })
 
     // ── Envoi au PDP (AFNOR ou SuperPDP selon PDP_MODE) ─────────────────────
+    const mode = isAfnorEnabled() ? 'afnor' : 'superpdp'
+    app.log.info({ mode, numero: body.numero, siret: tenant.siret }, '[emission] appel PDP')
+
     let pdpId: string
     try {
       if (isAfnorEnabled()) {
         const siren  = siretToSiren(tenant.siret)
+        app.log.info({ siren }, '[emission] AFNOR Organization-Id')
         const result = await getAfnorService().emettre(xmlContent, body.numero, siren)
         pdpId = result.flowId
+        app.log.info({ pdpId }, '[emission] AFNOR OK')
       } else {
         let pdp: ReturnType<typeof getPdpService>
         try { pdp = getPdpService() } catch {
@@ -172,14 +180,16 @@ export const facturationRoutes: FastifyPluginAsync = async (app) => {
         }
         const result = await pdp.emettre(xmlContent)
         pdpId = result.pdpId
+        app.log.info({ pdpId }, '[emission] SuperPDP OK')
       }
     } catch (emissionErr: unknown) {
-      // Laisse en BROUILLON — l'utilisateur peut réessayer
+      const detail = (emissionErr as Error).message
+      app.log.error({ detail, factureId: facture.id }, '[emission] ERREUR PDP')
       return reply.status(503).send({
         error:     'EmissionEchouee',
         factureId: facture.id,
         message:   'La facture a été créée mais l\'envoi a échoué. Réessayez depuis vos factures émises.',
-        detail:    (emissionErr as Error).message,
+        detail,
       })
     }
 

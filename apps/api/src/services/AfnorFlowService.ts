@@ -88,6 +88,7 @@ export class AfnorFlowService {
       sha256,
     })], { type: 'application/json' }), 'flowInfo.json')
 
+    console.log(`[AfnorFlow] emettre → POST ${BASE}/v1/flows Organization-Id=${siren} trackingId=${numero}`)
     const res = await fetch(`${BASE}/v1/flows`, {
       method:  'POST',
       headers: this.authHeaders(token, siren),
@@ -96,10 +97,13 @@ export class AfnorFlowService {
 
     if (!res.ok) {
       const text = await res.text()
+      console.error(`[AfnorFlow] emettre ERROR ${res.status}:`, text)
       throw new Error(`AFNOR émission error ${res.status}: ${text}`)
     }
 
-    return res.json() as Promise<AfnorEmissionResult>
+    const result = await res.json() as AfnorEmissionResult
+    console.log(`[AfnorFlow] emettre OK flowId=${result.flowId}`)
+    return result
   }
 
   // ── Recherche de flows (pagination par updatedAfter) ──────────────────────
