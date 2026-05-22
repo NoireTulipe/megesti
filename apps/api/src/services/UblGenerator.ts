@@ -1,9 +1,6 @@
 /**
- * Générateur de factures UBL 2.1 (EN 16931) pour superpdp.tech.
- * Format minimal conforme à la réforme française facturation électronique 2026.
- *
- * À enrichir avec les champs requis une fois la doc superpdp lue en détail
- * (notamment les extensions françaises et les codes unspsc/cpv).
+ * Générateur UBL 2.1 EN 16931 — conforme schematrons FR-CTC v1.3
+ * Validé contre POST /v1.beta/validation_reports SuperPDP
  */
 
 interface LigneFacture {
@@ -14,63 +11,60 @@ interface LigneFacture {
 }
 
 interface Emetteur {
-  nom:            string
-  siret:          string
-  adresse:        string
-  cp:             string
-  ville:          string
-  tvaNum:         string
-  franchiseTva?:  boolean   // art. 293 B CGI — pas de TVA collectée
-  assujettUnique?: boolean  // groupe TVA — note BG-1 obligatoire
+  nom:             string
+  siret:           string
+  adresse:         string
+  cp:              string
+  ville:           string
+  tvaNum:          string
+  franchiseTva?:   boolean
+  assujettUnique?: boolean
 }
 
 interface FactureData {
-  numero:              string
-  dateEmission:        Date
-  dateEcheance?:       Date | null
-  destinataireSiret?:  string | null
-  destinataireNom?:    string | null
-  destinataireAdresse?:string | null
-  lignes:              LigneFacture[]
+  numero:               string
+  dateEmission:         Date
+  dateEcheance?:        Date | null
+  destinataireSiret?:   string | null
+  destinataireNom?:     string | null
+  destinataireAdresse?: string | null
+  lignes:               LigneFacture[]
 }
 
-function fDate(d: Date): string {
-  return d.toISOString().slice(0, 10)
-}
+function fDate(d: Date): string { return d.toISOString().slice(0, 10) }
 
 function esc(s: string): string {
-  return s
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')
 }
 
-// Identifiant Peppol depuis un SIRET ou un ID déjà formaté.
-// Production : SIRET 14 chiffres → SIREN 9 chiffres (ex: 57221288500015 → 572212885)
-// Sandbox / cas spéciaux : SIREN_routage conservé tel quel (ex: 315143296_7376)
+// Identifiant Peppol pour EndpointID (schemeID 0225)
+// SIREN_routage conservé intact ; SIRET pur → 9 premiers chiffres
 function toPeppolId(siret: string): string {
-  const clean = siret.trim()
-  if (clean.includes('_')) return clean          // déjà au format SIREN_routage
-  const digits = clean.replace(/\D/g, '')
-  return digits.substring(0, 9)                  // SIREN standard
+  const c = siret.trim()
+  if (c.includes('_')) return c
+  return c.replace(/\D/g, '').substring(0, 9)
+}
+
+// SIREN pur 9 chiffres pour CompanyID schemeID='0002' (norme FR)
+function toSiren9(siret: string): string {
+  return siret.replace(/\D/g, '').substring(0, 9)
 }
 
 export function generateUbl(data: FactureData, emetteur: Emetteur): string {
   const franchise = emetteur.franchiseTva === true
 
-  // ── Calcul des totaux et regroupement par taux TVA ─────────────────────────
+  // ── Totaux et groupement TVA ──────────────────────────────────────────────
   type TvaGroup = { base: number; tva: number; catId: string }
   const tvaGroups = new Map<number, TvaGroup>()
   let montantHT = 0, montantTVA = 0
 
   const lignesXml = data.lignes.map((l, i) => {
-    const taux   = franchise ? 0 : l.tauxTVA
-    const ht     = Math.round(l.prixUnitaireHT * l.quantite * 100) / 100
-    const tva    = Math.round(ht * taux / 100 * 100) / 100
-    const catId  = franchise ? 'E' : (taux === 0 ? 'Z' : 'S')
-    montantHT   += ht
-    montantTVA  += tva
+    const taux  = franchise ? 0 : l.tauxTVA
+    const ht    = Math.round(l.prixUnitaireHT * l.quantite * 100) / 100
+    const tva   = Math.round(ht * taux / 100 * 100) / 100
+    const catId = franchise ? 'E' : (taux === 0 ? 'Z' : 'S')
+    montantHT  += ht
+    montantTVA += tva
 
     const g = tvaGroups.get(taux)
     if (g) { g.base += ht; g.tva += tva }
@@ -85,6 +79,7 @@ export function generateUbl(data: FactureData, emetteur: Emetteur): string {
     <cbc:InvoicedQuantity unitCode="C62">${l.quantite}</cbc:InvoicedQuantity>
     <cbc:LineExtensionAmount currencyID="EUR">${ht.toFixed(2)}</cbc:LineExtensionAmount>
     <cac:Item>
+      <cbc:Name>${esc(l.description)}</cbc:Name>
       <cbc:Description>${esc(l.description)}</cbc:Description>
       <cac:ClassifiedTaxCategory>
         <cbc:ID>${catId}</cbc:ID>
@@ -103,16 +98,15 @@ export function generateUbl(data: FactureData, emetteur: Emetteur): string {
   montantTVA = Math.round(montantTVA * 100) / 100
   const montantTTC = Math.round((montantHT + montantTVA) * 100) / 100
 
-  // ── TaxSubtotal EN 16931 : un bloc par taux (obligatoire pour Peppol) ──────
+  // ── TaxSubtotal (un bloc par taux, obligatoire EN 16931) ─────────────────
   const taxSubtotalsXml = Array.from(tvaGroups.entries()).map(([taux, g]) => {
-    const base = Math.round(g.base * 100) / 100
-    const tva  = Math.round(g.tva  * 100) / 100
-    const exempt = franchise
-      ? '<cbc:TaxExemptionReasonCode>VATEX-EU-132</cbc:TaxExemptionReasonCode>' : ''
+    const base   = Math.round(g.base * 100) / 100
+    const tvaAmt = Math.round(g.tva  * 100) / 100
+    const exempt = franchise ? '<cbc:TaxExemptionReasonCode>VATEX-EU-132</cbc:TaxExemptionReasonCode>' : ''
     return `
   <cac:TaxSubtotal>
     <cbc:TaxableAmount currencyID="EUR">${base.toFixed(2)}</cbc:TaxableAmount>
-    <cbc:TaxAmount currencyID="EUR">${tva.toFixed(2)}</cbc:TaxAmount>
+    <cbc:TaxAmount currencyID="EUR">${tvaAmt.toFixed(2)}</cbc:TaxAmount>
     <cac:TaxCategory>
       <cbc:ID>${g.catId}</cbc:ID>
       <cbc:Percent>${taux}</cbc:Percent>
@@ -122,18 +116,16 @@ export function generateUbl(data: FactureData, emetteur: Emetteur): string {
   </cac:TaxSubtotal>`
   }).join('')
 
-  // Note assujetti unique (BG-1 obligatoire si groupe TVA)
-  const noteAssujetti = emetteur.assujettUnique
-    ? `<cbc:Note subjectCode="TXD">MEMBRE_ASSUJETTI_UNIQUE</cbc:Note>`
-    : ''
+  // ── Notes obligatoires (BR-FR-05) ────────────────────────────────────────
+  const notePmt = `<cbc:Note>#PMT#À défaut de paiement à la date d'échéance, une indemnité forfaitaire pour frais de recouvrement de 40 € sera applicable de plein droit.</cbc:Note>`
+  const notePmd = `<cbc:Note>#PMD#En cas de retard de paiement, le taux des pénalités est égal au taux d'intérêt appliqué par la BCE majoré de 10 points.</cbc:Note>`
+  const noteAab = `<cbc:Note>#AAB#Pas d'escompte pour paiement anticipé.</cbc:Note>`
+  const noteAssujetti = emetteur.assujettUnique ? `<cbc:Note subjectCode="TXD">MEMBRE_ASSUJETTI_UNIQUE</cbc:Note>` : ''
+  const noteFranchise = franchise ? `<cbc:Note>TVA non applicable - article 293 B du CGI</cbc:Note>` : ''
 
-  // Note franchise TVA (mention légale obligatoire art. 293 B CGI)
-  const noteFranchise = franchise
-    ? `<cbc:Note>TVA non applicable - article 293 B du CGI</cbc:Note>`
-    : ''
-
-  const destSiret  = data.destinataireSiret ?? ''
-  const destSiren  = toPeppolId(destSiret)
+  const destSiret = data.destinataireSiret ?? ''
+  const destSiren = toPeppolId(destSiret)
+  const destNom   = data.destinataireNom ?? ''
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"
@@ -146,6 +138,9 @@ export function generateUbl(data: FactureData, emetteur: Emetteur): string {
   ${data.dateEcheance ? `<cbc:DueDate>${fDate(data.dateEcheance)}</cbc:DueDate>` : ''}
   <cbc:InvoiceTypeCode>380</cbc:InvoiceTypeCode>
   <cbc:DocumentCurrencyCode>EUR</cbc:DocumentCurrencyCode>
+  ${notePmt}
+  ${notePmd}
+  ${noteAab}
   ${noteAssujetti}
   ${noteFranchise}
 
@@ -155,8 +150,8 @@ export function generateUbl(data: FactureData, emetteur: Emetteur): string {
       <cac:PartyName><cbc:Name>${esc(emetteur.nom)}</cbc:Name></cac:PartyName>
       <cac:PostalAddress>
         <cbc:StreetName>${esc(emetteur.adresse)}</cbc:StreetName>
-        <cbc:PostalZone>${esc(emetteur.cp)}</cbc:PostalZone>
         <cbc:CityName>${esc(emetteur.ville)}</cbc:CityName>
+        <cbc:PostalZone>${esc(emetteur.cp)}</cbc:PostalZone>
         <cac:Country><cbc:IdentificationCode>FR</cbc:IdentificationCode></cac:Country>
       </cac:PostalAddress>
       ${!franchise ? `<cac:PartyTaxScheme>
@@ -165,7 +160,7 @@ export function generateUbl(data: FactureData, emetteur: Emetteur): string {
       </cac:PartyTaxScheme>` : ''}
       <cac:PartyLegalEntity>
         <cbc:RegistrationName>${esc(emetteur.nom)}</cbc:RegistrationName>
-        <cbc:CompanyID schemeID="0009">${esc(emetteur.siret)}</cbc:CompanyID>
+        <cbc:CompanyID schemeID="0002">${esc(toSiren9(emetteur.siret))}</cbc:CompanyID>
       </cac:PartyLegalEntity>
     </cac:Party>
   </cac:AccountingSupplierParty>
@@ -173,8 +168,15 @@ export function generateUbl(data: FactureData, emetteur: Emetteur): string {
   <cac:AccountingCustomerParty>
     <cac:Party>
       ${destSiren ? `<cbc:EndpointID schemeID="0225">${esc(destSiren)}</cbc:EndpointID>` : ''}
-      ${data.destinataireNom ? `<cac:PartyName><cbc:Name>${esc(data.destinataireNom)}</cbc:Name></cac:PartyName>` : ''}
-      ${destSiret ? `<cac:PartyLegalEntity><cbc:CompanyID schemeID="0009">${esc(destSiret)}</cbc:CompanyID></cac:PartyLegalEntity>` : ''}
+      ${destNom ? `<cac:PartyName><cbc:Name>${esc(destNom)}</cbc:Name></cac:PartyName>` : ''}
+      <cac:PostalAddress>
+        ${data.destinataireAdresse ? `<cbc:StreetName>${esc(data.destinataireAdresse)}</cbc:StreetName>` : ''}
+        <cac:Country><cbc:IdentificationCode>FR</cbc:IdentificationCode></cac:Country>
+      </cac:PostalAddress>
+      <cac:PartyLegalEntity>
+        <cbc:RegistrationName>${esc(destNom)}</cbc:RegistrationName>
+        ${destSiret ? `<cbc:CompanyID schemeID="0002">${esc(toSiren9(destSiret))}</cbc:CompanyID>` : ''}
+      </cac:PartyLegalEntity>
     </cac:Party>
   </cac:AccountingCustomerParty>
 
