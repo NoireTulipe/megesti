@@ -136,7 +136,7 @@ export function generateUbl(data: FactureData, emetteur: Emetteur): string {
   const destSiren  = toPeppolId(destSiret)
 
   return `<?xml version="1.0" encoding="UTF-8"?>
-<ubl:Invoice xmlns:ubl="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"
+<Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"
   xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
   xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">
   <cbc:CustomizationID>urn:cen.eu:en16931:2017</cbc:CustomizationID>
@@ -190,5 +190,5 @@ export function generateUbl(data: FactureData, emetteur: Emetteur): string {
     <cbc:PayableAmount currencyID="EUR">${montantTTC.toFixed(2)}</cbc:PayableAmount>
   </cac:LegalMonetaryTotal>
 ${lignesXml}
-</ubl:Invoice>`
+</Invoice>`
 }
