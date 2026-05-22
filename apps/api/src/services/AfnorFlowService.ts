@@ -81,10 +81,9 @@ export class AfnorFlowService {
     const form = new FormData()
     form.append('file',     new Blob([xmlContent], { type: 'application/xml' }), name)
     form.append('flowInfo', new Blob([JSON.stringify({
-      flowSyntax:    'UBL',
+      flowSyntax: 'UBL',
       name,
-      processingRule: 'B2B',
-      trackingId:    numero.substring(0, 36),
+      trackingId: numero.substring(0, 36),
       sha256,
     })], { type: 'application/json' }), 'flowInfo.json')
 
