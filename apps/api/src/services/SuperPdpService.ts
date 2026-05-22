@@ -47,6 +47,7 @@ export class SuperPdpService implements InvoiceTransmissionService {
   async emettre(xmlContent: string): Promise<EmissionResult> {
     const token = await this.getToken()
     console.log(`[SuperPDP] emettre → POST ${BASE_URL}/v1.beta/invoices (${xmlContent.length} chars)`)
+    console.log(`[SuperPDP] XML début:`, xmlContent.substring(0, 600))
     const res = await fetch(`${BASE_URL}/v1.beta/invoices`, {
       method:  'POST',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/xml' },
