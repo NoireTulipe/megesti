@@ -132,7 +132,11 @@ export const facturationRoutes: FastifyPluginAsync = async (app) => {
     try { pdp = getPdpService() } catch {
       return reply.status(503).send({ error: 'PdpNonDisponible', message: 'Service PDP non configuré.' })
     }
-    let pdpCompanyId = toSiren9(tenant.siret)   // fallback : SIREN
+    // pdpCompanyId = identifiant de la société pour le PDP
+    // Sandbox : companies/me retourne le numéro sandbox (000000002) — requis pour matcher le compte
+    // Production AFNOR : companies/me retournera le SIREN réel avec number_scheme=fr_siren
+    // → même valeur que toSiren9(tenant.siret) → multi-tenant natif via Organization-Id
+    let pdpCompanyId = toSiren9(tenant.siret)
     try { pdpCompanyId = await pdp.getMyCompanyId() } catch { /* non bloquant */ }
 
     // ── Génération UBL (avec pdpCompanyId correct) ──────────────────────────
