@@ -5,6 +5,8 @@ import { getPdpService } from '../services/SuperPdpService.js'
 import { getAfnorService, isAfnorEnabled, siretToSiren } from '../services/AfnorFlowService.js'
 import { generateUbl } from '../services/UblGenerator.js'
 
+const toSiren9 = (s: string) => s.replace(/\D/g, '').substring(0, 9)
+
 const EmettreSchema = z.object({
   id:                  z.string().uuid(),
   numero:              z.string().min(1),
@@ -125,12 +127,16 @@ export const facturationRoutes: FastifyPluginAsync = async (app) => {
     montantHT  = Math.round(montantHT  * 100) / 100
     montantTVA = Math.round(montantTVA * 100) / 100
 
-    // ── Génération UBL ──────────────────────────────────────────────────────
-    const xmlContent = generateUbl({
-      ...body,
-      dateEmission: new Date(body.dateEmission),
-      dateEcheance: body.dateEcheance ? new Date(body.dateEcheance) : undefined,
-    }, {
+    // ── Init PDP + récupération companyId (avant génération XML) ──────────────
+    let pdp: ReturnType<typeof getPdpService>
+    try { pdp = getPdpService() } catch {
+      return reply.status(503).send({ error: 'PdpNonDisponible', message: 'Service PDP non configuré.' })
+    }
+    let pdpCompanyId = toSiren9(tenant.siret)   // fallback : SIREN
+    try { pdpCompanyId = await pdp.getMyCompanyId() } catch { /* non bloquant */ }
+
+    // ── Génération UBL (avec pdpCompanyId correct) ──────────────────────────
+    const emetteurInfo = {
       nom:            tenant.name,
       siret:          tenant.siret,
       adresse:        tenant.adresseLigne1 ?? '',
@@ -139,9 +145,15 @@ export const facturationRoutes: FastifyPluginAsync = async (app) => {
       tvaNum:         tenant.numeroTVA     ?? '',
       franchiseTva:   tenant.franchiseTva,
       assujettUnique: tenant.assujettUnique,
-    })
+      pdpCompanyId,
+    }
+    const xmlContent = generateUbl({
+      ...body,
+      dateEmission: new Date(body.dateEmission),
+      dateEcheance: body.dateEcheance ? new Date(body.dateEcheance) : undefined,
+    }, emetteurInfo)
 
-    // ── Persistance en BROUILLON (résilience : on sauvegarde avant d'envoyer) ─
+    // ── Persistance en BROUILLON ─────────────────────────────────────────────
     const facture = await app.db.factureEmission.create({
       data: {
         id:                  body.id,
@@ -161,17 +173,10 @@ export const facturationRoutes: FastifyPluginAsync = async (app) => {
       },
     })
 
-    // ── Envoi au PDP (AFNOR ou SuperPDP selon PDP_MODE) ─────────────────────
-    // Émission : toujours via l'API propriétaire SuperPDP (stable).
-    // La réception utilise AFNOR (poll-afnor.ts) — les deux sont indépendants.
-    app.log.info({ numero: body.numero, siret: tenant.siret }, '[emission] appel SuperPDP')
+    app.log.info({ numero: body.numero, pdpCompanyId }, '[emission] appel SuperPDP')
 
     let pdpId: string
     try {
-      let pdp: ReturnType<typeof getPdpService>
-      try { pdp = getPdpService() } catch {
-        throw new Error('Le service de facturation n\'est pas encore configuré sur ce serveur.')
-      }
       const result = await pdp.emettre(xmlContent)
       pdpId = result.pdpId
       app.log.info({ pdpId }, '[emission] SuperPDP OK')

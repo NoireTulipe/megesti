@@ -8,7 +8,8 @@ interface TokenCache {
 }
 
 export class SuperPdpService implements InvoiceTransmissionService {
-  private cache: TokenCache | null = null
+  private cache:         TokenCache | null = null
+  private companyIdCache: string   | null = null
 
   constructor(
     private readonly clientId:     string,
@@ -40,6 +41,22 @@ export class SuperPdpService implements InvoiceTransmissionService {
     const ttl = (data.expires_in ?? 3600) - 300
     this.cache = { token: data.access_token, expiry: Date.now() + ttl * 1000 }
     return this.cache.token
+  }
+
+  // ── Identité de la société liée aux credentials ───────────────────────────
+
+  async getMyCompanyId(): Promise<string> {
+    if (this.companyIdCache) return this.companyIdCache
+    const token = await this.getToken()
+    const res = await fetch(`${BASE_URL}/v1.beta/companies/me`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    if (!res.ok) throw new Error(`SuperPDP companies/me error ${res.status}: ${await res.text()}`)
+    const data = await res.json() as Record<string, unknown>
+    const id = String(data['id'] ?? data['company_number'] ?? data['siren'] ?? '')
+    console.log(`[SuperPDP] companyId réel = ${id}`)
+    this.companyIdCache = id
+    return id
   }
 
   // ── Émission ──────────────────────────────────────────────────────────────

@@ -19,6 +19,7 @@ interface Emetteur {
   tvaNum:          string
   franchiseTva?:   boolean
   assujettUnique?: boolean
+  pdpCompanyId?:   string  // ID réel de la société chez le PDP (sandbox: 000000002, prod: SIREN)
 }
 
 interface FactureData {
@@ -160,7 +161,7 @@ export function generateUbl(data: FactureData, emetteur: Emetteur): string {
       </cac:PartyTaxScheme>` : ''}
       <cac:PartyLegalEntity>
         <cbc:RegistrationName>${esc(emetteur.nom)}</cbc:RegistrationName>
-        <cbc:CompanyID schemeID="0002">${esc(toSiren9(emetteur.siret))}</cbc:CompanyID>
+        <cbc:CompanyID schemeID="0002">${esc(emetteur.pdpCompanyId || toSiren9(emetteur.siret))}</cbc:CompanyID>
       </cac:PartyLegalEntity>
     </cac:Party>
   </cac:AccountingSupplierParty>
