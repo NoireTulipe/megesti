@@ -213,14 +213,18 @@ export const facturationRoutes: FastifyPluginAsync = async (app) => {
     if (!facture)         return reply.status(404).send({ error: 'BrouillonIntrouvable' })
     if (!facture.contenuXml) return reply.status(422).send({ error: 'XmlManquant' })
 
+    app.log.info({ id, numero: facture.numero }, '[retry] appel SuperPDP')
     let pdpId: string
     try {
       let pdp: ReturnType<typeof getPdpService>
       try { pdp = getPdpService() } catch { throw new Error('Service PDP non configuré') }
       const result = await pdp.emettre(facture.contenuXml)
       pdpId = result.pdpId
+      app.log.info({ pdpId }, '[retry] SuperPDP OK')
     } catch (err: unknown) {
-      return reply.status(503).send({ error: 'EmissionEchouee', detail: (err as Error).message })
+      const detail = (err as Error).message
+      app.log.error({ detail, id }, '[retry] ERREUR PDP')
+      return reply.status(503).send({ error: 'EmissionEchouee', detail })
     }
 
     const updated = await app.db.factureEmission.update({

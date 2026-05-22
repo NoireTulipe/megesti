@@ -46,18 +46,21 @@ export class SuperPdpService implements InvoiceTransmissionService {
 
   async emettre(xmlContent: string): Promise<EmissionResult> {
     const token = await this.getToken()
+    console.log(`[SuperPDP] emettre → POST ${BASE_URL}/v1.beta/invoices (${xmlContent.length} chars)`)
     const res = await fetch(`${BASE_URL}/v1.beta/invoices`, {
       method:  'POST',
-      headers: { Authorization: `Bearer ${token}` },
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/xml' },
       body:    xmlContent,
     })
 
     if (!res.ok) {
       const text = await res.text()
+      console.error(`[SuperPDP] emettre ERROR ${res.status}:`, text)
       throw new Error(`SuperPDP émission error ${res.status}: ${text}`)
     }
 
     const data = await res.json() as { id: string; status?: string }
+    console.log(`[SuperPDP] emettre OK id=${data.id}`)
     return { pdpId: data.id, statut: data.status ?? 'ENVOYEE' }
   }
 
