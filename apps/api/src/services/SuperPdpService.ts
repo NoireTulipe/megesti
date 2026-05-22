@@ -46,8 +46,24 @@ export class SuperPdpService implements InvoiceTransmissionService {
 
   async emettre(xmlContent: string): Promise<EmissionResult> {
     const token = await this.getToken()
+    // ── Validation schematron avant envoi ────────────────────────────────────
+    try {
+      const form = new FormData()
+      form.append('file', new Blob([xmlContent], { type: 'application/xml' }), 'invoice.xml')
+      const vRes = await fetch(`${BASE_URL}/v1.beta/validation_reports`, {
+        method: 'POST', body: form,
+      })
+      if (vRes.ok) {
+        const vData = await vRes.json() as { data?: Array<{ is_valid: boolean; errors?: unknown[] }> }
+        const report = vData.data?.[0]
+        console.log(`[SuperPDP] validation is_valid=${report?.is_valid}`)
+        if (!report?.is_valid) {
+          console.error(`[SuperPDP] validation errors:`, JSON.stringify(report?.errors ?? []))
+        }
+      }
+    } catch (ve) { console.warn('[SuperPDP] validation échouée:', (ve as Error).message) }
+
     console.log(`[SuperPDP] emettre → POST ${BASE_URL}/v1.beta/invoices (${xmlContent.length} chars)`)
-    console.log(`[SuperPDP] XML début:`, xmlContent.substring(0, 600))
     const res = await fetch(`${BASE_URL}/v1.beta/invoices`, {
       method:  'POST',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/xml' },
