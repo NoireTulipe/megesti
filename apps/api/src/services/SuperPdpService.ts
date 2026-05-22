@@ -59,6 +59,7 @@ export class SuperPdpService implements InvoiceTransmissionService {
         console.log(`[SuperPDP] validation is_valid=${report?.is_valid}`)
         if (!report?.is_valid) {
           console.error(`[SuperPDP] validation full report:`, JSON.stringify(report))
+        }
       }
     } catch (ve) { console.warn('[SuperPDP] validation échouée:', (ve as Error).message) }
 
