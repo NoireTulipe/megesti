@@ -53,9 +53,13 @@ export class SuperPdpService implements InvoiceTransmissionService {
     })
     if (!res.ok) throw new Error(`SuperPDP companies/me error ${res.status}: ${await res.text()}`)
     const data = await res.json() as Record<string, unknown>
-    console.log(`[SuperPDP] companies/me réponse complète:`, JSON.stringify(data))
-    const id = String(data['id'] ?? data['company_number'] ?? data['siren'] ?? '')
-    console.log(`[SuperPDP] companyId réel = ${id}`)
+    console.log(`[SuperPDP] companies/me:`, JSON.stringify(data))
+    // Essai de tous les champs possibles (sandbox: company_number, prod: siren ou id)
+    const id = String(
+      data['company_number'] ?? data['siren'] ?? data['number'] ??
+      data['identifier'] ?? data['formal_id'] ?? data['id'] ?? ''
+    )
+    console.log(`[SuperPDP] companyId = ${id}`)
     this.companyIdCache = id
     return id
   }
