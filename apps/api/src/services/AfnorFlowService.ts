@@ -195,7 +195,9 @@ export function isAfnorEnabled(): boolean {
   return process.env['PDP_MODE'] === 'afnor'
 }
 
-// SIREN = 9 premiers chiffres du SIRET
+// Identifiant Peppol : SIREN (9 chiffres) ou SIREN_routage conservé intact
 export function siretToSiren(siret: string): string {
-  return siret.replace(/\D/g, '').substring(0, 9)
+  const clean = siret.trim()
+  if (clean.includes('_')) return clean
+  return clean.replace(/\D/g, '').substring(0, 9)
 }

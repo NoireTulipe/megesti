@@ -46,9 +46,14 @@ function esc(s: string): string {
     .replace(/"/g, '&quot;')
 }
 
-// SIREN = 9 premiers chiffres du SIRET (schemeID 0225 pour routage Peppol)
-function toSiren(siret: string): string {
-  return siret.replace(/\D/g, '').substring(0, 9)
+// Identifiant Peppol depuis un SIRET ou un ID déjà formaté.
+// Production : SIRET 14 chiffres → SIREN 9 chiffres (ex: 57221288500015 → 572212885)
+// Sandbox / cas spéciaux : SIREN_routage conservé tel quel (ex: 315143296_7376)
+function toPeppolId(siret: string): string {
+  const clean = siret.trim()
+  if (clean.includes('_')) return clean          // déjà au format SIREN_routage
+  const digits = clean.replace(/\D/g, '')
+  return digits.substring(0, 9)                  // SIREN standard
 }
 
 export function generateUbl(data: FactureData, emetteur: Emetteur): string {
@@ -127,8 +132,8 @@ export function generateUbl(data: FactureData, emetteur: Emetteur): string {
     ? `<cbc:Note>TVA non applicable - article 293 B du CGI</cbc:Note>`
     : ''
 
-  const destSiret = data.destinataireSiret ?? ''
-  const destSiren = toSiren(destSiret)
+  const destSiret  = data.destinataireSiret ?? ''
+  const destSiren  = toPeppolId(destSiret)
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <ubl:Invoice xmlns:ubl="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"
@@ -146,7 +151,7 @@ export function generateUbl(data: FactureData, emetteur: Emetteur): string {
 
   <cac:AccountingSupplierParty>
     <cac:Party>
-      <cbc:EndpointID schemeID="0225">${esc(toSiren(emetteur.siret))}</cbc:EndpointID>
+      <cbc:EndpointID schemeID="0225">${esc(toPeppolId(emetteur.siret))}</cbc:EndpointID>
       <cac:PartyName><cbc:Name>${esc(emetteur.nom)}</cbc:Name></cac:PartyName>
       <cac:PostalAddress>
         <cbc:StreetName>${esc(emetteur.adresse)}</cbc:StreetName>
