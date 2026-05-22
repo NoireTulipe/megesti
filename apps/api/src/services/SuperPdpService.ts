@@ -55,10 +55,8 @@ export class SuperPdpService implements InvoiceTransmissionService {
     const data = await res.json() as Record<string, unknown>
     console.log(`[SuperPDP] companies/me:`, JSON.stringify(data))
     // Essai de tous les champs possibles (sandbox: company_number, prod: siren ou id)
-    const id = String(
-      data['company_number'] ?? data['siren'] ?? data['number'] ??
-      data['identifier'] ?? data['formal_id'] ?? data['id'] ?? ''
-    )
+    // Réponse SuperPDP : { id: 7377 (interne), number: "000000002" (numéro entreprise), ... }
+    const id = String(data['number'] ?? data['company_number'] ?? data['siren'] ?? data['id'] ?? '')
     console.log(`[SuperPDP] companyId = ${id}`)
     this.companyIdCache = id
     return id
@@ -98,9 +96,9 @@ export class SuperPdpService implements InvoiceTransmissionService {
       throw new Error(`SuperPDP émission error ${res.status}: ${text}`)
     }
 
-    const data = await res.json() as { id: string; status?: string }
+    const data = await res.json() as { id: string | number; status?: string }
     console.log(`[SuperPDP] emettre OK id=${data.id}`)
-    return { pdpId: data.id, statut: data.status ?? 'ENVOYEE' }
+    return { pdpId: String(data.id), statut: data.status ?? 'ENVOYEE' }
   }
 
   // ── Réception (polling paginé) ────────────────────────────────────────────
