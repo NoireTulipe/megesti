@@ -137,12 +137,12 @@ export function generateUbl(data: FactureData, emetteur: Emetteur): string {
   <cbc:IssueDate>${fDate(data.dateEmission)}</cbc:IssueDate>
   ${data.dateEcheance ? `<cbc:DueDate>${fDate(data.dateEcheance)}</cbc:DueDate>` : ''}
   <cbc:InvoiceTypeCode>380</cbc:InvoiceTypeCode>
-  <cbc:DocumentCurrencyCode>EUR</cbc:DocumentCurrencyCode>
   ${notePmt}
   ${notePmd}
   ${noteAab}
   ${noteAssujetti}
   ${noteFranchise}
+  <cbc:DocumentCurrencyCode>EUR</cbc:DocumentCurrencyCode>
 
   <cac:AccountingSupplierParty>
     <cac:Party>
