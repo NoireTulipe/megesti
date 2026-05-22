@@ -13,19 +13,21 @@ export interface QuotaInfo {
 }
 
 export interface FactureEmission {
-  id:                string
-  numero:            string
-  statut:            StatutEmission
-  destinataireSiret: string | null
-  destinataireNom:   string | null
-  montantHT:         string
-  montantTVA:        string
-  montantTTC:        string
-  format:            string
-  pdpId:             string | null
-  dateEmission:      string
-  dateEcheance:      string | null
-  createdAt:         string
+  id:                  string
+  numero:              string
+  statut:              StatutEmission
+  destinataireSiret:   string | null
+  destinataireNom:     string | null
+  destinataireAdresse: string | null
+  montantHT:           string
+  montantTVA:          string
+  montantTTC:          string
+  format:              string
+  pdpId:               string | null
+  dateEmission:        string
+  dateEcheance:        string | null
+  contenuXml:          string | null
+  createdAt:           string
 }
 
 export interface FactureReception {

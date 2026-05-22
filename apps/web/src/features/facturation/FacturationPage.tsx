@@ -7,6 +7,7 @@ import {
   type StatutEmission, type LigneEmission, type FactureReception,
 } from './hooks/useFacturation'
 import { FactureReceptionModal } from './FactureReceptionModal'
+import { FactureEmissionModal } from './FactureEmissionModal'
 import { DestinatairePicker } from './DestinatairePicker'
 import { QuotaDepaseModal } from './QuotaDepaseModal'
 import styles from './FacturationPage.module.css'
@@ -263,9 +264,10 @@ function EmissionForm({ onSent, onQuotaDepasse }: { onSent: () => void; onQuotaD
 // ── Page principale ────────────────────────────────────────────────────────────
 
 export function FacturationPage() {
-  const [tab, setTab]                           = useState<Tab>('overview')
-  const [showQuotaModal, setQuotaModal]         = useState(false)
+  const [tab, setTab]                             = useState<Tab>('overview')
+  const [showQuotaModal, setQuotaModal]           = useState(false)
   const [selectedReception, setSelectedReception] = useState<FactureReception | null>(null)
+  const [selectedEmission,  setSelectedEmission]  = useState<FactureEmission  | null>(null)
   const [searchParams]                          = useSearchParams()
 
   const { data: quota }      = useQuota()
@@ -503,7 +505,9 @@ export function FacturationPage() {
             {emissions?.map(f => {
               const meta = STATUT_META[f.statut]
               return (
-                <div key={f.id} className={styles.factureCard}>
+                <div key={f.id} className={styles.factureCard}
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => f.statut !== 'BROUILLON' && setSelectedEmission(f)}>
                   <div className={styles.factureCardAccent} style={{ background: meta.dot }} />
                   <div className={styles.factureCardBody}>
                     <div className={styles.factureCardLeft}>
@@ -583,6 +587,13 @@ export function FacturationPage() {
         <FactureReceptionModal
           facture={selectedReception}
           onClose={() => setSelectedReception(null)}
+        />
+      )}
+
+      {selectedEmission && (
+        <FactureEmissionModal
+          facture={selectedEmission}
+          onClose={() => setSelectedEmission(null)}
         />
       )}
     </div>
