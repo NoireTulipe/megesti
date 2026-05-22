@@ -29,16 +29,17 @@ export interface FactureEmission {
 }
 
 export interface FactureReception {
-  id:            string
-  pdpId:         string
-  emetteurSiret: string | null
-  emetteurNom:   string | null
-  montantTTC:    string
-  dateReception: string
-  statut:        string
-  lu:            boolean
-  contenuXml:    string | null
-  createdAt:     string
+  id:             string
+  pdpId:          string
+  emetteurSiret:  string | null
+  emetteurNom:    string | null
+  numeroFacture:  string | null
+  montantTTC:     string
+  dateReception:  string
+  statut:         string
+  lu:             boolean
+  contenuXml:     string | null
+  createdAt:      string
 }
 
 export interface PackCredit {

@@ -116,6 +116,7 @@ model FactureReception {
   pdpId           String                // ID chez superpdp
   emetteurSiret   String?
   emetteurNom     String?
+  numeroFacture   String?
   montantTTC      Decimal  @db.Decimal(12, 2)
   dateReception   DateTime
   statut          String   @default("RECUE")

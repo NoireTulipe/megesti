@@ -48,6 +48,7 @@ export async function pollFactures(db: PrismaClient): Promise<void> {
         let emetteurNom   = String(f.sender_name  ?? '')
         let emetteurSiret = String(f.sender_siren ?? '')
         let montantTTC    = Number(f.total_amount  ?? 0)
+        let numeroFacture: string | null = null
 
         try {
           contenuXml = await pdp.telecharger(pdpId)
@@ -55,6 +56,7 @@ export async function pollFactures(db: PrismaClient): Promise<void> {
           if (extracted.nom)     emetteurNom   = extracted.nom
           if (extracted.siret)   emetteurSiret = extracted.siret
           if (extracted.montant) montantTTC    = extracted.montant
+          if (extracted.numero)  numeroFacture = extracted.numero
         } catch { /* non bloquant */ }
 
         await db.factureReception.create({
@@ -62,8 +64,9 @@ export async function pollFactures(db: PrismaClient): Promise<void> {
             tenantId:      tenant.id,
             pdpId,
             emetteurNom,
-            emetteurSiret,
+            emetteurSiret: emetteurSiret || null,
             montantTTC,
+            numeroFacture,
             dateReception: new Date(f.created_at),
             statut:        'RECUE',
             contenuXml,

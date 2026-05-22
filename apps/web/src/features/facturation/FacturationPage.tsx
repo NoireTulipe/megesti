@@ -559,7 +559,7 @@ export function FacturationPage() {
                 <div className={styles.factureCardBody}>
                   <div className={styles.factureCardLeft}>
                     <div className={styles.factureCardDest}>{f.emetteurNom ?? 'Émetteur inconnu'}</div>
-                    {f.emetteurSiret && <div className={styles.factureCardSiret}>{f.emetteurSiret}</div>}
+                    {f.numeroFacture && <div className={styles.factureCardNum}>{f.numeroFacture}</div>}
                   </div>
                   <div className={styles.factureCardRight}>
                     <div className={styles.factureCardDate}>{fDate(f.dateReception)}</div>
