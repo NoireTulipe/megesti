@@ -162,26 +162,19 @@ export const facturationRoutes: FastifyPluginAsync = async (app) => {
     })
 
     // ── Envoi au PDP (AFNOR ou SuperPDP selon PDP_MODE) ─────────────────────
-    const mode = isAfnorEnabled() ? 'afnor' : 'superpdp'
-    app.log.info({ mode, numero: body.numero, siret: tenant.siret }, '[emission] appel PDP')
+    // Émission : toujours via l'API propriétaire SuperPDP (stable).
+    // La réception utilise AFNOR (poll-afnor.ts) — les deux sont indépendants.
+    app.log.info({ numero: body.numero, siret: tenant.siret }, '[emission] appel SuperPDP')
 
     let pdpId: string
     try {
-      if (isAfnorEnabled()) {
-        const siren  = siretToSiren(tenant.siret)
-        app.log.info({ siren }, '[emission] AFNOR Organization-Id')
-        const result = await getAfnorService().emettre(xmlContent, body.numero, siren)
-        pdpId = result.flowId
-        app.log.info({ pdpId }, '[emission] AFNOR OK')
-      } else {
-        let pdp: ReturnType<typeof getPdpService>
-        try { pdp = getPdpService() } catch {
-          throw new Error('Le service de facturation n\'est pas encore configuré sur ce serveur.')
-        }
-        const result = await pdp.emettre(xmlContent)
-        pdpId = result.pdpId
-        app.log.info({ pdpId }, '[emission] SuperPDP OK')
+      let pdp: ReturnType<typeof getPdpService>
+      try { pdp = getPdpService() } catch {
+        throw new Error('Le service de facturation n\'est pas encore configuré sur ce serveur.')
       }
+      const result = await pdp.emettre(xmlContent)
+      pdpId = result.pdpId
+      app.log.info({ pdpId }, '[emission] SuperPDP OK')
     } catch (emissionErr: unknown) {
       const detail = (emissionErr as Error).message
       app.log.error({ detail, factureId: facture.id }, '[emission] ERREUR PDP')
@@ -222,17 +215,10 @@ export const facturationRoutes: FastifyPluginAsync = async (app) => {
 
     let pdpId: string
     try {
-      if (isAfnorEnabled()) {
-        const tenant = await app.db.tenant.findUnique({ where: { id: tenantId }, select: { siret: true } })
-        if (!tenant?.siret) throw new Error('SIRET manquant')
-        const result = await getAfnorService().emettre(facture.contenuXml, facture.numero, siretToSiren(tenant.siret))
-        pdpId = result.flowId
-      } else {
-        let pdp: ReturnType<typeof getPdpService>
-        try { pdp = getPdpService() } catch { throw new Error('Service PDP non configuré') }
-        const result = await pdp.emettre(facture.contenuXml)
-        pdpId = result.pdpId
-      }
+      let pdp: ReturnType<typeof getPdpService>
+      try { pdp = getPdpService() } catch { throw new Error('Service PDP non configuré') }
+      const result = await pdp.emettre(facture.contenuXml)
+      pdpId = result.pdpId
     } catch (err: unknown) {
       return reply.status(503).send({ error: 'EmissionEchouee', detail: (err as Error).message })
     }
