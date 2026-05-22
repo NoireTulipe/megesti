@@ -79,8 +79,8 @@ export function generateUbl(data: FactureData, emetteur: Emetteur): string {
     <cbc:InvoicedQuantity unitCode="C62">${l.quantite}</cbc:InvoicedQuantity>
     <cbc:LineExtensionAmount currencyID="EUR">${ht.toFixed(2)}</cbc:LineExtensionAmount>
     <cac:Item>
-      <cbc:Name>${esc(l.description)}</cbc:Name>
       <cbc:Description>${esc(l.description)}</cbc:Description>
+      <cbc:Name>${esc(l.description)}</cbc:Name>
       <cac:ClassifiedTaxCategory>
         <cbc:ID>${catId}</cbc:ID>
         <cbc:Percent>${taux}</cbc:Percent>
