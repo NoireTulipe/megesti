@@ -173,13 +173,22 @@ export const facturationRoutes: FastifyPluginAsync = async (app) => {
       },
     })
 
-    app.log.info({ numero: body.numero, pdpCompanyId }, '[emission] appel SuperPDP')
+    app.log.info({ numero: body.numero, pdpCompanyId }, '[emission] appel PDP')
 
     let pdpId: string
     try {
-      const result = await pdp.emettre(xmlContent)
+      let result: { pdpId: string }
+      if (isAfnorEnabled()) {
+        // AFNOR : Organization-Id = numéro de société (sandbox: 000000002, prod: SIREN)
+        const afnorResult = await getAfnorService().emettre(xmlContent, body.numero, pdpCompanyId)
+        result = { pdpId: afnorResult.flowId }
+        app.log.info({ flowId: afnorResult.flowId }, '[emission] AFNOR OK')
+      } else {
+        const pdpResult = await pdp.emettre(xmlContent)
+        result = { pdpId: pdpResult.pdpId }
+        app.log.info({ pdpId: result.pdpId }, '[emission] SuperPDP OK')
+      }
       pdpId = result.pdpId
-      app.log.info({ pdpId }, '[emission] SuperPDP OK')
     } catch (emissionErr: unknown) {
       const detail = (emissionErr as Error).message
       app.log.error({ detail, factureId: facture.id }, '[emission] ERREUR PDP')

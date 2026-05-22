@@ -87,20 +87,20 @@ export class AfnorFlowService {
       sha256,
     })], { type: 'application/json' }), 'flowInfo.json')
 
-    console.log(`[AfnorFlow] emettre → POST ${BASE}/v1/flows Organization-Id=${siren} trackingId=${numero}`)
+    console.log(`[AfnorFlow] emettre → POST ${BASE}/v1/flows Organization-Id=${siren} trackingId=${numero} sha256=${sha256.substring(0,8)}...`)
     const res = await fetch(`${BASE}/v1/flows`, {
       method:  'POST',
       headers: this.authHeaders(token, siren),
       body:    form,
     })
 
+    const text = await res.text()
     if (!res.ok) {
-      const text = await res.text()
       console.error(`[AfnorFlow] emettre ERROR ${res.status}:`, text)
       throw new Error(`AFNOR émission error ${res.status}: ${text}`)
     }
 
-    const result = await res.json() as AfnorEmissionResult
+    const result = JSON.parse(text) as AfnorEmissionResult
     console.log(`[AfnorFlow] emettre OK flowId=${result.flowId}`)
     return result
   }
