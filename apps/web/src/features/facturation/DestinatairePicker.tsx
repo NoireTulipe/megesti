@@ -32,12 +32,11 @@ export function DestinatairePicker({ onChange }: Props) {
   // Auto-sélection quand SIRET complet et résultat reçu
   useEffect(() => {
     if (!isSiretComplete) return
+    if (lastAutoSiret.current === siretClean) return   // déjà traité (ou sélection manuelle)
     const r = results[0]
     if (!r) return
-    // siret retourné par l'API peut être vide → on garde ce que l'utilisateur a saisi
+    lastAutoSiret.current = siretClean
     const siret = r.siret || siretClean
-    if (lastAutoSiret.current === siret) return
-    lastAutoSiret.current = siret
     const filled = { nom: r.nom, siret, adresse: r.adresse }
     setSelected({ ...r, siret })
     setSiretInput(siret)
