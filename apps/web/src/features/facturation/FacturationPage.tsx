@@ -1,5 +1,5 @@
 import { generateUUID } from '@/lib/utils'
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import {
   useQuota, useEmissions, useReceptions, useMarquerLu,
@@ -10,6 +10,8 @@ import { FactureReceptionModal } from './FactureReceptionModal'
 import { FactureEmissionModal } from './FactureEmissionModal'
 import { DestinatairePicker } from './DestinatairePicker'
 import { QuotaDepaseModal } from './QuotaDepaseModal'
+import { useArticles } from '@/features/catalogue/hooks/useArticles'
+import type { Article } from '@/features/catalogue/types'
 import styles from './FacturationPage.module.css'
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -64,6 +66,65 @@ function QuotaBar({ restant, quotaMois, credits }: { restant: number; quotaMois:
           {credits > 0 && <span className={styles.creditsTag}>+{credits} crédit{credits > 1 ? 's' : ''}</span>}
         </span>
       </div>
+    </div>
+  )
+}
+
+// ── Catalogue picker ───────────────────────────────────────────────────────────
+
+function CataloguePicker({ onSelect }: { onSelect: (a: Article) => void }) {
+  const [open, setOpen] = useState(false)
+  const [q, setQ]       = useState('')
+  const wrapRef         = useRef<HTMLDivElement>(null)
+
+  const { data: articles, isLoading } = useArticles(undefined, q || undefined, true)
+
+  useEffect(() => {
+    if (!open) return
+    function onDown(e: MouseEvent) {
+      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', onDown)
+    return () => document.removeEventListener('mousedown', onDown)
+  }, [open])
+
+  function pick(a: Article) {
+    onSelect(a)
+    setOpen(false)
+    setQ('')
+  }
+
+  return (
+    <div className={styles.cataloguePickerWrap} ref={wrapRef}>
+      <button type="button" className={styles.addCatalogueBtn} onClick={() => setOpen(v => !v)}>
+        Depuis le catalogue
+      </button>
+      {open && (
+        <div className={styles.catalogueDropdown}>
+          <input
+            className={styles.catalogueSearch}
+            placeholder="Rechercher un article…"
+            value={q}
+            onChange={e => setQ(e.target.value)}
+            autoFocus
+          />
+          <div className={styles.catalogueList}>
+            {isLoading && <p className={styles.catalogueEmpty}>Chargement…</p>}
+            {!isLoading && (!articles || articles.length === 0) && (
+              <p className={styles.catalogueEmpty}>Aucun article trouvé</p>
+            )}
+            {articles?.slice(0, 30).map(a => (
+              <button key={a.id} type="button" className={styles.catalogueItem} onClick={() => pick(a)}>
+                <span className={styles.catalogueItemNom}>{a.nom}</span>
+                <span className={styles.catalogueItemMeta}>
+                  {Number(a.prixVenteHT).toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}
+                  {' · '}TVA {Number(a.rayon.tauxTVA)} %
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -221,10 +282,18 @@ function EmissionForm({ onSent, onQuotaDepasse }: { onSent: () => void; onQuotaD
           </tbody>
         </table>
 
-        <button type="button" className={styles.addLigneBtn}
-          onClick={() => setLignes(prev => [...prev, { description: '', quantite: 1, prixUnitaireHT: 0, tauxTVA: 5.5 }])}>
-          + Ajouter une ligne
-        </button>
+        <div className={styles.ligneActions}>
+          <button type="button" className={styles.addLigneBtn}
+            onClick={() => setLignes(prev => [...prev, { description: '', quantite: 1, prixUnitaireHT: 0, tauxTVA: 5.5 }])}>
+            + Ajouter une ligne
+          </button>
+          <CataloguePicker onSelect={a => setLignes(prev => [...prev, {
+            description:    a.nom,
+            quantite:       1,
+            prixUnitaireHT: Number(a.prixVenteHT),
+            tauxTVA:        Number(a.rayon.tauxTVA),
+          }])} />
+        </div>
       </div>
 
       {/* Totaux */}
