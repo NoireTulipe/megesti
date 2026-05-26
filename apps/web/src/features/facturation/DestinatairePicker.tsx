@@ -55,6 +55,7 @@ export function DestinatairePicker({ onChange }: Props) {
 
   function handleSelect(r: EntrepriseResult) {
     const siret = r.siret || r.siren
+    lastAutoSiret.current = siret   // empêche le useEffect SIRET d'écraser ce choix
     const filled = { nom: r.nom, siret, adresse: r.adresse }
     setSelected({ ...r, siret })
     setSiretInput(siret)

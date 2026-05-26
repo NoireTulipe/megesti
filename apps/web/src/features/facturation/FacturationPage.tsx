@@ -1,6 +1,7 @@
 import { generateUUID } from '@/lib/utils'
 import { useState, useMemo, useEffect, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import {
   useQuota, useEmissions, useReceptions, useMarquerLu,
   useCreateEmission, useProchainNumero, useRetryEmission,
@@ -10,8 +11,8 @@ import { FactureReceptionModal } from './FactureReceptionModal'
 import { FactureEmissionModal } from './FactureEmissionModal'
 import { DestinatairePicker } from './DestinatairePicker'
 import { QuotaDepaseModal } from './QuotaDepaseModal'
-import { useArticles } from '@/features/catalogue/hooks/useArticles'
 import type { Article } from '@/features/catalogue/types'
+import { api } from '@/lib/api'
 import styles from './FacturationPage.module.css'
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -70,14 +71,22 @@ function QuotaBar({ restant, quotaMois, credits }: { restant: number; quotaMois:
   )
 }
 
-// ── Catalogue picker ───────────────────────────────────────────────────────────
+// ── Description avec autocomplete catalogue ────────────────────────────────────
 
-function CataloguePicker({ onSelect }: { onSelect: (a: Article) => void }) {
+function LigneDescInput({ value, onChange, onFill }: {
+  value:    string
+  onChange: (v: string) => void
+  onFill:   (nom: string, prix: number, tva: number) => void
+}) {
   const [open, setOpen] = useState(false)
-  const [q, setQ]       = useState('')
-  const wrapRef         = useRef<HTMLDivElement>(null)
+  const wrapRef = useRef<HTMLDivElement>(null)
 
-  const { data: articles, isLoading } = useArticles(undefined, q || undefined, true)
+  const { data: articles } = useQuery({
+    queryKey: ['articles', 'desc-search', value],
+    queryFn:  () => api.get<Article[]>(`/articles?q=${encodeURIComponent(value)}&actif=true&take=8`),
+    enabled:  value.length >= 2,
+    staleTime: 30_000,
+  })
 
   useEffect(() => {
     if (!open) return
@@ -88,41 +97,33 @@ function CataloguePicker({ onSelect }: { onSelect: (a: Article) => void }) {
     return () => document.removeEventListener('mousedown', onDown)
   }, [open])
 
-  function pick(a: Article) {
-    onSelect(a)
-    setOpen(false)
-    setQ('')
-  }
+  const showList = open && articles && articles.length > 0
 
   return (
-    <div className={styles.cataloguePickerWrap} ref={wrapRef}>
-      <button type="button" className={styles.addCatalogueBtn} onClick={() => setOpen(v => !v)}>
-        Depuis le catalogue
-      </button>
-      {open && (
-        <div className={styles.catalogueDropdown}>
-          <input
-            className={styles.catalogueSearch}
-            placeholder="Rechercher un article…"
-            value={q}
-            onChange={e => setQ(e.target.value)}
-            autoFocus
-          />
-          <div className={styles.catalogueList}>
-            {isLoading && <p className={styles.catalogueEmpty}>Chargement…</p>}
-            {!isLoading && (!articles || articles.length === 0) && (
-              <p className={styles.catalogueEmpty}>Aucun article trouvé</p>
-            )}
-            {articles?.slice(0, 30).map(a => (
-              <button key={a.id} type="button" className={styles.catalogueItem} onClick={() => pick(a)}>
-                <span className={styles.catalogueItemNom}>{a.nom}</span>
-                <span className={styles.catalogueItemMeta}>
-                  {Number(a.prixVenteHT).toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}
-                  {' · '}TVA {Number(a.rayon.tauxTVA)} %
-                </span>
-              </button>
-            ))}
-          </div>
+    <div ref={wrapRef} style={{ position: 'relative' }}>
+      <input
+        className={styles.ligneInput}
+        placeholder="Description de la prestation…"
+        value={value}
+        onChange={e => { onChange(e.target.value); setOpen(true) }}
+        onFocus={() => setOpen(true)}
+        required
+      />
+      {showList && (
+        <div className={styles.autocompleteDropdown} style={{ zIndex: 100, minWidth: '300px' }}>
+          {articles.map(a => (
+            <button key={a.id} type="button" className={styles.autocompleteItem}
+              onMouseDown={() => {
+                onFill(a.nom, Number(a.prixVenteHT), Number(a.rayon.tauxTVA))
+                setOpen(false)
+              }}>
+              <div className={styles.autocompleteItemNom}>{a.nom}</div>
+              <div className={styles.autocompleteItemSub}>
+                {Number(a.prixVenteHT).toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}
+                {' · '}TVA {Number(a.rayon.tauxTVA)} %
+              </div>
+            </button>
+          ))}
         </div>
       )}
     </div>
@@ -166,6 +167,10 @@ function EmissionForm({ onSent, onQuotaDepasse }: { onSent: () => void; onQuotaD
 
   function updateLigne<K extends keyof LigneEmission>(i: number, key: K, val: LigneEmission[K]) {
     setLignes(prev => prev.map((l, j) => j === i ? { ...l, [key]: val } : l))
+  }
+
+  function fillLigne(i: number, nom: string, prix: number, tva: number) {
+    setLignes(prev => prev.map((l, j) => j === i ? { ...l, description: nom, prixUnitaireHT: prix, tauxTVA: tva } : l))
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -248,9 +253,11 @@ function EmissionForm({ onSent, onQuotaDepasse }: { onSent: () => void; onQuotaD
             {lignes.map((l, i) => (
               <tr key={i}>
                 <td>
-                  <input className={styles.ligneInput}
-                    placeholder="Description de la prestation…"
-                    value={l.description} onChange={e => updateLigne(i, 'description', e.target.value)} required />
+                  <LigneDescInput
+                    value={l.description}
+                    onChange={v => updateLigne(i, 'description', v)}
+                    onFill={(nom, prix, tva) => fillLigne(i, nom, prix, tva)}
+                  />
                 </td>
                 <td>
                   <input className={`${styles.ligneInput} ${styles.ligneRight}`}
@@ -282,18 +289,10 @@ function EmissionForm({ onSent, onQuotaDepasse }: { onSent: () => void; onQuotaD
           </tbody>
         </table>
 
-        <div className={styles.ligneActions}>
-          <button type="button" className={styles.addLigneBtn}
-            onClick={() => setLignes(prev => [...prev, { description: '', quantite: 1, prixUnitaireHT: 0, tauxTVA: 5.5 }])}>
-            + Ajouter une ligne
-          </button>
-          <CataloguePicker onSelect={a => setLignes(prev => [...prev, {
-            description:    a.nom,
-            quantite:       1,
-            prixUnitaireHT: Number(a.prixVenteHT),
-            tauxTVA:        Number(a.rayon.tauxTVA),
-          }])} />
-        </div>
+        <button type="button" className={styles.addLigneBtn}
+          onClick={() => setLignes(prev => [...prev, { description: '', quantite: 1, prixUnitaireHT: 0, tauxTVA: 5.5 }])}>
+          + Ajouter une ligne
+        </button>
       </div>
 
       {/* Totaux */}

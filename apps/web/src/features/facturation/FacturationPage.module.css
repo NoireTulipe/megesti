@@ -365,6 +365,7 @@
 
 /* Bouton ajouter */
 .addLigneBtn {
+  margin-top: 10px;
   font-size: 0.8rem; font-weight: 600; color: var(--terra);
   background: var(--terra-faint,#fdf5f4); border: 1.5px solid var(--terra-light);
   border-radius: var(--r-pill); padding: 6px 18px; cursor: pointer;
