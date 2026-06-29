@@ -82,7 +82,8 @@
       "Bash(ls apps/web/public/img/)",
       "Bash(ls apps/web/public/)",
       "WebFetch(domain:github.com)",
-      "WebFetch(domain:annuaire.superpdp.tech)"
+      "WebFetch(domain:annuaire.superpdp.tech)",
+      "Bash(git checkout *)"
     ]
   }
 }
