@@ -114,8 +114,8 @@ export const personas = {
       text: "Présents en dédicaces, festivals et foires. Vous avez besoin d'encaisser vite, même sans réseau, et de tout réconcilier le soir.",
     },
     {
-      title: 'Francophonie',
-      text: "France, Belgique, Suisse, Québec. L'interface et les contenus métier sont conçus dès l'origine pour le bilingue français / anglais.",
+      title: 'Éditeurs francophones',
+      text: "Depuis Paris, Bruxelles, Montréal ou Genève. L'interface, les obligations fiscales et les formats légaux sont pensés dès l'origine pour le monde du livre francophone.",
     },
   ],
 }
