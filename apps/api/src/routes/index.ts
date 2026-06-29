@@ -33,6 +33,7 @@ import { popupRoutes }           from './popups.js'
 import { facturationRoutes }     from './facturation.js'
 import { stripeRoutes }          from './stripe.js'
 import { webhookRoutes }         from './webhooks.js'
+import { bnfRoutes }             from './bnf.js'
 
 export const routes: FastifyPluginAsync = async (app) => {
   await app.register(authRoutes,        { prefix: '/auth' })
@@ -69,4 +70,5 @@ export const routes: FastifyPluginAsync = async (app) => {
   await app.register(facturationRoutes,    { prefix: '/facturation' })
   await app.register(stripeRoutes,         { prefix: '/stripe' })
   await app.register(webhookRoutes,        { prefix: '/webhooks' })
+  await app.register(bnfRoutes,            { prefix: '/bnf' })
 }

@@ -17,6 +17,7 @@ import { useFranchiseTVA } from '@/hooks/useFranchiseTVA'
 import { usePlanFeatures } from '@/hooks/usePlanFeatures'
 import { useMonTenant } from '@/features/reglages/hooks/useMonTenant'
 import { api, getImageUrl } from '@/lib/api'
+import { fetchBnfIsbn, type BnfLivreInfo } from './hooks/useBnfLookup'
 import type { Article } from './types'
 import styles from './ArticleForm.module.css'
 
@@ -86,6 +87,13 @@ export function ArticleForm({ onClose, article }: Props) {
   const [uploadError,    setUploadError]    = useState<string | null>(null)
   const [uploadingImage, setUploadingImage] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const [bnfLoading,  setBnfLoading]  = useState(false)
+  const [bnfResult,   setBnfResult]   = useState<BnfLivreInfo | null>(null)
+  const [bnfNotFound, setBnfNotFound] = useState(false)
+  const [bnfFetchErr, setBnfFetchErr] = useState(false)
+  const [bnfApplied,  setBnfApplied]  = useState(false)
+  const [bnfImageUrl, setBnfImageUrl] = useState<string | null>(null)
 
   useEffect(() => {
     return () => { if (previewUrl) URL.revokeObjectURL(previewUrl) }
@@ -198,6 +206,48 @@ export function ArticleForm({ onClose, article }: Props) {
     }
   }
 
+  async function handleBnfLookup() {
+    const isbn = (getValues('isbn') ?? '').trim().replace(/[-\s]/g, '')
+    if (!isbn) return
+    setBnfLoading(true)
+    setBnfResult(null)
+    setBnfNotFound(false)
+    setBnfFetchErr(false)
+    setBnfApplied(false)
+    try {
+      const info = await fetchBnfIsbn(isbn)
+      if (!info) setBnfNotFound(true)
+      else setBnfResult(info)
+    } catch {
+      setBnfFetchErr(true)
+    } finally {
+      setBnfLoading(false)
+    }
+  }
+
+  function handleApplyBnf(info: BnfLivreInfo) {
+    setValue('nom', info.titre, { shouldValidate: true })
+    if (info.resume)           setValue('description', info.resume)
+    if (info.anneePublication) setValue('datePublication', `${info.anneePublication}-01-01`)
+    if (info.prixVenteHT !== null) {
+      setValue('prixVenteHT', info.prixVenteHT, { shouldValidate: true })
+      setPrixTTC(info.prixTTC !== null ? info.prixTTC.toFixed(2) : (info.prixVenteHT * facteurTVA).toFixed(2))
+    }
+    if (info.imageUrl) {
+      if (previewUrl) URL.revokeObjectURL(previewUrl)
+      setPreviewUrl(null)
+      setPendingFile(null)
+      setCurrentImageUrl(info.imageUrl)
+      setBnfImageUrl(info.imageUrl)
+      setDeleteImage(false)
+    }
+    setBnfApplied(true)
+  }
+
+  function handleIsbnKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === 'Enter') { e.preventDefault(); void handleBnfLookup() }
+  }
+
   // Remplir les champs custom quand les valeurs chargent (mode édition)
   useEffect(() => {
     if (isEdit && Object.keys(customValues).length > 0) {
@@ -253,8 +303,8 @@ export function ArticleForm({ onClose, article }: Props) {
     const entityId = isEdit ? article!.id : generateUUID()
     const fullPayload = {
       ...payload,
-      // Suppression explicite demandée par l'utilisateur
-      ...(deleteImage ? { imageUrl: null } : {}),
+      ...(deleteImage                                 ? { imageUrl: null        } : {}),
+      ...(!deleteImage && !pendingFile && bnfImageUrl ? { imageUrl: bnfImageUrl } : {}),
     }
     if (isEdit) {
       await updateArticle.mutateAsync({ id: entityId, ...fullPayload })
@@ -527,16 +577,85 @@ export function ArticleForm({ onClose, article }: Props) {
       {isLibrairie && (
         <div className={styles.section}>
           <p className={styles.sectionLabel}>Librairie</p>
-          <div className={styles.row2}>
-            <div className={styles.field}>
-              <label className={styles.label} htmlFor="isbn">ISBN</label>
-              <input id="isbn" className={styles.input} {...register('isbn')} placeholder="978-…" />
-            </div>
-            <div className={styles.field}>
-              <label className={styles.label} htmlFor="datePublication">Date de publication</label>
-              <input id="datePublication" type="date" className={styles.input} {...register('datePublication')} />
+          <div className={styles.field}>
+            <label className={styles.label} htmlFor="isbn">ISBN</label>
+            <div className={styles.isbnSearchRow}>
+              <input
+                id="isbn"
+                className={styles.input}
+                {...register('isbn')}
+                placeholder="978-…"
+                onKeyDown={handleIsbnKeyDown}
+              />
+              <button
+                type="button"
+                className={styles.bnfSearchBtn}
+                onClick={() => void handleBnfLookup()}
+                disabled={bnfLoading}
+              >
+                {bnfLoading ? (
+                  <svg className={styles.bnfSpinner} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                    <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                  </svg>
+                ) : 'Vérifier BNF'}
+              </button>
             </div>
           </div>
+          <div className={styles.field}>
+            <label className={styles.label} htmlFor="datePublication">Date de publication</label>
+            <input id="datePublication" type="date" className={styles.input} {...register('datePublication')} />
+          </div>
+          {bnfNotFound && (
+            <p className={styles.bnfMsg}>ISBN non trouvé dans le catalogue BNF.</p>
+          )}
+          {bnfFetchErr && (
+            <p className={`${styles.bnfMsg} ${styles.bnfMsgError}`}>Le catalogue BNF est momentanément inaccessible.</p>
+          )}
+          {bnfResult && (
+            <div className={styles.bnfCard}>
+              {bnfResult.imageUrl && (
+                <img src={bnfResult.imageUrl} alt={bnfResult.titre} className={styles.bnfCover} />
+              )}
+              <div className={styles.bnfCardBody}>
+                <p className={styles.bnfTitre}>{bnfResult.titre}</p>
+                {bnfResult.auteursMention && (
+                  <p className={styles.bnfMeta}>{bnfResult.auteursMention}</p>
+                )}
+                {(bnfResult.editeur || bnfResult.anneePublication) && (
+                  <p className={styles.bnfMeta}>
+                    {[bnfResult.editeur, bnfResult.anneePublication].filter(Boolean).join(' · ')}
+                  </p>
+                )}
+                {bnfResult.collection && (
+                  <p className={styles.bnfMeta}>
+                    Collection : {bnfResult.collection}
+                    {bnfResult.collectionVolume ? `, vol. ${bnfResult.collectionVolume}` : ''}
+                  </p>
+                )}
+                {(bnfResult.prixTTC !== null || bnfResult.prixVenteHT !== null) && (
+                  <p className={styles.bnfPrix}>
+                    {bnfResult.prixTTC !== null && `${bnfResult.prixTTC.toFixed(2)} € TTC`}
+                    {bnfResult.prixVenteHT !== null && ` → ${bnfResult.prixVenteHT.toFixed(2)} € HT`}
+                  </p>
+                )}
+                {bnfResult.resume && (
+                  <p className={styles.bnfResume}>
+                    {bnfResult.resume.length > 240
+                      ? `${bnfResult.resume.slice(0, 240)}…`
+                      : bnfResult.resume}
+                  </p>
+                )}
+                <button
+                  type="button"
+                  className={`${styles.bnfApplyBtn} ${bnfApplied ? styles.bnfApplied : ''}`}
+                  onClick={() => handleApplyBnf(bnfResult!)}
+                  disabled={bnfApplied}
+                >
+                  {bnfApplied ? '✓ Données appliquées' : 'Utiliser ces données'}
+                </button>
+              </div>
+            </div>
+          )}
           <div className={styles.field}>
             <label className={styles.label}>Auteur{!reseauOnly ? 's' : ''}</label>
             {reseauOnly ? (

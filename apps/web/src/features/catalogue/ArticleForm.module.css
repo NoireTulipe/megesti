@@ -350,3 +350,131 @@
   transition: border-color 0.15s, color 0.15s;
 }
 .btnSecondary:hover { border-color: var(--ink-light); color: var(--ink); }
+
+/* ── BNF Lookup ─────────────────────────────────────────────────── */
+.isbnSearchRow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.isbnSearchRow .input { flex: 1; }
+
+.bnfSearchBtn {
+  flex-shrink: 0;
+  height: 44px;
+  padding: 0 14px;
+  background: var(--ink-faint, #f0f3f8);
+  border: 1.5px solid var(--cream-dark);
+  border-radius: 10px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--ink);
+  cursor: pointer;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  white-space: nowrap;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.bnfSearchBtn:hover:not(:disabled) {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #fff;
+}
+.bnfSearchBtn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.bnfSpinner { animation: spin 1s linear infinite; }
+
+.bnfMsg {
+  font-size: 0.8rem;
+  color: var(--text-soft);
+  font-style: italic;
+  margin: 0;
+  padding: 8px 12px;
+  background: var(--cream);
+  border-radius: 8px;
+}
+.bnfMsgError { color: #DC2626; }
+
+.bnfCard {
+  display: flex;
+  gap: 14px;
+  padding: 14px;
+  background: #fff;
+  border: 1.5px solid var(--cream-dark);
+  border-radius: 12px;
+  animation: bnfFadeUp 0.2s ease both;
+}
+
+@keyframes bnfFadeUp {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.bnfCover {
+  width: 60px;
+  height: 85px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1.5px solid var(--cream-dark);
+  flex-shrink: 0;
+}
+
+.bnfCardBody {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+  min-width: 0;
+}
+
+.bnfTitre {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0;
+  line-height: 1.3;
+}
+
+.bnfMeta {
+  font-size: 0.76rem;
+  color: var(--text-soft);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.bnfPrix {
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--sage-dark, #4a7c59);
+  margin: 3px 0 0;
+}
+
+.bnfResume {
+  font-size: 0.73rem;
+  color: var(--text-soft);
+  margin: 3px 0 0;
+  font-style: italic;
+  line-height: 1.45;
+}
+
+.bnfApplyBtn {
+  align-self: flex-start;
+  margin-top: 8px;
+  height: 28px;
+  padding: 0 12px;
+  background: var(--terra);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s;
+}
+.bnfApplyBtn:hover:not(:disabled) { background: var(--ink); }
+.bnfApplyBtn:disabled { opacity: 0.65; cursor: not-allowed; }
+.bnfApplied { background: var(--sage, #6B8F71) !important; }
