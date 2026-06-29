@@ -4,17 +4,19 @@ import bcrypt from 'bcryptjs'
 const prisma = new PrismaClient()
 
 async function main() {
-  // ── AdminUser (upsert : ne réécrit pas le mot de passe si déjà créé) ────────
-  const superAdminHash = await bcrypt.hash('EC@fanfanlt678', 12)
-  await prisma.adminUser.upsert({
-    where:  { email: 'contact@echodeplumes.com' },
-    update: {},   // ne touche à rien si l'admin existe déjà
-    create: {
-      email:        'contact@echodeplumes.com',
-      nom:          'François',
-      passwordHash: superAdminHash,
-    },
-  })
+  // ── AdminUser ────────────────────────────────────────────────────────────────
+  const email    = process.env['ADMIN_EMAIL']    ?? (() => { throw new Error('ADMIN_EMAIL requis') })()
+  const password = process.env['ADMIN_PASSWORD'] ?? (() => { throw new Error('ADMIN_PASSWORD requis') })()
+  const nom      = process.env['ADMIN_NOM']      ?? 'Super Admin'
+
+  const existing = await prisma.adminUser.findUnique({ where: { email } })
+  if (existing) {
+    console.log(`✓ Admin "${email}" existe déjà — skipped`)
+  } else {
+    const passwordHash = await bcrypt.hash(password, 12)
+    await prisma.adminUser.create({ data: { email, passwordHash, nom } })
+    console.log(`✓ Admin "${email}" créé`)
+  }
 
   // ── MeGestine dialogs (crée seulement si absent — ne touche pas aux éditions admin) ──
   const dialogs = [
@@ -168,7 +170,6 @@ async function main() {
     }
   }
 
-  console.log(`✓ SuperAdmin : contact@echodeplumes.com`)
   console.log(`✓ Dialogs MeGestine : ${created} créés, ${skipped} déjà présents (intacts)`)
 }
 

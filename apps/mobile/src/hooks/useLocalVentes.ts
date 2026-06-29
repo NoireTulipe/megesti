@@ -25,6 +25,7 @@ export interface LigneVente {
   nom: string
   quantite: number
   prixUnitaireHT: number
+  tauxTva: number
   totalHT: number
   totalTTC: number
 }
@@ -33,7 +34,7 @@ export interface CreateVenteInput {
   sessionId?: string
   motifVenteId?: string
   modePaiement: string
-  lignes: (Omit<LigneVente, 'totalHT' | 'totalTTC'> & { tauxTva?: number })[]
+  lignes: Omit<LigneVente, 'totalHT' | 'totalTTC'>[]
 }
 
 export function useLocalVentes(sessionId?: string) {
@@ -64,7 +65,7 @@ export function useLocalVentes(sessionId?: string) {
     let totalHT = 0, totalTVA = 0, totalTTC = 0
     const lignesCompletes: LigneVente[] = input.lignes.map(l => {
       const ligneHT = l.prixUnitaireHT * l.quantite
-      const tauxTVA = (l.tauxTva ?? 5.5) / 100
+      const tauxTVA = l.tauxTva / 100
       const ligneTTC = ligneHT * (1 + tauxTVA)
       totalHT += ligneHT
       totalTVA += ligneTTC - ligneHT
