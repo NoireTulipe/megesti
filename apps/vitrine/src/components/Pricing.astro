@@ -1,0 +1,213 @@
+---
+import { site, plans } from '../data/content'
+import Icon from './Icon.astro'
+
+// Tente de récupérer les prix depuis l'API publique (Phase 2).
+// Si absents → on affiche "Tarif à venir" / "Sur demande".
+type PriceMap = Record<string, { mensuel?: number; annuel?: number } | undefined>
+let prices: PriceMap = {}
+let pricingReady = false
+try {
+  const res = await fetch(`${site.apiUrl}/api/public/pricing`, {
+    signal: AbortSignal.timeout(2500),
+  })
+  if (res.ok) {
+    const data = await res.json()
+    const list = Array.isArray(data) ? data : data.plans ?? []
+    prices = Object.fromEntries(
+      list.map((p: { plan: string; prixMensuelCents?: number; prixAnnuelCents?: number }) => [
+        p.plan,
+        {
+          mensuel: typeof p.prixMensuelCents === 'number' ? p.prixMensuelCents / 100 : undefined,
+          annuel: typeof p.prixAnnuelCents === 'number' ? p.prixAnnuelCents / 100 : undefined,
+        },
+      ])
+    )
+    pricingReady = list.some((p: { prixMensuelCents?: number }) => p.prixMensuelCents && p.prixMensuelCents > 0)
+  }
+} catch {
+  // API non joignable → prix affichés "à venir"
+}
+
+const formatEuros = (n?: number) =>
+  n === undefined ? null : `${n.toLocaleString('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 2 })} €`
+---
+
+<section class="pricing" id="forfaits">
+  <div class="container-x">
+    <div class="section-head reveal">
+      <span class="eyebrow"><Icon name="sparkle" size={16} /> Forfaits</span>
+      <h2>Choisissez votre <em>atelier</em></h2>
+      <p class="section-sub">
+        Une formule pour chaque étape de votre maison d’édition.
+        Sans engagement, évolutif à tout moment.
+      </p>
+    </div>
+
+    <div class="plans-grid">
+      {plans.map((plan, i) => {
+        const price = prices[plan.code]
+        const mensuel = price?.mensuel
+        return (
+          <article class={`plan-card ${plan.highlight ? 'plan-highlight' : ''} reveal`} style={`transition-delay:${i * 80}ms`}>
+            {plan.highlight && <span class="plan-badge">Le plus choisi</span>}
+            <h3>{plan.name}</h3>
+            <p class="plan-pitch">{plan.pitch}</p>
+
+            <div class="plan-price">
+              {pricingReady && mensuel ? (
+                <>
+                  <span class="price-amount">{formatEuros(mensuel)}</span>
+                  <span class="price-period">/ mois</span>
+                </>
+              ) : (
+                <span class="price-soon">Tarif annoncé pour août</span>
+              )}
+            </div>
+
+            <a href="#contact" class={`btn ${plan.highlight ? 'btn-primary' : 'btn-ghost'} btn-block`}>
+              Demander un accès
+            </a>
+
+            <ul class="plan-includes">
+              {plan.includes.map((inc) => (
+                <li>
+                  <Icon name="check" size={16} />
+                  <span>{inc}</span>
+                </li>
+              ))}
+            </ul>
+          </article>
+        )
+      })}
+    </div>
+
+    <p class="pricing-note">
+      Période d’essai de 30 jours · Sans carte bancaire · Réception de factures illimitée sur tous les forfaits
+    </p>
+  </div>
+</section>
+
+<style>
+  .pricing {
+    padding: 6rem 0;
+    position: relative;
+    z-index: 1;
+  }
+  .plans-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    max-width: 1080px;
+    margin: 4.5rem auto 2rem; /* marge haute augmentée : laisse respirer le titre */
+    align-items: start;
+  }
+  .plan-card {
+    position: relative;
+    background: var(--white);
+    border: 1px solid var(--cream-dark);
+    border-radius: var(--radius-card);
+    padding: 3rem 1.85rem 2.25rem; /* plus d'air en haut pour le badge */
+    transition: transform 0.3s var(--ease-out), box-shadow 0.3s var(--ease-out);
+  }
+  .plan-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-hover);
+  }
+  .plan-highlight {
+    border-color: var(--rose);
+    box-shadow: var(--shadow-rose);
+    background: linear-gradient(180deg, var(--white), var(--rose-light));
+  }
+  .plan-badge {
+    position: absolute;
+    top: 1.1rem; /* à l'intérieur de la card, ne déborde plus */
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, var(--rose), var(--rose-dark));
+    color: #fff;
+    font-size: 0.74rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    padding: 0.3rem 0.9rem;
+    border-radius: var(--radius-pill);
+    white-space: nowrap;
+    box-shadow: var(--shadow-rose);
+  }
+  /* Quand la card porte un badge, on pousse le h3 pour ne pas le coller */
+  .plan-highlight h3 {
+    margin-top: 1.5rem;
+  }
+  .plan-card h3 {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--ink-deep);
+    margin-bottom: 0.4rem;
+  }
+  .plan-pitch {
+    color: var(--text-mid);
+    font-size: 0.92rem;
+    margin-bottom: 1.5rem;
+    min-height: 2.5em;
+  }
+  .plan-price {
+    display: flex;
+    align-items: baseline;
+    gap: 0.35rem;
+    margin-bottom: 1.5rem;
+    min-height: 3rem;
+  }
+  .price-amount {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2.6rem;
+    color: var(--ink-deep);
+    line-height: 1;
+  }
+  .price-period {
+    color: var(--text-soft);
+    font-size: 0.95rem;
+  }
+  .price-soon {
+    font-family: 'DM Serif Display', serif;
+    font-style: italic;
+    font-size: 1.3rem;
+    color: var(--rose-dark);
+    line-height: 1.2;
+  }
+  .plan-card .btn-block {
+    width: 100%;
+    margin-bottom: 1.75rem;
+  }
+  .plan-includes {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--cream-dark);
+  }
+  .plan-includes li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    font-size: 0.93rem;
+    color: var(--text-mid);
+    line-height: 1.45;
+  }
+  .plan-includes :global(svg) {
+    color: var(--sage);
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .pricing-note {
+    text-align: center;
+    color: var(--text-soft);
+    font-size: 0.9rem;
+    font-style: italic;
+  }
+
+  @media (max-width: 860px) {
+    .plans-grid { grid-template-columns: 1fr; max-width: 460px; }
+  }
+</style>

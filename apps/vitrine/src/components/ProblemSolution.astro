@@ -1,0 +1,114 @@
+---
+import Icon from './Icon.astro'
+
+const pains = [
+  'Un fichier Excel par auteur pour les droits',
+  'Les ventes salon notées sur un cahier',
+  'La compta refaite à la main en fin d’année',
+  'Aucune idée du stock réel entre dépôts et salons',
+]
+
+const gains = [
+  'Les droits d’auteur calculés automatiquement',
+  'Les ventes enregistrées et conformes en direct',
+  'Un bilan de trésorerie toujours à jour',
+  'Le stock suivi partout, en temps réel',
+]
+---
+
+<section class="ps">
+  <div class="container-x ps-grid">
+    <div class="ps-col ps-problem reveal">
+      <span class="eyebrow" style="color:var(--terra)">Sans MeGesti</span>
+      <h2>Le chaos du<br /><em>bricolage</em></h2>
+      <ul>
+        {pains.map((p) => (
+          <li>
+            <Icon name="close" size={18} class="x" />
+            <span>{p}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+
+    <div class="ps-arrow" aria-hidden="true">
+      <Icon name="arrow" size={32} />
+    </div>
+
+    <div class="ps-col ps-solution reveal">
+      <span class="eyebrow"><Icon name="check" size={16} /> Avec MeGesti</span>
+      <h2>La clarté de<br /><em>l’outil unique</em></h2>
+      <ul>
+        {gains.map((g) => (
+          <li>
+            <Icon name="check" size={18} class="check" />
+            <span>{g}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </div>
+</section>
+
+<style>
+  .ps {
+    padding: 5rem 0;
+    position: relative;
+    z-index: 1;
+  }
+  .ps-grid {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 2rem;
+    align-items: center;
+  }
+  .ps-col {
+    background: var(--white);
+    border: 1px solid var(--cream-dark);
+    border-radius: var(--radius-card);
+    padding: 2.5rem;
+    box-shadow: var(--shadow-card);
+  }
+  .ps-problem { opacity: 0.85; }
+  .ps-solution {
+    background: linear-gradient(160deg, var(--white), var(--rose-light));
+    border-color: var(--rose-mid);
+    box-shadow: var(--shadow-rose);
+  }
+  .ps-col h2 { margin: 0.75rem 0 1.5rem; }
+  .ps-col h2 em { font-style: italic; }
+  .ps-problem h2 em { color: var(--terra); }
+  .ps-solution h2 em { color: var(--rose-dark); }
+
+  .ps-col ul {
+    display: flex;
+    flex-direction: column;
+    gap: 0.95rem;
+  }
+  .ps-col li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.7rem;
+    font-size: 1.02rem;
+    color: var(--text-mid);
+    line-height: 1.45;
+  }
+  .ps-col :global(.x) { color: #C85D3A; flex-shrink: 0; margin-top: 2px; }
+  .ps-col :global(.check) { color: var(--sage); flex-shrink: 0; margin-top: 2px; }
+  .ps-solution li span { color: var(--ink-deep); font-weight: 500; }
+
+  .ps-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--rose);
+  }
+
+  @media (max-width: 900px) {
+    .ps-grid {
+      grid-template-columns: 1fr;
+      gap: 1.25rem;
+    }
+    .ps-arrow { transform: rotate(90deg); }
+  }
+</style>

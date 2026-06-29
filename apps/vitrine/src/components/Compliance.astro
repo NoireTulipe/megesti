@@ -1,0 +1,121 @@
+---
+import { compliance } from '../data/content'
+import Icon from './Icon.astro'
+---
+
+<section class="compliance" id="conformite">
+  <div class="compliance-bg" aria-hidden="true"></div>
+  <div class="container-x compliance-inner">
+    <div class="section-head reveal" style="color:#fff">
+      <span class="eyebrow" style="color:var(--rose-mid)">
+        <Icon name="shield" size={16} /> Conformité intégrée
+      </span>
+      <h2 style="color:#fff">{compliance.title}</h2>
+      <p class="section-sub" style="color:rgba(255,255,255,0.72)">{compliance.intro}</p>
+    </div>
+
+    <div class="compliance-grid">
+      {compliance.items.map((item, i) => (
+        <article class="compliance-card reveal" style={`transition-delay:${i * 100}ms`}>
+          <div class="cc-top">
+            <div class="cc-icon"><Icon name="lock" size={24} /></div>
+            <span class="cc-law">{item.law}</span>
+          </div>
+          <p class="cc-detail">{item.detail}</p>
+          <p class="cc-risk">
+            <Icon name="shield" size={15} />
+            {item.risk}
+          </p>
+        </article>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .compliance {
+    position: relative;
+    padding: 6rem 0;
+    overflow: hidden;
+  }
+  .compliance-bg {
+    position: absolute;
+    inset: 0;
+    background: var(--gradient-night);
+    z-index: 0;
+  }
+  .compliance-bg::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at 15% 30%, rgba(196,144,124,0.15), transparent 45%),
+      radial-gradient(circle at 85% 70%, rgba(139,123,171,0.15), transparent 45%);
+  }
+  .compliance-inner {
+    position: relative;
+    z-index: 1;
+  }
+  .compliance-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  .compliance-card {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: var(--radius-card);
+    padding: 2rem;
+    backdrop-filter: blur(10px);
+    transition: background 0.3s, border-color 0.3s;
+  }
+  .compliance-card:hover {
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(196,144,124,0.4);
+  }
+  .cc-top {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    margin-bottom: 1rem;
+  }
+  .cc-icon {
+    width: 44px; height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--rose);
+    color: #fff;
+    border-radius: 12px;
+    flex-shrink: 0;
+  }
+  .cc-law {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.3rem;
+    color: #fff;
+    line-height: 1.2;
+  }
+  .cc-detail {
+    color: rgba(255,255,255,0.72);
+    font-size: 0.98rem;
+    line-height: 1.6;
+    margin-bottom: 1.25rem;
+  }
+  .cc-risk {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--rose-mid);
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255,255,255,0.1);
+  }
+  .cc-risk :global(svg) { color: var(--gold); }
+
+  @media (max-width: 760px) {
+    .compliance-grid { grid-template-columns: 1fr; }
+  }
+</style>

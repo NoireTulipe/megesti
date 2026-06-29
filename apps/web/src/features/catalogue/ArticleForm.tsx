@@ -88,6 +88,8 @@ export function ArticleForm({ onClose, article }: Props) {
   const [uploadingImage, setUploadingImage] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
+  const [step, setStep] = useState<'rayon' | 'isbn' | 'details'>(isEdit ? 'details' : 'rayon')
+
   const [bnfLoading,  setBnfLoading]  = useState(false)
   const [bnfResult,   setBnfResult]   = useState<BnfLivreInfo | null>(null)
   const [bnfNotFound, setBnfNotFound] = useState(false)
@@ -344,450 +346,480 @@ export function ArticleForm({ onClose, article }: Props) {
 
   const isError = isEdit ? updateArticle.isError : createArticle.isError
 
+  const bnfCard = bnfResult && (
+    <div className={styles.bnfCard}>
+      {bnfResult.imageUrl && (
+        <img src={bnfResult.imageUrl} alt={bnfResult.titre} className={styles.bnfCover} />
+      )}
+      <div className={styles.bnfCardBody}>
+        <p className={styles.bnfTitre}>{bnfResult.titre}</p>
+        {bnfResult.auteursMention && <p className={styles.bnfMeta}>{bnfResult.auteursMention}</p>}
+        {(bnfResult.editeur || bnfResult.anneePublication) && (
+          <p className={styles.bnfMeta}>
+            {[bnfResult.editeur, bnfResult.anneePublication].filter(Boolean).join(' · ')}
+          </p>
+        )}
+        {bnfResult.collection && (
+          <p className={styles.bnfMeta}>
+            Collection : {bnfResult.collection}{bnfResult.collectionVolume ? `, vol. ${bnfResult.collectionVolume}` : ''}
+          </p>
+        )}
+        {(bnfResult.prixTTC !== null || bnfResult.prixVenteHT !== null) && (
+          <p className={styles.bnfPrix}>
+            {bnfResult.prixTTC !== null && `${bnfResult.prixTTC.toFixed(2)} € TTC`}
+            {bnfResult.prixVenteHT !== null && ` → ${bnfResult.prixVenteHT.toFixed(2)} € HT`}
+          </p>
+        )}
+        {bnfResult.resume && (
+          <p className={styles.bnfResume}>
+            {bnfResult.resume.length > 240 ? `${bnfResult.resume.slice(0, 240)}…` : bnfResult.resume}
+          </p>
+        )}
+        <button
+          type="button"
+          className={`${styles.bnfApplyBtn} ${bnfApplied ? styles.bnfApplied : ''}`}
+          onClick={() => handleApplyBnf(bnfResult!)}
+          disabled={bnfApplied}
+        >
+          {bnfApplied ? '✓ Données appliquées' : 'Utiliser ces données'}
+        </button>
+      </div>
+    </div>
+  )
+
+  const bnfFeedback = (
+    <>
+      {bnfNotFound && <p className={styles.bnfMsg}>ISBN non trouvé dans le catalogue BNF.</p>}
+      {bnfFetchErr  && <p className={`${styles.bnfMsg} ${styles.bnfMsgError}`}>Le catalogue BNF est momentanément inaccessible.</p>}
+      {bnfCard}
+    </>
+  )
+
+  const bnfSearchRow = (
+    <div className={styles.isbnSearchRow}>
+      <input
+        id="isbn"
+        className={styles.input}
+        {...register('isbn')}
+        placeholder="978-…"
+        onKeyDown={handleIsbnKeyDown}
+      />
+      <button
+        type="button"
+        className={styles.bnfSearchBtn}
+        onClick={() => void handleBnfLookup()}
+        disabled={bnfLoading}
+      >
+        {bnfLoading
+          ? <svg className={styles.bnfSpinner} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+          : 'Vérifier BNF'}
+      </button>
+    </div>
+  )
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className={styles.form}>
 
       {/* •"?•"? Classification •"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"? */}
-      <div className={styles.section}>
-        <p className={styles.sectionLabel}>Classification</p>
-        <div className={styles.row2}>
-          <div className={styles.field}>
-            <label className={styles.label} htmlFor="rayonId">
-              Rayon <span className={styles.req}>*</span>
-            </label>
-            <select
-              id="rayonId"
-              className={`${styles.select} ${errors.rayonId ? styles.inputError : ''}`}
-              {...rayonRegister}
-              onChange={(e) => {
-                rayonRegister.onChange(e)
-                setValue('categorieId', undefined)
-              }}
-            >
-              <option value="">— Choisir —</option>
-              {rayons.map((r) => (
-                <option key={r.id} value={r.id}>{r.nom}</option>
-              ))}
-            </select>
-            {errors.rayonId && <span className={styles.error}>{errors.rayonId.message}</span>}
-          </div>
-          <div className={styles.field}>
-            <label className={styles.label} htmlFor="categorieId">Catégorie</label>
-            <select
-              id="categorieId"
-              className={styles.select}
-              disabled={categories.length === 0}
-              {...register('categorieId')}
-            >
-              <option value="">— Aucune —</option>
-              {categories.map((c) => (
-                <option key={c.id} value={c.id}>{c.nom}</option>
-              ))}
-            </select>
-          </div>
-        </div>
-      </div>
-
-      {/* •"?•"? Informations •"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"? */}
-      <div className={styles.section}>
-        <p className={styles.sectionLabel}>Informations</p>
-        <div className={styles.field}>
-          <label className={styles.label} htmlFor="nom">
-            Nom <span className={styles.req}>*</span>
-          </label>
-          <input
-            id="nom"
-            className={`${styles.input} ${errors.nom ? styles.inputError : ''}`}
-            {...register('nom')}
-            autoFocus
-          />
-          {errors.nom && <span className={styles.error}>{errors.nom.message}</span>}
-        </div>
-        <div className={styles.field}>
-          <label className={styles.label} htmlFor="reference">Référence</label>
-          <input id="reference" className={styles.input} {...register('reference')} placeholder="SKU, code interne…" />
-        </div>
-
-        {/* Image — disponible en création ET en édition */}
-        <div className={styles.field}>
-          <label className={styles.label}>Image</label>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            style={{ display: 'none' }}
-            onChange={handleFileSelect}
-          />
-          {displayImage ? (
-            <div className={styles.imagePreviewWrap}>
-              <img src={displayImage} alt="Illustration" className={styles.imagePreview} />
-              <div className={styles.imageActions}>
-                {pendingFile && (
-                  <span className={styles.imagePendingBadge}>Sera sauvegardée à la validation</span>
-                )}
-                <button
-                  type="button"
-                  className={styles.imageBtn}
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  Remplacer
-                </button>
-                <button
-                  type="button"
-                  className={`${styles.imageBtn} ${styles.imageBtnDelete}`}
-                  onClick={handleDeleteImage}
-                >
-                  Supprimer
-                </button>
-              </div>
-            </div>
-          ) : (
+      {/* ── Étape 1 : Rayon ── */}
+      {!isEdit && step === 'rayon' && (
+        <div className={styles.stepRayon}>
+          <p className={styles.stepRayonTitle}>Dans quel rayon ?</p>
+          <select
+            id="rayonId"
+            className={`${styles.select} ${errors.rayonId ? styles.inputError : ''}`}
+            {...rayonRegister}
+            onChange={(e) => { rayonRegister.onChange(e); setValue('categorieId', undefined) }}
+          >
+            <option value="">— Choisir un rayon —</option>
+            {rayons.map((r) => <option key={r.id} value={r.id}>{r.nom}</option>)}
+          </select>
+          {errors.rayonId && <span className={styles.error}>{errors.rayonId.message}</span>}
+          <div className={styles.actions}>
+            <button type="button" className={styles.btnSecondary} onClick={onClose}>Annuler</button>
             <button
               type="button"
-              className={styles.imageUploadZone}
-              onClick={() => fileInputRef.current?.click()}
+              className={styles.btnPrimary}
+              disabled={!selectedRayonId}
+              onClick={() => isLibrairie ? setStep('isbn') : setStep('details')}
             >
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-                <rect x="3" y="3" width="18" height="18" rx="3"/>
-                <circle cx="8.5" cy="8.5" r="1.5"/>
-                <polyline points="21 15 16 10 5 21"/>
-              </svg>
-              <span>Ajouter une image</span>
-              <span className={styles.imageUploadHint}>JPG, PNG ou WebP · max 10 Mo</span>
+              Continuer →
             </button>
-          )}
-          {uploadError && <span className={styles.error}>{uploadError}</span>}
+          </div>
         </div>
-        <div className={styles.field}>
-          <label className={styles.label} htmlFor="description">Description</label>
-          <textarea id="description" className={styles.textarea} rows={3} {...register('description')} />
-        </div>
-      </div>
+      )}
 
-      {/* •"?•"? Tarification •"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"? */}
-      <div className={styles.section}>
-        <p className={styles.sectionLabel}>
-          Tarification
-          {selectedRayon && (
-            <span style={{ marginLeft: 8, fontWeight: 400, color: 'var(--text-soft)', textTransform: 'none', letterSpacing: 0 }}>
-              — TVA {franchiseTVA ? 'non applicable (293 B CGI)' : `${tauxTVA} %`}
-            </span>
-          )}
-        </p>
-
-        {/* Prix de vente : double saisie HT — TTC */}
-        <div className={styles.prixVenteRow}>
-          <div className={styles.field} style={{ flex: 1 }}>
-            <label className={styles.label} htmlFor="prixVenteHT">
-              {franchiseTVA ? 'Prix de vente' : `Prix vente HT`} <span className={styles.req}>*</span>
-            </label>
-            <div className={styles.inputWithUnit}>
-              <input
-                id="prixVenteHT"
-                className={`${styles.input} ${errors.prixVenteHT ? styles.inputError : ''}`}
-                inputMode="decimal"
-                placeholder="0.00"
-                {...register('prixVenteHT', { onBlur: onHTBlur })}
-              />
-              <span className={styles.unit}>€</span>
+      {/* ── Étape 2 : ISBN / BNF ── */}
+      {!isEdit && step === 'isbn' && (
+        <>
+          <div className={styles.isbnStep}>
+            <div className={styles.isbnStepIcon}>
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+              </svg>
             </div>
-            {errors.prixVenteHT && <span className={styles.error}>{errors.prixVenteHT.message}</span>}
+            <p className={styles.isbnStepTitle}>Quel est l'ISBN de ce livre ?</p>
+            <p className={styles.isbnStepSub}>Code-barre à 13 chiffres au dos de la couverture.</p>
+            {bnfSearchRow}
+            {bnfFeedback}
+            <button type="button" className={styles.skipIsbnBtn} onClick={() => setStep('details')}>
+              Je ne connais pas l'ISBN →
+            </button>
           </div>
+          <div className={styles.actions}>
+            <button type="button" className={styles.btnSecondary} onClick={() => setStep('rayon')}>← Retour</button>
+            <button type="button" className={styles.btnPrimary} onClick={() => setStep('details')}>
+              {bnfApplied ? 'Continuer avec ces données' : 'Continuer sans'}
+            </button>
+          </div>
+        </>
+      )}
 
-          <div className={styles.prixArrow} title={franchiseTVA ? 'TVA non applicable' : `TVA ${tauxTVA} %`}>
-            {franchiseTVA ? '=' : '—'}
-          </div>
-
-          <div className={styles.field} style={{ flex: 1 }}>
-            <label className={styles.label} htmlFor="prixVenteTTC">
-              Prix vente TTC {franchiseTVA && <span style={{ color: 'var(--text-soft)', fontWeight: 400 }}>(TVA non applicable)</span>}
-            </label>
-            <div className={styles.inputWithUnit}>
-              <input
-                id="prixVenteTTC"
-                className={styles.input}
-                inputMode="decimal"
-                placeholder="0.00"
-                value={prixTTC}
-                onChange={onTTCChange}
-                onBlur={onTTCBlur}
-                readOnly={franchiseTVA}
-                style={franchiseTVA ? { background: 'var(--cream)', color: 'var(--text-soft)' } : {}}
-              />
-              <span className={styles.unit}>€</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Achat : lot en premier → prix unitaire dérivé ou saisie directe */}
-        <div className={styles.row2}>
-          <div className={styles.field}>
-            <label className={styles.label} htmlFor="prixAchatLotHT">Prix lot HT</label>
-            <div className={styles.inputWithUnit}>
-              <input id="prixAchatLotHT" className={styles.input} inputMode="decimal" placeholder="0.00" {...register('prixAchatLotHT')} />
-              <span className={styles.unit}>€</span>
-            </div>
-          </div>
-          <div className={styles.field}>
-            <label className={styles.label} htmlFor="prixAchatLotQte">Qté par lot</label>
-            <input id="prixAchatLotQte" className={styles.input} inputMode="numeric" placeholder="ex : 5" {...register('prixAchatLotQte')} />
-          </div>
-        </div>
-
-        <div className={styles.row2}>
-          <div className={styles.field}>
-            <label className={styles.label} htmlFor="prixAchatHT">
-              Prix d'achat unitaire HT
-              {lotValide && (
-                <span className={styles.calcBadge}>•Y"• calculé depuis le lot</span>
+      {/* ── Étape 3 : Détails (ou formulaire complet en édition) ── */}
+      {(isEdit || step === 'details') && (
+        <>
+          {/* Récapitulatif des étapes précédentes */}
+          {!isEdit && (
+            <div className={styles.stepSummary}>
+              <span className={styles.stepSummaryChip}>{selectedRayon?.nom ?? '—'}</span>
+              {getValues('isbn') && (
+                <span className={styles.stepSummaryChip}>
+                  ISBN {getValues('isbn')}
+                  {bnfApplied && <span className={styles.bnfBadge}>BNF</span>}
+                </span>
               )}
-            </label>
-            <div className={styles.inputWithUnit}>
-              <input
-                id="prixAchatHT"
-                className={styles.input}
-                inputMode="decimal"
-                placeholder="0.00"
-                readOnly={lotValide}
-                style={lotValide ? { background: 'var(--cream)', color: 'var(--text-soft)', cursor: 'not-allowed' } : {}}
-                {...register('prixAchatHT')}
-              />
-              <span className={styles.unit}>€</span>
-            </div>
-            {lotValide && prixUnitaireCalcule !== null && (
-              <p className={styles.calcHint}>
-                {Number(watchLotHT).toFixed(2)} € ÷ {watchLotQte} = {prixUnitaireCalcule.toFixed(4)} € / unité
-              </p>
-            )}
-          </div>
-          <div className={styles.field}>
-            <label className={styles.label} htmlFor="stock">Stock initial</label>
-            <input id="stock" className={styles.input} inputMode="numeric" placeholder="0" {...register('stock')} />
-          </div>
-        </div>
-        <DualRangeSlider
-          alerte={watchStockAlerte}
-          tension={watchStockTension}
-          max={Math.max((watchStockTension || 0) * 2, 50)}
-          onChange={handleSeuils}
-        />
-      </div>
-
-      {/* •"?•"? Librairie •"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"? */}
-      {isLibrairie && (
-        <div className={styles.section}>
-          <p className={styles.sectionLabel}>Librairie</p>
-          <div className={styles.field}>
-            <label className={styles.label} htmlFor="isbn">ISBN</label>
-            <div className={styles.isbnSearchRow}>
-              <input
-                id="isbn"
-                className={styles.input}
-                {...register('isbn')}
-                placeholder="978-…"
-                onKeyDown={handleIsbnKeyDown}
-              />
-              <button
-                type="button"
-                className={styles.bnfSearchBtn}
-                onClick={() => void handleBnfLookup()}
-                disabled={bnfLoading}
-              >
-                {bnfLoading ? (
-                  <svg className={styles.bnfSpinner} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                    <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
-                  </svg>
-                ) : 'Vérifier BNF'}
+              <button type="button" className={styles.stepSummaryEdit} onClick={() => setStep(isLibrairie ? 'isbn' : 'rayon')}>
+                Modifier
               </button>
             </div>
-          </div>
-          <div className={styles.field}>
-            <label className={styles.label} htmlFor="datePublication">Date de publication</label>
-            <input id="datePublication" type="date" className={styles.input} {...register('datePublication')} />
-          </div>
-          {bnfNotFound && (
-            <p className={styles.bnfMsg}>ISBN non trouvé dans le catalogue BNF.</p>
           )}
-          {bnfFetchErr && (
-            <p className={`${styles.bnfMsg} ${styles.bnfMsgError}`}>Le catalogue BNF est momentanément inaccessible.</p>
-          )}
-          {bnfResult && (
-            <div className={styles.bnfCard}>
-              {bnfResult.imageUrl && (
-                <img src={bnfResult.imageUrl} alt={bnfResult.titre} className={styles.bnfCover} />
-              )}
-              <div className={styles.bnfCardBody}>
-                <p className={styles.bnfTitre}>{bnfResult.titre}</p>
-                {bnfResult.auteursMention && (
-                  <p className={styles.bnfMeta}>{bnfResult.auteursMention}</p>
-                )}
-                {(bnfResult.editeur || bnfResult.anneePublication) && (
-                  <p className={styles.bnfMeta}>
-                    {[bnfResult.editeur, bnfResult.anneePublication].filter(Boolean).join(' · ')}
-                  </p>
-                )}
-                {bnfResult.collection && (
-                  <p className={styles.bnfMeta}>
-                    Collection : {bnfResult.collection}
-                    {bnfResult.collectionVolume ? `, vol. ${bnfResult.collectionVolume}` : ''}
-                  </p>
-                )}
-                {(bnfResult.prixTTC !== null || bnfResult.prixVenteHT !== null) && (
-                  <p className={styles.bnfPrix}>
-                    {bnfResult.prixTTC !== null && `${bnfResult.prixTTC.toFixed(2)} € TTC`}
-                    {bnfResult.prixVenteHT !== null && ` → ${bnfResult.prixVenteHT.toFixed(2)} € HT`}
-                  </p>
-                )}
-                {bnfResult.resume && (
-                  <p className={styles.bnfResume}>
-                    {bnfResult.resume.length > 240
-                      ? `${bnfResult.resume.slice(0, 240)}…`
-                      : bnfResult.resume}
-                  </p>
-                )}
-                <button
-                  type="button"
-                  className={`${styles.bnfApplyBtn} ${bnfApplied ? styles.bnfApplied : ''}`}
-                  onClick={() => handleApplyBnf(bnfResult!)}
-                  disabled={bnfApplied}
-                >
-                  {bnfApplied ? '✓ Données appliquées' : 'Utiliser ces données'}
+
+          {/* Classification */}
+          {isEdit ? (
+            <div className={styles.section}>
+              <p className={styles.sectionLabel}>Classification</p>
+              <div className={styles.row2}>
+                <div className={styles.field}>
+                  <label className={styles.label} htmlFor="rayonId">Rayon <span className={styles.req}>*</span></label>
+                  <select
+                    id="rayonId"
+                    className={`${styles.select} ${errors.rayonId ? styles.inputError : ''}`}
+                    {...rayonRegister}
+                    onChange={(e) => { rayonRegister.onChange(e); setValue('categorieId', undefined) }}
+                  >
+                    <option value="">— Choisir —</option>
+                    {rayons.map((r) => <option key={r.id} value={r.id}>{r.nom}</option>)}
+                  </select>
+                  {errors.rayonId && <span className={styles.error}>{errors.rayonId.message}</span>}
+                </div>
+                <div className={styles.field}>
+                  <label className={styles.label} htmlFor="categorieId">Catégorie</label>
+                  <select id="categorieId" className={styles.select} disabled={categories.length === 0} {...register('categorieId')}>
+                    <option value="">— Aucune —</option>
+                    {categories.map((c) => <option key={c.id} value={c.id}>{c.nom}</option>)}
+                  </select>
+                </div>
+              </div>
+            </div>
+          ) : categories.length > 0 ? (
+            <div className={styles.section}>
+              <div className={styles.field}>
+                <label className={styles.label} htmlFor="categorieId">Catégorie</label>
+                <select id="categorieId" className={styles.select} {...register('categorieId')}>
+                  <option value="">— Aucune —</option>
+                  {categories.map((c) => <option key={c.id} value={c.id}>{c.nom}</option>)}
+                </select>
+              </div>
+            </div>
+          ) : null}
+
+          {/* Informations */}
+          <div className={styles.section}>
+            <p className={styles.sectionLabel}>Informations</p>
+            <div className={styles.field}>
+              <label className={styles.label} htmlFor="nom">
+                Nom <span className={styles.req}>*</span>
+              </label>
+              <input
+                id="nom"
+                className={`${styles.input} ${errors.nom ? styles.inputError : ''}`}
+                {...register('nom')}
+              />
+              {errors.nom && <span className={styles.error}>{errors.nom.message}</span>}
+            </div>
+            <div className={styles.field}>
+              <label className={styles.label} htmlFor="reference">Référence</label>
+              <input id="reference" className={styles.input} {...register('reference')} placeholder="SKU, code interne…" />
+            </div>
+            <div className={styles.field}>
+              <label className={styles.label}>Image</label>
+              <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" style={{ display: 'none' }} onChange={handleFileSelect} />
+              {displayImage ? (
+                <div className={styles.imagePreviewWrap}>
+                  <img src={displayImage} alt="Illustration" className={styles.imagePreview} />
+                  <div className={styles.imageActions}>
+                    {pendingFile && <span className={styles.imagePendingBadge}>Sera sauvegardée à la validation</span>}
+                    <button type="button" className={styles.imageBtn} onClick={() => fileInputRef.current?.click()}>Remplacer</button>
+                    <button type="button" className={`${styles.imageBtn} ${styles.imageBtnDelete}`} onClick={handleDeleteImage}>Supprimer</button>
+                  </div>
+                </div>
+              ) : (
+                <button type="button" className={styles.imageUploadZone} onClick={() => fileInputRef.current?.click()}>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                    <rect x="3" y="3" width="18" height="18" rx="3"/>
+                    <circle cx="8.5" cy="8.5" r="1.5"/>
+                    <polyline points="21 15 16 10 5 21"/>
+                  </svg>
+                  <span>Ajouter une image</span>
+                  <span className={styles.imageUploadHint}>JPG, PNG ou WebP · max 10 Mo</span>
                 </button>
+              )}
+              {uploadError && <span className={styles.error}>{uploadError}</span>}
+            </div>
+            <div className={styles.field}>
+              <label className={styles.label} htmlFor="description">Description</label>
+              <textarea id="description" className={styles.textarea} rows={3} {...register('description')} />
+            </div>
+          </div>
+
+      {/* •"?•"? Tarification •"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"? */}
+          {/* Tarification */}
+          <div className={styles.section}>
+            <p className={styles.sectionLabel}>
+              Tarification
+              {selectedRayon && (
+                <span style={{ marginLeft: 8, fontWeight: 400, color: 'var(--text-soft)', textTransform: 'none', letterSpacing: 0 }}>
+                  — TVA {franchiseTVA ? 'non applicable (293 B CGI)' : `${tauxTVA} %`}
+                </span>
+              )}
+            </p>
+            <div className={styles.prixVenteRow}>
+              <div className={styles.field} style={{ flex: 1 }}>
+                <label className={styles.label} htmlFor="prixVenteHT">
+                  {franchiseTVA ? 'Prix de vente' : 'Prix vente HT'} <span className={styles.req}>*</span>
+                </label>
+                <div className={styles.inputWithUnit}>
+                  <input
+                    id="prixVenteHT"
+                    className={`${styles.input} ${errors.prixVenteHT ? styles.inputError : ''}`}
+                    inputMode="decimal"
+                    placeholder="0.00"
+                    {...register('prixVenteHT', { onBlur: onHTBlur })}
+                  />
+                  <span className={styles.unit}>€</span>
+                </div>
+                {errors.prixVenteHT && <span className={styles.error}>{errors.prixVenteHT.message}</span>}
+              </div>
+              <div className={styles.prixArrow} title={franchiseTVA ? 'TVA non applicable' : `TVA ${tauxTVA} %`}>
+                {franchiseTVA ? '=' : '—'}
+              </div>
+              <div className={styles.field} style={{ flex: 1 }}>
+                <label className={styles.label} htmlFor="prixVenteTTC">
+                  Prix vente TTC {franchiseTVA && <span style={{ color: 'var(--text-soft)', fontWeight: 400 }}>(TVA non applicable)</span>}
+                </label>
+                <div className={styles.inputWithUnit}>
+                  <input
+                    id="prixVenteTTC"
+                    className={styles.input}
+                    inputMode="decimal"
+                    placeholder="0.00"
+                    value={prixTTC}
+                    onChange={onTTCChange}
+                    onBlur={onTTCBlur}
+                    readOnly={franchiseTVA}
+                    style={franchiseTVA ? { background: 'var(--cream)', color: 'var(--text-soft)' } : {}}
+                  />
+                  <span className={styles.unit}>€</span>
+                </div>
+              </div>
+            </div>
+            <div className={styles.row2}>
+              <div className={styles.field}>
+                <label className={styles.label} htmlFor="prixAchatLotHT">Prix lot HT</label>
+                <div className={styles.inputWithUnit}>
+                  <input id="prixAchatLotHT" className={styles.input} inputMode="decimal" placeholder="0.00" {...register('prixAchatLotHT')} />
+                  <span className={styles.unit}>€</span>
+                </div>
+              </div>
+              <div className={styles.field}>
+                <label className={styles.label} htmlFor="prixAchatLotQte">Qté par lot</label>
+                <input id="prixAchatLotQte" className={styles.input} inputMode="numeric" placeholder="ex : 5" {...register('prixAchatLotQte')} />
+              </div>
+            </div>
+            <div className={styles.row2}>
+              <div className={styles.field}>
+                <label className={styles.label} htmlFor="prixAchatHT">
+                  Prix d'achat unitaire HT
+                  {lotValide && <span className={styles.calcBadge}>⚡ calculé depuis le lot</span>}
+                </label>
+                <div className={styles.inputWithUnit}>
+                  <input
+                    id="prixAchatHT"
+                    className={styles.input}
+                    inputMode="decimal"
+                    placeholder="0.00"
+                    readOnly={lotValide}
+                    style={lotValide ? { background: 'var(--cream)', color: 'var(--text-soft)', cursor: 'not-allowed' } : {}}
+                    {...register('prixAchatHT')}
+                  />
+                  <span className={styles.unit}>€</span>
+                </div>
+                {lotValide && prixUnitaireCalcule !== null && (
+                  <p className={styles.calcHint}>
+                    {Number(watchLotHT).toFixed(2)} € ÷ {watchLotQte} = {prixUnitaireCalcule.toFixed(4)} € / unité
+                  </p>
+                )}
+              </div>
+              <div className={styles.field}>
+                <label className={styles.label} htmlFor="stock">Stock initial</label>
+                <input id="stock" className={styles.input} inputMode="numeric" placeholder="0" {...register('stock')} />
+              </div>
+            </div>
+            <DualRangeSlider
+              alerte={watchStockAlerte}
+              tension={watchStockTension}
+              max={Math.max((watchStockTension || 0) * 2, 50)}
+              onChange={handleSeuils}
+            />
+          </div>
+
+          {/* Librairie */}
+          {isLibrairie && (
+            <div className={styles.section}>
+              <p className={styles.sectionLabel}>Librairie</p>
+              {isEdit ? (
+                <>
+                  <div className={styles.field}>
+                    <label className={styles.label} htmlFor="isbn">ISBN</label>
+                    {bnfSearchRow}
+                  </div>
+                  {bnfFeedback}
+                </>
+              ) : (
+                <div className={styles.field}>
+                  <label className={styles.label} htmlFor="isbn">ISBN</label>
+                  <input id="isbn" className={styles.input} {...register('isbn')} placeholder="978-…" />
+                </div>
+              )}
+              <div className={styles.field}>
+                <label className={styles.label} htmlFor="datePublication">Date de publication</label>
+                <input id="datePublication" type="date" className={styles.input} {...register('datePublication')} />
+              </div>
+              <div className={styles.field}>
+                <label className={styles.label}>Auteur{!reseauOnly ? 's' : ''}</label>
+                {reseauOnly ? (
+                  <div className={styles.auteurVirtuel}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, color: 'var(--sage)' }}>
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                    </svg>
+                    <span className={styles.auteurVirtuelNom}>{tenant?.name ?? "Votre maison d'édition"}</span>
+                    <span className={styles.auteurVirtuelBadge}>Auteur assigné automatiquement</span>
+                  </div>
+                ) : (
+                  <>
+                    <input
+                      className={styles.auteurSearch}
+                      placeholder="Rechercher un auteur…"
+                      value={auteurSearch}
+                      onChange={(e) => setAuteurSearch(e.target.value)}
+                    />
+                    <div className={styles.auteurList}>
+                      {filteredAuteurs.length === 0 && (
+                        <p className={styles.auteurEmpty}>Aucun auteur trouvé.</p>
+                      )}
+                      {filteredAuteurs.map((a) => {
+                        const selected = auteurIds.includes(a.id)
+                        return (
+                          <label key={a.id} className={`${styles.auteurRow} ${selected ? styles.auteurRowSelected : ''}`}>
+                            <input type="checkbox" className={styles.auteurCheck} checked={selected} onChange={() => toggleAuteur(a.id)} />
+                            <span>{a.pseudonyme ?? `${a.prenom} ${a.nom}`}</span>
+                          </label>
+                        )
+                      })}
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           )}
-          <div className={styles.field}>
-            <label className={styles.label}>Auteur{!reseauOnly ? 's' : ''}</label>
-            {reseauOnly ? (
-              /* Auto-édition : auteur virtuel assigné automatiquement */
-              <div className={styles.auteurVirtuel}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, color: 'var(--sage)' }}>
-                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
-                </svg>
-                <span className={styles.auteurVirtuelNom}>{tenant?.name ?? 'Votre maison d\'édition'}</span>
-                <span className={styles.auteurVirtuelBadge}>Auteur assigné automatiquement</span>
+
+          {/* Impression */}
+          {imprimeurs.length > 0 && (
+            <div className={styles.section}>
+              <p className={styles.sectionLabel}>Impression</p>
+              <div className={styles.field}>
+                <label className={styles.label} htmlFor="imprimeurId">Imprimeur</label>
+                <select id="imprimeurId" className={styles.select} {...register('imprimeurId')}>
+                  <option value="">— Aucun —</option>
+                  {imprimeurs.map(imp => <option key={imp.id} value={imp.id}>{imp.nom}</option>)}
+                </select>
               </div>
-            ) : (
-              <>
-                <input
-                  className={styles.auteurSearch}
-                  placeholder="Rechercher un auteur…"
-                  value={auteurSearch}
-                  onChange={(e) => setAuteurSearch(e.target.value)}
-                />
-                <div className={styles.auteurList}>
-                  {filteredAuteurs.length === 0 && (
-                    <p className={styles.auteurEmpty}>Aucun auteur trouvé.</p>
-                  )}
-                  {filteredAuteurs.map((a) => {
-                    const selected = auteurIds.includes(a.id)
-                    return (
-                      <label key={a.id} className={`${styles.auteurRow} ${selected ? styles.auteurRowSelected : ''}`}>
-                        <input
-                          type="checkbox"
-                          className={styles.auteurCheck}
-                          checked={selected}
-                          onChange={() => toggleAuteur(a.id)}
-                        />
-                        <span>{a.pseudonyme ?? `${a.prenom} ${a.nom}`}</span>
-                      </label>
-                    )
-                  })}
-                </div>
-              </>
-            )}
+            </div>
+          )}
+
+          {selectedRayonId && (
+            <CustomFieldsRenderer rayonId={selectedRayonId} register={register} errors={errors} />
+          )}
+
+          {isError && <p className={styles.errorGlobal}>Une erreur est survenue. Veuillez réessayer.</p>}
+
+          {isEdit && article && (
+            <div style={{
+              padding: '12px 16px', borderRadius: 10,
+              background: article.actif ? 'var(--ink-faint)' : 'rgba(220,38,38,0.06)',
+              border: `1.5px solid ${article.actif ? 'var(--cream-dark)' : 'rgba(220,38,38,0.2)'}`,
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
+            }}>
+              <div>
+                <span style={{ fontSize: '0.82rem', fontWeight: 600, color: article.actif ? 'var(--ink)' : '#DC2626' }}>
+                  {article.actif ? 'Article en catalogue' : 'Article retiré du catalogue'}
+                </span>
+                <p style={{ fontSize: '0.72rem', color: 'var(--text-soft)', margin: '2px 0 0' }}>
+                  {article.actif
+                    ? 'Visible dans les ventes et le catalogue.'
+                    : "Conservé en base pour l'historique. Non disponible à la vente."}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={async () => { await setActif.mutateAsync({ id: article.id, actif: !article.actif }); onClose() }}
+                disabled={setActif.isPending}
+                style={{
+                  padding: '7px 14px', borderRadius: 8, fontSize: '0.78rem', fontWeight: 600,
+                  cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0,
+                  border: article.actif ? '1.5px solid rgba(220,38,38,0.3)' : '1.5px solid rgba(5,150,105,0.3)',
+                  background: article.actif ? 'rgba(220,38,38,0.06)' : 'rgba(5,150,105,0.06)',
+                  color: article.actif ? '#DC2626' : '#059669',
+                  transition: 'background 0.15s',
+                }}
+              >
+                {setActif.isPending ? '…' : article.actif ? 'Retirer du catalogue' : 'Remettre au catalogue'}
+              </button>
+            </div>
+          )}
+
+          {uploadingImage && (
+            <div className={styles.uploadBanner}>
+              <svg className={styles.uploadBannerSpinner} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+              </svg>
+              <span><em className={styles.uploadBannerName}>MeGesti</em> enregistre votre image…</span>
+            </div>
+          )}
+
+          <div className={styles.actions}>
+            {isEdit
+              ? <button type="button" className={styles.btnSecondary} onClick={onClose} disabled={isSubmitting}>Annuler</button>
+              : <button type="button" className={styles.btnSecondary} onClick={() => setStep(isLibrairie ? 'isbn' : 'rayon')}>← Retour</button>
+            }
+            <button type="submit" className={styles.btnPrimary} disabled={isSubmitting}>
+              {uploadingImage ? 'Image en cours…' : isSubmitting ? 'Enregistrement…' : isEdit ? 'Enregistrer' : "Créer l'article"}
+            </button>
           </div>
-        </div>
+        </>
       )}
 
-      {/* •"?•"? Impression •"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"? */}
-      {imprimeurs.length > 0 && (
-        <div className={styles.section}>
-          <p className={styles.sectionLabel}>Impression</p>
-          <div className={styles.field}>
-            <label className={styles.label} htmlFor="imprimeurId">Imprimeur</label>
-            <select id="imprimeurId" className={styles.select} {...register('imprimeurId')}>
-              <option value="">— Aucun —</option>
-              {imprimeurs.map(imp => (
-                <option key={imp.id} value={imp.id}>{imp.nom}</option>
-              ))}
-            </select>
-          </div>
-        </div>
-      )}
-
-      {/* •"?•"? Champs custom du rayon •"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"? */}
-      {selectedRayonId && (
-        <CustomFieldsRenderer rayonId={selectedRayonId} register={register} errors={errors} />
-      )}
-
-      {isError && <p className={styles.errorGlobal}>Une erreur est survenue. Veuillez réessayer.</p>}
-
-      {/* •"?•"? Statut catalogue (mode édition uniquement) •"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"? */}
-      {isEdit && article && (
-        <div style={{
-          padding: '12px 16px',
-          borderRadius: 10,
-          background: article.actif ? 'var(--ink-faint)' : 'rgba(220,38,38,0.06)',
-          border: `1.5px solid ${article.actif ? 'var(--cream-dark)' : 'rgba(220,38,38,0.2)'}`,
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
-        }}>
-          <div>
-            <span style={{ fontSize: '0.82rem', fontWeight: 600, color: article.actif ? 'var(--ink)' : '#DC2626' }}>
-              {article.actif ? 'Article en catalogue' : 'Article retiré du catalogue'}
-            </span>
-            <p style={{ fontSize: '0.72rem', color: 'var(--text-soft)', margin: '2px 0 0' }}>
-              {article.actif
-                ? 'Visible dans les ventes et le catalogue.'
-                : 'Conservé en base pour l\'historique. Non disponible à la vente.'}
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={async () => {
-              await setActif.mutateAsync({ id: article.id, actif: !article.actif })
-              onClose()
-            }}
-            disabled={setActif.isPending}
-            style={{
-              padding: '7px 14px', borderRadius: 8, fontSize: '0.78rem', fontWeight: 600,
-              cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0,
-              border: article.actif ? '1.5px solid rgba(220,38,38,0.3)' : '1.5px solid rgba(5,150,105,0.3)',
-              background: article.actif ? 'rgba(220,38,38,0.06)' : 'rgba(5,150,105,0.06)',
-              color: article.actif ? '#DC2626' : '#059669',
-              transition: 'background 0.15s',
-            }}
-          >
-            {setActif.isPending ? '…' : article.actif ? 'Retirer du catalogue' : 'Remettre au catalogue'}
-          </button>
-        </div>
-      )}
-
-      {uploadingImage && (
-        <div className={styles.uploadBanner}>
-          <svg className={styles.uploadBannerSpinner} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-            <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
-          </svg>
-          <span>
-            <em className={styles.uploadBannerName}>MeGesti</em> enregistre votre image…
-          </span>
-        </div>
-      )}
-
-      <div className={styles.actions}>
-        <button type="button" className={styles.btnSecondary} onClick={onClose} disabled={isSubmitting}>Annuler</button>
-        <button type="submit" className={styles.btnPrimary} disabled={isSubmitting}>
-          {uploadingImage
-            ? 'Image en cours…'
-            : isSubmitting
-              ? 'Enregistrement…'
-              : isEdit ? 'Enregistrer' : 'Créer l\'article'}
-        </button>
-      </div>
     </form>
   )
 }
-
-
-
-

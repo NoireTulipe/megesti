@@ -1,0 +1,500 @@
+---
+import { site } from '../data/content'
+import Icon from './Icon.astro'
+---
+
+<section class="hero" id="top">
+  <!-- Blobs animés, parallaxe au scroll -->
+  <div class="blobs" aria-hidden="true" data-parallax>
+    <span class="blob blob-rose"  style="--d:0s"></span>
+    <span class="blob blob-mauve" style="--d:-6s"></span>
+    <span class="blob blob-gold"  style="--d:-12s"></span>
+    <span class="blob blob-sage"  style="--d:-3s"></span>
+  </div>
+
+  <!-- Grand logo flottant en fond, très estompé -->
+  <img
+    src="/logo-MeGesti-sans-texte.png"
+    alt=""
+    class="hero-watermark"
+    aria-hidden="true"
+    data-parallax
+  />
+
+  <div class="container-x hero-inner">
+    <div class="hero-copy">
+      <span class="hero-badge">
+        <span class="pulse-dot"></span>
+        {site.availability}
+      </span>
+
+      <h1 class="hero-title">
+        <em>L’atelier</em><br />de l’éditeur
+      </h1>
+
+      <p class="hero-lead">
+        Catalogue, ventes en salon, droits d’auteur et conformité fiscale&nbsp;:
+        <strong>MeGesti réunit tout votre métier d’éditeur</strong> dans un seul outil pensé pour vous.
+      </p>
+
+      <div class="hero-cta">
+        <a href="#forfaits" class="btn btn-primary">
+          Demander un accès
+          <Icon name="arrow" size={18} />
+        </a>
+        <a href={site.appUrl} class="btn btn-ghost">Se connecter</a>
+      </div>
+
+      <ul class="hero-trust">
+        <li><Icon name="check" size={16} /> Facturation électronique 2026-2027</li>
+        <li><Icon name="check" size={16} /> Caisse conforme anti-fraude TVA</li>
+        <li><Icon name="check" size={16} /> Fonctionne hors-ligne en salon</li>
+      </ul>
+    </div>
+
+    <!-- Megestine accueillante + mockup de l'app -->
+    <div class="hero-visual">
+      <div class="mockup-frame">
+        <div class="mockup-bar">
+          <span></span><span></span><span></span>
+          <div class="mockup-url">app.megesti.fr</div>
+        </div>
+        <div class="mockup-screen">
+          <div class="mockup-sidebar">
+            <div class="ms-logo"></div>
+            <div class="ms-nav">
+              <span class="ms-item active"></span>
+              <span class="ms-item"></span>
+              <span class="ms-item"></span>
+              <span class="ms-item"></span>
+              <span class="ms-item"></span>
+            </div>
+          </div>
+          <div class="mockup-content">
+            <div class="mc-head"></div>
+            <div class="mc-cards">
+              <div class="mc-card"></div>
+              <div class="mc-card"></div>
+              <div class="mc-card"></div>
+            </div>
+            <div class="mc-chart">
+              <div class="bar" style="height:40%"></div>
+              <div class="bar" style="height:65%"></div>
+              <div class="bar" style="height:50%"></div>
+              <div class="bar" style="height:85%"></div>
+              <div class="bar" style="height:60%"></div>
+              <div class="bar" style="height:75%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="mockup-shadow" aria-hidden="true"></div>
+
+      <!-- Megestine, la mascotte, avec sa bulle -->
+      <div class="megestine" aria-hidden="true">
+        <div class="megestine-bubble">
+          <span class="bubble-text">Bienvenue&nbsp;! Je suis MeGestine,<br/>votre accompagnatrice.</span>
+        </div>
+        <img src="/mascotte/megestine-1.png" alt="MeGestine, la mascotte MeGesti" class="megestine-img" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Vague de séparation vers la section suivante -->
+  <div class="hero-wave" aria-hidden="true">
+    <svg viewBox="0 0 1440 80" preserveAspectRatio="none">
+      <path d="M0,40 C240,80 480,0 720,32 C960,64 1200,16 1440,48 L1440,80 L0,80 Z" fill="var(--cream)" />
+    </svg>
+  </div>
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    overflow: hidden;
+    padding: 6rem 0 7rem;
+  }
+
+  /* ── Blobs flous animés, parallaxe ─────────────────────── */
+  .blobs {
+    position: absolute;
+    inset: -10% 0 0 0;
+    z-index: 0;
+    pointer-events: none;
+    will-change: transform;
+  }
+  .blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(90px);
+    opacity: 0.5;
+    animation: floatBlob 20s ease-in-out infinite;
+    animation-delay: var(--d);
+  }
+  .blob-rose {
+    width: 480px; height: 480px;
+    background: var(--rose-mid);
+    top: -140px; right: -100px;
+  }
+  .blob-mauve {
+    width: 400px; height: 400px;
+    background: var(--mauve);
+    bottom: -120px; left: -80px;
+  }
+  .blob-gold {
+    width: 300px; height: 300px;
+    background: var(--gold);
+    opacity: 0.28;
+    top: 35%; left: 48%;
+  }
+  .blob-sage {
+    width: 260px; height: 260px;
+    background: var(--sage);
+    opacity: 0.25;
+    bottom: 10%; right: 30%;
+  }
+
+  /* Grand logo en filigrane, animé */
+  .hero-watermark {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 680px;
+    max-width: 70vw;
+    transform: translate(-50%, -50%);
+    opacity: 0.04;
+    z-index: 0;
+    pointer-events: none;
+    animation: gentleFloat 12s ease-in-out infinite;
+    will-change: transform;
+  }
+  @keyframes gentleFloat {
+    0%, 100% { transform: translate(-50%, -50%) rotate(-2deg); }
+    50%      { transform: translate(-50%, -54%) rotate(2deg); }
+  }
+
+  .hero-inner {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: 1.05fr 1fr;
+    gap: 5rem;
+    align-items: center;
+  }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--white);
+    box-shadow: var(--shadow-card);
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-pill);
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--ink-deep);
+    margin-bottom: 1.75rem;
+    animation: fadeUp 0.7s var(--ease-out) both;
+  }
+  .pulse-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--sage);
+    box-shadow: 0 0 0 0 rgba(107, 143, 113, 0.5);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%   { box-shadow: 0 0 0 0 rgba(107,143,113,0.5); }
+    70%  { box-shadow: 0 0 0 8px rgba(107,143,113,0); }
+    100% { box-shadow: 0 0 0 0 rgba(107,143,113,0); }
+  }
+
+  .hero-title {
+    font-size: clamp(3rem, 6.5vw, 5.25rem);
+    line-height: 1.02;
+    margin-bottom: 1.5rem;
+    animation: fadeUp 0.7s var(--ease-out) 0.1s both;
+  }
+  .hero-title em {
+    font-style: italic;
+    color: var(--rose-dark);
+  }
+
+  .hero-lead {
+    font-size: 1.2rem;
+    line-height: 1.6;
+    color: var(--text-mid);
+    max-width: 540px;
+    margin-bottom: 2.25rem;
+    animation: fadeUp 0.7s var(--ease-out) 0.2s both;
+  }
+  .hero-lead strong { color: var(--ink-deep); }
+
+  .hero-cta {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-bottom: 2.5rem;
+    animation: fadeUp 0.7s var(--ease-out) 0.3s both;
+  }
+
+  .hero-trust {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    animation: fadeUp 0.7s var(--ease-out) 0.4s both;
+  }
+  .hero-trust li {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.95rem;
+    color: var(--text-mid);
+  }
+  .hero-trust li :global(svg) {
+    color: var(--sage);
+    flex-shrink: 0;
+  }
+
+  /* ── Mockup ────────────────────────────────────────────── */
+  .hero-visual {
+    position: relative;
+    animation: fadeUp 0.9s var(--ease-out) 0.3s both;
+  }
+  .mockup-frame {
+    position: relative;
+    background: var(--white);
+    border-radius: 18px;
+    box-shadow: var(--shadow-float);
+    overflow: hidden;
+    border: 1px solid var(--cream-dark);
+    z-index: 2;
+    transform: perspective(1400px) rotateY(-6deg) rotateX(2deg);
+    transition: transform 0.6s var(--ease-out);
+  }
+  .mockup-frame:hover {
+    transform: perspective(1400px) rotateY(-3deg) rotateX(1deg) translateY(-4px);
+  }
+  .mockup-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.75rem 1rem;
+    background: var(--cream-mid);
+    border-bottom: 1px solid var(--cream-dark);
+  }
+  .mockup-bar span {
+    width: 11px; height: 11px;
+    border-radius: 50%;
+    background: var(--cream-dark);
+  }
+  .mockup-bar span:nth-child(1) { background: #E0706B; }
+  .mockup-bar span:nth-child(2) { background: #E5B85F; }
+  .mockup-bar span:nth-child(3) { background: #7BB67C; }
+  .mockup-url {
+    margin-left: 0.75rem;
+    padding: 0.25rem 0.85rem;
+    background: var(--white);
+    border-radius: var(--radius-pill);
+    font-size: 0.75rem;
+    color: var(--text-soft);
+    border: 1px solid var(--cream-dark);
+  }
+  .mockup-screen {
+    display: grid;
+    grid-template-columns: 64px 1fr;
+    height: 340px;
+  }
+  .mockup-sidebar {
+    background: var(--gradient-night);
+    padding: 1rem 0.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.85rem;
+  }
+  .ms-logo {
+    width: 32px; height: 32px;
+    border-radius: 9px;
+    background: linear-gradient(135deg, var(--rose), var(--rose-dark));
+    margin-bottom: 0.5rem;
+  }
+  .ms-item {
+    width: 36px; height: 8px;
+    border-radius: 4px;
+    background: rgba(255,255,255,0.15);
+  }
+  .ms-item.active { background: var(--rose-mid); }
+
+  .mockup-content {
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .mc-head {
+    height: 16px;
+    width: 45%;
+    border-radius: 6px;
+    background: var(--cream-dark);
+  }
+  .mc-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+  }
+  .mc-card {
+    height: 64px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--cream-mid), var(--cream-dark));
+  }
+  .mc-chart {
+    flex: 1;
+    display: flex;
+    align-items: flex-end;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    border-radius: 12px;
+    background: var(--cream);
+    border: 1px solid var(--cream-dark);
+  }
+  .mc-chart .bar {
+    flex: 1;
+    background: linear-gradient(180deg, var(--rose), var(--rose-dark));
+    border-radius: 4px 4px 0 0;
+    opacity: 0.85;
+    animation: barGrow 1.2s var(--ease-out) 0.8s both;
+    transform-origin: bottom;
+  }
+  @keyframes barGrow {
+    from { transform: scaleY(0); }
+    to   { transform: scaleY(1); }
+  }
+
+  .mockup-shadow {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: radial-gradient(ellipse at center, var(--rose-glow), transparent 70%);
+    transform: translateY(6%) scale(0.95);
+    filter: blur(40px);
+  }
+
+  /* ── Megestine ─────────────────────────────────────────── */
+  .megestine {
+    position: absolute;
+    bottom: -3rem;
+    right: -2.5rem;
+    display: flex;
+    align-items: flex-end;
+    gap: 0;
+    z-index: 3;
+    animation: fadeUp 0.8s var(--ease-out) 0.7s both;
+  }
+  .megestine-bubble {
+    background: var(--white);
+    border: 1px solid var(--cream-dark);
+    border-radius: 18px;
+    border-bottom-right-radius: 4px;
+    padding: 0.8rem 1.1rem;
+    box-shadow: var(--shadow-hover);
+    max-width: 230px;
+    margin-bottom: 3rem;
+    margin-right: -1rem;
+    position: relative;
+    animation: bubblePop 0.5s var(--ease-spring) 1.2s both;
+  }
+  .megestine-bubble::after {
+    content: '';
+    position: absolute;
+    right: 14px;
+    bottom: -10px;
+    width: 18px;
+    height: 18px;
+    background: var(--white);
+    border-right: 1px solid var(--cream-dark);
+    border-bottom: 1px solid var(--cream-dark);
+    transform: rotate(45deg);
+  }
+  .bubble-text {
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--ink-deep);
+    line-height: 1.4;
+  }
+  @keyframes bubblePop {
+    0%   { opacity: 0; transform: scale(0.6) translateY(10px); }
+    100% { opacity: 1; transform: scale(1) translateY(0); }
+  }
+  .megestine-img {
+    width: 150px;
+    height: auto;
+    filter: drop-shadow(0 12px 24px rgba(44,33,24,0.2));
+    animation: megestineFloat 5s ease-in-out infinite;
+  }
+  @keyframes megestineFloat {
+    0%, 100% { transform: translateY(0) rotate(-2deg); }
+    50%      { transform: translateY(-10px) rotate(2deg); }
+  }
+
+  /* ── Vague de séparation ───────────────────────────────── */
+  .hero-wave {
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    z-index: 2;
+    line-height: 0;
+  }
+  .hero-wave svg {
+    width: 100%;
+    height: 80px;
+    display: block;
+  }
+
+  @media (max-width: 960px) {
+    .hero-inner {
+      grid-template-columns: 1fr;
+      gap: 4rem;
+    }
+    .hero-visual { max-width: 520px; margin: 0 auto; }
+    .megestine {
+      right: -1rem;
+      bottom: -2rem;
+    }
+    .megestine-img { width: 120px; }
+  }
+  @media (max-width: 560px) {
+    .hero { padding: 4rem 0 6rem; }
+    .megestine-bubble { max-width: 180px; }
+    .megestine-img { width: 100px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .blob, .hero-watermark, .megestine-img, .mc-chart .bar { animation: none; }
+  }
+</style>
+
+<script>
+  // Parallaxe doux sur les blobs + watermark au scroll
+  const parallaxEls = document.querySelectorAll<HTMLElement>('[data-parallax]')
+  if (parallaxEls.length && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    let ticking = false
+    const update = () => {
+      const y = window.scrollY
+      parallaxEls.forEach((el, i) => {
+        const speed = el.classList.contains('hero-watermark') ? 0.15 : 0.08 + i * 0.03
+        el.style.transform = el.classList.contains('hero-watermark')
+          ? `translate(-50%, calc(-50% + ${y * speed}px))`
+          : `translateY(${y * speed}px)`
+      })
+      ticking = false
+    }
+    window.addEventListener('scroll', () => {
+      if (!ticking) {
+        requestAnimationFrame(update)
+        ticking = true
+      }
+    }, { passive: true })
+  }
+</script>

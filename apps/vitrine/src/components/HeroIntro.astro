@@ -1,0 +1,261 @@
+---
+import { site } from '../data/content'
+import Icon from './Icon.astro'
+---
+
+<section class="hero-intro">
+  <!-- Fond : nuit profonde + orbes lumineux + grille subtile -->
+  <div class="hero-bg" aria-hidden="true">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+    <div class="grid-overlay"></div>
+    <div class="vignette"></div>
+  </div>
+
+  <div class="intro-content">
+    <!-- Grand logo lumineux -->
+    <div class="intro-logo-wrap">
+      <div class="logo-glow"></div>
+      <img
+        src="/logo-MeGesti.png"
+        alt="MeGesti"
+        class="intro-logo"
+        width="96"
+        height="96"
+      />
+    </div>
+
+    <h1 class="intro-title">
+      <span class="line-1">L’atelier</span>
+      <span class="line-2"><em>de l’éditeur</em></span>
+    </h1>
+
+    <p class="intro-slogan">
+      Le logiciel qui réunit <span class="hl">tout votre métier</span><br/>
+      d’éditeur indépendant.
+    </p>
+
+    <div class="intro-actions">
+      <a href="#pitch" class="btn btn-primary btn-lg">
+        Découvrir MeGesti
+        <Icon name="arrow" size={20} />
+      </a>
+    </div>
+  </div>
+
+  <!-- Indicateur de défilement -->
+  <a href="#pitch" class="scroll-hint" aria-label="Défiler vers le bas">
+    <span class="scroll-text">Découvrir</span>
+    <span class="scroll-mouse"><span class="scroll-wheel"></span></span>
+  </a>
+</section>
+
+<style>
+  .hero-intro {
+    position: relative;
+    min-height: 100vh;
+    min-height: 100svh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background: #0F1A2E;
+    isolation: isolate;
+  }
+
+  /* ── Fond spectaculaire ─────────────────────────────────── */
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background:
+      radial-gradient(ellipse at 30% 20%, #2A1F3D 0%, transparent 55%),
+      radial-gradient(ellipse at 70% 80%, #1A2744 0%, transparent 55%),
+      linear-gradient(160deg, #1E1A2E 0%, #14213D 50%, #0F1A2E 100%);
+  }
+
+  .orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(60px);
+    opacity: 0.55;
+    animation: orbFloat 14s ease-in-out infinite;
+  }
+  .orb-1 {
+    width: 360px; height: 360px;
+    background: radial-gradient(circle, var(--rose) 0%, transparent 70%);
+    top: 10%; left: 8%;
+  }
+  .orb-2 {
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, var(--gold) 0%, transparent 70%);
+    bottom: 5%; right: 10%;
+    animation-delay: -5s;
+  }
+  .orb-3 {
+    width: 280px; height: 280px;
+    background: radial-gradient(circle, var(--mauve) 0%, transparent 70%);
+    top: 55%; left: 45%;
+    animation-delay: -9s;
+    opacity: 0.4;
+  }
+  @keyframes orbFloat {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33%      { transform: translate(40px, -30px) scale(1.1); }
+    66%      { transform: translate(-25px, 25px) scale(0.95); }
+  }
+
+  /* Grille en perspective, très subtile */
+  .grid-overlay {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+    -webkit-mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+  }
+
+  .vignette {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at center, transparent 50%, rgba(15, 26, 46, 0.7) 100%);
+  }
+
+  /* ── Contenu ────────────────────────────────────────────── */
+  .intro-content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 0 1.5rem;
+    max-width: 860px;
+    animation: introEnter 1.2s var(--ease-out) both;
+  }
+  @keyframes introEnter {
+    from { opacity: 0; transform: translateY(40px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .intro-logo-wrap {
+    position: relative;
+    display: inline-block;
+    margin-bottom: 2rem;
+  }
+  .logo-glow {
+    position: absolute;
+    inset: -20px;
+    background: radial-gradient(circle, var(--rose-glow) 0%, transparent 70%);
+    filter: blur(30px);
+    animation: glowPulse 4s ease-in-out infinite;
+  }
+  @keyframes glowPulse {
+    0%, 100% { opacity: 0.6; transform: scale(1); }
+    50%      { opacity: 1; transform: scale(1.15); }
+  }
+  .intro-logo {
+    position: relative;
+    width: 96px;
+    height: 96px;
+    border-radius: 22px;
+    filter: drop-shadow(0 12px 30px rgba(196, 144, 124, 0.4));
+    animation: logoFloat 6s ease-in-out infinite;
+  }
+  @keyframes logoFloat {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-8px); }
+  }
+
+  .intro-title {
+    color: #fff;
+    font-size: clamp(3.5rem, 9vw, 7rem);
+    line-height: 0.98;
+    letter-spacing: -0.02em;
+    margin-bottom: 1.75rem;
+  }
+  .intro-title .line-1,
+  .intro-title .line-2 {
+    display: block;
+  }
+  .intro-title em {
+    font-style: italic;
+    background: linear-gradient(120deg, var(--rose-mid), var(--gold));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+  }
+
+  .intro-slogan {
+    font-size: clamp(1.15rem, 2vw, 1.5rem);
+    color: rgba(255, 255, 255, 0.78);
+    line-height: 1.55;
+    max-width: 620px;
+    margin: 0 auto 2.75rem;
+  }
+  .intro-slogan .hl {
+    color: #fff;
+    font-weight: 600;
+  }
+
+  .intro-actions {
+    display: flex;
+    justify-content: center;
+  }
+  .btn-lg {
+    padding: 1.1rem 2.25rem;
+    font-size: 1.1rem;
+  }
+
+  /* ── Indicateur scroll ──────────────────────────────────── */
+  .scroll-hint {
+    position: absolute;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
+    color: rgba(255, 255, 255, 0.5);
+    text-decoration: none;
+    animation: fadeUp 0.8s var(--ease-out) 1s both;
+  }
+  .scroll-text {
+    font-size: 0.78rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .scroll-mouse {
+    width: 24px;
+    height: 38px;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    border-radius: 12px;
+    display: flex;
+    justify-content: center;
+    padding-top: 6px;
+  }
+  .scroll-wheel {
+    width: 3px;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 2px;
+    animation: scrollWheel 1.8s ease-in-out infinite;
+  }
+  @keyframes scrollWheel {
+    0%   { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(12px); }
+  }
+
+  @media (max-width: 560px) {
+    .intro-logo { width: 76px; height: 76px; }
+    .intro-slogan br { display: none; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .orb, .intro-logo, .logo-glow { animation: none; }
+    .intro-content { animation: none; }
+  }
+</style>

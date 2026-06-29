@@ -1,0 +1,140 @@
+---
+import { site, nav, roadmap } from '../data/content'
+const year = new Date().getFullYear()
+---
+
+<footer class="site-footer">
+  <div class="container-x footer-grid">
+    <div class="footer-brand">
+      <div class="brand-row">
+        <img src="/logo-MeGesti.png" alt="" width="40" height="40" />
+        <span class="brand-name">MeGesti</span>
+      </div>
+      <p class="footer-tagline">{site.tagline} — l’outil des maisons d’édition indépendantes.</p>
+      <p class="footer-hosted">
+        <span aria-hidden="true">🇫🇷</span> Hébergé en France · Données souveraines · Conforme RGPD
+      </p>
+    </div>
+
+    <div class="footer-col">
+      <h4>Produit</h4>
+      {nav.map((item) => (
+        <a href={item.href}>{item.label}</a>
+      ))}
+    </div>
+
+    <div class="footer-col">
+      <h4>Accès</h4>
+      <a href={site.appUrl}>Application</a>
+      <a href={site.adminUrl}>Administration</a>
+      <a href="#forfaits">Demander un accès</a>
+    </div>
+
+    <div class="footer-col">
+      <h4>Bientôt disponible</h4>
+      {roadmap.map((item) => (
+        <span class="roadmap-item">{item}</span>
+      ))}
+    </div>
+  </div>
+
+  <div class="container-x footer-bottom">
+    <p>© {year} MeGesti — Tous droits réservés</p>
+    <div class="legal-links">
+      <a href="/mentions-legales">Mentions légales</a>
+      <a href="/confidentialite">Confidentialité</a>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    background: var(--gradient-night);
+    color: rgba(255, 255, 255, 0.72);
+    padding: 4rem 0 2rem;
+    margin-top: 6rem;
+    position: relative;
+    z-index: 1;
+  }
+  .footer-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1.2fr;
+    gap: 3rem;
+    padding-bottom: 3rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  .footer-brand .brand-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 1rem;
+  }
+  .footer-brand img { border-radius: 10px; }
+  .brand-name {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.6rem;
+    color: #fff;
+  }
+  .footer-tagline {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 1.25rem;
+    max-width: 320px;
+  }
+  .footer-hosted {
+    font-size: 0.85rem;
+    color: var(--rose-mid);
+    font-weight: 500;
+  }
+  .footer-col {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .footer-col h4 {
+    color: #fff;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+  .footer-col a {
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 0.95rem;
+    transition: color 0.2s;
+  }
+  .footer-col a:hover { color: var(--rose-mid); }
+  .roadmap-item {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.5);
+    font-style: italic;
+  }
+  .footer-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 1.5rem;
+    font-size: 0.85rem;
+  }
+  .legal-links { display: flex; gap: 1.5rem; }
+  .legal-links a { color: rgba(255, 255, 255, 0.6); transition: color 0.2s; }
+  .legal-links a:hover { color: #fff; }
+
+  @media (max-width: 900px) {
+    .footer-grid {
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+    }
+    .footer-brand { grid-column: 1 / -1; }
+  }
+  @media (max-width: 560px) {
+    .footer-grid { grid-template-columns: 1fr; }
+    .footer-bottom {
+      flex-direction: column;
+      gap: 1rem;
+      text-align: center;
+    }
+  }
+</style>

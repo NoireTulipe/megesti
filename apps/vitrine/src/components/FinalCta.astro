@@ -1,0 +1,73 @@
+---
+import { site } from '../data/content'
+import Icon from './Icon.astro'
+---
+
+<section class="final-cta" id="contact">
+  <div class="cta-bg" aria-hidden="true"></div>
+  <div class="container-x cta-inner reveal">
+    <span class="eyebrow" style="color:var(--rose-mid)">
+      <Icon name="sparkle" size={16} /> {site.availability}
+    </span>
+    <h2>Prêt à <em>reprendre la main</em><br />sur votre maison d’édition&nbsp;?</h2>
+    <p>
+      Rejoignez les premiers éditeurs accompagnés pour le lancement.
+      On vous ouvre l’accès, on configure votre espace, et vous démarrez.
+    </p>
+    <div class="cta-actions">
+      <a href={`mailto:contact@${site.domain}?subject=Demande%20d'accès%20MeGesti`} class="btn btn-primary">
+        Demander un accès
+        <Icon name="arrow" size={18} />
+      </a>
+      <a href={site.appUrl} class="btn btn-on-dark">Découvrir l’application</a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .final-cta {
+    position: relative;
+    padding: 6rem 0;
+    overflow: hidden;
+  }
+  .cta-bg {
+    position: absolute;
+    inset: 0;
+    background: var(--gradient-night);
+    z-index: 0;
+  }
+  .cta-bg::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at 20% 50%, rgba(196,144,124,0.2), transparent 50%),
+      radial-gradient(circle at 80% 50%, rgba(201,147,58,0.12), transparent 50%);
+  }
+  .cta-inner {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    max-width: 680px;
+  }
+  .cta-inner h2 {
+    color: #fff;
+    margin: 1rem 0 1.25rem;
+  }
+  .cta-inner h2 em {
+    color: var(--rose-mid);
+    font-style: italic;
+  }
+  .cta-inner p {
+    color: rgba(255,255,255,0.75);
+    font-size: 1.1rem;
+    margin-bottom: 2rem;
+    line-height: 1.6;
+  }
+  .cta-actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+</style>

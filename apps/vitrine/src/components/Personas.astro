@@ -1,0 +1,66 @@
+---
+import { personas } from '../data/content'
+import Icon from './Icon.astro'
+---
+
+<section class="personas">
+  <div class="container-x">
+    <div class="section-head reveal">
+      <span class="eyebrow"><Icon name="sparkle" size={16} /> Pour qui</span>
+      <h2><em>{personas.title}</em></h2>
+      <p class="section-sub">{personas.intro}</p>
+    </div>
+
+    <div class="personas-grid">
+      {personas.items.map((p, i) => (
+        <article class="persona-card reveal" style={`transition-delay:${i * 80}ms`}>
+          <h3>{p.title}</h3>
+          <p>{p.text}</p>
+        </article>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .personas {
+    padding: 5rem 0;
+    position: relative;
+    z-index: 1;
+  }
+  .personas-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+  .persona-card {
+    text-align: center;
+    padding: 2.25rem 1.75rem;
+    border-radius: var(--radius-card);
+    background: var(--white);
+    border: 1px solid var(--cream-dark);
+    transition: transform 0.3s var(--ease-out), box-shadow 0.3s var(--ease-out);
+  }
+  .persona-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-hover);
+  }
+  .persona-card h3 {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 700;
+    font-size: 1.15rem;
+    color: var(--ink-deep);
+    margin-bottom: 0.75rem;
+  }
+  .persona-card p {
+    color: var(--text-mid);
+    font-size: 0.98rem;
+    line-height: 1.6;
+  }
+
+  @media (max-width: 760px) {
+    .personas-grid { grid-template-columns: 1fr; }
+  }
+</style>

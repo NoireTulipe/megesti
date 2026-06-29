@@ -1,0 +1,79 @@
+---
+import { faq } from '../data/content'
+import Icon from './Icon.astro'
+---
+
+<section class="faq" id="faq">
+  <div class="container-x faq-inner">
+    <div class="section-head reveal">
+      <span class="eyebrow"><Icon name="sparkle" size={16} /> Questions fréquentes</span>
+      <h2>On vous <em>éclaire</em></h2>
+    </div>
+
+    <div class="faq-list">
+      {faq.map((item, i) => (
+        <details class="faq-item reveal" style={`transition-delay:${i * 50}ms`}>
+          <summary>
+            <span>{item.q}</span>
+            <span class="faq-icon" aria-hidden="true"><Icon name="arrow" size={18} /></span>
+          </summary>
+          <div class="faq-answer">{item.a}</div>
+        </details>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .faq {
+    padding: 5rem 0;
+    position: relative;
+    z-index: 1;
+  }
+  .faq-inner { max-width: 760px; }
+  .faq-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .faq-item {
+    background: var(--white);
+    border: 1px solid var(--cream-dark);
+    border-radius: var(--radius-input);
+    overflow: hidden;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .faq-item[open] {
+    border-color: var(--rose-mid);
+    box-shadow: var(--shadow-card);
+  }
+  .faq-item summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.25rem 1.5rem;
+    cursor: pointer;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 600;
+    font-size: 1.02rem;
+    color: var(--ink-deep);
+    list-style: none;
+  }
+  .faq-item summary::-webkit-details-marker { display: none; }
+  .faq-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--rose);
+    transition: transform 0.3s var(--ease-out);
+    flex-shrink: 0;
+  }
+  .faq-item[open] .faq-icon { transform: rotate(90deg); }
+  .faq-answer {
+    padding: 0 1.5rem 1.35rem;
+    color: var(--text-mid);
+    line-height: 1.6;
+    font-size: 0.98rem;
+  }
+</style>

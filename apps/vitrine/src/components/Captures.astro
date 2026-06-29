@@ -1,0 +1,168 @@
+---
+import { site } from '../data/content'
+import Icon from './Icon.astro'
+
+// Tente de récupérer les captures depuis l'API publique (Phase 2).
+// Si l'API n'est pas encore prête ou vide → mockups élégants.
+let captures: { titre: string; imageUrl: string; section?: string }[] = []
+let apiReachable = false
+try {
+  const res = await fetch(`${site.apiUrl}/api/public/captures`, {
+    signal: AbortSignal.timeout(2500),
+  })
+  if (res.ok) {
+    const data = await res.json()
+    captures = Array.isArray(data) ? data : data.captures ?? []
+    apiReachable = captures.length > 0
+  }
+} catch {
+  // API non joignable (build précoce) → fallback mockups
+}
+
+const mockups = [
+  { titre: 'Catalogue', section: 'catalogue' },
+  { titre: 'Droits d’auteur', section: 'droits-auteur' },
+  { titre: 'Caisse salon', section: 'caisse' },
+]
+---
+
+<section class="captures" id="captures">
+  <div class="container-x">
+    <div class="section-head reveal">
+      <span class="eyebrow"><Icon name="sparkle" size={16} /> En images</span>
+      <h2>Un outil qui se <em>regarde</em></h2>
+      <p class="section-sub">
+        Une interface épurée, pensée par des éditeurs pour des éditeurs.
+        {apiReachable ? '' : 'Captures à venir — voici un aperçu de l’esprit visuel.'}
+      </p>
+    </div>
+
+    <div class="captures-grid">
+      {apiReachable ? (
+        captures.map((c, i) => (
+          <figure class="capture-card reveal" style={`transition-delay:${i * 80}ms`}>
+            <div class="capture-frame">
+              <img src={c.imageUrl} alt={c.titre} loading="lazy" />
+            </div>
+            <figcaption>{c.titre}</figcaption>
+          </figure>
+        ))
+      ) : (
+        mockups.map((m, i) => (
+          <figure class="capture-card reveal" style={`transition-delay:${i * 80}ms`}>
+            <div class="capture-frame mockup-capture" data-section={m.section}>
+              <div class="mc-mock">
+                <div class="mc-bar"><span></span><span></span><span></span></div>
+                <div class="mc-body">
+                  <div class="mc-line w60"></div>
+                  <div class="mc-grid">
+                    <div></div><div></div><div></div>
+                  </div>
+                  <div class="mc-line w40"></div>
+                </div>
+              </div>
+            </div>
+            <figcaption>{m.titre}</figcaption>
+          </figure>
+        ))
+      )}
+    </div>
+  </div>
+</section>
+
+<style>
+  .captures {
+    padding: 5rem 0;
+    position: relative;
+    z-index: 1;
+  }
+  .captures-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+  }
+  .capture-card {
+    margin: 0;
+  }
+  .capture-frame {
+    border-radius: var(--radius-card);
+    overflow: hidden;
+    background: var(--white);
+    border: 1px solid var(--cream-dark);
+    box-shadow: var(--shadow-card);
+    transition: transform 0.3s var(--ease-out), box-shadow 0.3s var(--ease-out);
+    aspect-ratio: 4 / 3;
+  }
+  .capture-card:hover .capture-frame {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-hover);
+  }
+  .capture-frame img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+  }
+
+  /* Mockup de fallback */
+  .mockup-capture {
+    padding: 0;
+    display: flex;
+  }
+  .mc-mock {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: var(--cream);
+  }
+  .mc-bar {
+    display: flex;
+    gap: 0.3rem;
+    padding: 0.7rem 0.9rem;
+    background: var(--cream-mid);
+    border-bottom: 1px solid var(--cream-dark);
+  }
+  .mc-bar span {
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    background: var(--cream-dark);
+  }
+  .mc-body {
+    flex: 1;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .mc-line {
+    height: 10px;
+    border-radius: 5px;
+    background: var(--cream-dark);
+  }
+  .w60 { width: 60%; }
+  .w40 { width: 40%; }
+  .mc-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+    margin: 0.5rem 0;
+  }
+  .mc-grid > div {
+    aspect-ratio: 1;
+    border-radius: 8px;
+    background: linear-gradient(135deg, var(--rose-light), var(--cream-dark));
+  }
+  [data-section='caisse'] .mc-grid > div { background: linear-gradient(135deg, var(--sage-light), var(--cream-dark)); }
+  [data-section='droits-auteur'] .mc-grid > div { background: linear-gradient(135deg, var(--mauve-light), var(--cream-dark)); }
+
+  figcaption {
+    text-align: center;
+    margin-top: 0.85rem;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 600;
+    color: var(--ink-deep);
+    font-size: 0.98rem;
+  }
+
+  @media (max-width: 860px) {
+    .captures-grid { grid-template-columns: 1fr; max-width: 480px; margin: 0 auto; }
+  }
+</style>

@@ -1,0 +1,164 @@
+---
+import { site, nav } from '../data/content'
+import Icon from './Icon.astro'
+
+const year = new Date().getFullYear()
+---
+
+<header class="site-header" id="site-header">
+  <div class="container-x header-inner">
+    <a href="/" class="brand" aria-label={`${site.name} — accueil`}>
+      <img src="/logo-MeGesti.png" alt={`${site.name}`} width="40" height="40" />
+      <span class="brand-name">MeGesti</span>
+    </a>
+
+    <nav class="desktop-nav" aria-label="Navigation principale">
+      {nav.map((item) => (
+        <a href={item.href} class="nav-link">{item.label}</a>
+      ))}
+    </nav>
+
+    <div class="header-actions">
+      <a href={site.appUrl} class="btn btn-ghost btn-sm">Se connecter</a>
+      <a href="#forfaits" class="btn btn-primary btn-sm">Demander un accès</a>
+      <button class="menu-toggle" id="menu-toggle" aria-label="Ouvrir le menu" aria-expanded="false">
+        <Icon name="menu" size={24} />
+      </button>
+    </div>
+  </div>
+
+  <!-- Menu mobile -->
+  <div class="mobile-nav" id="mobile-nav" hidden>
+    {nav.map((item) => (
+      <a href={item.href} class="mobile-nav-link" data-close>{item.label}</a>
+    ))}
+    <div class="mobile-nav-actions">
+      <a href={site.appUrl} class="btn btn-ghost btn-block" data-close>Se connecter</a>
+      <a href="#forfaits" class="btn btn-primary btn-block" data-close>Demander un accès</a>
+    </div>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(250, 247, 242, 0.82);
+    backdrop-filter: blur(14px);
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.3s var(--ease-out), background 0.3s var(--ease-out);
+  }
+  .site-header.scrolled {
+    border-bottom-color: var(--cream-dark);
+  }
+  .header-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 72px;
+    gap: 1rem;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-shrink: 0;
+  }
+  .brand img {
+    border-radius: 10px;
+  }
+  .brand-name {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.5rem;
+    color: var(--ink-deep);
+  }
+  .desktop-nav {
+    display: flex;
+    gap: 0.25rem;
+    margin-inline: auto;
+  }
+  .nav-link {
+    padding: 0.5rem 0.85rem;
+    border-radius: var(--radius-pill);
+    font-weight: 500;
+    font-size: 0.95rem;
+    color: var(--text-mid);
+    transition: color 0.2s, background 0.2s;
+  }
+  .nav-link:hover {
+    color: var(--ink-deep);
+    background: var(--cream-mid);
+  }
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+  }
+  .btn-sm {
+    padding: 0.6rem 1.1rem;
+    font-size: 0.9rem;
+  }
+  .menu-toggle {
+    display: none;
+    background: transparent;
+    border: none;
+    color: var(--ink-deep);
+    cursor: pointer;
+    padding: 0.4rem;
+    border-radius: 10px;
+  }
+  .menu-toggle:hover { background: var(--cream-mid); }
+
+  .mobile-nav[hidden] { display: none !important; }
+
+  .mobile-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 1rem 1.5rem 1.5rem;
+    background: var(--cream);
+    border-bottom: 1px solid var(--cream-dark);
+  }
+  .mobile-nav-link {
+    padding: 0.85rem 0.5rem;
+    font-weight: 500;
+    color: var(--ink-deep);
+    border-bottom: 1px solid var(--cream-mid);
+  }
+  .mobile-nav-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 1rem;
+  }
+  .btn-block { width: 100%; }
+
+  @media (max-width: 900px) {
+    .desktop-nav { display: none; }
+    .header-actions .btn { display: none; }
+    .menu-toggle { display: inline-flex; }
+  }
+</style>
+
+<script>
+  // Sticky shadow au scroll
+  const header = document.getElementById('site-header')
+  const onScroll = () => header?.classList.toggle('scrolled', window.scrollY > 8)
+  onScroll()
+  window.addEventListener('scroll', onScroll, { passive: true })
+
+  // Menu mobile
+  const toggle = document.getElementById('menu-toggle')
+  const menu = document.getElementById('mobile-nav')
+  const setOpen = (open: boolean) => {
+    if (!menu || !toggle) return
+    menu.hidden = !open
+    toggle.setAttribute('aria-expanded', String(open))
+  }
+  toggle?.addEventListener('click', () => setOpen(menu?.hidden ?? true))
+  menu?.querySelectorAll('[data-close]').forEach((el) =>
+    el.addEventListener('click', () => setOpen(false))
+  )
+</script>
