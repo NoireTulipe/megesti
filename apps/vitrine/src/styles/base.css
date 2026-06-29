@@ -75,6 +75,13 @@
     padding-inline: 1.5rem;
   }
 
+  /* Convention d'espacement uniforme pour les en-têtes de section.
+     Toutes les sections appliquent .section-head, suivi de leur contenu.
+     Cette marge garantit une respiration homogène partout. */
+  .section-head {
+    margin-bottom: 3.5rem;
+  }
+
   /* Eyebrow / sur-titre */
   .eyebrow {
     display: inline-flex;

@@ -14,15 +14,13 @@ import Icon from './Icon.astro'
   </div>
 
   <div class="intro-content">
-    <!-- Grand logo lumineux -->
+    <!-- Grand logo lumineux (format libre, non tronqué) -->
     <div class="intro-logo-wrap">
       <div class="logo-glow"></div>
       <img
         src="/logo-MeGesti.png"
         alt="MeGesti"
         class="intro-logo"
-        width="96"
-        height="96"
       />
     </div>
 
@@ -156,9 +154,8 @@ import Icon from './Icon.astro'
   }
   .intro-logo {
     position: relative;
-    width: 96px;
-    height: 96px;
-    border-radius: 22px;
+    width: 180px;
+    height: auto;
     filter: drop-shadow(0 12px 30px rgba(196, 144, 124, 0.4));
     animation: logoFloat 6s ease-in-out infinite;
   }
