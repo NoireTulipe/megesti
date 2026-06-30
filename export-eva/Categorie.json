@@ -1,0 +1,34 @@
+[
+    {
+        "id": 1,
+        "nom": "Roman"
+    },
+    {
+        "id": 4,
+        "nom": "Jeunesse"
+    },
+    {
+        "id": 6,
+        "nom": "Goodie"
+    },
+    {
+        "id": 7,
+        "nom": "Peluche"
+    },
+    {
+        "id": 8,
+        "nom": "Porte Clé"
+    },
+    {
+        "id": 9,
+        "nom": "Nouvelle"
+    },
+    {
+        "id": 10,
+        "nom": "Poésie"
+    },
+    {
+        "id": 11,
+        "nom": "Essai"
+    }
+]

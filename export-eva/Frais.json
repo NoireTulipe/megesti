@@ -1,0 +1,58 @@
+[
+    {
+        "createdAt": 1775323699645,
+        "id": 2,
+        "libelle": "Repas midi",
+        "montant": 20.0,
+        "sessionId": 11,
+        "typeFraisId": 3
+    },
+    {
+        "createdAt": 1775323720842,
+        "id": 3,
+        "libelle": "Essence",
+        "montant": 80.0,
+        "sessionId": 11,
+        "typeFraisId": 1
+    },
+    {
+        "createdAt": 1776261665462,
+        "id": 4,
+        "libelle": "Midi",
+        "montant": 5.0,
+        "sessionId": 15,
+        "typeFraisId": 3
+    },
+    {
+        "createdAt": 1776410480758,
+        "id": 5,
+        "libelle": "Essence",
+        "montant": 50.0,
+        "sessionId": 16,
+        "typeFraisId": 1
+    },
+    {
+        "createdAt": 1776597917020,
+        "id": 6,
+        "libelle": "Repas",
+        "montant": 6.0,
+        "sessionId": 17,
+        "typeFraisId": 3
+    },
+    {
+        "createdAt": 1777126949066,
+        "id": 8,
+        "libelle": "Repas",
+        "montant": 15.5,
+        "sessionId": 18,
+        "typeFraisId": 3
+    },
+    {
+        "createdAt": 1777733601051,
+        "id": 9,
+        "libelle": "Essence",
+        "montant": 20.0,
+        "sessionId": 20,
+        "typeFraisId": 1
+    }
+]

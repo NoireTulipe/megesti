@@ -1,0 +1,22 @@
+[
+    {
+        "id": 1,
+        "nom": "Dépôt PDV"
+    },
+    {
+        "id": 2,
+        "nom": "Retour dépôt"
+    },
+    {
+        "id": 3,
+        "nom": "Don"
+    },
+    {
+        "id": 4,
+        "nom": "Service presse"
+    },
+    {
+        "id": 5,
+        "nom": "Usage personnel"
+    }
+]

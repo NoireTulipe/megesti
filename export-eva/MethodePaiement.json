@@ -1,0 +1,26 @@
+[
+    {
+        "id": 1,
+        "nom": "Espèces"
+    },
+    {
+        "id": 2,
+        "nom": "Carte bancaire"
+    },
+    {
+        "id": 3,
+        "nom": "Chèque"
+    },
+    {
+        "id": 4,
+        "nom": "Virement"
+    },
+    {
+        "id": 5,
+        "nom": "PayPal"
+    },
+    {
+        "id": 7,
+        "nom": "Lydia"
+    }
+]

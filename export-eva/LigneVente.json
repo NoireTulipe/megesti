@@ -1,0 +1,1946 @@
+[
+    {
+        "createdAt": 1775323026441,
+        "id": 29,
+        "prixUnitaire": 2.5,
+        "produitId": 13,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 22
+    },
+    {
+        "createdAt": 1775323076355,
+        "id": 30,
+        "prixUnitaire": 2.5,
+        "produitId": 5,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 23
+    },
+    {
+        "createdAt": 1775323091040,
+        "id": 31,
+        "prixUnitaire": 2.5,
+        "produitId": 34,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 24
+    },
+    {
+        "createdAt": 1775323254209,
+        "id": 32,
+        "prixUnitaire": 5.0,
+        "produitId": 6,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 25
+    },
+    {
+        "createdAt": 1775323254209,
+        "id": 33,
+        "prixUnitaire": 7.5,
+        "produitId": 29,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 25
+    },
+    {
+        "createdAt": 1775323254209,
+        "id": 34,
+        "prixUnitaire": 10.0,
+        "produitId": 7,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 25
+    },
+    {
+        "createdAt": 1775323254209,
+        "id": 35,
+        "prixUnitaire": 9.5,
+        "produitId": 10,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 25
+    },
+    {
+        "createdAt": 1775323254209,
+        "id": 36,
+        "prixUnitaire": 12.5,
+        "produitId": 2,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 25
+    },
+    {
+        "createdAt": 1775323254209,
+        "id": 37,
+        "prixUnitaire": 12.5,
+        "produitId": 1,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 25
+    },
+    {
+        "createdAt": 1775323331962,
+        "id": 38,
+        "prixUnitaire": 20.0,
+        "produitId": 11,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 26
+    },
+    {
+        "createdAt": 1775323331962,
+        "id": 39,
+        "prixUnitaire": 13.9,
+        "produitId": 14,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 26
+    },
+    {
+        "createdAt": 1775323331962,
+        "id": 40,
+        "prixUnitaire": 19.5,
+        "produitId": 19,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 26
+    },
+    {
+        "createdAt": 1775323380951,
+        "id": 41,
+        "prixUnitaire": 12.5,
+        "produitId": 2,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 27
+    },
+    {
+        "createdAt": 1775323380951,
+        "id": 42,
+        "prixUnitaire": 9.5,
+        "produitId": 10,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 27
+    },
+    {
+        "createdAt": 1775323380951,
+        "id": 43,
+        "prixUnitaire": 8.5,
+        "produitId": 16,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 27
+    },
+    {
+        "createdAt": 1775323380951,
+        "id": 44,
+        "prixUnitaire": 8.5,
+        "produitId": 17,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 27
+    },
+    {
+        "createdAt": 1775323380951,
+        "id": 45,
+        "prixUnitaire": 10.0,
+        "produitId": 36,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 27
+    },
+    {
+        "createdAt": 1775323410895,
+        "id": 46,
+        "prixUnitaire": 9.5,
+        "produitId": 10,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 28
+    },
+    {
+        "createdAt": 1775323410895,
+        "id": 47,
+        "prixUnitaire": 9.9,
+        "produitId": 18,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 28
+    },
+    {
+        "createdAt": 1775323648102,
+        "id": 48,
+        "prixUnitaire": 10.0,
+        "produitId": 8,
+        "quantite": 2,
+        "remise": 0.0,
+        "venteId": 29
+    },
+    {
+        "createdAt": 1775323648102,
+        "id": 49,
+        "prixUnitaire": 3.0,
+        "produitId": 26,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 29
+    },
+    {
+        "createdAt": 1775323648102,
+        "id": 50,
+        "prixUnitaire": 2.5,
+        "produitId": 13,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 29
+    },
+    {
+        "createdAt": 1775381618036,
+        "id": 51,
+        "prixUnitaire": 19.5,
+        "produitId": 19,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 30
+    },
+    {
+        "createdAt": 1775654829427,
+        "id": 52,
+        "prixUnitaire": 12.5,
+        "produitId": 2,
+        "quantite": 2,
+        "remise": 0.0,
+        "venteId": 31
+    },
+    {
+        "createdAt": 1775654829427,
+        "id": 53,
+        "prixUnitaire": 10.0,
+        "produitId": 9,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 31
+    },
+    {
+        "createdAt": 1775654829427,
+        "id": 54,
+        "prixUnitaire": 9.5,
+        "produitId": 10,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 31
+    },
+    {
+        "createdAt": 1775654829427,
+        "id": 55,
+        "prixUnitaire": 12.5,
+        "produitId": 15,
+        "quantite": 2,
+        "remise": 0.0,
+        "venteId": 31
+    },
+    {
+        "createdAt": 1775656191685,
+        "id": 56,
+        "prixUnitaire": 10.0,
+        "produitId": 8,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 32
+    },
+    {
+        "createdAt": 1775656191685,
+        "id": 57,
+        "prixUnitaire": 10.0,
+        "produitId": 7,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 32
+    },
+    {
+        "createdAt": 1775656191685,
+        "id": 58,
+        "prixUnitaire": 2.5,
+        "produitId": 35,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 32
+    },
+    {
+        "createdAt": 1775656906303,
+        "id": 59,
+        "prixUnitaire": 7.5,
+        "produitId": 4,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 33
+    },
+    {
+        "createdAt": 1775656906303,
+        "id": 60,
+        "prixUnitaire": 10.0,
+        "produitId": 8,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 33
+    },
+    {
+        "createdAt": 1775813475384,
+        "id": 61,
+        "prixUnitaire": 7.5,
+        "produitId": 4,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 34
+    },
+    {
+        "createdAt": 1775816263364,
+        "id": 62,
+        "prixUnitaire": 12.5,
+        "produitId": 15,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 35
+    },
+    {
+        "createdAt": 1775827294036,
+        "id": 63,
+        "prixUnitaire": 12.5,
+        "produitId": 1,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 36
+    },
+    {
+        "createdAt": 1775827562891,
+        "id": 64,
+        "prixUnitaire": 12.5,
+        "produitId": 2,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 37
+    },
+    {
+        "createdAt": 1775831820768,
+        "id": 65,
+        "prixUnitaire": 7.5,
+        "produitId": 29,
+        "quantite": 2,
+        "remise": 0.0,
+        "venteId": 38
+    },
+    {
+        "createdAt": 1775831820768,
+        "id": 66,
+        "prixUnitaire": 7.5,
+        "produitId": 30,
+        "quantite": 2,
+        "remise": 0.0,
+        "venteId": 38
+    },
+    {
+        "createdAt": 1775831820768,
+        "id": 67,
+        "prixUnitaire": 7.5,
+        "produitId": 33,
+        "quantite": 2,
+        "remise": 0.0,
+        "venteId": 38
+    },
+    {
+        "createdAt": 1775831820768,
+        "id": 68,
+        "prixUnitaire": 7.5,
+        "produitId": 4,
+        "quantite": 2,
+        "remise": 0.0,
+        "venteId": 38
+    },
+    {
+        "createdAt": 1775831820768,
+        "id": 69,
+        "prixUnitaire": 10.0,
+        "produitId": 9,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 38
+    },
+    {
+        "createdAt": 1775831820768,
+        "id": 70,
+        "prixUnitaire": 10.0,
+        "produitId": 8,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 38
+    },
+    {
+        "createdAt": 1775831820768,
+        "id": 71,
+        "prixUnitaire": 9.5,
+        "produitId": 10,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 38
+    },
+    {
+        "createdAt": 1775831820768,
+        "id": 72,
+        "prixUnitaire": 10.0,
+        "produitId": 7,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 38
+    },
+    {
+        "createdAt": 1775831820768,
+        "id": 73,
+        "prixUnitaire": 18.5,
+        "produitId": 3,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 38
+    },
+    {
+        "createdAt": 1775831914972,
+        "id": 74,
+        "prixUnitaire": 9.9,
+        "produitId": 18,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 39
+    },
+    {
+        "createdAt": 1775895176181,
+        "id": 75,
+        "prixUnitaire": 7.5,
+        "produitId": 33,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 40
+    },
+    {
+        "createdAt": 1775896066446,
+        "id": 76,
+        "prixUnitaire": 13.9,
+        "produitId": 14,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 41
+    },
+    {
+        "createdAt": 1775900306774,
+        "id": 77,
+        "prixUnitaire": 9.5,
+        "produitId": 10,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 42
+    },
+    {
+        "createdAt": 1775909817227,
+        "id": 78,
+        "prixUnitaire": 9.5,
+        "produitId": 10,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 43
+    },
+    {
+        "createdAt": 1775909817227,
+        "id": 79,
+        "prixUnitaire": 19.5,
+        "produitId": 19,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 43
+    },
+    {
+        "createdAt": 1775986149034,
+        "id": 80,
+        "prixUnitaire": 12.5,
+        "produitId": 1,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 44
+    },
+    {
+        "createdAt": 1775986149034,
+        "id": 81,
+        "prixUnitaire": 12.5,
+        "produitId": 2,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 44
+    },
+    {
+        "createdAt": 1775986273183,
+        "id": 82,
+        "prixUnitaire": 12.5,
+        "produitId": 2,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 45
+    },
+    {
+        "createdAt": 1775986273183,
+        "id": 83,
+        "prixUnitaire": 9.0,
+        "produitId": 49,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 45
+    },
+    {
+        "createdAt": 1775989651109,
+        "id": 84,
+        "prixUnitaire": 7.5,
+        "produitId": 29,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 46
+    },
+    {
+        "createdAt": 1775989651109,
+        "id": 85,
+        "prixUnitaire": 3.0,
+        "produitId": 57,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 46
+    },
+    {
+        "createdAt": 1775989651109,
+        "id": 86,
+        "prixUnitaire": 4.0,
+        "produitId": 40,
+        "quantite": 2,
+        "remise": 0.0,
+        "venteId": 46
+    },
+    {
+        "createdAt": 1775989657577,
+        "id": 87,
+        "prixUnitaire": 4.0,
+        "produitId": 57,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 47
+    },
+    {
+        "createdAt": 1775990716598,
+        "id": 88,
+        "prixUnitaire": 4.0,
+        "produitId": 57,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 48
+    },
+    {
+        "createdAt": 1775993804388,
+        "id": 89,
+        "prixUnitaire": 12.5,
+        "produitId": 2,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 49
+    },
+    {
+        "createdAt": 1775993804388,
+        "id": 90,
+        "prixUnitaire": 12.5,
+        "produitId": 1,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 49
+    },
+    {
+        "createdAt": 1775993986183,
+        "id": 91,
+        "prixUnitaire": 12.5,
+        "produitId": 2,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 50
+    },
+    {
+        "createdAt": 1775993986183,
+        "id": 92,
+        "prixUnitaire": 12.5,
+        "produitId": 1,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 50
+    },
+    {
+        "createdAt": 1775993995199,
+        "id": 93,
+        "prixUnitaire": 3.0,
+        "produitId": 5,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 51
+    },
+    {
+        "createdAt": 1775994757432,
+        "id": 94,
+        "prixUnitaire": 7.0,
+        "produitId": 48,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 52
+    },
+    {
+        "createdAt": 1775994912791,
+        "id": 95,
+        "prixUnitaire": 14.0,
+        "produitId": 51,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 53
+    },
+    {
+        "createdAt": 1775994952030,
+        "id": 96,
+        "prixUnitaire": 20.0,
+        "produitId": 11,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 54
+    },
+    {
+        "createdAt": 1775994971291,
+        "id": 97,
+        "prixUnitaire": 7.5,
+        "produitId": 29,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 55
+    },
+    {
+        "createdAt": 1775994971291,
+        "id": 98,
+        "prixUnitaire": 7.5,
+        "produitId": 30,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 55
+    },
+    {
+        "createdAt": 1775994971291,
+        "id": 99,
+        "prixUnitaire": 7.5,
+        "produitId": 33,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 55
+    },
+    {
+        "createdAt": 1775994971291,
+        "id": 100,
+        "prixUnitaire": 7.5,
+        "produitId": 4,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 55
+    },
+    {
+        "createdAt": 1775995047150,
+        "id": 101,
+        "prixUnitaire": 40.0,
+        "produitId": 22,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 56
+    },
+    {
+        "createdAt": 1775995190926,
+        "id": 102,
+        "prixUnitaire": 12.5,
+        "produitId": 2,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 57
+    },
+    {
+        "createdAt": 1775995190926,
+        "id": 103,
+        "prixUnitaire": 12.5,
+        "produitId": 1,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 57
+    },
+    {
+        "createdAt": 1775995324848,
+        "id": 104,
+        "prixUnitaire": 4.0,
+        "produitId": 57,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 58
+    },
+    {
+        "createdAt": 1775995324848,
+        "id": 105,
+        "prixUnitaire": 3.0,
+        "produitId": 24,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 58
+    },
+    {
+        "createdAt": 1775996459450,
+        "id": 106,
+        "prixUnitaire": 6.0,
+        "produitId": 47,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 59
+    },
+    {
+        "createdAt": 1775996475654,
+        "id": 107,
+        "prixUnitaire": 6.0,
+        "produitId": 52,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 60
+    },
+    {
+        "createdAt": 1775996534036,
+        "id": 108,
+        "prixUnitaire": 3.0,
+        "produitId": 12,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 61
+    },
+    {
+        "createdAt": 1775998152937,
+        "id": 109,
+        "prixUnitaire": 3.0,
+        "produitId": 26,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 62
+    },
+    {
+        "createdAt": 1775998152937,
+        "id": 110,
+        "prixUnitaire": 3.0,
+        "produitId": 24,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 62
+    },
+    {
+        "createdAt": 1775998206180,
+        "id": 111,
+        "prixUnitaire": 3.0,
+        "produitId": 24,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 63
+    },
+    {
+        "createdAt": 1775998206180,
+        "id": 112,
+        "prixUnitaire": 4.0,
+        "produitId": 57,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 63
+    },
+    {
+        "createdAt": 1776000073420,
+        "id": 113,
+        "prixUnitaire": 4.0,
+        "produitId": 40,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 64
+    },
+    {
+        "createdAt": 1776002576649,
+        "id": 114,
+        "prixUnitaire": 8.0,
+        "produitId": 53,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 65
+    },
+    {
+        "createdAt": 1776077450354,
+        "id": 115,
+        "prixUnitaire": 12.5,
+        "produitId": 1,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 66
+    },
+    {
+        "createdAt": 1776240246579,
+        "id": 116,
+        "prixUnitaire": 12.5,
+        "produitId": 1,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 67
+    },
+    {
+        "createdAt": 1776242348694,
+        "id": 117,
+        "prixUnitaire": 12.5,
+        "produitId": 1,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 68
+    },
+    {
+        "createdAt": 1776242348694,
+        "id": 118,
+        "prixUnitaire": 12.5,
+        "produitId": 15,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 68
+    },
+    {
+        "createdAt": 1776247825772,
+        "id": 119,
+        "prixUnitaire": 12.5,
+        "produitId": 2,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 69
+    },
+    {
+        "createdAt": 1776260804421,
+        "id": 120,
+        "prixUnitaire": 12.5,
+        "produitId": 15,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 70
+    },
+    {
+        "createdAt": 1776260804421,
+        "id": 121,
+        "prixUnitaire": 2.5,
+        "produitId": 26,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 70
+    },
+    {
+        "createdAt": 1776260804421,
+        "id": 122,
+        "prixUnitaire": 4.0,
+        "produitId": 38,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 70
+    },
+    {
+        "createdAt": 1776264763198,
+        "id": 123,
+        "prixUnitaire": 3.0,
+        "produitId": 25,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 71
+    },
+    {
+        "createdAt": 1776267991223,
+        "id": 124,
+        "prixUnitaire": 12.5,
+        "produitId": 2,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 72
+    },
+    {
+        "createdAt": 1776267991223,
+        "id": 125,
+        "prixUnitaire": 12.5,
+        "produitId": 1,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 72
+    },
+    {
+        "createdAt": 1776267991223,
+        "id": 126,
+        "prixUnitaire": 9.9,
+        "produitId": 18,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 72
+    },
+    {
+        "createdAt": 1776267991223,
+        "id": 127,
+        "prixUnitaire": 7.5,
+        "produitId": 29,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 72
+    },
+    {
+        "createdAt": 1776267991223,
+        "id": 128,
+        "prixUnitaire": 7.5,
+        "produitId": 30,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 72
+    },
+    {
+        "createdAt": 1776267991223,
+        "id": 129,
+        "prixUnitaire": 7.5,
+        "produitId": 33,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 72
+    },
+    {
+        "createdAt": 1776267991223,
+        "id": 130,
+        "prixUnitaire": 7.5,
+        "produitId": 4,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 72
+    },
+    {
+        "createdAt": 1776267991223,
+        "id": 131,
+        "prixUnitaire": 10.0,
+        "produitId": 9,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 72
+    },
+    {
+        "createdAt": 1776267991223,
+        "id": 132,
+        "prixUnitaire": 10.0,
+        "produitId": 8,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 72
+    },
+    {
+        "createdAt": 1776267991223,
+        "id": 133,
+        "prixUnitaire": 5.0,
+        "produitId": 50,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 72
+    },
+    {
+        "createdAt": 1776421087264,
+        "id": 134,
+        "prixUnitaire": 12.5,
+        "produitId": 2,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 73
+    },
+    {
+        "createdAt": 1776421087264,
+        "id": 135,
+        "prixUnitaire": 12.5,
+        "produitId": 1,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 73
+    },
+    {
+        "createdAt": 1776422063381,
+        "id": 136,
+        "prixUnitaire": 4.0,
+        "produitId": 57,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 74
+    },
+    {
+        "createdAt": 1776423815638,
+        "id": 137,
+        "prixUnitaire": 12.5,
+        "produitId": 1,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 75
+    },
+    {
+        "createdAt": 1776427093991,
+        "id": 138,
+        "prixUnitaire": 4.0,
+        "produitId": 57,
+        "quantite": 2,
+        "remise": 0.0,
+        "venteId": 76
+    },
+    {
+        "createdAt": 1776427093991,
+        "id": 139,
+        "prixUnitaire": 3.0,
+        "produitId": 24,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 76
+    },
+    {
+        "createdAt": 1776503870688,
+        "id": 140,
+        "prixUnitaire": 12.5,
+        "produitId": 2,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 77
+    },
+    {
+        "createdAt": 1776503870688,
+        "id": 141,
+        "prixUnitaire": 12.5,
+        "produitId": 1,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 77
+    },
+    {
+        "createdAt": 1776503870688,
+        "id": 142,
+        "prixUnitaire": 12.5,
+        "produitId": 15,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 77
+    },
+    {
+        "createdAt": 1776510689533,
+        "id": 143,
+        "prixUnitaire": 18.5,
+        "produitId": 3,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 78
+    },
+    {
+        "createdAt": 1776510689533,
+        "id": 144,
+        "prixUnitaire": 12.5,
+        "produitId": 2,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 78
+    },
+    {
+        "createdAt": 1776510689533,
+        "id": 145,
+        "prixUnitaire": 12.5,
+        "produitId": 1,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 78
+    },
+    {
+        "createdAt": 1776510689533,
+        "id": 146,
+        "prixUnitaire": 7.5,
+        "produitId": 30,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 78
+    },
+    {
+        "createdAt": 1776511605873,
+        "id": 147,
+        "prixUnitaire": 3.0,
+        "produitId": 24,
+        "quantite": 2,
+        "remise": 0.0,
+        "venteId": 79
+    },
+    {
+        "createdAt": 1776518416417,
+        "id": 148,
+        "prixUnitaire": 12.5,
+        "produitId": 1,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 80
+    },
+    {
+        "createdAt": 1776522026238,
+        "id": 149,
+        "prixUnitaire": 18.5,
+        "produitId": 3,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 81
+    },
+    {
+        "createdAt": 1776525043719,
+        "id": 150,
+        "prixUnitaire": 7.5,
+        "produitId": 29,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 82
+    },
+    {
+        "createdAt": 1776527237589,
+        "id": 151,
+        "prixUnitaire": 12.5,
+        "produitId": 2,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 83
+    },
+    {
+        "createdAt": 1776527237589,
+        "id": 152,
+        "prixUnitaire": 12.5,
+        "produitId": 1,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 83
+    },
+    {
+        "createdAt": 1776527592482,
+        "id": 153,
+        "prixUnitaire": 3.0,
+        "produitId": 24,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 84
+    },
+    {
+        "createdAt": 1776588404996,
+        "id": 154,
+        "prixUnitaire": 35.0,
+        "produitId": 23,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 85
+    },
+    {
+        "createdAt": 1776588404996,
+        "id": 155,
+        "prixUnitaire": 40.0,
+        "produitId": 22,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 85
+    },
+    {
+        "createdAt": 1776589730297,
+        "id": 156,
+        "prixUnitaire": 8.0,
+        "produitId": 48,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 86
+    },
+    {
+        "createdAt": 1776589730297,
+        "id": 157,
+        "prixUnitaire": 8.0,
+        "produitId": 53,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 86
+    },
+    {
+        "createdAt": 1776590246266,
+        "id": 158,
+        "prixUnitaire": 7.5,
+        "produitId": 4,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 87
+    },
+    {
+        "createdAt": 1776590246266,
+        "id": 159,
+        "prixUnitaire": 3.5,
+        "produitId": 38,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 87
+    },
+    {
+        "createdAt": 1776593318409,
+        "id": 160,
+        "prixUnitaire": 12.5,
+        "produitId": 1,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 88
+    },
+    {
+        "createdAt": 1776594112342,
+        "id": 161,
+        "prixUnitaire": 3.0,
+        "produitId": 13,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 89
+    },
+    {
+        "createdAt": 1776594112342,
+        "id": 162,
+        "prixUnitaire": 4.0,
+        "produitId": 43,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 89
+    },
+    {
+        "createdAt": 1776601586614,
+        "id": 163,
+        "prixUnitaire": 7.5,
+        "produitId": 29,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 90
+    },
+    {
+        "createdAt": 1776601586614,
+        "id": 164,
+        "prixUnitaire": 7.5,
+        "produitId": 33,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 90
+    },
+    {
+        "createdAt": 1776604500766,
+        "id": 165,
+        "prixUnitaire": 7.5,
+        "produitId": 29,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 91
+    },
+    {
+        "createdAt": 1776604500766,
+        "id": 166,
+        "prixUnitaire": 9.0,
+        "produitId": 49,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 91
+    },
+    {
+        "createdAt": 1776605103953,
+        "id": 167,
+        "prixUnitaire": 12.5,
+        "produitId": 1,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 92
+    },
+    {
+        "createdAt": 1776605403042,
+        "id": 168,
+        "prixUnitaire": 3.0,
+        "produitId": 35,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 93
+    },
+    {
+        "createdAt": 1776605403042,
+        "id": 169,
+        "prixUnitaire": 3.0,
+        "produitId": 24,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 93
+    },
+    {
+        "createdAt": 1776606349826,
+        "id": 170,
+        "prixUnitaire": 18.0,
+        "produitId": 11,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 94
+    },
+    {
+        "createdAt": 1776607843935,
+        "id": 171,
+        "prixUnitaire": 12.5,
+        "produitId": 2,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 95
+    },
+    {
+        "createdAt": 1776608269864,
+        "id": 172,
+        "prixUnitaire": 12.5,
+        "produitId": 2,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 96
+    },
+    {
+        "createdAt": 1776608872472,
+        "id": 173,
+        "prixUnitaire": 18.5,
+        "produitId": 3,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 97
+    },
+    {
+        "createdAt": 1776609449684,
+        "id": 174,
+        "prixUnitaire": 18.5,
+        "produitId": 3,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 98
+    },
+    {
+        "createdAt": 1776609449684,
+        "id": 175,
+        "prixUnitaire": 19.5,
+        "produitId": 19,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 98
+    },
+    {
+        "createdAt": 1776610667147,
+        "id": 176,
+        "prixUnitaire": 3.0,
+        "produitId": 32,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 99
+    },
+    {
+        "createdAt": 1776612585277,
+        "id": 177,
+        "prixUnitaire": 40.0,
+        "produitId": 22,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 100
+    },
+    {
+        "createdAt": 1776612815815,
+        "id": 178,
+        "prixUnitaire": 6.0,
+        "produitId": 47,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 101
+    },
+    {
+        "createdAt": 1776613044748,
+        "id": 179,
+        "prixUnitaire": 6.0,
+        "produitId": 47,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 102
+    },
+    {
+        "createdAt": 1776613491370,
+        "id": 180,
+        "prixUnitaire": 6.0,
+        "produitId": 52,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 103
+    },
+    {
+        "createdAt": 1776613491370,
+        "id": 181,
+        "prixUnitaire": 3.0,
+        "produitId": 12,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 103
+    },
+    {
+        "createdAt": 1776613789977,
+        "id": 182,
+        "prixUnitaire": 4.0,
+        "produitId": 40,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 104
+    },
+    {
+        "createdAt": 1776613829725,
+        "id": 183,
+        "prixUnitaire": 6.0,
+        "produitId": 53,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 105
+    },
+    {
+        "createdAt": 1776613829725,
+        "id": 184,
+        "prixUnitaire": 3.0,
+        "produitId": 12,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 105
+    },
+    {
+        "createdAt": 1776613872482,
+        "id": 185,
+        "prixUnitaire": 6.0,
+        "produitId": 53,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 106
+    },
+    {
+        "createdAt": 1776613872482,
+        "id": 186,
+        "prixUnitaire": 3.0,
+        "produitId": 26,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 106
+    },
+    {
+        "createdAt": 1776614839945,
+        "id": 187,
+        "prixUnitaire": 8.0,
+        "produitId": 53,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 107
+    },
+    {
+        "createdAt": 1776615230662,
+        "id": 188,
+        "prixUnitaire": 4.0,
+        "produitId": 57,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 108
+    },
+    {
+        "createdAt": 1776615250492,
+        "id": 189,
+        "prixUnitaire": 3.5,
+        "produitId": 57,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 109
+    },
+    {
+        "createdAt": 1777102373468,
+        "id": 190,
+        "prixUnitaire": 6.0,
+        "produitId": 52,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 110
+    },
+    {
+        "createdAt": 1777105557554,
+        "id": 191,
+        "prixUnitaire": 3.0,
+        "produitId": 13,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 111
+    },
+    {
+        "createdAt": 1777106187713,
+        "id": 192,
+        "prixUnitaire": 4.0,
+        "produitId": 57,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 112
+    },
+    {
+        "createdAt": 1777106875807,
+        "id": 193,
+        "prixUnitaire": 8.0,
+        "produitId": 48,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 113
+    },
+    {
+        "createdAt": 1777110784273,
+        "id": 194,
+        "prixUnitaire": 12.5,
+        "produitId": 1,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 114
+    },
+    {
+        "createdAt": 1777110784273,
+        "id": 195,
+        "prixUnitaire": 18.5,
+        "produitId": 3,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 114
+    },
+    {
+        "createdAt": 1777110784273,
+        "id": 196,
+        "prixUnitaire": 19.5,
+        "produitId": 19,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 114
+    },
+    {
+        "createdAt": 1777111048287,
+        "id": 197,
+        "prixUnitaire": 4.0,
+        "produitId": 41,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 115
+    },
+    {
+        "createdAt": 1777111048287,
+        "id": 198,
+        "prixUnitaire": 3.0,
+        "produitId": 26,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 115
+    },
+    {
+        "createdAt": 1777112187906,
+        "id": 199,
+        "prixUnitaire": 3.0,
+        "produitId": 5,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 116
+    },
+    {
+        "createdAt": 1777112504507,
+        "id": 200,
+        "prixUnitaire": 8.0,
+        "produitId": 48,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 117
+    },
+    {
+        "createdAt": 1777115155910,
+        "id": 201,
+        "prixUnitaire": 12.5,
+        "produitId": 2,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 118
+    },
+    {
+        "createdAt": 1777120147070,
+        "id": 202,
+        "prixUnitaire": 12.5,
+        "produitId": 1,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 119
+    },
+    {
+        "createdAt": 1777120147070,
+        "id": 203,
+        "prixUnitaire": 2.5,
+        "produitId": 26,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 119
+    },
+    {
+        "createdAt": 1777120370405,
+        "id": 204,
+        "prixUnitaire": 3.0,
+        "produitId": 26,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 120
+    },
+    {
+        "createdAt": 1777120370405,
+        "id": 205,
+        "prixUnitaire": 8.0,
+        "produitId": 48,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 120
+    },
+    {
+        "createdAt": 1777120411045,
+        "id": 206,
+        "prixUnitaire": 3.0,
+        "produitId": 12,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 121
+    },
+    {
+        "createdAt": 1777120612054,
+        "id": 207,
+        "prixUnitaire": 12.5,
+        "produitId": 1,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 122
+    },
+    {
+        "createdAt": 1777120688145,
+        "id": 208,
+        "prixUnitaire": 4.0,
+        "produitId": 40,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 123
+    },
+    {
+        "createdAt": 1777120713471,
+        "id": 209,
+        "prixUnitaire": 3.0,
+        "produitId": 40,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 124
+    },
+    {
+        "createdAt": 1777121884813,
+        "id": 210,
+        "prixUnitaire": 8.0,
+        "produitId": 53,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 125
+    },
+    {
+        "createdAt": 1777123077178,
+        "id": 211,
+        "prixUnitaire": 8.0,
+        "produitId": 48,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 126
+    },
+    {
+        "createdAt": 1777123077178,
+        "id": 212,
+        "prixUnitaire": 3.5,
+        "produitId": 39,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 126
+    },
+    {
+        "createdAt": 1777123077178,
+        "id": 213,
+        "prixUnitaire": 12.5,
+        "produitId": 2,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 126
+    },
+    {
+        "createdAt": 1777124460868,
+        "id": 214,
+        "prixUnitaire": 12.5,
+        "produitId": 2,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 127
+    },
+    {
+        "createdAt": 1777124460868,
+        "id": 215,
+        "prixUnitaire": 12.5,
+        "produitId": 1,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 127
+    },
+    {
+        "createdAt": 1777124465789,
+        "id": 216,
+        "prixUnitaire": 12.5,
+        "produitId": 2,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 128
+    },
+    {
+        "createdAt": 1777124837451,
+        "id": 217,
+        "prixUnitaire": 4.0,
+        "produitId": 57,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 129
+    },
+    {
+        "createdAt": 1777125061890,
+        "id": 218,
+        "prixUnitaire": 12.5,
+        "produitId": 2,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 130
+    },
+    {
+        "createdAt": 1777125086686,
+        "id": 219,
+        "prixUnitaire": 4.0,
+        "produitId": 40,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 131
+    },
+    {
+        "createdAt": 1777125791126,
+        "id": 220,
+        "prixUnitaire": 3.0,
+        "produitId": 35,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 132
+    },
+    {
+        "createdAt": 1777127217680,
+        "id": 221,
+        "prixUnitaire": 4.0,
+        "produitId": 38,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 133
+    },
+    {
+        "createdAt": 1777131118251,
+        "id": 222,
+        "prixUnitaire": 4.0,
+        "produitId": 43,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 134
+    },
+    {
+        "createdAt": 1777131644983,
+        "id": 223,
+        "prixUnitaire": 15.0,
+        "produitId": 59,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 135
+    },
+    {
+        "createdAt": 1777131644983,
+        "id": 224,
+        "prixUnitaire": 15.0,
+        "produitId": 11,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 135
+    },
+    {
+        "createdAt": 1777131652133,
+        "id": 225,
+        "prixUnitaire": 3.0,
+        "produitId": 5,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 136
+    },
+    {
+        "createdAt": 1777633657851,
+        "id": 226,
+        "prixUnitaire": 12.5,
+        "produitId": 2,
+        "quantite": 3,
+        "remise": 0.0,
+        "venteId": 137
+    },
+    {
+        "createdAt": 1777633706655,
+        "id": 227,
+        "prixUnitaire": 4.5,
+        "produitId": 1,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 138
+    },
+    {
+        "createdAt": 1777714303729,
+        "id": 228,
+        "prixUnitaire": 35.0,
+        "produitId": 23,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 139
+    },
+    {
+        "createdAt": 1777714314625,
+        "id": 229,
+        "prixUnitaire": 6.0,
+        "produitId": 52,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 140
+    },
+    {
+        "createdAt": 1777714314625,
+        "id": 230,
+        "prixUnitaire": 8.0,
+        "produitId": 53,
+        "quantite": 2,
+        "remise": 0.0,
+        "venteId": 140
+    },
+    {
+        "createdAt": 1777714795895,
+        "id": 231,
+        "prixUnitaire": 8.0,
+        "produitId": 53,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 141
+    },
+    {
+        "createdAt": 1777714795895,
+        "id": 232,
+        "prixUnitaire": 10.0,
+        "produitId": 49,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 141
+    },
+    {
+        "createdAt": 1777718684754,
+        "id": 233,
+        "prixUnitaire": 6.0,
+        "produitId": 52,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 142
+    },
+    {
+        "createdAt": 1777718684754,
+        "id": 234,
+        "prixUnitaire": 4.0,
+        "produitId": 57,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 142
+    },
+    {
+        "createdAt": 1777723662908,
+        "id": 235,
+        "prixUnitaire": 10.0,
+        "produitId": 49,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 143
+    },
+    {
+        "createdAt": 1777723670444,
+        "id": 236,
+        "prixUnitaire": 8.0,
+        "produitId": 48,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 144
+    },
+    {
+        "createdAt": 1777730745553,
+        "id": 237,
+        "prixUnitaire": 12.5,
+        "produitId": 2,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 145
+    },
+    {
+        "createdAt": 1777731741154,
+        "id": 238,
+        "prixUnitaire": 10.0,
+        "produitId": 36,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 146
+    },
+    {
+        "createdAt": 1777731758929,
+        "id": 239,
+        "prixUnitaire": 8.0,
+        "produitId": 48,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 147
+    },
+    {
+        "createdAt": 1777731758929,
+        "id": 240,
+        "prixUnitaire": 8.0,
+        "produitId": 53,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 147
+    },
+    {
+        "createdAt": 1777731758929,
+        "id": 241,
+        "prixUnitaire": 3.0,
+        "produitId": 5,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 147
+    },
+    {
+        "createdAt": 1777732742434,
+        "id": 242,
+        "prixUnitaire": 4.0,
+        "produitId": 46,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 148
+    },
+    {
+        "createdAt": 1777736252475,
+        "id": 243,
+        "prixUnitaire": 3.0,
+        "produitId": 32,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 149
+    },
+    {
+        "createdAt": 1777737927915,
+        "id": 244,
+        "prixUnitaire": 12.5,
+        "produitId": 2,
+        "quantite": 1,
+        "remise": 0.0,
+        "venteId": 150
+    }
+]

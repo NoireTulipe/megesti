@@ -1,0 +1,18 @@
+[
+    {
+        "id": 1,
+        "nom": "Détérioration"
+    },
+    {
+        "id": 2,
+        "nom": "Vol"
+    },
+    {
+        "id": 3,
+        "nom": "Perte"
+    },
+    {
+        "id": 4,
+        "nom": "Invendu détruit"
+    }
+]

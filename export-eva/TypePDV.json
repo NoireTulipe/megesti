@@ -1,0 +1,30 @@
+[
+    {
+        "id": 1,
+        "nom": "Librairie"
+    },
+    {
+        "id": 2,
+        "nom": "Salon du livre"
+    },
+    {
+        "id": 3,
+        "nom": "Médiathèque"
+    },
+    {
+        "id": 4,
+        "nom": "Marché"
+    },
+    {
+        "id": 5,
+        "nom": "Festival"
+    },
+    {
+        "id": 6,
+        "nom": "Vente directe"
+    },
+    {
+        "id": 7,
+        "nom": "Centre Commercial"
+    }
+]

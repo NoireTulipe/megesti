@@ -1,0 +1,1034 @@
+[
+    {
+        "annulee": 1,
+        "createdAt": 1775323026441,
+        "id": 22,
+        "methodePaiementId": 1,
+        "sessionId": 11,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1775323076355,
+        "id": 23,
+        "methodePaiementId": 1,
+        "sessionId": 11,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1775323091040,
+        "id": 24,
+        "methodePaiementId": 1,
+        "sessionId": 11,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1775323254209,
+        "id": 25,
+        "methodePaiementId": 2,
+        "sessionId": 11,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1775323331962,
+        "id": 26,
+        "methodePaiementId": 2,
+        "sessionId": 11,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1775323380951,
+        "id": 27,
+        "methodePaiementId": 2,
+        "sessionId": 11,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1775323410895,
+        "id": 28,
+        "methodePaiementId": 2,
+        "sessionId": 11,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1775323648102,
+        "id": 29,
+        "methodePaiementId": 1,
+        "sessionId": 11,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1775381618036,
+        "id": 30,
+        "methodePaiementId": 1,
+        "sessionId": 11,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1775654829427,
+        "id": 31,
+        "methodePaiementId": 2,
+        "sessionId": 12,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1775656191685,
+        "id": 32,
+        "methodePaiementId": 2,
+        "sessionId": 12,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1775656906303,
+        "id": 33,
+        "methodePaiementId": 1,
+        "sessionId": 12,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1775813475384,
+        "id": 34,
+        "methodePaiementId": 2,
+        "sessionId": 13,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1775816263364,
+        "id": 35,
+        "methodePaiementId": 2,
+        "sessionId": 13,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1775827294036,
+        "id": 36,
+        "methodePaiementId": 2,
+        "sessionId": 13,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1775827562891,
+        "id": 37,
+        "methodePaiementId": 2,
+        "sessionId": 13,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1775831820768,
+        "id": 38,
+        "methodePaiementId": 2,
+        "sessionId": 13,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1775831914972,
+        "id": 39,
+        "methodePaiementId": 2,
+        "sessionId": 13,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1775895176181,
+        "id": 40,
+        "methodePaiementId": 2,
+        "sessionId": 13,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1775896066446,
+        "id": 41,
+        "methodePaiementId": 2,
+        "sessionId": 13,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1775900306774,
+        "id": 42,
+        "methodePaiementId": 2,
+        "sessionId": 13,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1775909817227,
+        "id": 43,
+        "methodePaiementId": 2,
+        "sessionId": 13,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1775986149034,
+        "id": 44,
+        "methodePaiementId": 2,
+        "sessionId": 14,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1775986273183,
+        "id": 45,
+        "methodePaiementId": 2,
+        "sessionId": 14,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1775989651109,
+        "id": 46,
+        "methodePaiementId": 2,
+        "sessionId": 14,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1775989657577,
+        "id": 47,
+        "methodePaiementId": 2,
+        "sessionId": 14,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1775990716598,
+        "id": 48,
+        "methodePaiementId": 1,
+        "sessionId": 14,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1775993804388,
+        "id": 49,
+        "methodePaiementId": 2,
+        "sessionId": 14,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1775993986183,
+        "id": 50,
+        "methodePaiementId": 1,
+        "sessionId": 14,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1775993995199,
+        "id": 51,
+        "methodePaiementId": 1,
+        "sessionId": 14,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1775994757432,
+        "id": 52,
+        "methodePaiementId": 1,
+        "sessionId": 14,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1775994912791,
+        "id": 53,
+        "methodePaiementId": 1,
+        "sessionId": 14,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1775994952030,
+        "id": 54,
+        "methodePaiementId": 2,
+        "sessionId": 14,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1775994971291,
+        "id": 55,
+        "methodePaiementId": 2,
+        "sessionId": 14,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1775995047150,
+        "id": 56,
+        "methodePaiementId": 2,
+        "sessionId": 14,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1775995190926,
+        "id": 57,
+        "methodePaiementId": 2,
+        "sessionId": 14,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1775995324848,
+        "id": 58,
+        "methodePaiementId": 2,
+        "sessionId": 14,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1775996459450,
+        "id": 59,
+        "methodePaiementId": 1,
+        "sessionId": 14,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1775996475654,
+        "id": 60,
+        "methodePaiementId": 1,
+        "sessionId": 14,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1775996534036,
+        "id": 61,
+        "methodePaiementId": 1,
+        "sessionId": 14,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1775998152937,
+        "id": 62,
+        "methodePaiementId": 1,
+        "sessionId": 14,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1775998206180,
+        "id": 63,
+        "methodePaiementId": 2,
+        "sessionId": 14,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1776000073420,
+        "id": 64,
+        "methodePaiementId": 1,
+        "sessionId": 14,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1776002576649,
+        "id": 65,
+        "methodePaiementId": 1,
+        "sessionId": 14,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1776077450354,
+        "id": 66,
+        "methodePaiementId": 2,
+        "sessionId": 13,
+        "type": "directe"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1776240246579,
+        "id": 67,
+        "methodePaiementId": 1,
+        "sessionId": 15,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1776242348694,
+        "id": 68,
+        "methodePaiementId": 3,
+        "sessionId": 15,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1776247825772,
+        "id": 69,
+        "methodePaiementId": 1,
+        "sessionId": 15,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1776260804421,
+        "id": 70,
+        "methodePaiementId": 1,
+        "sessionId": 15,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1776264763198,
+        "id": 71,
+        "methodePaiementId": 1,
+        "sessionId": 15,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1776267991223,
+        "id": 72,
+        "methodePaiementId": 2,
+        "sessionId": 15,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1776421087264,
+        "id": 73,
+        "methodePaiementId": 2,
+        "sessionId": 16,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1776422063381,
+        "id": 74,
+        "methodePaiementId": 1,
+        "sessionId": 16,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1776423815638,
+        "id": 75,
+        "methodePaiementId": 2,
+        "sessionId": 16,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1776427093991,
+        "id": 76,
+        "methodePaiementId": 1,
+        "sessionId": 16,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1776503870688,
+        "id": 77,
+        "methodePaiementId": 1,
+        "sessionId": 16,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1776510689533,
+        "id": 78,
+        "methodePaiementId": 2,
+        "sessionId": 16,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1776511605873,
+        "id": 79,
+        "methodePaiementId": 2,
+        "sessionId": 16,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1776518416417,
+        "id": 80,
+        "methodePaiementId": 2,
+        "sessionId": 16,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1776522026238,
+        "id": 81,
+        "methodePaiementId": 1,
+        "sessionId": 16,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1776525043719,
+        "id": 82,
+        "methodePaiementId": 2,
+        "sessionId": 16,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1776527237589,
+        "id": 83,
+        "methodePaiementId": 2,
+        "sessionId": 16,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1776527592482,
+        "id": 84,
+        "methodePaiementId": 1,
+        "sessionId": 16,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1776588404996,
+        "id": 85,
+        "methodePaiementId": 2,
+        "sessionId": 17,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1776589730297,
+        "id": 86,
+        "methodePaiementId": 1,
+        "sessionId": 17,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1776590246266,
+        "id": 87,
+        "methodePaiementId": 2,
+        "sessionId": 17,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1776593318409,
+        "id": 88,
+        "methodePaiementId": 1,
+        "sessionId": 17,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1776594112342,
+        "id": 89,
+        "methodePaiementId": 1,
+        "sessionId": 17,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1776601586614,
+        "id": 90,
+        "methodePaiementId": 2,
+        "sessionId": 17,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1776604500766,
+        "id": 91,
+        "methodePaiementId": 2,
+        "sessionId": 17,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1776605103953,
+        "id": 92,
+        "methodePaiementId": 2,
+        "sessionId": 17,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1776605403042,
+        "id": 93,
+        "methodePaiementId": 1,
+        "sessionId": 17,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1776606349826,
+        "id": 94,
+        "methodePaiementId": 2,
+        "sessionId": 17,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1776607843935,
+        "id": 95,
+        "methodePaiementId": 1,
+        "sessionId": 17,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1776608269864,
+        "id": 96,
+        "methodePaiementId": 2,
+        "sessionId": 17,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1776608872472,
+        "id": 97,
+        "methodePaiementId": 2,
+        "sessionId": 17,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1776609449684,
+        "id": 98,
+        "methodePaiementId": 2,
+        "sessionId": 17,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1776610667147,
+        "id": 99,
+        "methodePaiementId": 1,
+        "sessionId": 17,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1776612585277,
+        "id": 100,
+        "methodePaiementId": 1,
+        "sessionId": 17,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1776612815815,
+        "id": 101,
+        "methodePaiementId": 2,
+        "sessionId": 17,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1776613044748,
+        "id": 102,
+        "methodePaiementId": 1,
+        "sessionId": 17,
+        "type": "session"
+    },
+    {
+        "annulee": 1,
+        "createdAt": 1776613491370,
+        "id": 103,
+        "methodePaiementId": 2,
+        "sessionId": 17,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1776613789977,
+        "id": 104,
+        "methodePaiementId": 1,
+        "sessionId": 17,
+        "type": "session"
+    },
+    {
+        "annulee": 1,
+        "createdAt": 1776613829725,
+        "id": 105,
+        "methodePaiementId": 2,
+        "sessionId": 17,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1776613872482,
+        "id": 106,
+        "methodePaiementId": 1,
+        "sessionId": 17,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1776614839945,
+        "id": 107,
+        "methodePaiementId": 1,
+        "sessionId": 17,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1776615230662,
+        "id": 108,
+        "methodePaiementId": 1,
+        "sessionId": 17,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1776615250492,
+        "id": 109,
+        "methodePaiementId": 1,
+        "sessionId": 17,
+        "type": "session"
+    },
+    {
+        "annulee": 1,
+        "createdAt": 1777102373468,
+        "id": 110,
+        "methodePaiementId": 1,
+        "sessionId": 18,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1777105557554,
+        "id": 111,
+        "methodePaiementId": 1,
+        "sessionId": 18,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1777106187713,
+        "id": 112,
+        "methodePaiementId": 1,
+        "sessionId": 18,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1777106875807,
+        "id": 113,
+        "methodePaiementId": 2,
+        "sessionId": 18,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1777110784273,
+        "id": 114,
+        "methodePaiementId": 2,
+        "sessionId": 18,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1777111048287,
+        "id": 115,
+        "methodePaiementId": 1,
+        "sessionId": 18,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1777112187906,
+        "id": 116,
+        "methodePaiementId": 1,
+        "sessionId": 18,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1777112504507,
+        "id": 117,
+        "methodePaiementId": 1,
+        "sessionId": 18,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1777115155910,
+        "id": 118,
+        "methodePaiementId": 2,
+        "sessionId": 18,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1777120147070,
+        "id": 119,
+        "methodePaiementId": 2,
+        "sessionId": 18,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1777120370405,
+        "id": 120,
+        "methodePaiementId": 1,
+        "sessionId": 18,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1777120411045,
+        "id": 121,
+        "methodePaiementId": 1,
+        "sessionId": 18,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1777120612054,
+        "id": 122,
+        "methodePaiementId": 2,
+        "sessionId": 18,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1777120688145,
+        "id": 123,
+        "methodePaiementId": 1,
+        "sessionId": 18,
+        "type": "session"
+    },
+    {
+        "annulee": 1,
+        "createdAt": 1777120713471,
+        "id": 124,
+        "methodePaiementId": 1,
+        "sessionId": 18,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1777121884813,
+        "id": 125,
+        "methodePaiementId": 2,
+        "sessionId": 18,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1777123077178,
+        "id": 126,
+        "methodePaiementId": 2,
+        "sessionId": 18,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1777124460868,
+        "id": 127,
+        "methodePaiementId": 2,
+        "sessionId": 18,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1777124465789,
+        "id": 128,
+        "methodePaiementId": 2,
+        "sessionId": 18,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1777124837451,
+        "id": 129,
+        "methodePaiementId": 2,
+        "sessionId": 18,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1777125061890,
+        "id": 130,
+        "methodePaiementId": 1,
+        "sessionId": 18,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1777125086686,
+        "id": 131,
+        "methodePaiementId": 1,
+        "sessionId": 18,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1777125791126,
+        "id": 132,
+        "methodePaiementId": 1,
+        "sessionId": 18,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1777127217680,
+        "id": 133,
+        "methodePaiementId": 1,
+        "sessionId": 18,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1777131118251,
+        "id": 134,
+        "methodePaiementId": 1,
+        "sessionId": 18,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1777131644983,
+        "id": 135,
+        "methodePaiementId": 2,
+        "sessionId": 18,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1777131652133,
+        "id": 136,
+        "methodePaiementId": 2,
+        "sessionId": 18,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1777633657851,
+        "id": 137,
+        "methodePaiementId": 1,
+        "sessionId": 19,
+        "type": "directe"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1777633706655,
+        "id": 138,
+        "methodePaiementId": 1,
+        "sessionId": 19,
+        "type": "directe"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1777714303729,
+        "id": 139,
+        "methodePaiementId": 2,
+        "sessionId": 20,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1777714314625,
+        "id": 140,
+        "methodePaiementId": 2,
+        "sessionId": 20,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1777714795895,
+        "id": 141,
+        "methodePaiementId": 2,
+        "sessionId": 20,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1777718684754,
+        "id": 142,
+        "methodePaiementId": 1,
+        "sessionId": 20,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1777723662908,
+        "id": 143,
+        "methodePaiementId": 2,
+        "sessionId": 20,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1777723670444,
+        "id": 144,
+        "methodePaiementId": 1,
+        "sessionId": 20,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1777730745553,
+        "id": 145,
+        "methodePaiementId": 2,
+        "sessionId": 20,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1777731741154,
+        "id": 146,
+        "methodePaiementId": 1,
+        "sessionId": 20,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1777731758929,
+        "id": 147,
+        "methodePaiementId": 2,
+        "sessionId": 20,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1777732742434,
+        "id": 148,
+        "methodePaiementId": 1,
+        "sessionId": 20,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1777736252475,
+        "id": 149,
+        "methodePaiementId": 1,
+        "sessionId": 20,
+        "type": "session"
+    },
+    {
+        "annulee": 0,
+        "createdAt": 1777737927915,
+        "id": 150,
+        "methodePaiementId": 1,
+        "sessionId": 20,
+        "type": "session"
+    }
+]

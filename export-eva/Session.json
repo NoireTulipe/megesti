@@ -1,0 +1,102 @@
+[
+    {
+        "createdAt": 1775295648617,
+        "debut": 1775295648556,
+        "fin": 1775429757354,
+        "id": 11,
+        "pointDeVenteId": 4,
+        "remiseGlobale": 0.0,
+        "statut": "cloturee",
+        "updatedAt": 1775429757358
+    },
+    {
+        "createdAt": 1775654803404,
+        "debut": 1775654803855,
+        "fin": 1775658816488,
+        "id": 12,
+        "pointDeVenteId": 4,
+        "remiseGlobale": 0.0,
+        "statut": "cloturee",
+        "updatedAt": 1775658816491
+    },
+    {
+        "createdAt": 1775809662730,
+        "debut": 1775809663021,
+        "fin": 1775838420000,
+        "id": 13,
+        "pointDeVenteId": 9,
+        "remiseGlobale": 0.0,
+        "statut": "cloturee",
+        "updatedAt": 1776077499368
+    },
+    {
+        "createdAt": 1775986137113,
+        "debut": 1775986136862,
+        "fin": 1776003203845,
+        "id": 14,
+        "pointDeVenteId": 6,
+        "remiseGlobale": 0.0,
+        "statut": "cloturee",
+        "updatedAt": 1776003203847
+    },
+    {
+        "createdAt": 1776240062249,
+        "debut": 1776240062518,
+        "fin": 1776272657133,
+        "id": 15,
+        "pointDeVenteId": 2,
+        "remiseGlobale": 0.0,
+        "statut": "cloturee",
+        "updatedAt": 1776272657136
+    },
+    {
+        "createdAt": 1776410432465,
+        "debut": 1776410432370,
+        "fin": 1776530234486,
+        "id": 16,
+        "pointDeVenteId": 7,
+        "remiseGlobale": 0.0,
+        "statut": "cloturee",
+        "updatedAt": 1776530234490
+    },
+    {
+        "createdAt": 1776588393382,
+        "debut": 1776588394454,
+        "fin": 1776615913507,
+        "id": 17,
+        "pointDeVenteId": 8,
+        "remiseGlobale": 0.0,
+        "statut": "cloturee",
+        "updatedAt": 1776615913508
+    },
+    {
+        "createdAt": 1777102331015,
+        "debut": 1777102330864,
+        "fin": 1777135224877,
+        "id": 18,
+        "pointDeVenteId": 10,
+        "remiseGlobale": 0.0,
+        "statut": "cloturee",
+        "updatedAt": 1777135224879
+    },
+    {
+        "createdAt": 1777633621134,
+        "debut": 1777539960000,
+        "fin": 1777446360000,
+        "id": 19,
+        "pointDeVenteId": 5,
+        "remiseGlobale": 0.0,
+        "statut": "cloturee",
+        "updatedAt": 1777633741255
+    },
+    {
+        "createdAt": 1777710600350,
+        "debut": 1777710599975,
+        "fin": 1777745528222,
+        "id": 20,
+        "pointDeVenteId": 11,
+        "remiseGlobale": 0.0,
+        "statut": "cloturee",
+        "updatedAt": 1777745528223
+    }
+]

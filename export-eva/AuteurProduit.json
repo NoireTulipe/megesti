@@ -1,0 +1,98 @@
+[
+    {
+        "auteurId": 7,
+        "produitId": 9
+    },
+    {
+        "auteurId": 7,
+        "produitId": 8
+    },
+    {
+        "auteurId": 3,
+        "produitId": 20
+    },
+    {
+        "auteurId": 3,
+        "produitId": 22
+    },
+    {
+        "auteurId": 3,
+        "produitId": 19
+    },
+    {
+        "auteurId": 3,
+        "produitId": 21
+    },
+    {
+        "auteurId": 3,
+        "produitId": 23
+    },
+    {
+        "auteurId": 4,
+        "produitId": 10
+    },
+    {
+        "auteurId": 5,
+        "produitId": 36
+    },
+    {
+        "auteurId": 2,
+        "produitId": 37
+    },
+    {
+        "auteurId": 1,
+        "produitId": 3
+    },
+    {
+        "auteurId": 1,
+        "produitId": 2
+    },
+    {
+        "auteurId": 1,
+        "produitId": 1
+    },
+    {
+        "auteurId": 1,
+        "produitId": 6
+    },
+    {
+        "auteurId": 1,
+        "produitId": 18
+    },
+    {
+        "auteurId": 1,
+        "produitId": 29
+    },
+    {
+        "auteurId": 1,
+        "produitId": 30
+    },
+    {
+        "auteurId": 1,
+        "produitId": 33
+    },
+    {
+        "auteurId": 1,
+        "produitId": 4
+    },
+    {
+        "auteurId": 6,
+        "produitId": 14
+    },
+    {
+        "auteurId": 2,
+        "produitId": 7
+    },
+    {
+        "auteurId": 1,
+        "produitId": 16
+    },
+    {
+        "auteurId": 1,
+        "produitId": 17
+    },
+    {
+        "auteurId": 1,
+        "produitId": 15
+    }
+]

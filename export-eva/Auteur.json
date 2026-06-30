@@ -1,0 +1,58 @@
+[
+    {
+        "createdAt": 1775380245309,
+        "email": null,
+        "id": 1,
+        "nom": "Bonacci",
+        "prenom": "Magali et François",
+        "updatedAt": 1775380245309
+    },
+    {
+        "createdAt": 1775380295659,
+        "email": null,
+        "id": 2,
+        "nom": "Niedergang",
+        "prenom": "Isabelle",
+        "updatedAt": 1775380295659
+    },
+    {
+        "createdAt": 1775380336460,
+        "email": null,
+        "id": 3,
+        "nom": "Boyer",
+        "prenom": "Sophie",
+        "updatedAt": 1775380336460
+    },
+    {
+        "createdAt": 1775380372131,
+        "email": null,
+        "id": 4,
+        "nom": "Safier-Guizard",
+        "prenom": "Julie",
+        "updatedAt": 1775380372131
+    },
+    {
+        "createdAt": 1775380408178,
+        "email": null,
+        "id": 5,
+        "nom": "Baños-Dudouit",
+        "prenom": "Anita",
+        "updatedAt": 1775380408178
+    },
+    {
+        "createdAt": 1775380467404,
+        "email": null,
+        "id": 6,
+        "nom": "Aubry",
+        "prenom": "Céline",
+        "updatedAt": 1775380467404
+    },
+    {
+        "createdAt": 1775380548996,
+        "email": null,
+        "id": 7,
+        "nom": "Traba",
+        "prenom": "Catherine",
+        "updatedAt": 1775380548996
+    }
+]

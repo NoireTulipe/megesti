@@ -1,0 +1,26 @@
+[
+    {
+        "id": 1,
+        "nom": "Transport"
+    },
+    {
+        "id": 2,
+        "nom": "Hébergement"
+    },
+    {
+        "id": 3,
+        "nom": "Restauration"
+    },
+    {
+        "id": 4,
+        "nom": "Matériel"
+    },
+    {
+        "id": 5,
+        "nom": "Impression"
+    },
+    {
+        "id": 6,
+        "nom": "Autre"
+    }
+]
