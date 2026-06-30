@@ -133,6 +133,9 @@ async function nettoyerTenant(tenantId: string) {
   const f = await prisma.frais.deleteMany({ where: { tenantId } });
   console.log(`   Frais supprimés       : ${f.count}`);
 
+  const rev = await prisma.reversement.deleteMany({ where: { tenantId } });
+  if (rev.count > 0) console.log(`   Reversements supp.    : ${rev.count}`);
+
   const s = await prisma.sessionCaisse.deleteMany({ where: { tenantId } });
   console.log(`   Sessions supprimées   : ${s.count}`);
 
@@ -356,27 +359,46 @@ async function main() {
   // ── 7. Points de Vente ────────────────────────────────────────────────────
 
   console.log('\n── [7/10] Points de Vente');
+  // PDV 17 = "DV hyper U reims" : dépôt-vente, pas un PDV MeGesti
+  const SKIP_PDV_IDS = new Set([17]);
+  // Corrections sur données EVA incorrectes
+  const PDV_OVERRIDES: Record<number, Partial<Pick<EvaPDV, 'commissionPourcent' | 'typeEncaissement'>>> = {
+    16: { commissionPourcent: 30, typeEncaissement: 'pdv' }, // Hyper U reims
+  };
+
   for (const p of evaPDVs) {
-    const categorieId = typePDVMap.get(p.typePDVId);
+    if (SKIP_PDV_IDS.has(p.id)) {
+      console.log(`   [${p.id}] "${p.nom}" → IGNORÉ`);
+      continue;
+    }
+    const effective    = { ...p, ...PDV_OVERRIDES[p.id] };
+    const categorieId  = typePDVMap.get(p.typePDVId);
     const pdv = await prisma.pointDeVente.create({
       data: {
         tenantId,
         categorieId,
-        nom:               p.nom,
-        commissionFixe:    p.commissionFixe    > 0 ? p.commissionFixe    : null,
-        commissionPourcent: p.commissionPourcent > 0 ? p.commissionPourcent : null,
-        encaissementDirect: p.typeEncaissement === 'nous',
+        nom:               effective.nom,
+        commissionFixe:    effective.commissionFixe    > 0 ? effective.commissionFixe    : null,
+        commissionPourcent: effective.commissionPourcent > 0 ? effective.commissionPourcent : null,
+        encaissementDirect: effective.typeEncaissement === 'nous',
         actif:             p.actif === 1,
       },
     });
     pdvMap.set(p.id, pdv.id);
-    console.log(`   [${p.id}] "${p.nom}" → ${pdv.id}`);
+    console.log(`   [${p.id}] "${p.nom}"${PDV_OVERRIDES[p.id] ? ' (corrigé)' : ''} → ${pdv.id}`);
   }
 
   // ── 8. Sessions ───────────────────────────────────────────────────────────
 
   console.log('\n── [8/10] Sessions');
+  // Session 31 = "Vente à la maison" ouverte 5 min sans aucune vente
+  const SKIP_SESSION_IDS = new Set([31]);
+
   for (const s of evaSessions) {
+    if (SKIP_SESSION_IDS.has(s.id)) {
+      console.log(`   [${s.id}] PDV ${s.pointDeVenteId} → IGNORÉE (0 vente)`);
+      continue;
+    }
     const pointDeVenteId = pdvMap.get(s.pointDeVenteId);
     if (!pointDeVenteId) {
       console.warn(`   ⚠  Session ${s.id} : PDV ${s.pointDeVenteId} inconnu — ignorée`);
@@ -399,6 +421,11 @@ async function main() {
   // ── 9. Ventes + Lignes ────────────────────────────────────────────────────
 
   console.log('\n── [9/10] Ventes et Lignes');
+
+  // Sessions où le PDV encaisse : modePaiement = PDV + reversement EN_ATTENTE créé ensuite
+  const REVERSEMENT_SESSION_IDS = new Set([28]);
+  const reversementAccum = new Map<number, { totalTTC: number; nbVentes: number }>();
+  for (const id of REVERSEMENT_SESSION_IDS) reversementAccum.set(id, { totalTTC: 0, nbVentes: 0 });
 
   // Index lignes par venteId
   const lignesByVente = new Map<number, EvaLigne[]>();
@@ -425,7 +452,9 @@ async function main() {
       continue;
     }
 
-    const modePaiement = METHODE_PAIEMENT[v.methodePaiementId] ?? 'ESPECES';
+    // Si le PDV encaisse à notre place → modePaiement PDV
+    const isEncaisseParPDV = REVERSEMENT_SESSION_IDS.has(v.sessionId);
+    const modePaiement = isEncaisseParPDV ? 'PDV' : (METHODE_PAIEMENT[v.methodePaiementId] ?? 'ESPECES');
     const lignes       = lignesByVente.get(v.id) ?? [];
 
     type LigneBuild = {
@@ -480,13 +509,53 @@ async function main() {
       },
     });
 
-    console.log(`   [${v.id}] #${vente.numero}${v.annulee ? ' (ANNULEE)' : ''} → ${vente.id}`);
+    if (isEncaisseParPDV && v.annulee === 0) {
+      const accum = reversementAccum.get(v.sessionId)!;
+      accum.totalTTC += totalTTC;
+      accum.nbVentes++;
+    }
+    console.log(`   [${v.id}] #${vente.numero}${v.annulee ? ' (ANNULEE)' : ''}${isEncaisseParPDV ? ' [PDV]' : ''} → ${vente.id}`);
+  }
+
+  // ── 9b. Reversements ──────────────────────────────────────────────────────
+
+  console.log('\n── [9b] Reversements PDV');
+  for (const [evaSessionId, accum] of reversementAccum) {
+    const sessionUUID = sessionMap.get(evaSessionId);
+    const evaSession  = evaSessions.find(s => s.id === evaSessionId);
+    if (!sessionUUID || !evaSession) {
+      console.warn(`   ⚠  Reversement session ${evaSessionId} : session non mappée — ignoré`);
+      continue;
+    }
+    const pdvUUID = pdvMap.get(evaSession.pointDeVenteId);
+    if (!pdvUUID) {
+      console.warn(`   ⚠  Reversement session ${evaSessionId} : PDV non mappé — ignoré`);
+      continue;
+    }
+    await prisma.reversement.create({
+      data: {
+        tenantId,
+        pointDeVenteId: pdvUUID,
+        sessionId:      sessionUUID,
+        montantTTC:     round2(accum.totalTTC),
+        nbVentes:       accum.nbVentes,
+        statut:         'EN_ATTENTE',
+        dateCloture:    new Date(evaSession.fin!),
+      },
+    });
+    console.log(`   Session EVA ${evaSessionId} → reversement EN_ATTENTE ${round2(accum.totalTTC)} € (${accum.nbVentes} ventes)`);
   }
 
   // ── 10. Frais ─────────────────────────────────────────────────────────────
 
   console.log('\n── [10/10] Frais');
+  let fraisInseres = 0;
   for (const f of evaFrais) {
+    // Commission PDV → gérée par le Reversement, ne pas importer comme Frais
+    if (REVERSEMENT_SESSION_IDS.has(f.sessionId) && f.libelle === 'Commission 30%') {
+      console.log(`   [${f.id}] "${f.libelle}" → IGNORÉ (commission PDV → voir Reversement)`);
+      continue;
+    }
     const sessionId = sessionMap.get(f.sessionId);
     if (!sessionId) {
       console.warn(`   ⚠  Frais ${f.id} : session ${f.sessionId} inconnue — ignoré`);
@@ -499,11 +568,12 @@ async function main() {
         sessionId,
         type:      type as any,
         motif:     f.libelle,
-        montantHT: f.montant,    // frais : pas de TVA à déduire (franchise TVA)
+        montantHT: f.montant,
         date:      new Date(f.createdAt),
         createdAt: new Date(f.createdAt),
       },
     });
+    fraisInseres++;
     console.log(`   [${f.id}] "${f.libelle}" (${type})`);
   }
 
@@ -522,7 +592,7 @@ Inséré :
   - ${pdvMap.size} points de vente
   - ${sessionMap.size} sessions
   - ${venteNumero - 1} ventes (+ lignes)
-  - ${evaFrais.length} frais
+  - ${fraisInseres} frais (${evaFrais.length - fraisInseres} ignoré(s))
 
 Notes :
   - franchiseTva = true sur le tenant
