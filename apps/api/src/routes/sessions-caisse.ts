@@ -22,7 +22,7 @@ export const sessionCaisseRoutes: FastifyPluginAsync = async (app) => {
   app.get('/', auth, async (request) => {
     const { tenantId } = request.tenant
     const { pointDeVenteId, statut } = request.query as { pointDeVenteId?: string; statut?: string }
-    return app.db.sessionCaisse.findMany({
+    const sessions = await app.db.sessionCaisse.findMany({
       where: {
         tenantId,
         ...(pointDeVenteId && { pointDeVenteId }),
@@ -34,6 +34,17 @@ export const sessionCaisseRoutes: FastifyPluginAsync = async (app) => {
       },
       orderBy: { dateOuverture: 'desc' },
     })
+
+    if (sessions.length === 0) return sessions
+
+    const caRows = await app.db.vente.groupBy({
+      by: ['sessionId'],
+      where: { sessionId: { in: sessions.map(s => s.id) }, statut: 'VALIDEE' },
+      _sum: { totalTTC: true },
+    })
+    const caBySession = new Map(caRows.map(r => [r.sessionId, Number(r._sum.totalTTC ?? 0)]))
+
+    return sessions.map(s => ({ ...s, _caSession: caBySession.get(s.id) ?? 0 }))
   })
 
   app.get('/:id', auth, async (request, reply) => {

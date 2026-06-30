@@ -19,6 +19,10 @@ function fDate(iso: string | null) {
   return new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
+function fEur(v: number) {
+  return v.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €'
+}
+
 export function HistoriqueSessions() {
   const today = new Date().toISOString().slice(0, 10)
   const [periode,       setPeriode]       = useState<Periode>('3m')
@@ -74,6 +78,7 @@ export function HistoriqueSessions() {
         <div className={styles.historiqueList}>
           {sessions.map(s => {
             const ventes = s._count?.ventes ?? 0
+            const ca     = s._caSession ?? 0
             return (
               <div key={s.id} className={styles.historiqueCard}>
                 <div className={styles.historiqueCardLeft}>
@@ -83,6 +88,11 @@ export function HistoriqueSessions() {
                     {fDate(s.dateOuverture)} → {fDate(s.dateFermeture)}
                   </span>
                   <span className={styles.historiqueCardVentes}>{ventes} vente{ventes > 1 ? 's' : ''}</span>
+                </div>
+
+                <div className={styles.historiqueCardRight}>
+                  <span className={styles.historiqueCardAmount}>{fEur(ca)}</span>
+                  <span className={styles.historiqueCardVentes}>CA TTC</span>
                 </div>
 
                 <div className={styles.historiqueCardActions}>

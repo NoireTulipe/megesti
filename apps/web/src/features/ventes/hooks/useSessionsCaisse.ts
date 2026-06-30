@@ -14,6 +14,7 @@ export interface SessionCaisse {
   statut:         'OUVERTE' | 'FERMEE'
   pointDeVente:   PointDeVente
   _count?:        { ventes: number }
+  _caSession?:    number
 }
 
 const KEYS = {

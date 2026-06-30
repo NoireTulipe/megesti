@@ -4,6 +4,7 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { getImageUrl } from '@/lib/api'
 import type { Article } from './types'
 import { useVentesStatsArticle } from './hooks/useVentesStatsArticle'
+import { HelpButton } from '@/components/HelpButton'
 import sty from '@/features/auteurs/AuteursPage.module.css'
 
 interface Props {
@@ -225,6 +226,25 @@ export function ArticleDetail({ article, isOpen, onClose, onEdit, onToggle }: Pr
                 <div className={sty['profil-field']} style={{ gridColumn: '1/-1' }}>
                   <label>Description</label>
                   <span style={{ lineHeight: 1.65, whiteSpace: 'pre-wrap' }}>{article.description}</span>
+                </div>
+              )}
+
+              {article.rayon.isLibrairie && (
+                <div className={sty['profil-field']} style={{ gridColumn: '1/-1' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    Déclaration BNF
+                    <HelpButton slug="article-bnf-declaration" size="sm" variant="ghost" />
+                  </label>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <a
+                      href="https://depotlegal.bnf.fr/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ fontSize: '0.82rem', color: 'var(--terra)', fontWeight: 600, textDecoration: 'underline' }}
+                    >
+                      Portail dépôt légal BNF →
+                    </a>
+                  </span>
                 </div>
               )}
             </div>
