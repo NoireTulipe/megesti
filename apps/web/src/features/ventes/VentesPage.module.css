@@ -716,6 +716,7 @@
   max-height: 90vh; overflow: hidden;
   animation: slideUp 0.3s cubic-bezier(0.22,1,0.36,1) both;
   width: 100%; max-width: 900px;
+  display: flex; flex-direction: column;
 }
 
 /* ── HISTORIQUE ────────────────────────────────────── */
