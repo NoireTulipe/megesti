@@ -482,6 +482,7 @@ model Article {
   // Champs librairie — null pour les autres rayons
   isbn            String?
   datePublication DateTime?
+  bnfDeclaree     Boolean   @default(false)
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 

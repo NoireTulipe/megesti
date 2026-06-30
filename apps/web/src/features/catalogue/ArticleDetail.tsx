@@ -1,9 +1,11 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { getImageUrl } from '@/lib/api'
 import type { Article } from './types'
 import { useVentesStatsArticle } from './hooks/useVentesStatsArticle'
+import { useUpdateArticle } from './hooks/useArticles'
+import { fetchBnfIsbn } from './hooks/useBnfLookup'
 import { HelpButton } from '@/components/HelpButton'
 import sty from '@/features/auteurs/AuteursPage.module.css'
 
@@ -30,8 +32,15 @@ const fmtEuro = (v: string | number | null) =>
   v != null ? `${Number(v).toFixed(2)} €` : '—'
 
 export function ArticleDetail({ article, isOpen, onClose, onEdit, onToggle }: Props) {
-  const [tab, setTab]       = useState<TabId>('profil')
-  const [period, setPeriod] = useState<Period>(12)
+  const [tab, setTab]         = useState<TabId>('profil')
+  const [period, setPeriod]   = useState<Period>(12)
+  const [bnfDeclaree, setBnfDeclaree] = useState(article.bnfDeclaree)
+  const [bnfChecking, setBnfChecking] = useState(false)
+  const updateArticle = useUpdateArticle()
+  const bnfCheckedRef = useRef(false)
+
+  // Sync si le parent rafraîchit l'article (ex: après mutateAsync)
+  useEffect(() => { setBnfDeclaree(article.bnfDeclaree) }, [article.bnfDeclaree])
 
   const { data: stats, isLoading: loadingStats } = useVentesStatsArticle(
     isOpen && tab === 'ventes' ? article.id : undefined,
@@ -44,6 +53,40 @@ export function ArticleDetail({ article, isOpen, onClose, onEdit, onToggle }: Pr
     document.addEventListener('keydown', h)
     return () => document.removeEventListener('keydown', h)
   }, [isOpen, onClose])
+
+  // Auto-vérification BNF à l'ouverture — une seule fois par session modale
+  useEffect(() => {
+    if (!isOpen) { bnfCheckedRef.current = false; return }
+    if (!article.isbn || article.bnfDeclaree || bnfCheckedRef.current) return
+    bnfCheckedRef.current = true
+    const isbnNorm = article.isbn.replace(/[-\s]/g, '')
+    setBnfChecking(true)
+    fetchBnfIsbn(isbnNorm)
+      .then(result => {
+        if (result) {
+          updateArticle.mutate({ id: article.id, bnfDeclaree: true })
+          setBnfDeclaree(true)
+        }
+      })
+      .catch(() => { /* API indisponible, on ne bloque pas */ })
+      .finally(() => setBnfChecking(false))
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, article.id])
+
+  const checkBnfManuel = async () => {
+    if (!article.isbn || bnfChecking) return
+    const isbnNorm = article.isbn.replace(/[-\s]/g, '')
+    setBnfChecking(true)
+    try {
+      const result = await fetchBnfIsbn(isbnNorm)
+      if (result) {
+        await updateArticle.mutateAsync({ id: article.id, bnfDeclaree: true })
+        setBnfDeclaree(true)
+      }
+    } catch { /* silencieux */ } finally {
+      setBnfChecking(false)
+    }
+  }
 
   if (!isOpen) return null
 
@@ -229,22 +272,53 @@ export function ArticleDetail({ article, isOpen, onClose, onEdit, onToggle }: Pr
                 </div>
               )}
 
-              {article.rayon.isLibrairie && (
+              {article.isbn && (
                 <div className={sty['profil-field']} style={{ gridColumn: '1/-1' }}>
                   <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    Déclaration BNF
-                    <HelpButton slug="article-bnf-declaration" size="sm" variant="ghost" />
+                    Dépôt légal BNF
+                    <HelpButton slug="article-bnf-declaration" size="sm" />
                   </label>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <a
-                      href="https://depotlegal.bnf.fr/"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{ fontSize: '0.82rem', color: 'var(--terra)', fontWeight: 600, textDecoration: 'underline' }}
-                    >
-                      Portail dépôt légal BNF →
-                    </a>
-                  </span>
+                  {bnfChecking ? (
+                    <span style={{ color: 'var(--text-soft)', fontSize: '0.82rem', fontStyle: 'italic' }}>
+                      Vérification dans le catalogue BNF…
+                    </span>
+                  ) : bnfDeclaree ? (
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ color: '#059669', fontWeight: 700, fontSize: '0.88rem' }}>✓ Déclaré</span>
+                      <button
+                        onClick={async () => {
+                          await updateArticle.mutateAsync({ id: article.id, bnfDeclaree: false })
+                          setBnfDeclaree(false)
+                        }}
+                        style={{ fontSize: '0.72rem', color: 'var(--text-soft)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', padding: 0 }}
+                      >
+                        Corriger
+                      </button>
+                    </span>
+                  ) : (
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                      <span style={{ color: '#D97706', fontWeight: 600, fontSize: '0.85rem' }}>Non trouvé dans le catalogue BNF</span>
+                      <button
+                        onClick={checkBnfManuel}
+                        disabled={bnfChecking}
+                        style={{
+                          height: 28, padding: '0 12px', borderRadius: 99,
+                          border: '1.5px solid #6B8F71', background: 'rgba(107,143,113,0.07)',
+                          color: '#3A6040', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer',
+                        }}
+                      >
+                        Revérifier
+                      </button>
+                      <a
+                        href="https://depotlegal.bnf.fr/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ fontSize: '0.78rem', color: 'var(--terra)', fontWeight: 600, textDecoration: 'underline' }}
+                      >
+                        Portail dépôt légal BNF →
+                      </a>
+                    </span>
+                  )}
                 </div>
               )}
             </div>

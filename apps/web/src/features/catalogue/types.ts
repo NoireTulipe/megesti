@@ -44,6 +44,7 @@ export interface Article {
   actif:           boolean
   isbn:            string | null
   datePublication: string | null
+  bnfDeclaree:     boolean
   rayon:           Rayon
   categorie:       Categorie | null
   imprimeur:       ArticleImprimeur | null

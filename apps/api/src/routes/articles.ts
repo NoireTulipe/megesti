@@ -20,7 +20,7 @@ const CreateArticleSchema = z.object({
   stock:           z.number().int().nonnegative().default(0),
   stockAlerte:     z.number().int().nonnegative().default(0),
   stockTension:    z.number().int().nonnegative().default(0),
-  isbn:            z.string().optional().nullable(),
+  isbn:            z.string().optional().nullable().transform(v => v ? v.replace(/[-\s]/g, '') : v),
   datePublication: z.string().optional().nullable().transform((v) => v ? new Date(v) : null),
   auteurIds:       z.array(z.string().uuid()).default([]),
   imprimeurId:     z.string().uuid().optional().nullable(),
@@ -40,11 +40,12 @@ const PatchArticleSchema = z.object({
   stock:           z.number().int().nonnegative().optional(),
   stockAlerte:     z.number().int().nonnegative().optional(),
   stockTension:    z.number().int().nonnegative().optional(),
-  isbn:            z.string().optional().nullable(),
+  isbn:            z.string().optional().nullable().transform(v => v ? v.replace(/[-\s]/g, '') : v),
   datePublication: z.string().optional().nullable().transform((v) => v === undefined ? undefined : v ? new Date(v) : null),
   auteurIds:       z.array(z.string().uuid()).optional(),
   imprimeurId:     z.string().uuid().optional().nullable(),
   actif:           z.boolean().optional(),
+  bnfDeclaree:     z.boolean().optional(),
 })
 
 const ListQuerySchema = z.object({
