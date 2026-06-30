@@ -204,7 +204,7 @@ export const rapportRoutes: FastifyPluginAsync = async (app) => {
       ventesDirectesModes, ventesHorsSessionParMotif, ventesDepotResult,
       reversementsEncaisses, fraisPeriode,
       chargesPayees, chargesAVenir, reversementsEnAttente,
-      articlesStock, caResult,
+      articlesStock, caResult, cogsResult,
     ] = await Promise.all([
       // Ventes directes en session (pas PDV) par mode
       app.db.$queryRaw<{ mode: string; ca: number; nb: bigint }[]>(Prisma.sql`
@@ -271,22 +271,28 @@ export const rapportRoutes: FastifyPluginAsync = async (app) => {
         where:  { tenantId, stock: { gt: 0 }, actif: true },
         select: { id: true, stock: true, prixAchatHT: true, prixAchatLotHT: true, prixAchatLotQte: true },
       }),
-      // CA + coût des ventes (COGS) global — toutes ventes (session + hors session)
-      app.db.$queryRaw<{ caHT: number; caTTC: number; coutDesVentes: number }[]>(Prisma.sql`
+      // CA global — sur Vente directement pour éviter le double-comptage par ligne
+      app.db.$queryRaw<{ caHT: number; caTTC: number }[]>(Prisma.sql`
         SELECT
-          CAST(SUM(v."totalHT")  AS FLOAT) AS "caHT",
-          CAST(SUM(v."totalTTC") AS FLOAT) AS "caTTC",
-          CAST(SUM(
-            CASE
-              WHEN a."prixAchatLotHT"  IS NOT NULL AND a."prixAchatLotQte" IS NOT NULL AND a."prixAchatLotQte" > 0
-                THEN (a."prixAchatLotHT" / a."prixAchatLotQte") * lv."quantite"
-              WHEN a."prixAchatHT" IS NOT NULL THEN a."prixAchatHT" * lv."quantite"
-              ELSE 0
-            END
-          ) AS FLOAT) AS "coutDesVentes"
-        FROM "Vente" v
-        JOIN "LigneVente" lv ON lv."venteId"   = v."id"
-        JOIN "Article"    a  ON lv."articleId" = a."id"
+          CAST(SUM("totalHT")  AS FLOAT) AS "caHT",
+          CAST(SUM("totalTTC") AS FLOAT) AS "caTTC"
+        FROM "Vente"
+        WHERE "tenantId" = ${tenantId} AND "statut" = 'VALIDEE'
+          AND "dateVente" >= ${from} AND "dateVente" <= ${to}
+      `),
+      // Coût des ventes (COGS) — nécessite le JOIN Article pour les prix d'achat
+      app.db.$queryRaw<{ coutDesVentes: number }[]>(Prisma.sql`
+        SELECT CAST(SUM(
+          CASE
+            WHEN a."prixAchatLotHT"  IS NOT NULL AND a."prixAchatLotQte" IS NOT NULL AND a."prixAchatLotQte" > 0
+              THEN (a."prixAchatLotHT" / a."prixAchatLotQte") * lv."quantite"
+            WHEN a."prixAchatHT" IS NOT NULL THEN a."prixAchatHT" * lv."quantite"
+            ELSE 0
+          END
+        ) AS FLOAT) AS "coutDesVentes"
+        FROM "LigneVente" lv
+        JOIN "Vente"   v ON lv."venteId"   = v."id"
+        JOIN "Article" a ON lv."articleId" = a."id"
         WHERE v."tenantId" = ${tenantId} AND v."statut" = 'VALIDEE'
           AND v."dateVente" >= ${from} AND v."dateVente" <= ${to}
       `),
@@ -425,9 +431,9 @@ export const rapportRoutes: FastifyPluginAsync = async (app) => {
     }
 
     // ── Agrégats finaux ───────────────────────────────────────────────────────
-    const caHT        = caResult[0]?.caHT        ?? 0
-    const caTTC       = caResult[0]?.caTTC       ?? 0
-    const coutDesVentes = caResult[0]?.coutDesVentes ?? 0
+    const caHT          = caResult[0]?.caHT          ?? 0
+    const caTTC         = caResult[0]?.caTTC         ?? 0
+    const coutDesVentes = cogsResult[0]?.coutDesVentes ?? 0
 
     const totalFrais           = fraisPeriode.reduce((s, f) => s + Number(f.montantHT ?? 0), 0)
     const totalChargesPayees   = chargesPayees.reduce((s, c) => s + Number(c.montantHT), 0)
