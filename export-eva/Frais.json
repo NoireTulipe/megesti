@@ -54,5 +54,61 @@
         "montant": 20.0,
         "sessionId": 20,
         "typeFraisId": 1
+    },
+    {
+        "createdAt": 1779014389657,
+        "id": 10,
+        "libelle": "Midi",
+        "montant": 16.0,
+        "sessionId": 24,
+        "typeFraisId": 3
+    },
+    {
+        "createdAt": 1779014417586,
+        "id": 11,
+        "libelle": "Emplacement",
+        "montant": 16.0,
+        "sessionId": 24,
+        "typeFraisId": 6
+    },
+    {
+        "createdAt": 1779638161929,
+        "id": 12,
+        "libelle": "Place",
+        "montant": 10.0,
+        "sessionId": 25,
+        "typeFraisId": 4
+    },
+    {
+        "createdAt": 1780226692118,
+        "id": 13,
+        "libelle": "Repas",
+        "montant": 72.0,
+        "sessionId": 26,
+        "typeFraisId": 3
+    },
+    {
+        "createdAt": 1780226702046,
+        "id": 14,
+        "libelle": "Place",
+        "montant": 25.0,
+        "sessionId": 26,
+        "typeFraisId": 4
+    },
+    {
+        "createdAt": 1781187691665,
+        "id": 15,
+        "libelle": "Commission 30%",
+        "montant": 86.34,
+        "sessionId": 28,
+        "typeFraisId": 6
+    },
+    {
+        "createdAt": 1782567719828,
+        "id": 16,
+        "libelle": "Place",
+        "montant": 5.0,
+        "sessionId": 32,
+        "typeFraisId": 4
     }
 ]

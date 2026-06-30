@@ -11,8 +11,8 @@
 
 import { PrismaClient }        from '@prisma/client';
 import { readFileSync }        from 'fs';
-import { copyFile, mkdir }     from 'fs/promises';
-import { join, dirname, basename, extname } from 'path';
+import { copyFile, mkdir, rm } from 'fs/promises';
+import { join, dirname, basename } from 'path';
 import { existsSync }          from 'fs';
 import { fileURLToPath }       from 'url';
 
@@ -121,6 +121,58 @@ async function copyImageProduit(
   return `/api/uploads/articles/${articleId}/thumb_web.jpg`;
 }
 
+// ─── Nettoyage ────────────────────────────────────────────────────────────────
+
+async function nettoyerTenant(tenantId: string) {
+  console.log('\n── Nettoyage des données existantes...');
+
+  // Ordre strict pour respecter les contraintes FK (pas de cascade sur tout)
+  const v = await prisma.vente.deleteMany({ where: { tenantId } });
+  console.log(`   Ventes supprimées     : ${v.count} (+ lignes en cascade)`);
+
+  const f = await prisma.frais.deleteMany({ where: { tenantId } });
+  console.log(`   Frais supprimés       : ${f.count}`);
+
+  const s = await prisma.sessionCaisse.deleteMany({ where: { tenantId } });
+  console.log(`   Sessions supprimées   : ${s.count}`);
+
+  const p = await prisma.pointDeVente.deleteMany({ where: { tenantId } });
+  console.log(`   PDV supprimés         : ${p.count}`);
+
+  const cp = await prisma.categoriePointDeVente.deleteMany({ where: { tenantId } });
+  console.log(`   Catégories PDV supp.  : ${cp.count}`);
+
+  // Récupérer les UUIDs des articles pour supprimer leurs dossiers images
+  const articleIds = await prisma.article.findMany({
+    where:  { tenantId },
+    select: { id: true },
+  });
+
+  // ArticleAuteur cascade depuis Article — supprimer Article suffit
+  const a = await prisma.article.deleteMany({ where: { tenantId } });
+  console.log(`   Articles supprimés    : ${a.count}`);
+
+  // Supprimer les dossiers images orphelins
+  let imagesSupp = 0;
+  for (const { id } of articleIds) {
+    const dir = join(UPLOAD_DIR, 'articles', id);
+    if (existsSync(dir)) {
+      await rm(dir, { recursive: true, force: true });
+      imagesSupp++;
+    }
+  }
+  if (imagesSupp > 0) console.log(`   Dossiers images supp. : ${imagesSupp}`);
+
+  const au = await prisma.auteur.deleteMany({ where: { tenantId } });
+  console.log(`   Auteurs supprimés     : ${au.count}`);
+
+  // Rayon cascade vers Categorie
+  const r = await prisma.rayon.deleteMany({ where: { tenantId } });
+  console.log(`   Rayons supprimés      : ${r.count} (+ catégories en cascade)`);
+
+  console.log('   ✓ Nettoyage terminé\n');
+}
+
 // ─── Main ────────────────────────────────────────────────────────────────────
 
 async function main() {
@@ -135,6 +187,8 @@ async function main() {
   if (!tenant) throw new Error('Aucun tenant trouvé. Créer le compte avant de migrer.');
   const tenantId = tenant.id;
   console.log(`Tenant : ${tenant.name} (${tenantId})`);
+
+  await nettoyerTenant(tenantId);
 
   if (!tenant.franchiseTva) {
     await prisma.tenant.update({

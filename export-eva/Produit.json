@@ -11,10 +11,10 @@
         "imageUrl": "/uploads/produits/produit-1-1775309378850.jpg",
         "nom": "Kazuki, l'Eveil d'un Guerrier Mage [1]",
         "prixVenteTTC": 12.5,
-        "stock": 16,
+        "stock": 31,
         "stockAlerte": 5,
         "tva": 5.5,
-        "updatedAt": 1777633706840
+        "updatedAt": 1782568149011
     },
     {
         "actif": 1,
@@ -28,10 +28,10 @@
         "imageUrl": "/uploads/produits/produit-2-1775295750288.jpg",
         "nom": "Kazuki, L'éveil de la prêtresse d'Aether [2]",
         "prixVenteTTC": 12.5,
-        "stock": 10,
+        "stock": 25,
         "stockAlerte": 5,
         "tva": 5.5,
-        "updatedAt": 1777737928108
+        "updatedAt": 1782564917631
     },
     {
         "actif": 1,
@@ -45,10 +45,10 @@
         "imageUrl": "/uploads/produits/produit-3-1775223501441.jpg",
         "nom": "Bord de Rive",
         "prixVenteTTC": 18.5,
-        "stock": 2,
+        "stock": 7,
         "stockAlerte": 5,
         "tva": 5.5,
-        "updatedAt": 1777110784587
+        "updatedAt": 1782385680059
     },
     {
         "actif": 1,
@@ -62,10 +62,10 @@
         "imageUrl": "/uploads/produits/produit-4-1775309399102.jpg",
         "nom": "Kimi sauve les rosiers [1]",
         "prixVenteTTC": 7.5,
-        "stock": 4,
+        "stock": 5,
         "stockAlerte": 5,
         "tva": 5.5,
-        "updatedAt": 1776590246442
+        "updatedAt": 1782556454345
     },
     {
         "actif": 1,
@@ -79,10 +79,10 @@
         "imageUrl": "/uploads/produits/produit-5-1775310147370.jpg",
         "nom": "Porte clé coeur",
         "prixVenteTTC": 3.0,
-        "stock": 9,
+        "stock": 10,
         "stockAlerte": 5,
         "tva": 5.5,
-        "updatedAt": 1777731759430
+        "updatedAt": 1782570189938
     },
     {
         "actif": 1,
@@ -113,10 +113,10 @@
         "imageUrl": "/uploads/produits/produit-7-1775295980830.jpg",
         "nom": "Lorette Princesse de Coeur",
         "prixVenteTTC": 10.0,
-        "stock": 14,
+        "stock": 7,
         "stockAlerte": 5,
         "tva": 5.5,
-        "updatedAt": 1776948024054
+        "updatedAt": 1781358372842
     },
     {
         "actif": 1,
@@ -133,7 +133,7 @@
         "stock": 5,
         "stockAlerte": 5,
         "tva": 5.5,
-        "updatedAt": 1776948251005
+        "updatedAt": 1782385642374
     },
     {
         "actif": 1,
@@ -150,7 +150,7 @@
         "stock": 5,
         "stockAlerte": 5,
         "tva": 5.5,
-        "updatedAt": 1776267992325
+        "updatedAt": 1782385785579
     },
     {
         "actif": 1,
@@ -164,10 +164,10 @@
         "imageUrl": "/uploads/produits/produit-10-1775296961191.jpg",
         "nom": "Le Dragon à Trois Feuille",
         "prixVenteTTC": 9.5,
-        "stock": 6,
+        "stock": 7,
         "stockAlerte": 5,
         "tva": 5.5,
-        "updatedAt": 1776093442725
+        "updatedAt": 1782385773495
     },
     {
         "actif": 1,
@@ -178,13 +178,13 @@
         "droitAuteur": 0,
         "droitAuteurPourcent": 0.0,
         "id": 11,
-        "imageUrl": "/uploads/produits/produit-11-1775297082372.jpg",
+        "imageUrl": "/uploads/produits/produit-11-1778234682062.jpg",
         "nom": "Peluche Chouette",
         "prixVenteTTC": 20.0,
-        "stock": 7,
+        "stock": 4,
         "stockAlerte": 1,
         "tva": 5.5,
-        "updatedAt": 1777131645300
+        "updatedAt": 1780137943797
     },
     {
         "actif": 1,
@@ -198,10 +198,10 @@
         "imageUrl": "/uploads/produits/produit-12-1775297365969.jpg",
         "nom": "Porte clé poulpe bleu",
         "prixVenteTTC": 3.0,
-        "stock": 6,
+        "stock": 4,
         "stockAlerte": 1,
         "tva": 5.5,
-        "updatedAt": 1777716607463
+        "updatedAt": 1782564917924
     },
     {
         "actif": 1,
@@ -215,10 +215,10 @@
         "imageUrl": "/uploads/produits/produit-13-1775297315922.jpg",
         "nom": "Porte clé poussin 3",
         "prixVenteTTC": 3.0,
-        "stock": 3,
+        "stock": 9,
         "stockAlerte": 1,
         "tva": 5.5,
-        "updatedAt": 1777715548133
+        "updatedAt": 1782556454771
     },
     {
         "actif": 1,
@@ -235,7 +235,7 @@
         "stock": 6,
         "stockAlerte": 5,
         "tva": 5.5,
-        "updatedAt": 1776093472468
+        "updatedAt": 1782385713226
     },
     {
         "actif": 1,
@@ -249,10 +249,10 @@
         "imageUrl": "/uploads/produits/produit-15-1775305641747.jpg",
         "nom": "Les aventures de Maëra",
         "prixVenteTTC": 12.5,
-        "stock": 7,
+        "stock": 10,
         "stockAlerte": 5,
         "tva": 5.5,
-        "updatedAt": 1777990624179
+        "updatedAt": 1782385743086
     },
     {
         "actif": 1,
@@ -269,7 +269,7 @@
         "stock": 8,
         "stockAlerte": 5,
         "tva": 5.5,
-        "updatedAt": 1775381944333
+        "updatedAt": 1782385735015
     },
     {
         "actif": 1,
@@ -283,10 +283,10 @@
         "imageUrl": "/uploads/produits/produit-17-1775308746099.jpg",
         "nom": "Tom Graves [2] Le mystère du cambrioleur fantôme",
         "prixVenteTTC": 8.5,
-        "stock": 8,
+        "stock": 7,
         "stockAlerte": 5,
         "tva": 5.5,
-        "updatedAt": 1775381965908
+        "updatedAt": 1780153151630
     },
     {
         "actif": 1,
@@ -300,10 +300,10 @@
         "imageUrl": "/uploads/produits/produit-18-1775308069829.jpg",
         "nom": "Kimi - Mon Abécédaire",
         "prixVenteTTC": 9.9,
-        "stock": 4,
+        "stock": 7,
         "stockAlerte": 3,
         "tva": 5.5,
-        "updatedAt": 1776267991667
+        "updatedAt": 1782385792686
     },
     {
         "actif": 1,
@@ -317,10 +317,10 @@
         "imageUrl": "/uploads/produits/produit-19-1775308303787.jpg",
         "nom": "Le Dernier Héritier - La première Guerre [1]",
         "prixVenteTTC": 19.5,
-        "stock": 1,
+        "stock": 5,
         "stockAlerte": 5,
         "tva": 5.5,
-        "updatedAt": 1777110784720
+        "updatedAt": 1782385694428
     },
     {
         "actif": 1,
@@ -334,10 +334,10 @@
         "imageUrl": "/uploads/produits/produit-20-1775308450865.jpg",
         "nom": "Le Dernier Héritier - La Première Guerre [2]",
         "prixVenteTTC": 19.5,
-        "stock": 4,
+        "stock": 5,
         "stockAlerte": 5,
         "tva": 5.5,
-        "updatedAt": 1776093576233
+        "updatedAt": 1782385686056
     },
     {
         "actif": 1,
@@ -351,10 +351,10 @@
         "imageUrl": "/uploads/produits/produit-21-1775308673249.jpg",
         "nom": "Le Dernier Héritier - Pour l'Empereur [1]",
         "prixVenteTTC": 27.0,
-        "stock": 5,
+        "stock": 4,
         "stockAlerte": 5,
         "tva": 5.5,
-        "updatedAt": 1775381774221
+        "updatedAt": 1780661165298
     },
     {
         "actif": 1,
@@ -368,10 +368,10 @@
         "imageUrl": "/uploads/produits/produit-22-1775308902785.jpg",
         "nom": "Le Dernier Héritier - La Première Guerre [relié]",
         "prixVenteTTC": 40.0,
-        "stock": 1,
+        "stock": 4,
         "stockAlerte": 2,
         "tva": 5.5,
-        "updatedAt": 1776612585462
+        "updatedAt": 1782385689707
     },
     {
         "actif": 1,
@@ -385,10 +385,10 @@
         "imageUrl": "/uploads/produits/produit-23-1775309264082.jpg",
         "nom": "Le Dernier Héritier - Pour l'Empereur [relié]",
         "prixVenteTTC": 35.0,
-        "stock": 2,
+        "stock": 4,
         "stockAlerte": 2,
         "tva": 5.5,
-        "updatedAt": 1777714303968
+        "updatedAt": 1782385709081
     },
     {
         "actif": 1,
@@ -402,10 +402,10 @@
         "imageUrl": "/uploads/produits/produit-24-1775310237287.jpg",
         "nom": "Porte clé panda",
         "prixVenteTTC": 3.0,
-        "stock": 4,
+        "stock": 5,
         "stockAlerte": 0,
         "tva": 5.5,
-        "updatedAt": 1777990765447
+        "updatedAt": 1782517187040
     },
     {
         "actif": 1,
@@ -419,10 +419,10 @@
         "imageUrl": null,
         "nom": "Porte clé poulpe rouge",
         "prixVenteTTC": 3.0,
-        "stock": 6,
+        "stock": 4,
         "stockAlerte": 2,
         "tva": 5.5,
-        "updatedAt": 1776264763379
+        "updatedAt": 1782564918069
     },
     {
         "actif": 1,
@@ -436,10 +436,10 @@
         "imageUrl": null,
         "nom": "Porte clé poulpe pastel",
         "prixVenteTTC": 3.0,
-        "stock": 3,
+        "stock": 2,
         "stockAlerte": 1,
         "tva": 5.5,
-        "updatedAt": 1777990790102
+        "updatedAt": 1781362867871
     },
     {
         "actif": 1,
@@ -453,10 +453,10 @@
         "imageUrl": null,
         "nom": "Porte clé poulpe carmin",
         "prixVenteTTC": 3.0,
-        "stock": 2,
+        "stock": 3,
         "stockAlerte": 1,
         "tva": 5.5,
-        "updatedAt": 1775309744308
+        "updatedAt": 1780607961037
     },
     {
         "actif": 1,
@@ -470,10 +470,10 @@
         "imageUrl": "/uploads/produits/produit-28-1775310178244.jpg",
         "nom": "Porte clé Kimi 3",
         "prixVenteTTC": 3.0,
-        "stock": 3,
+        "stock": 2,
         "stockAlerte": 1,
         "tva": 5.5,
-        "updatedAt": 1775310179749
+        "updatedAt": 1782556472566
     },
     {
         "actif": 1,
@@ -487,10 +487,10 @@
         "imageUrl": "/uploads/produits/produit-29-1775310199075.jpg",
         "nom": "Kimi découvre la forêt [2]",
         "prixVenteTTC": 7.5,
-        "stock": 4,
+        "stock": 7,
         "stockAlerte": 5,
         "tva": 5.5,
-        "updatedAt": 1776604500950
+        "updatedAt": 1782556454200
     },
     {
         "actif": 1,
@@ -504,10 +504,10 @@
         "imageUrl": "/uploads/produits/produit-30-1775310359645.jpg",
         "nom": "Kimi part en Antarctique [3]",
         "prixVenteTTC": 7.5,
-        "stock": 4,
+        "stock": 5,
         "stockAlerte": 5,
         "tva": 5.5,
-        "updatedAt": 1776510690163
+        "updatedAt": 1782560174047
     },
     {
         "actif": 1,
@@ -538,10 +538,10 @@
         "imageUrl": "/uploads/produits/produit-32-1776422505643.jpg",
         "nom": "Porte clé baleine",
         "prixVenteTTC": 3.0,
-        "stock": 9,
+        "stock": 4,
         "stockAlerte": 0,
         "tva": 5.5,
-        "updatedAt": 1777736252647
+        "updatedAt": 1782556454490
     },
     {
         "actif": 1,
@@ -555,10 +555,10 @@
         "imageUrl": "/uploads/produits/produit-33-1775310421786.jpg",
         "nom": "Kimi s'ennuie [4]",
         "prixVenteTTC": 7.5,
-        "stock": 6,
+        "stock": 7,
         "stockAlerte": 5,
         "tva": 5.5,
-        "updatedAt": 1776601630776
+        "updatedAt": 1780919623879
     },
     {
         "actif": 1,
@@ -575,7 +575,7 @@
         "stock": 1,
         "stockAlerte": 0,
         "tva": 5.5,
-        "updatedAt": 1775323091214
+        "updatedAt": 1779279966480
     },
     {
         "actif": 1,
@@ -589,10 +589,10 @@
         "imageUrl": "/uploads/produits/produit-35-1776422599644.jpg",
         "nom": "Porte clé girafe",
         "prixVenteTTC": 3.0,
-        "stock": 3,
+        "stock": 0,
         "stockAlerte": 0,
         "tva": 5.5,
-        "updatedAt": 1777125791318
+        "updatedAt": 1781341393671
     },
     {
         "actif": 1,
@@ -609,7 +609,7 @@
         "stock": 4,
         "stockAlerte": 2,
         "tva": 5.5,
-        "updatedAt": 1777731741349
+        "updatedAt": 1782385751656
     },
     {
         "actif": 1,
@@ -623,10 +623,10 @@
         "imageUrl": "/uploads/produits/produit-37-1775321787542.jpg",
         "nom": "Le monde d'enzo",
         "prixVenteTTC": 12.0,
-        "stock": 5,
+        "stock": 3,
         "stockAlerte": 2,
         "tva": 5.5,
-        "updatedAt": 1775381811802
+        "updatedAt": 1780662689733
     },
     {
         "actif": 1,
@@ -637,13 +637,13 @@
         "droitAuteur": 0,
         "droitAuteurPourcent": 0.0,
         "id": 38,
-        "imageUrl": null,
+        "imageUrl": "/uploads/produits/produit-38-1778313322110.jpg",
         "nom": "Porte clé coeur 4",
         "prixVenteTTC": 4.0,
-        "stock": 0,
+        "stock": 2,
         "stockAlerte": 0,
         "tva": 5.5,
-        "updatedAt": 1777990724658
+        "updatedAt": 1781339646541
     },
     {
         "actif": 1,
@@ -660,7 +660,7 @@
         "stock": 2,
         "stockAlerte": 0,
         "tva": 5.5,
-        "updatedAt": 1777990756145
+        "updatedAt": 1780510524445
     },
     {
         "actif": 1,
@@ -674,10 +674,10 @@
         "imageUrl": null,
         "nom": "Porte clé poussin 4",
         "prixVenteTTC": 4.0,
-        "stock": 3,
+        "stock": 2,
         "stockAlerte": 1,
         "tva": 5.5,
-        "updatedAt": 1777990797508
+        "updatedAt": 1780215133067
     },
     {
         "actif": 1,
@@ -691,10 +691,10 @@
         "imageUrl": null,
         "nom": "Porte clé abeille 4",
         "prixVenteTTC": 4.0,
-        "stock": 2,
+        "stock": 1,
         "stockAlerte": 1,
         "tva": 5.5,
-        "updatedAt": 1777111048472
+        "updatedAt": 1781353616515
     },
     {
         "actif": 1,
@@ -725,10 +725,10 @@
         "imageUrl": "/uploads/produits/produit-43-1776422703641.jpg",
         "nom": "Porte clé grenouille 4",
         "prixVenteTTC": 4.0,
-        "stock": 0,
+        "stock": 2,
         "stockAlerte": 0,
         "tva": 5.5,
-        "updatedAt": 1777990744445
+        "updatedAt": 1782556454613
     },
     {
         "actif": 1,
@@ -759,27 +759,27 @@
         "imageUrl": null,
         "nom": "Porte clé rose rouge",
         "prixVenteTTC": 4.0,
-        "stock": 2,
+        "stock": 0,
         "stockAlerte": 1,
         "tva": 5.5,
-        "updatedAt": 1775322719298
+        "updatedAt": 1781341393414
     },
     {
         "actif": 1,
-        "categorieId": 8,
-        "cout": 0.5,
+        "categorieId": 7,
+        "cout": 1.0,
         "createdAt": 1775322737438,
         "description": null,
         "droitAuteur": 0,
         "droitAuteurPourcent": 0.0,
         "id": 46,
         "imageUrl": null,
-        "nom": "Porte clé rose rose",
-        "prixVenteTTC": 4.0,
+        "nom": "bébé phoque",
+        "prixVenteTTC": 5.0,
         "stock": 1,
         "stockAlerte": 0,
         "tva": 5.5,
-        "updatedAt": 1777990806435
+        "updatedAt": 1782774437098
     },
     {
         "actif": 1,
@@ -793,10 +793,10 @@
         "imageUrl": "/uploads/produits/produit-47-1777997176397.jpg",
         "nom": "Poulpy",
         "prixVenteTTC": 5.0,
-        "stock": 6,
+        "stock": 2,
         "stockAlerte": 0,
         "tva": 5.5,
-        "updatedAt": 1777997180559
+        "updatedAt": 1781359452868
     },
     {
         "actif": 1,
@@ -807,13 +807,13 @@
         "droitAuteur": 0,
         "droitAuteurPourcent": 0.0,
         "id": 48,
-        "imageUrl": null,
+        "imageUrl": "/uploads/produits/produit-48-1778233919465.jpg",
         "nom": "Méduse 8",
         "prixVenteTTC": 8.0,
-        "stock": 3,
+        "stock": 4,
         "stockAlerte": 1,
         "tva": 5.5,
-        "updatedAt": 1777731759128
+        "updatedAt": 1780510531457
     },
     {
         "actif": 1,
@@ -827,10 +827,10 @@
         "imageUrl": "/uploads/produits/produit-49-1775995785691.jpg",
         "nom": "Méduse 10",
         "prixVenteTTC": 10.0,
-        "stock": 2,
+        "stock": 5,
         "stockAlerte": 0,
         "tva": 5.5,
-        "updatedAt": 1777990644906
+        "updatedAt": 1778234102960
     },
     {
         "actif": 0,
@@ -858,13 +858,13 @@
         "droitAuteur": 0,
         "droitAuteurPourcent": 0.0,
         "id": 51,
-        "imageUrl": null,
+        "imageUrl": "/uploads/produits/produit-51-1778234573042.jpg",
         "nom": "Kimi 15",
         "prixVenteTTC": 15.0,
         "stock": 1,
         "stockAlerte": 0,
         "tva": 5.5,
-        "updatedAt": 1777990556588
+        "updatedAt": 1778234574461
     },
     {
         "actif": 0,
@@ -894,11 +894,11 @@
         "id": 53,
         "imageUrl": "/uploads/produits/produit-53-1777997254111.jpg",
         "nom": "Chat 8",
-        "prixVenteTTC": 8.0,
-        "stock": 8,
+        "prixVenteTTC": 10.0,
+        "stock": 4,
         "stockAlerte": 1,
         "tva": 5.5,
-        "updatedAt": 1777997259124
+        "updatedAt": 1782477865202
     },
     {
         "actif": 1,
@@ -911,11 +911,11 @@
         "id": 54,
         "imageUrl": "/uploads/produits/produit-54-1775995602194.jpg",
         "nom": "Baleine 6",
-        "prixVenteTTC": 6.0,
+        "prixVenteTTC": 8.0,
         "stock": 1,
         "stockAlerte": 0,
         "tva": 5.5,
-        "updatedAt": 1775995602945
+        "updatedAt": 1780510543311
     },
     {
         "actif": 1,
@@ -963,10 +963,10 @@
         "imageUrl": "/uploads/produits/produit-57-1775995272265.jpg",
         "nom": "Porte clé lapin 4",
         "prixVenteTTC": 4.0,
-        "stock": 5,
+        "stock": 3,
         "stockAlerte": 0,
         "tva": 5.5,
-        "updatedAt": 1777990734512
+        "updatedAt": 1781363144984
     },
     {
         "actif": 1,
@@ -980,10 +980,10 @@
         "imageUrl": "/uploads/produits/produit-58-1776592577648.jpg",
         "nom": "Kimi",
         "prixVenteTTC": 8.0,
-        "stock": 1,
+        "stock": 0,
         "stockAlerte": 0,
         "tva": 5.5,
-        "updatedAt": 1776592579353
+        "updatedAt": 1780137944120
     },
     {
         "actif": 1,
@@ -997,9 +997,383 @@
         "imageUrl": "/uploads/produits/produit-59-1777050661415.jpg",
         "nom": "Méduse 15",
         "prixVenteTTC": 15.0,
+        "stock": 1,
+        "stockAlerte": 0,
+        "tva": 5.5,
+        "updatedAt": 1780137943953
+    },
+    {
+        "actif": 1,
+        "categorieId": 7,
+        "cout": 1.0,
+        "createdAt": 1780239271788,
+        "description": null,
+        "droitAuteur": 0,
+        "droitAuteurPourcent": 0.0,
+        "id": 60,
+        "imageUrl": null,
+        "nom": "Abeille 5",
+        "prixVenteTTC": 5.0,
+        "stock": 0,
+        "stockAlerte": 0,
+        "tva": 0.0,
+        "updatedAt": 1782774428468
+    },
+    {
+        "actif": 1,
+        "categorieId": 12,
+        "cout": 1.0,
+        "createdAt": 1780393085682,
+        "description": null,
+        "droitAuteur": 0,
+        "droitAuteurPourcent": 0.0,
+        "id": 61,
+        "imageUrl": "/uploads/produits/produit-61-1780393181883.jpg",
+        "nom": "Jaune",
+        "prixVenteTTC": 1.0,
+        "stock": 3,
+        "stockAlerte": 1,
+        "tva": 5.5,
+        "updatedAt": 1782645727478
+    },
+    {
+        "actif": 1,
+        "categorieId": 12,
+        "cout": 1.0,
+        "createdAt": 1780393212589,
+        "description": null,
+        "droitAuteur": 0,
+        "droitAuteurPourcent": 0.0,
+        "id": 62,
+        "imageUrl": "/uploads/produits/produit-62-1780393226018.jpg",
+        "nom": "Orange",
+        "prixVenteTTC": 1.0,
+        "stock": 4,
+        "stockAlerte": 1,
+        "tva": 5.5,
+        "updatedAt": 1780393228337
+    },
+    {
+        "actif": 1,
+        "categorieId": 12,
+        "cout": 1.0,
+        "createdAt": 1780393252449,
+        "description": null,
+        "droitAuteur": 0,
+        "droitAuteurPourcent": 0.0,
+        "id": 63,
+        "imageUrl": "/uploads/produits/produit-63-1780393277650.jpg",
+        "nom": "Marron clair",
+        "prixVenteTTC": 1.0,
+        "stock": 3,
+        "stockAlerte": 1,
+        "tva": 5.5,
+        "updatedAt": 1781005583264
+    },
+    {
+        "actif": 1,
+        "categorieId": 12,
+        "cout": 1.0,
+        "createdAt": 1780393296989,
+        "description": null,
+        "droitAuteur": 0,
+        "droitAuteurPourcent": 0.0,
+        "id": 64,
+        "imageUrl": "/uploads/produits/produit-64-1780393316331.jpg",
+        "nom": "Violet",
+        "prixVenteTTC": 1.0,
+        "stock": 1,
+        "stockAlerte": 1,
+        "tva": 5.5,
+        "updatedAt": 1780393320634
+    },
+    {
+        "actif": 1,
+        "categorieId": 12,
+        "cout": 1.0,
+        "createdAt": 1780393339711,
+        "description": null,
+        "droitAuteur": 0,
+        "droitAuteurPourcent": 0.0,
+        "id": 65,
+        "imageUrl": "/uploads/produits/produit-65-1780393360381.jpg",
+        "nom": "Bleu ciel",
+        "prixVenteTTC": 1.0,
+        "stock": 1,
+        "stockAlerte": 1,
+        "tva": 5.5,
+        "updatedAt": 1780393511049
+    },
+    {
+        "actif": 1,
+        "categorieId": 12,
+        "cout": 1.0,
+        "createdAt": 1780393405418,
+        "description": null,
+        "droitAuteur": 0,
+        "droitAuteurPourcent": 0.0,
+        "id": 66,
+        "imageUrl": "/uploads/produits/produit-66-1780393420396.jpg",
+        "nom": "Bleu foncé action",
+        "prixVenteTTC": 1.0,
+        "stock": 1,
+        "stockAlerte": 1,
+        "tva": 5.5,
+        "updatedAt": 1780393425448
+    },
+    {
+        "actif": 1,
+        "categorieId": 12,
+        "cout": 1.0,
+        "createdAt": 1780393458714,
+        "description": null,
+        "droitAuteur": 0,
+        "droitAuteurPourcent": 0.0,
+        "id": 67,
+        "imageUrl": "/uploads/produits/produit-67-1780393475183.jpg",
+        "nom": "Gris",
+        "prixVenteTTC": 1.0,
+        "stock": 2,
+        "stockAlerte": 1,
+        "tva": 5.5,
+        "updatedAt": 1782734850098
+    },
+    {
+        "actif": 1,
+        "categorieId": 12,
+        "cout": 1.0,
+        "createdAt": 1780393721724,
+        "description": null,
+        "droitAuteur": 0,
+        "droitAuteurPourcent": 0.0,
+        "id": 68,
+        "imageUrl": "/uploads/produits/produit-68-1780393758190.jpg",
+        "nom": "Blanc",
+        "prixVenteTTC": 1.0,
+        "stock": 10,
+        "stockAlerte": 2,
+        "tva": 5.5,
+        "updatedAt": 1780993478600
+    },
+    {
+        "actif": 1,
+        "categorieId": 12,
+        "cout": 1.0,
+        "createdAt": 1780393777935,
+        "description": null,
+        "droitAuteur": 0,
+        "droitAuteurPourcent": 0.0,
+        "id": 69,
+        "imageUrl": "/uploads/produits/produit-69-1780393792261.jpg",
+        "nom": "Noir",
+        "prixVenteTTC": 1.0,
+        "stock": 0,
+        "stockAlerte": 1,
+        "tva": 5.5,
+        "updatedAt": 1782734887086
+    },
+    {
+        "actif": 1,
+        "categorieId": 12,
+        "cout": 1.0,
+        "createdAt": 1780393821388,
+        "description": null,
+        "droitAuteur": 0,
+        "droitAuteurPourcent": 0.0,
+        "id": 70,
+        "imageUrl": "/uploads/produits/produit-70-1780393845705.jpg",
+        "nom": "Beige",
+        "prixVenteTTC": 1.0,
+        "stock": 4,
+        "stockAlerte": 1,
+        "tva": 5.5,
+        "updatedAt": 1780393847881
+    },
+    {
+        "actif": 1,
+        "categorieId": 12,
+        "cout": 1.0,
+        "createdAt": 1780393861590,
+        "description": null,
+        "droitAuteur": 0,
+        "droitAuteurPourcent": 0.0,
+        "id": 71,
+        "imageUrl": "/uploads/produits/produit-71-1780393879263.jpg",
+        "nom": "Rouge",
+        "prixVenteTTC": 1.0,
+        "stock": 2,
+        "stockAlerte": 1,
+        "tva": 5.5,
+        "updatedAt": 1782734871319
+    },
+    {
+        "actif": 1,
+        "categorieId": 12,
+        "cout": 1.0,
+        "createdAt": 1780393902070,
+        "description": null,
+        "droitAuteur": 0,
+        "droitAuteurPourcent": 0.0,
+        "id": 72,
+        "imageUrl": "/uploads/produits/produit-72-1780393916304.jpg",
+        "nom": "Marron foncé",
+        "prixVenteTTC": 1.0,
+        "stock": 1,
+        "stockAlerte": 1,
+        "tva": 5.5,
+        "updatedAt": 1780393918696
+    },
+    {
+        "actif": 1,
+        "categorieId": 12,
+        "cout": 1.0,
+        "createdAt": 1780394019570,
+        "description": null,
+        "droitAuteur": 0,
+        "droitAuteurPourcent": 0.0,
+        "id": 73,
+        "imageUrl": "/uploads/produits/produit-73-1780394033000.jpg",
+        "nom": "Rouge party action",
+        "prixVenteTTC": 1.0,
+        "stock": 5,
+        "stockAlerte": 1,
+        "tva": 5.5,
+        "updatedAt": 1780394036130
+    },
+    {
+        "actif": 1,
+        "categorieId": 12,
+        "cout": 1.0,
+        "createdAt": 1780394056402,
+        "description": null,
+        "droitAuteur": 0,
+        "droitAuteurPourcent": 0.0,
+        "id": 74,
+        "imageUrl": "/uploads/produits/produit-74-1780394067110.jpg",
+        "nom": "Bleu party action",
+        "prixVenteTTC": 1.0,
+        "stock": 3,
+        "stockAlerte": 1,
+        "tva": 5.5,
+        "updatedAt": 1780394069116
+    },
+    {
+        "actif": 1,
+        "categorieId": 12,
+        "cout": 1.0,
+        "createdAt": 1780394083005,
+        "description": null,
+        "droitAuteur": 0,
+        "droitAuteurPourcent": 0.0,
+        "id": 75,
+        "imageUrl": "/uploads/produits/produit-75-1780394097244.jpg",
+        "nom": "Carmin party action",
+        "prixVenteTTC": 1.0,
+        "stock": 1,
+        "stockAlerte": 0,
+        "tva": 5.5,
+        "updatedAt": 1780394099361
+    },
+    {
+        "actif": 1,
+        "categorieId": 12,
+        "cout": 1.0,
+        "createdAt": 1780394116816,
+        "description": null,
+        "droitAuteur": 0,
+        "droitAuteurPourcent": 0.0,
+        "id": 76,
+        "imageUrl": "/uploads/produits/produit-76-1780394134620.jpg",
+        "nom": "Pastel party action",
+        "prixVenteTTC": 1.0,
+        "stock": 2,
+        "stockAlerte": 1,
+        "tva": 5.5,
+        "updatedAt": 1780394136861
+    },
+    {
+        "actif": 1,
+        "categorieId": 12,
+        "cout": 1.0,
+        "createdAt": 1780394153097,
+        "description": null,
+        "droitAuteur": 0,
+        "droitAuteurPourcent": 0.0,
+        "id": 77,
+        "imageUrl": null,
+        "nom": "Vert foncé",
+        "prixVenteTTC": 1.0,
+        "stock": 0,
+        "stockAlerte": 1,
+        "tva": 5.5,
+        "updatedAt": 1780394153097
+    },
+    {
+        "actif": 1,
+        "categorieId": 12,
+        "cout": 1.0,
+        "createdAt": 1780394166362,
+        "description": null,
+        "droitAuteur": 0,
+        "droitAuteurPourcent": 0.0,
+        "id": 78,
+        "imageUrl": null,
+        "nom": "Vert clair",
+        "prixVenteTTC": 1.0,
+        "stock": 0,
+        "stockAlerte": 1,
+        "tva": 5.5,
+        "updatedAt": 1780394166362
+    },
+    {
+        "actif": 1,
+        "categorieId": 7,
+        "cout": 2.0,
+        "createdAt": 1780777426333,
+        "description": null,
+        "droitAuteur": 0,
+        "droitAuteurPourcent": 0.0,
+        "id": 79,
+        "imageUrl": "/uploads/produits/produit-79-1780777469955.jpg",
+        "nom": "Méduse bicolore",
+        "prixVenteTTC": 18.0,
         "stock": 2,
         "stockAlerte": 0,
         "tva": 5.5,
-        "updatedAt": 1777131645165
+        "updatedAt": 1780777472508
+    },
+    {
+        "actif": 1,
+        "categorieId": 7,
+        "cout": 1.0,
+        "createdAt": 1781359575698,
+        "description": null,
+        "droitAuteur": 0,
+        "droitAuteurPourcent": 0.0,
+        "id": 80,
+        "imageUrl": null,
+        "nom": "Coccinelle",
+        "prixVenteTTC": 5.0,
+        "stock": 5,
+        "stockAlerte": 0,
+        "tva": 5.5,
+        "updatedAt": 1782774420124
+    },
+    {
+        "actif": 1,
+        "categorieId": 7,
+        "cout": 1.0,
+        "createdAt": 1782517292549,
+        "description": null,
+        "droitAuteur": 0,
+        "droitAuteurPourcent": 0.0,
+        "id": 81,
+        "imageUrl": null,
+        "nom": "pingouin 8",
+        "prixVenteTTC": 8.0,
+        "stock": 2,
+        "stockAlerte": 0,
+        "tva": 5.5,
+        "updatedAt": 1782517292549
     }
 ]
