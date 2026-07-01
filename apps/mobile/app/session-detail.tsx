@@ -5,10 +5,33 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { api } from '@/lib/api'
 import { getDb } from '@/lib/db'
+import { mergeVentesByUuid } from '@/lib/merge'
 import { useAppTheme } from '@/hooks/useAppTheme'
 import { Colors, Dark, Fonts, Radius, Shadow } from '@/constants/theme'
 
 const MODE_EMOJI: Record<string, string> = { CB: '💳', ESPECES: '💶', CHEQUE: '📝', SUMUP: '📱', VIREMENT: '🏦', PDV: '🏪' }
+
+/**
+ * Convertit le `lignes_json` d'une vente locale (format {nom, quantite, totalLigneTTC...})
+ * vers la forme attendue par l'agrégation (VenteLigne avec article.nom).
+ */
+function parseLignesJson(json: string): VenteLigne[] {
+  try {
+    const raw = JSON.parse(json) as {
+      nom?: string; articleId?: string; quantite: number
+      totalLigneHT?: number; totalLigneTTC?: number; prixUnitaireHT?: number; tauxTva?: number
+    }[]
+    return raw.map(l => ({
+      articleId:    l.articleId ?? '',
+      quantite:     l.quantite,
+      totalLigneHT: l.totalLigneHT ?? (l.prixUnitaireHT ?? 0) * l.quantite,
+      totalLigneTTC: l.totalLigneTTC ?? (l.prixUnitaireHT ?? 0) * l.quantite * (1 + (l.tauxTva ?? 0) / 100),
+      article:      { nom: l.nom ?? 'Article inconnu' },
+    }))
+  } catch {
+    return []
+  }
+}
 
 interface VenteLigne {
   articleId: string; quantite: number; totalLigneHT: number; totalLigneTTC: number
@@ -94,6 +117,28 @@ export default function SessionDetailScreen() {
     })
   }
 
+  // Delta local : ventes de cette session non remontées au serveur (synced=0).
+  // Ajoutées par-dessus la réponse serveur pour un CA exact même en attente de sync.
+  const [localDelta, setLocalDelta] = useState<Vente[]>([])
+  useEffect(() => {
+    if (!id) return
+    getDb().then(async (db) => {
+      const rows = await db.getAllAsync<{
+        id: string; date_vente: string; mode_paiement: string
+        total_ttc: number; total_ht: number; lignes_json: string; statut: string
+      }>(
+        `SELECT id, date_vente, mode_paiement, total_ttc, total_ht, lignes_json, statut
+         FROM ventes_locales WHERE session_id = ? AND synced = 0 AND statut != 'ANNULEE'`,
+        [id],
+      )
+      setLocalDelta(rows.map(r => ({
+        id: r.id, dateVente: r.date_vente, modePaiement: r.mode_paiement,
+        totalTTC: r.total_ttc, totalHT: r.total_ht, statut: r.statut,
+        lignes: parseLignesJson(r.lignes_json),
+      })))
+    })
+  }, [id])
+
   useEffect(() => {
     if (!id) return
     api.get<SessionDetail>(`/sessions-caisse/${id}`)
@@ -101,12 +146,23 @@ export default function SessionDetailScreen() {
       .finally(() => setLoading(false))
   }, [id])
 
+  // Ventes fusionnées : serveur (source de vérité) + delta local dédupliqué par UUID.
+  // Conserve TOUTES les ventes (y compris ANNULEE), nécessaires à l'affichage grisé.
+  const mergedVentes = useMemo(
+    () => data ? mergeVentesByUuid(data.ventes, localDelta) : [],
+    [data, localDelta],
+  )
+  // Ventes validées seulement — pour le CA, le coût, les agrégations.
+  const ventesValidees = useMemo(
+    () => mergedVentes.filter(v => v.statut !== 'ANNULEE'),
+    [mergedVentes],
+  )
+
   // Agrégation par article
   const articleAgg = useMemo(() => {
     if (!data) return []
     const map = new Map<string, { nom: string; qty: number; ca: number }>()
-    for (const v of data.ventes) {
-      if (v.statut === 'ANNULEE') continue
+    for (const v of ventesValidees) {
       for (const l of v.lignes) {
         const nom = l.article?.nom ?? 'Article inconnu'
         const ex = map.get(nom) ?? { nom, qty: 0, ca: 0 }
@@ -114,7 +170,7 @@ export default function SessionDetailScreen() {
       }
     }
     return Array.from(map.values()).sort((a, b) => b.ca - a.ca)
-  }, [data])
+  }, [data, ventesValidees])
 
   // ── Calculs de résultat ──────────────────────────────────────────
 
@@ -129,11 +185,11 @@ export default function SessionDetailScreen() {
     if (!data || !id) return
     ;(async () => {
       const db = await getDb()
-      // Coût des ventes
+      // Coût des ventes — ventesValidees = delta local fusionné, ANNULEE exclues
       let cout = 0
-      for (const v of data.ventes) {
-        if (v.statut === 'ANNULEE') continue
+      for (const v of ventesValidees) {
         for (const l of v.lignes) {
+          if (!l.articleId) continue
           const art = await db.getFirstAsync<{ prix_achat_ht: number | null }>(
             'SELECT prix_achat_ht FROM articles WHERE id = ?', [l.articleId],
           )
@@ -176,9 +232,10 @@ export default function SessionDetailScreen() {
       )
       setFraisList(fl)
     })()
-  }, [data, id])
+  }, [data, id, ventesValidees])
 
-  const ca = data ? data.ventes.filter(v => v.statut !== 'ANNULEE').reduce((sum, v) => sum + Number(v.totalTTC), 0) : 0
+  // CA issu des ventes validées fusionnées (serveur + delta local, ANNULEE exclues)
+  const ca = ventesValidees.reduce((sum, v) => sum + Number(v.totalTTC), 0)
   const pdv = data?.pointDeVente ?? null
   const commissionPdv = pdv
     ? (Number(pdv.commissionFixe) || 0) + (ca * (Number(pdv.commissionPourcent) || 0) / 100)
@@ -245,7 +302,7 @@ export default function SessionDetailScreen() {
         </View>
         <View style={[s.summaryDiv, isDark && { backgroundColor: 'rgba(255,255,255,0.1)' }]} />
         <View style={s.summaryItem}>
-          <Text style={[s.summaryVal, { color: isDark ? Dark.text : Colors.ink }]}>{data.ventes.filter(v => v.statut !== 'ANNULEE').length}</Text>
+          <Text style={[s.summaryVal, { color: isDark ? Dark.text : Colors.ink }]}>{ventesValidees.length}</Text>
           <Text style={[s.summaryLbl, isDark && { color: 'rgba(255,255,255,0.5)' }]}>paniers</Text>
         </View>
         <View style={[s.summaryDiv, isDark && { backgroundColor: 'rgba(255,255,255,0.1)' }]} />
@@ -308,7 +365,7 @@ export default function SessionDetailScreen() {
       <View style={[s.tabRow, isDark && { backgroundColor: Dark.surface }]}>
         <TouchableOpacity style={[s.tab, tab === 'paniers' && (isDark ? s.tabActiveDark : s.tabActive)]}
           onPress={() => setTab('paniers')} activeOpacity={0.7}>
-          <Text style={[s.tabText, { color: tab === 'paniers' ? (isDark ? Dark.accent : Colors.ink) : (isDark ? Dark.textSoft : Colors.textSoft) }]}>Paniers ({data.ventes.filter(v => v.statut !== 'ANNULEE').length})</Text>
+          <Text style={[s.tabText, { color: tab === 'paniers' ? (isDark ? Dark.accent : Colors.ink) : (isDark ? Dark.textSoft : Colors.textSoft) }]}>Paniers ({ventesValidees.length})</Text>
         </TouchableOpacity>
         <TouchableOpacity style={[s.tab, tab === 'articles' && (isDark ? s.tabActiveDark : s.tabActive)]}
           onPress={() => setTab('articles')} activeOpacity={0.7}>
@@ -322,12 +379,12 @@ export default function SessionDetailScreen() {
 
         {/* ═══ PANIERS ═══ */}
         {tab === 'paniers' && (
-          data.ventes.length === 0 ? (
+          mergedVentes.length === 0 ? (
             <View style={s.emptyWrap}>
               <Text style={[s.emptyText, isDark && { color: Dark.textSoft }]}>Aucune vente dans cette session</Text>
             </View>
           ) : (
-            data.ventes.map(v => {
+            mergedVentes.map(v => {
               const isExpanded = expanded === v.id
               return (
                 <TouchableOpacity key={v.id}

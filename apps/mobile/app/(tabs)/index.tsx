@@ -76,10 +76,14 @@ export default function DashboardScreen() {
     })()
   }, [refreshSession, refreshVentes, refreshUser, session?.id]))
 
-  // Stats session courante — serveur prioritaire, local fallback
-  const ventesSession = ventes.filter(v => v.session_id === session?.id)
+  // Stats session courante.
+  // En ligne : CA serveur + delta local (ventes en attente de synchro, synced=0).
+  // Hors ligne : fallback sur le cache local complet.
+  const ventesSession = ventes.filter(v => v.session_id === session?.id && v.statut !== 'ANNULEE')
+  const ventesDelta   = ventesSession.filter(v => !v.synced)
+  const caDelta       = ventesDelta.reduce((s, v) => s + v.total_ttc, 0)
   const caLocal       = ventesSession.reduce((s, v) => s + v.total_ttc, 0)
-  const caSession     = caFromServer && caServeur != null ? caServeur : caLocal
+  const caSession     = caFromServer && caServeur != null ? caServeur + caDelta : caLocal
   const articleCount  = session?.articles_exposes
     ? (JSON.parse(session.articles_exposes) as string[]).length : 0
 

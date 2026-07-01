@@ -144,7 +144,7 @@ async function attachStats(db: Awaited<ReturnType<typeof getDb>>, rows: LocalSes
   const ph  = ids.map(() => '?').join(',')
   const statsRows = await db.getAllAsync<{ session_id: string; count: number; ca: number }>(
     `SELECT session_id, COUNT(*) as count, COALESCE(SUM(total_ttc),0) as ca
-     FROM ventes_locales WHERE session_id IN (${ph}) GROUP BY session_id`,
+     FROM ventes_locales WHERE statut != 'ANNULEE' AND session_id IN (${ph}) GROUP BY session_id`,
     ids,
   )
   const map = new Map(statsRows.map(s => [s.session_id, s]))

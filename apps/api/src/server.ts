@@ -59,6 +59,22 @@ export async function buildServer() {
   })
 
   await app.register(sensible)
+
+  // Une violation de contrainte unique Prisma (P2002) signifie que la ressource
+  // existe déjà : c'est le cas normal d'un retry idempotent côté mobile (ventes,
+  // frais... créés avec un UUID client). On renvoie 409 au lieu d'un 500 brut,
+  // pour que la file d'attente de synchro puisse le traiter comme un succès.
+  app.setErrorHandler((err, _request, reply) => {
+    if ((err as { code?: string }).code === 'P2002') {
+      return reply.status(409).send({
+        statusCode: 409,
+        error: 'Conflict',
+        message: 'Ressource déjà existante',
+      })
+    }
+    return reply.send(err)
+  })
+
   await app.register(prismaPlugin)
   await app.register(redisPlugin)
   await app.register(queuePlugin)

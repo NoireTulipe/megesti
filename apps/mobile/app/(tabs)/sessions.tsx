@@ -109,11 +109,13 @@ export default function SessionsScreen() {
     router.push('/caisse')
   }
 
-  // Stats affichées : serveur si connecté, local sinon
+  // Stats affichées : serveur + delta local (ventes en attente) si connecté, local sinon
   const ventesActives = ventes.filter(v => v.statut !== 'ANNULEE')
-  const caLocal = ventesActives.reduce((s, v) => s + v.total_ttc, 0)
-  const caSession = fromServer && serverCA != null ? serverCA : caLocal
-  const venteCount = fromServer && serverVenteCount != null ? serverVenteCount : ventesActives.length
+  const ventesDelta   = ventesActives.filter(v => !v.synced)
+  const caDelta       = ventesDelta.reduce((s, v) => s + v.total_ttc, 0)
+  const caLocal       = ventesActives.reduce((s, v) => s + v.total_ttc, 0)
+  const caSession     = fromServer && serverCA != null ? serverCA + caDelta : caLocal
+  const venteCount    = fromServer && serverVenteCount != null ? serverVenteCount + ventesDelta.length : ventesActives.length
 
   return (
     <View style={[styles.shell, isDark && { backgroundColor: Dark.bg }]}>

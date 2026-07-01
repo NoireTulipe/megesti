@@ -8,6 +8,8 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { getDb } from '@/lib/db'
 import { api } from '@/lib/api'
+import { syncEngine } from '@/lib/sync'
+import { mergeBilanAggregates } from '@/lib/merge'
 import { Colors, Dark, Fonts, Radius, Shadow, Gradients } from '@/constants/theme'
 import { useAppTheme } from '@/hooks/useAppTheme'
 
@@ -61,22 +63,31 @@ function isoRangeForYear(y: number): [string, string] {
 
 // ─── Requête SQLite ───────────────────────────────────────────────────
 
-async function loadBilan(from: string, to: string, mode: PeriodMode): Promise<BilanData> {
+/**
+ * Charge le bilan depuis le cache local SQLite.
+ * @param scope 'full' = toutes les ventes (fallback hors ligne).
+ *              'delta' = uniquement les ventes/frais NON synchronisés (synced = 0),
+ *              à fusionner par-dessus les données serveur.
+ */
+async function loadBilan(from: string, to: string, mode: PeriodMode, scope: 'full' | 'delta' = 'full'): Promise<BilanData> {
   const db = await getDb()
+  // Clause WHERE additionnelle selon le scope : 'delta' isole le non-remonté au serveur.
+  const venteScope = scope === 'delta' ? 'AND synced = 0' : ''
+  const fraisScope = scope === 'delta' ? 'AND synced = 0' : ''
 
   const [ventesRows, fraisRow, sessionsRows, fraisRows] = await Promise.all([
     db.getAllAsync<{ id: string; mode_paiement: string; total_ttc: number; lignes_json: string; session_id: string | null; date_vente: string }>(
       `SELECT id, mode_paiement, total_ttc, lignes_json, session_id, date_vente
-       FROM ventes_locales WHERE date_vente BETWEEN ? AND ? AND statut != 'ANNULEE' ORDER BY date_vente`,
+       FROM ventes_locales WHERE date_vente BETWEEN ? AND ? AND statut != 'ANNULEE' ${venteScope} ORDER BY date_vente`,
       [from, to],
     ),
     db.getFirstAsync<{ total: number }>(
-      `SELECT COALESCE(SUM(montant_ht),0) as total FROM frais_locaux WHERE date BETWEEN ? AND ?`,
+      `SELECT COALESCE(SUM(montant_ht),0) as total FROM frais_locaux WHERE date BETWEEN ? AND ? AND actif = 1 ${fraisScope}`,
       [from, to],
     ),
     db.getAllAsync<{ session_id: string; pdv: string | null; date_ouverture: string; frais: number }>(
       `SELECT s.id as session_id, s.point_de_vente_nom as pdv, s.date_ouverture,
-              COALESCE((SELECT SUM(f.montant_ht) FROM frais_locaux f WHERE f.session_id = s.id),0) as frais
+              COALESCE((SELECT SUM(f.montant_ht) FROM frais_locaux f WHERE f.session_id = s.id AND f.actif = 1 ${fraisScope}),0) as frais
        FROM sessions s
        WHERE s.date_ouverture BETWEEN ? AND ?
        ORDER BY s.date_ouverture DESC`,
@@ -84,7 +95,7 @@ async function loadBilan(from: string, to: string, mode: PeriodMode): Promise<Bi
     ),
     db.getAllAsync<FraisRow>(
       `SELECT id, type, motif, montant_ht, date, session_id, synced
-       FROM frais_locaux WHERE date BETWEEN ? AND ? ORDER BY date DESC`,
+       FROM frais_locaux WHERE date BETWEEN ? AND ? AND actif = 1 ${fraisScope} ORDER BY date DESC`,
       [from, to],
     ),
   ])
@@ -446,44 +457,61 @@ export default function BilanScreen() {
 
   const [data,       setData]       = useState<BilanData>(EMPTY)
   const [refreshing, setRefreshing] = useState(false)
-  const [fromServer, setFromServer] = useState(false)
+  // Source des données affichées : 'server' (serveur + delta local fusionné),
+  // 'local' (cache local complet, hors ligne). fromServer devient dérivé.
+  const [source, setSource] = useState<'server' | 'local'>('server')
 
   const load = useCallback(async () => {
-    const local = await loadBilan(activeRange[0], activeRange[1], mode)
-    if (local.totaux.ca > 0 || local.totaux.venteCount > 0) {
-      setFromServer(false)
-      setData(local)
-      return
-    }
-    // Fallback serveur si SQLite locale vide (ex: après réinstall)
+    const [from, to] = activeRange
+    // Delta local = ventes/frais NON remontés au serveur. Calculé dans tous les cas
+    // (pas cher) pour être ajouté par-dessus la réponse serveur le cas échéant.
+    const delta = await loadBilan(from, to, mode, 'delta')
+
     try {
-      const [from, to] = activeRange
       const resp = await api.get<any>(
-        `/rapports/ventes?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`
+        `/rapports/ventes?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`,
       )
-      const ca = Number(resp?.summary?.totalTTC ?? 0)
-      if (ca > 0) {
-        const count  = Number(resp.summary?.nbVentes ?? 0)
-        const parMode: ModePaiement[] = (resp.caParMode ?? []).map((r: any) => ({
-          mode: String(r.mode), ca: Number(r.ca ?? 0), count: Number(r.nb ?? 0),
-        }))
-        const topArticles: TopArticle[] = (resp.topArticles ?? []).slice(0, 8).map((r: any) => ({
-          nom: String(r.nom ?? '?'), qty: Number(r.quantite ?? 0), ca: Number(r.ca ?? 0),
-        }))
-        const parPdv: ParPdv[] = (resp.caParPDV ?? []).slice(0, 5).map((r: any) => ({
-          nom: String(r.nom ?? 'PDV'), ca: Number(r.ca ?? 0), count: Number(r.nbVentes ?? 0),
-        }))
-        setFromServer(true)
-        setData({
-          ...EMPTY,
-          totaux: { ca, venteCount: count, fraisTotal: 0, net: ca, sessionCount: 0, panierMoyen: count > 0 ? ca / count : 0 },
-          parMode, topArticles, parPdv,
-        })
-        return
+      const serverCa    = Number(resp?.summary?.totalTTC ?? 0)
+      const serverCount = Number(resp.summary?.nbVentes ?? 0)
+
+      // Agrégats serveur normalisés
+      const serverAgg = {
+        ca: serverCa,
+        venteCount: serverCount,
+        parMode:     (resp.caParMode ?? []).map((r: any) => ({ mode: String(r.mode), ca: Number(r.ca ?? 0), count: Number(r.nb ?? 0) })),
+        topArticles: (resp.topArticles ?? []).slice(0, 8).map((r: any) => ({ nom: String(r.nom ?? '?'), qty: Number(r.quantite ?? 0), ca: Number(r.ca ?? 0) })),
+        parPdv:      (resp.caParPDV ?? []).slice(0, 5).map((r: any) => ({ nom: String(r.nom ?? 'PDV'), ca: Number(r.ca ?? 0), count: Number(r.nbVentes ?? 0) })),
       }
-    } catch {}
-    setFromServer(false)
-    setData(local)
+
+      // Fusion : on ajoute le delta local (synced=0) aux agrégats serveur.
+      const merged = mergeBilanAggregates(serverAgg, {
+        ca: delta.totaux.ca, venteCount: delta.totaux.venteCount,
+        parMode: delta.parMode, topArticles: delta.topArticles, parPdv: delta.parPdv,
+      })
+
+      setSource('server')
+      setData({
+        ...EMPTY,
+        totaux: {
+          ca: merged.ca,
+          venteCount: merged.venteCount,
+          // Frais : serveur n'en renvoie pas dans /rapports/ventes → on prend le delta.
+          // (cohérent : un frais en attente doit impacter le net affiché)
+          fraisTotal: delta.totaux.fraisTotal,
+          net: merged.ca - delta.totaux.fraisTotal,
+          sessionCount: delta.totaux.sessionCount,
+          panierMoyen: merged.venteCount > 0 ? merged.ca / merged.venteCount : 0,
+        },
+        parMode: merged.parMode, topArticles: merged.topArticles, parPdv: merged.parPdv,
+        parMois: delta.parMois, sessions: delta.sessions, fraisRows: delta.fraisRows,
+      })
+      return
+    } catch {
+      // Hors ligne : on bascule sur le cache local complet (toutes ventes, pas seulement le delta).
+      const local = await loadBilan(from, to, mode, 'full')
+      setSource('local')
+      setData(local)
+    }
   }, [activeRange, mode])
 
   useFocusEffect(useCallback(() => { load() }, [load]))
@@ -504,6 +532,10 @@ export default function BilanScreen() {
     await load()
     setRefreshing(false)
   }, [load])
+
+  // Badge de source : 3 états selon la provenance et la file d'attente de synchro.
+  const [pending, setPending] = useState(0)
+  useEffect(() => syncEngine.subscribe((_s, c) => setPending(c)), [])
 
   const { totaux, parMode, topArticles, parPdv, parMois, sessions } = data
   const maxModeCa = parMode.length > 0 ? Math.max(...parMode.map(m => m.ca)) : 1
@@ -536,11 +568,12 @@ export default function BilanScreen() {
 
         {/* ── Carte résumé ── */}
         <LinearGradient colors={isDark ? Gradients.bilanDark : Gradients.bilan} style={styles.summaryCard} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
-          {fromServer && (
-            <Text style={{ fontFamily: Fonts.body, fontSize: 10, color: 'rgba(255,255,255,0.6)', marginBottom: 4, textAlign: 'center' }}>
-              ☁️ Données serveur
-            </Text>
-          )}
+          {/* Badge de source des données */}
+          <Text style={{ fontFamily: Fonts.body, fontSize: 10, color: 'rgba(255,255,255,0.7)', marginBottom: 4, textAlign: 'center' }}>
+            {source === 'server'
+              ? pending > 0 ? `☁️ Serveur · ${pending} en attente` : '☁️ Serveur'
+              : '📡 Local (hors ligne)'}
+          </Text>
           <Text style={styles.summaryLbl}>Net estimé</Text>
           <Text style={styles.summaryNet}>{totaux.net.toFixed(2)} €</Text>
 

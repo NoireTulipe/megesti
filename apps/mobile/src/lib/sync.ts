@@ -110,10 +110,20 @@ async function processQueue() {
         )
         await db.runAsync('DELETE FROM sync_queue WHERE id = ?', [item.id])
       } catch (e: any) {
-        // 400 "Session déjà fermée" → c'est OK, on marque comme synced
-        if (item.entity_type === 'session_close' && (e?.message?.includes('déjà fermée') || e?.status === 400)) {
+        // Cas où l'opération a en fait déjà abouti sur le serveur :
+        //  - 400 "Session déjà fermée" sur une fermeture de session
+        //  - 409 Conflict (contrainte unique) sur une vente/frais déjà créé
+        //    (typique d'un retry après une réponse HTTP perdue).
+        // Dans les deux cas on marque l'entité comme synchronisée : elle est
+        // bien sur le serveur, il ne faut surtout PAS la recompter dans le delta.
+        const alreadyOnServer =
+          (item.entity_type === 'session_close' && (e?.message?.includes('déjà fermée') || e?.status === 400)) ||
+          ((item.entity_type === 'vente' || item.entity_type === 'frais') && e?.status === 409)
+
+        if (alreadyOnServer) {
+          const table = item.entity_type === 'vente' ? 'ventes_locales' : item.entity_type === 'frais' ? 'frais_locaux' : 'sessions'
           await db.runAsync(
-            `UPDATE sessions SET synced = 1, synced_at = datetime('now') WHERE id = ?`,
+            `UPDATE ${table} SET synced = 1, synced_at = datetime('now') WHERE id = ?`,
             [item.entity_id],
           )
           await db.runAsync('DELETE FROM sync_queue WHERE id = ?', [item.id])

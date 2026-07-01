@@ -153,9 +153,10 @@ interface ContratCardProps {
 
 function ContratCard({ c, typesDA, articles, onDelete, onUpdate, onAppliquer, updating, applying }: ContratCardProps) {
   const [editing, setEditing] = useState(false)
+  const defaultArticleId = c.articleId ?? (articles.length === 1 ? articles[0]!.id : '')
   const [f, setF] = useState({
     typeDAId:          c.typeDAId,
-    articleId:         c.articleId ?? '',
+    articleId:         defaultArticleId,
     avance:            c.avance ? String(Number(c.avance)) : '',
     prixAuteurHT:      c.prixAuteurHT ? String(Number(c.prixAuteurHT)) : '',
     dateSignature:     c.dateSignature ? c.dateSignature.slice(0, 10) : '',
@@ -205,11 +206,17 @@ function ContratCard({ c, typesDA, articles, onDelete, onUpdate, onAppliquer, up
             </select>
           </div>
           <div className={sty.field}>
-            <label className={sty.label}>Article (vide = tous)</label>
-            <select className={sty.input} value={f.articleId} onChange={e => set('articleId')(e.target.value)}>
-              <option value="">Tous les articles</option>
-              {articles.map(a => <option key={a.id} value={a.id}>{a.nom}</option>)}
-            </select>
+            <label className={sty.label}>Livre concerné *</label>
+            {articles.length === 1 ? (
+              <div className={sty.input} style={{ color: 'var(--ink)', background: 'var(--cream)', cursor: 'default' }}>
+                {articles[0]!.nom}
+              </div>
+            ) : (
+              <select className={sty.input} value={f.articleId} onChange={e => set('articleId')(e.target.value)}>
+                {!f.articleId && <option value="">— Choisir un livre —</option>}
+                {articles.map(a => <option key={a.id} value={a.id}>{a.nom}</option>)}
+              </select>
+            )}
           </div>
         </div>
         <div className={sty.row2}>
@@ -282,7 +289,7 @@ function ContratCard({ c, typesDA, articles, onDelete, onUpdate, onAppliquer, up
           )}
           {!c.article && (
             <span style={{ fontSize: '0.72rem', color: 'var(--text-soft)', marginLeft: 8, fontStyle: 'italic' }}>
-              tous les articles
+              tous les livres
             </span>
           )}
         </div>
@@ -393,8 +400,8 @@ interface FormState {
   prochainVersement: string
 }
 
-const formVide = (): FormState => ({
-  typeDAId: '', articleId: '', avance: '', prixAuteurHT: '',
+const formVide = (articles: { id: string }[]): FormState => ({
+  typeDAId: '', articleId: articles.length === 1 ? articles[0]!.id : '', avance: '', prixAuteurHT: '',
   dateSignature: new Date().toISOString().slice(0, 10),
   datePriseEffet: '', dureeAns: '',
   reconduiteTacite: true,
@@ -412,18 +419,19 @@ interface FormulaireProps {
 }
 
 function FormulaireContrat({ auteurId, articles, typesDA, onCreated, onCancel, isPending, onSubmit }: FormulaireProps) {
-  const [f, setF] = useState<FormState>(formVide)
+  const [f, setF] = useState<FormState>(() => formVide(articles))
   const set = (k: keyof FormState) => (v: string | boolean) => setF((s) => ({ ...s, [k]: v }))
 
   function handleSubmit() {
     if (!f.typeDAId) return
     const sigDate = f.dateSignature ? `${f.dateSignature}T00:00:00.000Z` : undefined
     const effDate = f.datePriseEffet ? `${f.datePriseEffet}T00:00:00.000Z` : sigDate
+    const resolvedArticleId = f.articleId || (articles.length === 1 ? articles[0]!.id : undefined)
     onSubmit({
       id:                generateUUID(),
       auteurId,
       typeDAId:          f.typeDAId,
-      articleId:         f.articleId || undefined,
+      articleId:         resolvedArticleId,
       avance:            f.avance ? Number(f.avance) : undefined,
       prixAuteurHT:      f.prixAuteurHT ? Number(f.prixAuteurHT) : undefined,
       dateSignature:     sigDate,
@@ -448,11 +456,17 @@ function FormulaireContrat({ auteurId, articles, typesDA, onCreated, onCancel, i
           </select>
         </div>
         <div className={sty.field}>
-          <label className={sty.label}>Article (vide = tous)</label>
-          <select className={sty.input} value={f.articleId} onChange={(e) => set('articleId')(e.target.value)}>
-            <option value="">Tous les articles</option>
-            {articles.map((a) => <option key={a.id} value={a.id}>{a.nom}</option>)}
-          </select>
+          <label className={sty.label}>Livre concerné *</label>
+          {articles.length === 1 ? (
+            <div className={sty.input} style={{ color: 'var(--ink)', background: 'var(--cream)', cursor: 'default' }}>
+              {articles[0]!.nom}
+            </div>
+          ) : (
+            <select className={sty.input} value={f.articleId} onChange={(e) => set('articleId')(e.target.value)}>
+              {!f.articleId && <option value="">— Choisir un livre —</option>}
+              {articles.map((a) => <option key={a.id} value={a.id}>{a.nom}</option>)}
+            </select>
+          )}
         </div>
       </div>
 
@@ -506,7 +520,7 @@ function FormulaireContrat({ auteurId, articles, typesDA, onCreated, onCancel, i
 
       <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
         <button type="button" className={sty.btnSecondary} onClick={onCancel}>Annuler</button>
-        <button type="button" className={sty.btnPrimary} disabled={!f.typeDAId || isPending} onClick={handleSubmit}>
+        <button type="button" className={sty.btnPrimary} disabled={!f.typeDAId || (articles.length > 1 && !f.articleId) || isPending} onClick={handleSubmit}>
           {isPending ? 'Enregistrement…' : 'Créer le contrat'}
         </button>
       </div>
