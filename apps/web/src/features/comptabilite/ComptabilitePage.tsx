@@ -131,31 +131,26 @@ export function ComptabilitePage() {
       ) : (
         <div className={styles.content}>
 
-          {/* ── Métriques synthèse (ventes lecteurs uniquement) ── */}
+          {/* ── Métriques synthèse — totaux consolidés ── */}
           <div className={styles.statsRow}>
-            <StatCard emoji="💰" label="CA lecteurs TTC" value={fEur(summary.totalTTC)} sub={`dont HT : ${fEur(summary.totalHT)}`} color={COLORS.rose} />
-            <StatCard emoji="🛒" label="Ventes lecteurs" value={String(summary.nbVentes)} sub={summary.nbAnnulees > 0 ? `${summary.nbAnnulees} annulée${summary.nbAnnulees > 1 ? 's' : ''}` : 'Aucune annulation'} color={COLORS.sage} />
-            <StatCard emoji="🎯" label="Ticket moyen" value={fEur(summary.ticketMoyen)} sub="par transaction" color={COLORS.gold} />
-            <StatCard emoji="📦" label="Articles vendus" value={String(topArticles.reduce((s, a) => s + a.quantite, 0))} sub="toutes références" color={COLORS.mauve} />
+            <StatCard
+              emoji="💰" label="Chiffre d'affaires TTC"
+              value={fEur(summary.totalTTC + (exemplairesAuteurs?.totalTTC ?? 0))}
+              sub={`Lecteurs: ${fEur(summary.totalTTC)}${(exemplairesAuteurs?.totalTTC ?? 0) > 0 ? ` · Auteurs: ${fEur(exemplairesAuteurs!.totalTTC)}` : ''}`}
+              color={COLORS.rose}
+            />
+            <StatCard
+              emoji="🛒" label="Ventes validées"
+              value={String(summary.nbVentes + (exemplairesAuteurs?.nbVentes ?? 0))}
+              sub={`Lecteurs: ${summary.nbVentes}${(exemplairesAuteurs?.nbVentes ?? 0) > 0 ? ` · Auteurs: ${exemplairesAuteurs!.nbVentes}` : ''}${summary.nbAnnulees > 0 ? ` · ${summary.nbAnnulees} annulée(s)` : ''}`}
+              color={COLORS.sage}
+            />
+            <StatCard emoji="🎯" label="Ticket moyen lecteurs" value={fEur(summary.ticketMoyen)} sub="par transaction lecteur" color={COLORS.gold} />
+            <StatCard emoji="📦" label="Articles vendus" value={String(topArticles.reduce((s, a) => s + a.quantite, 0))} sub="ventes lecteurs" color={COLORS.mauve} />
           </div>
 
-          {/* ── Exemplaires auteurs ── */}
-          {(exemplairesAuteurs?.totalTTC ?? 0) > 0 && (
-            <div className={styles.exemplairesBanner}>
-              <span className={styles.exemplairesBannerLabel}>📗 Exemplaires auteurs — non inclus dans les stats ci-dessus</span>
-              <span className={styles.exemplairesBannerValue}>
-                {fEur(exemplairesAuteurs!.totalTTC)} TTC
-                {' · '}
-                {exemplairesAuteurs!.nbVentes} vente{exemplairesAuteurs!.nbVentes > 1 ? 's' : ''}
-                {(exemplairesAuteurs!.parAuteur.length > 0) && (
-                  <> · {exemplairesAuteurs!.parAuteur.map(a => `${a.nomAuteur} (${fEur(a.caTTC)})`).join(', ')}</>
-                )}
-              </span>
-            </div>
-          )}
-
-          {/* ── Évolution CA ── */}
-          <ChartSection title="Évolution du chiffre d'affaires" emoji="📈" full>
+          {/* ── Évolution CA lecteurs ── */}
+          <ChartSection title="Évolution CA — ventes lecteurs" emoji="📈" full>
             {evolution.length === 0 ? (
               <p className={styles.noData}>Pas de données sur cette période.</p>
             ) : (
@@ -359,6 +354,30 @@ export function ComptabilitePage() {
               </div>
             </ChartSection>
           )}
+
+          {/* ── Ventes exemplaires auteurs ── */}
+          <ChartSection title="Ventes exemplaires auteurs" emoji="📗" full>
+            {!(exemplairesAuteurs) || exemplairesAuteurs.totalTTC === 0 ? (
+              <p className={styles.noData}>Aucune vente d'exemplaires à auteur sur la période.</p>
+            ) : (
+              <>
+                <div className={styles.pdvTable}>
+                  {exemplairesAuteurs.parAuteur.map((a, i) => (
+                    <div key={a.auteurId} className={styles.pdvRow}>
+                      <span className={styles.pdvRank}>{i + 1}</span>
+                      <span className={styles.pdvNom}>{a.nomAuteur}</span>
+                      <span className={styles.pdvVentes}>{a.nb} vente{a.nb > 1 ? 's' : ''}</span>
+                      <span className={styles.pdvVentes}>{fEur(a.caHT)} HT</span>
+                      <span className={styles.pdvCA}>{fEur(a.caTTC)}</span>
+                    </div>
+                  ))}
+                </div>
+                <p className={styles.assocSub} style={{ marginTop: 14, textAlign: 'right' }}>
+                  Total : <strong>{fEur(exemplairesAuteurs.totalHT)} HT</strong> · <strong>{fEur(exemplairesAuteurs.totalTTC)} TTC</strong>
+                </p>
+              </>
+            )}
+          </ChartSection>
 
         </div>
       )}
