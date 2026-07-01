@@ -39,7 +39,25 @@ type ActiveScope =
   | { kind: 'entity'; entityType: EntityType }
   | { kind: 'rayon';  rayonId: string; isLibrairie: boolean }
 
-// ── Mascotte paramètres fiscaux — CMS ────────────────────────────────────────
+// ── Mascottes CMS ─────────────────────────────────────────────────────────────
+
+function MascotDA() {
+  const { data } = useMascoteDialog('reglages-da-bareme')
+  if (!data) return null
+  return (
+    <div className={styles.fiscalMascotWrap}>
+      <img src={`/img/mascotte/${data.imageName}`} alt="" className={styles.fiscalMascotImg} />
+      <div className={styles.fiscalMascotBubbles}>
+        {data.bulles.map((b, i) => (
+          <div key={i} className={styles.fiscalMascotBubble}>
+            {b.title && <p className={styles.fiscalMascotTitle}>{b.title}</p>}
+            <p className={styles.fiscalMascotText}>{b.text}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
 
 function MascotFiscal() {
   const { data } = useMascoteDialog('reglages-fiscal')
@@ -139,7 +157,14 @@ export function ReglagesPage() {
             <p style={{ fontSize: '0.82rem', color: 'var(--text-soft)', maxWidth: 320, margin: 0, lineHeight: 1.6 }}>Les barèmes de droits d'auteur sont disponibles à partir du plan Edition.</p>
           </div>
         )}
-        {tab === 'droits' && features.contratsAuteurs && <TypesDASection />}
+        {tab === 'droits' && features.contratsAuteurs && (
+          <div className={styles.fiscalPageLayout}>
+            <div className={styles.fiscalFormCol}>
+              <TypesDASection />
+            </div>
+            <MascotDA />
+          </div>
+        )}
 
         {/* ── Champs personnalisés ── */}
         {tab === 'champs' && (
