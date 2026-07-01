@@ -16,6 +16,29 @@ function estFallback(r: RegleDA): boolean {
   return c.vendeur === undefined && c.avecCommission === undefined && c.typeVente === undefined
 }
 
+const DEDUCT_OPTIONS = [
+  { value: '',       label: 'Aucune' },
+  { value: '0.3333', label: '1/3' },
+  { value: '0.5',    label: '1/2' },
+  { value: '0.6667', label: '2/3' },
+  { value: '1',      label: '100%' },
+]
+
+function deductLabel(v: number): string {
+  if (v <= 0.34) return '1/3'
+  if (v <= 0.51) return '1/2'
+  if (v <= 0.68) return '2/3'
+  return '100%'
+}
+
+function deductKey(v: number | undefined): string {
+  if (v === undefined) return ''
+  if (v <= 0.34) return '0.3333'
+  if (v <= 0.51) return '0.5'
+  if (v <= 0.68) return '0.6667'
+  return '1'
+}
+
 function describeRegle(r: RegleDA): string {
   if (estFallback(r)) return 'Défaut (toujours)'
   const parts: string[] = []
@@ -24,7 +47,10 @@ function describeRegle(r: RegleDA): string {
   if (r.conditions.avecCommission === true) parts.push("avec commission")
   if (r.conditions.avecCommission === false) parts.push("sans commission")
   if (r.conditions.typeVente) parts.push(r.conditions.typeVente.toLowerCase())
-  return parts.join(', ') || '—'
+  const tauxStr = r.deductionCommission
+    ? `${r.taux}% − ${deductLabel(r.deductionCommission)}×comm.`
+    : `${r.taux}%`
+  return (parts.join(', ') || '—') + ` → ${tauxStr}`
 }
 
 // •"?•"? … d'une règle (une ligne du tableau) •"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?
@@ -110,6 +136,15 @@ function LigneRegle({
           />
           <span style={{ fontSize: '0.75rem', color: 'var(--text-soft)' }}>%</span>
         </div>
+      </td>
+      <td>
+        <select
+          className={styles.condSelect}
+          value={deductKey(regle.deductionCommission)}
+          onChange={(e) => onChange({ ...regle, deductionCommission: e.target.value === '' ? undefined : Number(e.target.value) })}
+        >
+          {DEDUCT_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+        </select>
       </td>
       <td>
         <select
@@ -219,6 +254,7 @@ function EditeurDA({
                 <th>Commission PDV</th>
                 <th>Type de vente</th>
                 <th>Taux</th>
+                <th>Déduction comm.</th>
                 <th>Base</th>
                 <th></th>
                 <th></th>
@@ -309,7 +345,7 @@ export function TypesDASection() {
               : { nom: '', lignes: [
                   { conditions: { vendeur: 'AUTEUR' },                    taux: 50, base: 'TTC' },
                   { conditions: { vendeur: 'ME', avecCommission: false }, taux: 40, base: 'TTC' },
-                  { conditions: { avecCommission: true },                 taux: 30, base: 'TTC' },
+                  { conditions: { vendeur: 'ME', avecCommission: true },  taux: 40, base: 'TTC', deductionCommission: 0.6667 },
                   { conditions: {},                                       taux: 35, base: 'TTC' },
                 ] }
           }

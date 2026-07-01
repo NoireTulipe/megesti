@@ -3,9 +3,10 @@ export type TypeVente    = 'DIRECTE' | 'DEPOT' | 'SALON'
 export type BaseCalcul   = 'HT' | 'TTC'
 
 export interface ContexteVente {
-  vendeur:        VendeurType
-  avecCommission: boolean
-  typeVente?:     TypeVente
+  vendeur:         VendeurType
+  avecCommission:  boolean
+  typeVente?:      TypeVente
+  tauxCommission?: number    // taux de commission du lieu de vente, en % (ex: 15)
 }
 
 export interface ConditionRegle {
@@ -15,9 +16,10 @@ export interface ConditionRegle {
 }
 
 export interface RegleDA {
-  conditions: ConditionRegle  // {} = s'applique toujours (fallback)
-  taux:       number          // 0–100
-  base:       BaseCalcul
+  conditions:           ConditionRegle  // {} = s'applique toujours (fallback)
+  taux:                 number          // 0–100
+  base:                 BaseCalcul
+  deductionCommission?: number          // fraction de la commission à déduire (ex: 2/3 → 0.6667)
 }
 
 export interface FormuleDA {

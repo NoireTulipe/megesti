@@ -22,10 +22,12 @@ function getContexte(
   session: { salonId: string | null; pointDeVente: { commissionPourcent: unknown; commissionFixe: unknown } | null } | null
 ): ContexteVente {
   if (!session) return { vendeur: 'ME', avecCommission: false, typeVente: 'DIRECTE' }
+  const pdv = session.pointDeVente
   return {
     vendeur:        'ME',
-    avecCommission: !!(session.pointDeVente?.commissionPourcent || session.pointDeVente?.commissionFixe),
+    avecCommission: !!(pdv?.commissionPourcent || pdv?.commissionFixe),
     typeVente:      session.salonId ? 'SALON' : 'DIRECTE',
+    tauxCommission: pdv?.commissionPourcent ? Number(pdv.commissionPourcent) : undefined,
   }
 }
 
@@ -76,10 +78,14 @@ export async function calculerSoldeContrat(
 
   let totalDuBrut = 0
   for (const ligne of lignes) {
-    const regle = evaluateDA(formule, getContexte(ligne.vente.session))
+    const ctx  = getContexte(ligne.vente.session)
+    const regle = evaluateDA(formule, ctx)
     if (!regle) continue
+    const tauxEff = regle.deductionCommission && ctx.tauxCommission
+      ? Math.max(0, regle.taux - regle.deductionCommission * ctx.tauxCommission)
+      : regle.taux
     const base   = regle.base === 'TTC' ? Number(ligne.totalLigneTTC) : Number(ligne.totalLigneHT)
-    totalDuBrut += base * (regle.taux / 100)
+    totalDuBrut += base * (tauxEff / 100)
   }
   totalDuBrut = arrondir(totalDuBrut)
 

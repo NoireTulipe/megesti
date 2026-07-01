@@ -191,7 +191,10 @@ export const sessionCaisseRoutes: FastifyPluginAsync = async (app) => {
     const avecCommission = !!(pdv.commissionPourcent || pdv.commissionFixe)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const typeVente: ContexteVente['typeVente'] = (session as any).salonId ? 'SALON' : 'DIRECTE'
-    const contexte: ContexteVente = { vendeur: 'ME', avecCommission, typeVente }
+    const contexte: ContexteVente = {
+      vendeur: 'ME', avecCommission, typeVente,
+      tauxCommission: pdv.commissionPourcent ? Number(pdv.commissionPourcent) : undefined,
+    }
 
     const contratMap = new Map<string, {
       auteurId: string; nomAuteur: string

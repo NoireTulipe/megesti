@@ -46,8 +46,11 @@ export function calculateRoyalties(
     }
   }
 
-  const { taux, base } = regle
-  const facteur = taux / 100
+  const { taux, base, deductionCommission } = regle
+  const tauxEffectif = deductionCommission && contexte.tauxCommission
+    ? Math.max(0, taux - deductionCommission * contexte.tauxCommission)
+    : taux
+  const facteur = tauxEffectif / 100
 
   const lignesCalculees = lignes.map((l) => ({
     articleId: l.articleId,
@@ -60,7 +63,7 @@ export function calculateRoyalties(
   const montantNet    = arrondir(montantBrut - avanceRecoupee)
 
   return {
-    taux,
+    taux: tauxEffectif,
     base,
     montantBrut,
     avanceRecoupee,
