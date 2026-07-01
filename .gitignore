@@ -44,3 +44,4 @@ Exemple-pour-Claude/
 **/*.keystore
 apps/mobile/credentials.json
 apps/mobile/android/
+apps/api/prisma/export-dialogs.ts
