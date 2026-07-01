@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { getDb } from '@/lib/db'
+import { getDb, generateUUID } from '@/lib/db'
 import { api } from '@/lib/api'
 import { Config } from '@/constants/Config'
 import { useDevStore } from '@/store/devStore'
@@ -40,6 +40,32 @@ interface ApiArticle {
 interface UploadResponse {
   thumbAppUrl: string
   thumbWebUrl: string
+}
+
+/** Rayon tel que renvoyé par GET /rayons (avec catégories imbriquées). */
+export interface Rayon {
+  id: string
+  nom: string
+  ordre: number
+  isLibrairie: boolean
+  tauxTVA: number
+  categories: { id: string; nom: string; ordre: number }[]
+}
+
+/** Charge les rayons du tenant (avec catégories imbriquées) — pour les formulaires. */
+export async function fetchRayons(): Promise<Rayon[]> {
+  return api.get<Rayon[]>('/rayons')
+}
+
+/** Payload de création d'article (champs utiles salon — version simplifiée du web). */
+export interface CreateArticleInput {
+  rayonId: string
+  categorieId?: string | null
+  nom: string
+  isbn?: string | null
+  prixVenteHT: number
+  prixAchatHT?: number | null
+  stock?: number
 }
 
 /** URL complète depuis un chemin relatif ou absolu renvoyé par l'API.
@@ -143,7 +169,30 @@ export function useLocalArticles(ids?: string[]) {
     }
   }, [refresh, addLog])
 
-  return { articles, loading, refresh, pullFromServer, updateStock, uploadImage }
+  /** Crée un article côté serveur puis rafraîchit le cache local. */
+  const create = useCallback(async (input: CreateArticleInput): Promise<string> => {
+    const id = generateUUID()
+    const isLibrairie = true // simplifié : on envoie toujours isbn si fourni (le rayon décide côté serveur)
+    await api.post('/articles', {
+      id,
+      rayonId: input.rayonId,
+      categorieId: input.categorieId ?? null,
+      nom: input.nom,
+      reference: null,
+      description: null,
+      prixVenteHT: input.prixVenteHT,
+      prixAchatHT: input.prixAchatHT ?? null,
+      stock: input.stock ?? 0,
+      isbn: input.isbn || null,
+      datePublication: null,
+      auteurIds: [],
+    })
+    addLog('info', `Article créé: ${input.nom}`)
+    await pullFromServer()
+    return id
+  }, [pullFromServer, addLog])
+
+  return { articles, loading, refresh, pullFromServer, updateStock, uploadImage, create }
 }
 
 /** Cherche un article par ISBN dans la base locale (utilisé par le scanner) */

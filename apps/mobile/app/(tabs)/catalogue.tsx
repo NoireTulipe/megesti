@@ -108,7 +108,12 @@ export default function StockScreen() {
         colors={isDark ? Gradients.stockDark : Gradients.stock}
         start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
         style={[styles.heroGradient, { paddingTop: 48 + insets.top }]}>
-        <Text style={styles.heroTitle}>Stock</Text>
+        <View style={styles.heroTitleRow}>
+          <Text style={styles.heroTitle}>Stock</Text>
+          <TouchableOpacity style={styles.addBtn} onPress={() => router.push('/article-new')} activeOpacity={0.7}>
+            <Text style={styles.addBtnTxt}>＋ Article</Text>
+          </TouchableOpacity>
+        </View>
         <Text style={styles.heroSub}>{displayed.length} articles</Text>
 
         {/* Recherche */}
@@ -269,6 +274,9 @@ const styles = StyleSheet.create({
   // Hero (même style que la caisse)
   heroGradient: { paddingHorizontal: 20, paddingBottom: 20, marginBottom: 16 },
   heroTitle: { fontFamily: Fonts.displayItalic, fontSize: 22, color: Colors.white, fontStyle: 'italic' },
+  heroTitleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  addBtn: { backgroundColor: 'rgba(255,255,255,0.18)', borderRadius: Radius.full, paddingHorizontal: 14, paddingVertical: 7 },
+  addBtnTxt: { fontFamily: Fonts.body, fontSize: 13, fontWeight: '700', color: Colors.white },
   heroSub: { fontFamily: Fonts.body, fontSize: 12, color: 'rgba(255,255,255,0.55)', marginTop: 3, marginBottom: 14 },
 
   heroSearch: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.12)', borderRadius: Radius.md, paddingHorizontal: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },

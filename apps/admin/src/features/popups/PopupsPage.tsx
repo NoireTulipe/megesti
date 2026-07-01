@@ -12,7 +12,7 @@ const MODE_OPTIONS: { value: PopupMode; label: string; desc: string; emoji: stri
   { value: 'ALWAYS_BLOCKING',  label: 'Toujours (bloquante)',desc: 'Impossible de fermer — maintenance, message critique',               emoji: '🚨' },
 ]
 
-const IMAGES = ['m1.png', 'm2.png', 'm3.png']
+const IMAGES = ['m1.png', 'm2.png', 'm3.png', 'm4.png', 'm5.png', 'm6.png', 'm7.png', 'm8.png']
 
 interface PopupSlide { imageName: string; title: string; text: string; ctaLabel: string; ctaHref: string }
 interface Popup {

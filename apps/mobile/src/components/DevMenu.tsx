@@ -8,6 +8,7 @@ import { useDevStore, DevLog } from '@/store/devStore'
 import { useAuthStore } from '@/store/authStore'
 import { getDb } from '@/lib/db'
 import { syncEngine } from '@/lib/sync'
+import { INITIAL_API_URL } from '@/constants/Config'
 import { Colors, Fonts, Radius, Spacing, Shadow } from '@/constants/theme'
 
 const LEVEL_COLOR: Record<string, string> = {
@@ -31,7 +32,7 @@ function LogEntry({ log }: { log: DevLog }) {
 export function DevMenu() {
   const {
     apiUrl, logs, useMock, isDevMenuVisible,
-    setApiUrl, addLog, clearLogs, setUseMock, showDevMenu, hideDevMenu,
+    setApiUrl, resetApiUrl, addLog, clearLogs, setUseMock, showDevMenu, hideDevMenu,
   } = useDevStore()
 
   const [tmpUrl, setTmpUrl] = useState(apiUrl)
@@ -138,9 +139,14 @@ export function DevMenu() {
               <TextInput style={styles.input} value={tmpUrl} onChangeText={setTmpUrl}
                 placeholder="http://192.168.x.x:3001" placeholderTextColor="rgba(255,255,255,0.3)"
                 autoCapitalize="none" keyboardType="url" />
-              <TouchableOpacity style={styles.btn} onPress={() => setApiUrl(tmpUrl.trim())}>
-                <Text style={styles.btnText}>Appliquer</Text>
-              </TouchableOpacity>
+              <View style={styles.urlBtnRow}>
+                <TouchableOpacity style={[styles.btn, styles.urlBtn]} onPress={() => setApiUrl(tmpUrl.trim())}>
+                  <Text style={styles.btnText}>Appliquer</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.btn, styles.urlBtn]} onPress={() => { resetApiUrl(); setTmpUrl(INITIAL_API_URL) }}>
+                  <Text style={styles.btnText}>Réinitialiser</Text>
+                </TouchableOpacity>
+              </View>
 
               <Text style={[styles.label, { marginTop: 20 }]}>Mode mock</Text>
               <View style={styles.switchRow}>
@@ -240,6 +246,8 @@ const styles = StyleSheet.create({
   },
   btnText: { fontFamily: Fonts.body, fontSize: 14, fontWeight: '700', color: Colors.white },
   btnDanger: { backgroundColor: Colors.terra },
+  urlBtn: { flex: 1, backgroundColor: Colors.sage },
+  urlBtnRow: { flexDirection: 'row', gap: 8 },
 
   switchRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
   switchLabel: { flex: 1, fontFamily: Fonts.body, fontSize: 13, color: 'rgba(255,255,255,0.6)', marginRight: 12 },

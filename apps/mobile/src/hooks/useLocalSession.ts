@@ -23,6 +23,23 @@ export interface PointDeVente {
   nom: string
   encaissementDirect: boolean
   commissionPourcent: number | null
+  commissionFixe: number | null
+  categorieId: string | null
+}
+
+/** Catégorie de point de vente (pour le formulaire de création). */
+export interface CategoriePointDeVente {
+  id: string
+  nom: string
+  ordre: number
+}
+
+export interface CreatePointDeVenteInput {
+  nom: string
+  categorieId?: string | null
+  commissionFixe?: number | null
+  commissionPourcent?: number | null
+  encaissementDirect: boolean
 }
 
 export function useLocalSession() {
@@ -212,18 +229,42 @@ export function usePointsDeVente() {
   const [error, setError] = useState<string | null>(null)
   const addLog = useDevStore(s => s.addLog)
 
-  useEffect(() => {
-    api.get<PointDeVente[]>('/points-de-vente')
-      .then(data => {
-        setPdvs(data)
-        addLog('info', `${data.length} point(s) de vente chargés`)
-      })
-      .catch(err => {
-        setError(err.message ?? 'Erreur inconnue')
-        addLog('error', `Échec chargement PDV: ${err.message}`)
-      })
-      .finally(() => setLoading(false))
-  }, [])
+  const refresh = useCallback(async () => {
+    try {
+      const data = await api.get<PointDeVente[]>('/points-de-vente')
+      setPdvs(data)
+      addLog('info', `${data.length} point(s) de vente chargés`)
+    } catch (err: any) {
+      setError(err.message ?? 'Erreur inconnue')
+      addLog('error', `Échec chargement PDV: ${err.message}`)
+    } finally {
+      setLoading(false)
+    }
+  }, [addLog])
 
-  return { pdvs, loading, error }
+  useEffect(() => { refresh() }, [refresh])
+
+  /** Crée un PDV côté serveur puis rafraîchit la liste. */
+  const create = useCallback(async (input: CreatePointDeVenteInput): Promise<string> => {
+    const id = generateUUID()
+    await api.post('/points-de-vente', {
+      id,
+      nom: input.nom,
+      categorieId: input.categorieId ?? null,
+      commissionFixe: input.commissionFixe ?? null,
+      commissionPourcent: input.commissionPourcent ?? null,
+      encaissementDirect: input.encaissementDirect,
+      contacts: [],
+    })
+    addLog('info', `PDV créé: ${input.nom}`)
+    await refresh()
+    return id
+  }, [refresh, addLog])
+
+  return { pdvs, loading, error, refresh, create }
+}
+
+/** Charge les catégories de PDV du tenant — pour le formulaire. */
+export async function fetchCategoriesPointDeVente(): Promise<CategoriePointDeVente[]> {
+  return api.get<CategoriePointDeVente[]>('/categories-point-de-vente')
 }

@@ -20,7 +20,7 @@ interface MascoteDialog {
   createdAt:   string
 }
 
-const IMAGES = ['m1.png', 'm2.png', 'm3.png']
+const IMAGES = ['m1.png', 'm2.png', 'm3.png', 'm4.png', 'm5.png', 'm6.png', 'm7.png', 'm8.png']
 
 function emptyBulle(): Bulle {
   return { title: '', text: '', cta_label: '', cta_href: '' }
@@ -245,9 +245,17 @@ export function MascoteDialogsPage() {
               </div>
               <div className="form-group">
                 <label>Image</label>
-                <select value={form.imageName} onChange={e => setF('imageName', e.target.value)}>
-                  {IMAGES.map(img => <option key={img} value={img}>{img}</option>)}
-                </select>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                  <select value={form.imageName} onChange={e => setF('imageName', e.target.value)}>
+                    {IMAGES.map(img => <option key={img} value={img}>{img}</option>)}
+                  </select>
+                  <img
+                    key={form.imageName}
+                    src={`/img/mascotte/${form.imageName}`}
+                    alt={form.imageName}
+                    style={{ height: 80, width: 'auto', borderRadius: 6, border: '1px solid var(--border)' }}
+                  />
+                </div>
               </div>
             </div>
 

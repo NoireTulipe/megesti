@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import * as SecureStore from 'expo-secure-store'
-import { Config } from '@/constants/Config'
+import { Config, INITIAL_API_URL } from '@/constants/Config'
 
 const DEV_API_KEY = 'megesti_dev_api_url'
 
@@ -20,6 +20,7 @@ interface DevState {
   isDevMenuVisible: boolean
 
   setApiUrl: (url: string) => Promise<void>
+  resetApiUrl: () => Promise<void>
   addLog: (level: LogLevel, message: string) => void
   clearLogs: () => void
   setUseMock: (v: boolean) => void
@@ -46,6 +47,15 @@ export const useDevStore = create<DevState>((set, get) => ({
     const uploadBase = url.replace(/\/api\/?$/, '')
     ;(Config as any).uploadBaseUrl = uploadBase
     get().addLog('info', `API URL → ${url} (upload → ${uploadBase})`)
+  },
+
+  resetApiUrl: async () => {
+    // Retour à la valeur par défaut (IP locale en dev, prod en release).
+    await SecureStore.deleteItemAsync(DEV_API_KEY)
+    set({ apiUrl: INITIAL_API_URL })
+    ;(Config as any).apiBaseUrl = INITIAL_API_URL
+    ;(Config as any).uploadBaseUrl = INITIAL_API_URL.replace(/\/api\/?$/, '')
+    get().addLog('info', `API URL réinitialisée → ${INITIAL_API_URL}`)
   },
 
   addLog: (level: LogLevel, message: string) => {

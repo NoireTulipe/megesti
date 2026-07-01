@@ -185,7 +185,7 @@ export default function CaisseScreen() {
               return prev.map(i => i.articleId === article.id ? { ...i, quantite: i.quantite + 1 } : i)
             }
             const prixArt = article.prix_vente_ht
-            return [...prev, { id: Date.now().toString() + Math.random(), articleId: article.id, nom: article.nom, prix: prixArt, prixOrigine: prixArt, quantite: 1 }]
+            return [...prev, { id: Date.now().toString() + Math.random(), articleId: article.id, nom: article.nom, prix: prixArt, prixOrigine: prixArt, quantite: 1, tauxTva: article.taux_tva }]
           })
         }
       }
@@ -196,6 +196,7 @@ export default function CaisseScreen() {
   const [showSessionModal, setShowSessionModal] = useState(false)
   const [fondCaisse, setFondCaisse] = useState('')
   const [selectedPdvId, setSelectedPdvId] = useState<string | null>(null)
+  const [pdvSearch, setPdvSearch] = useState('')
   const [search, setSearch] = useState('')
   const [selectedRayon, setSelectedRayon] = useState<string | null>(null)
   const [enabledCats, setEnabledCats] = useState<Set<string>>(new Set())
@@ -482,26 +483,51 @@ export default function CaisseScreen() {
             onPress={() => setShowSessionModal(false)}>
             <View style={styles.modalCard} onStartShouldSetResponder={() => true}>
               <Text style={styles.modalTitle}>Nouvelle session</Text>
-              <Text style={styles.sectionLabel}>Point de vente</Text>
+              <View style={styles.pdvLabelRow}>
+                <Text style={styles.sectionLabel}>Point de vente</Text>
+                <TouchableOpacity onPress={() => { setShowSessionModal(false); router.push('/point-de-vente-new') }} activeOpacity={0.7}>
+                  <Text style={styles.pdvCreateLink}>＋ Créer</Text>
+                </TouchableOpacity>
+              </View>
               {pdvsLoading ? (
                 <Text style={styles.hint}>Chargement…</Text>
               ) : pdvsError ? (
                 <Text style={styles.errorHint}>Erreur : {pdvsError}</Text>
               ) : pdvs.length === 0 ? (
-                <Text style={styles.hint}>Aucun point de vente. Créez-en un depuis l'interface web.</Text>
+                <Text style={styles.hint}>Aucun point de vente. Touchez « ＋ Créer » pour en ajouter un.</Text>
               ) : (
-                pdvs.map(pdv => (
-                  <TouchableOpacity key={pdv.id}
-                    style={[styles.pdvOption, selectedPdvId === pdv.id && styles.pdvOptionActive]}
-                    onPress={() => setSelectedPdvId(pdv.id)} activeOpacity={0.7}>
-                    <Text style={[styles.pdvOptionText, selectedPdvId === pdv.id && styles.pdvOptionTextActive]}>
-                      {pdv.nom}
-                    </Text>
-                    {pdv.encaissementDirect && (
-                      <Text style={styles.pdvOptionMeta}>Règlement à la caisse du PDV</Text>
+                <>
+                  {pdvs.length > 6 && (
+                    <TextInput
+                      style={styles.pdvSearchInput}
+                      value={pdvSearch}
+                      onChangeText={setPdvSearch}
+                      placeholder="Rechercher un point de vente…"
+                      placeholderTextColor={Colors.textSoft}
+                    />
+                  )}
+                  <ScrollView style={styles.pdvList} showsVerticalScrollIndicator={false}>
+                    {pdvs
+                      .filter(pdv => pdv.nom.toLowerCase().includes(pdvSearch.trim().toLowerCase()))
+                      .map(pdv => (
+                      <TouchableOpacity key={pdv.id}
+                        style={[styles.pdvOption, selectedPdvId === pdv.id && styles.pdvOptionActive]}
+                        onPress={() => setSelectedPdvId(pdv.id)} activeOpacity={0.7}>
+                        <Text style={[styles.pdvOptionText, selectedPdvId === pdv.id && styles.pdvOptionTextActive]}>
+                          {pdv.nom}
+                        </Text>
+                        {pdv.encaissementDirect && (
+                          <Text style={styles.pdvOptionMeta}>Règlement à la caisse du PDV</Text>
+                        )}
+                      </TouchableOpacity>
+                    ))}
+                    {pdvs.filter(pdv => pdv.nom.toLowerCase().includes(pdvSearch.trim().toLowerCase())).length === 0 && (
+                      <Text style={[styles.hint, { textAlign: 'center', paddingVertical: 16 }]}>
+                        Aucun point de vente ne correspond.
+                      </Text>
                     )}
-                  </TouchableOpacity>
-                ))
+                  </ScrollView>
+                </>
               )}
               {selectedPdvId && pdvs.find(p => p.id === selectedPdvId)?.encaissementDirect && (
                 <>
@@ -880,6 +906,15 @@ const styles = StyleSheet.create({
   pdvOptionText: { fontFamily: Fonts.body, fontSize: 14, fontWeight: '600', color: Colors.textMid },
   pdvOptionTextActive: { color: Colors.roseDark },
   pdvOptionMeta: { fontFamily: Fonts.body, fontSize: 11, color: Colors.textSoft, marginTop: 2 },
+  pdvSearchInput: {
+    fontFamily: Fonts.body, fontSize: 14, color: Colors.text,
+    backgroundColor: Colors.cream, borderRadius: Radius.md,
+    paddingHorizontal: 14, paddingVertical: 10, marginBottom: 8,
+    borderWidth: 1.5, borderColor: 'rgba(196,132,122,0.2)',
+  },
+  pdvList: { maxHeight: 320 },
+  pdvLabelRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  pdvCreateLink: { fontFamily: Fonts.body, fontSize: 12, fontWeight: '700', color: Colors.rose },
   hint: { fontFamily: Fonts.body, fontSize: 13, color: Colors.textSoft, paddingVertical: 8, fontStyle: 'italic' },
   errorHint: { fontFamily: Fonts.body, fontSize: 13, color: Colors.terra, paddingVertical: 8 },
   modalActions: { flexDirection: 'row', gap: 10, marginTop: 20 },
