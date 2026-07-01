@@ -43,7 +43,7 @@ const schema = z.object({
   stock:           z.coerce.number().int().min(0).default(0),
   stockAlerte:     z.coerce.number().int().min(0).default(0),
   stockTension:    z.coerce.number().int().min(0).default(0),
-  isbn:            z.string().optional(),
+  isbn:            z.string().regex(/^[\dX]*$/i, 'ISBN invalide — chiffres uniquement').optional(),
   datePublication: z.string().optional(),
   imprimeurId:     z.string().optional().nullable(),
 })
@@ -250,6 +250,12 @@ export function ArticleForm({ onClose, article }: Props) {
     if (e.key === 'Enter') { e.preventDefault(); void handleBnfLookup() }
   }
 
+  function handleIsbnInputChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const cleaned = e.target.value.replace(/[-\s]/g, '').replace(/[^0-9Xx]/g, '').toUpperCase()
+    e.target.value = cleaned
+    void register('isbn').onChange(e)
+  }
+
   // Remplir les champs custom quand les valeurs chargent (mode édition)
   useEffect(() => {
     if (isEdit && Object.keys(customValues).length > 0) {
@@ -389,8 +395,8 @@ export function ArticleForm({ onClose, article }: Props) {
 
   const bnfFeedback = (
     <>
-      {bnfNotFound && <p className={styles.bnfMsg}>ISBN non trouvé dans le catalogue BNF.</p>}
-      {bnfFetchErr  && <p className={`${styles.bnfMsg} ${styles.bnfMsgError}`}>Le catalogue BNF est momentanément inaccessible.</p>}
+      {bnfNotFound && <p className={styles.bnfMsg}>Cet ISBN n'est pas encore référencé dans le catalogue BNF — vous pouvez créer la fiche et vérifier le dépôt légal plus tard.</p>}
+      {bnfFetchErr  && <p className={`${styles.bnfMsg} ${styles.bnfMsgError}`}>Impossible de joindre le catalogue BNF — la fiche peut être enregistrée et le dépôt légal vérifié ultérieurement.</p>}
       {bnfCard}
     </>
   )
@@ -401,8 +407,11 @@ export function ArticleForm({ onClose, article }: Props) {
         id="isbn"
         className={styles.input}
         {...register('isbn')}
-        placeholder="978-…"
+        onChange={handleIsbnInputChange}
         onKeyDown={handleIsbnKeyDown}
+        placeholder="9782…"
+        maxLength={13}
+        inputMode="numeric"
       />
       <button
         type="button"
@@ -699,7 +708,7 @@ export function ArticleForm({ onClose, article }: Props) {
               ) : (
                 <div className={styles.field}>
                   <label className={styles.label} htmlFor="isbn">ISBN</label>
-                  <input id="isbn" className={styles.input} {...register('isbn')} placeholder="978-…" />
+                  <input id="isbn" className={styles.input} {...register('isbn')} onChange={handleIsbnInputChange} placeholder="9782…" maxLength={13} inputMode="numeric" />
                 </div>
               )}
               <div className={styles.field}>

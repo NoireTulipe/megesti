@@ -34,8 +34,9 @@ const fmtEuro = (v: string | number | null) =>
 export function ArticleDetail({ article, isOpen, onClose, onEdit, onToggle }: Props) {
   const [tab, setTab]         = useState<TabId>('profil')
   const [period, setPeriod]   = useState<Period>(12)
-  const [bnfDeclaree, setBnfDeclaree] = useState(article.bnfDeclaree)
-  const [bnfChecking, setBnfChecking] = useState(false)
+  const [bnfDeclaree, setBnfDeclaree]     = useState(article.bnfDeclaree)
+  const [bnfChecking, setBnfChecking]     = useState(false)
+  const [bnfCheckError, setBnfCheckError] = useState(false)
   const updateArticle = useUpdateArticle()
   const bnfCheckedRef = useRef(false)
 
@@ -68,7 +69,7 @@ export function ArticleDetail({ article, isOpen, onClose, onEdit, onToggle }: Pr
           setBnfDeclaree(true)
         }
       })
-      .catch(() => { /* API indisponible, on ne bloque pas */ })
+      .catch(() => { setBnfCheckError(true) })
       .finally(() => setBnfChecking(false))
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, article.id])
@@ -77,13 +78,14 @@ export function ArticleDetail({ article, isOpen, onClose, onEdit, onToggle }: Pr
     if (!article.isbn || bnfChecking) return
     const isbnNorm = article.isbn.replace(/[-\s]/g, '')
     setBnfChecking(true)
+    setBnfCheckError(false)
     try {
       const result = await fetchBnfIsbn(isbnNorm)
       if (result) {
         await updateArticle.mutateAsync({ id: article.id, bnfDeclaree: true })
         setBnfDeclaree(true)
       }
-    } catch { /* silencieux */ } finally {
+    } catch { setBnfCheckError(true) } finally {
       setBnfChecking(false)
     }
   }
@@ -272,35 +274,53 @@ export function ArticleDetail({ article, isOpen, onClose, onEdit, onToggle }: Pr
                 </div>
               )}
 
-              {article.isbn && (
+              {article.rayon.isLibrairie && (
                 <div className={sty['profil-field']} style={{ gridColumn: '1/-1' }}>
                   <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     Dépôt légal BNF
                     <HelpButton slug="article-bnf-declaration" size="sm" />
                   </label>
-                  {bnfChecking ? (
+                  {!article.isbn ? (
+                    <span style={{ color: 'var(--text-soft)', fontSize: '0.85rem', fontStyle: 'italic' }}>
+                      ISBN non renseigné — impossible de vérifier le référencement BNF.
+                    </span>
+                  ) : bnfChecking ? (
                     <span style={{ color: 'var(--text-soft)', fontSize: '0.82rem', fontStyle: 'italic' }}>
                       Vérification dans le catalogue BNF…
                     </span>
                   ) : bnfDeclaree ? (
                     <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span style={{ color: '#059669', fontWeight: 700, fontSize: '0.88rem' }}>✓ Déclaré</span>
+                      <span style={{ color: '#059669', fontWeight: 700, fontSize: '0.88rem' }}>✓ Référencé dans le catalogue BNF</span>
                       <button
                         onClick={async () => {
                           await updateArticle.mutateAsync({ id: article.id, bnfDeclaree: false })
                           setBnfDeclaree(false)
+                          setBnfCheckError(false)
                         }}
                         style={{ fontSize: '0.72rem', color: 'var(--text-soft)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', padding: 0 }}
                       >
                         Corriger
                       </button>
                     </span>
-                  ) : (
+                  ) : bnfCheckError ? (
                     <span style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-                      <span style={{ color: '#D97706', fontWeight: 600, fontSize: '0.85rem' }}>Non trouvé dans le catalogue BNF</span>
+                      <span style={{ color: '#D97706', fontWeight: 600, fontSize: '0.85rem' }}>Vérification impossible — catalogue BNF inaccessible</span>
                       <button
                         onClick={checkBnfManuel}
-                        disabled={bnfChecking}
+                        style={{
+                          height: 28, padding: '0 12px', borderRadius: 99,
+                          border: '1.5px solid #6B8F71', background: 'rgba(107,143,113,0.07)',
+                          color: '#3A6040', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer',
+                        }}
+                      >
+                        Réessayer
+                      </button>
+                    </span>
+                  ) : (
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                      <span style={{ color: '#D97706', fontWeight: 600, fontSize: '0.85rem' }}>Absent du catalogue BNF — dépôt légal à effectuer</span>
+                      <button
+                        onClick={checkBnfManuel}
                         style={{
                           height: 28, padding: '0 12px', borderRadius: 99,
                           border: '1.5px solid #6B8F71', background: 'rgba(107,143,113,0.07)',

@@ -149,8 +149,9 @@ export function useLocalArticles(ids?: string[]) {
 /** Cherche un article par ISBN dans la base locale (utilisé par le scanner) */
 export async function findByIsbn(isbn: string): Promise<LocalArticle | null> {
   const db = await getDb()
+  const isbnNorm = isbn.replace(/[-\s]/g, '')
   return db.getFirstAsync<LocalArticle>(
-    'SELECT * FROM articles WHERE isbn = ? AND actif = 1 LIMIT 1',
-    [isbn],
+    "SELECT * FROM articles WHERE REPLACE(REPLACE(isbn, '-', ''), ' ', '') = ? AND actif = 1 LIMIT 1",
+    [isbnNorm],
   )
 }
