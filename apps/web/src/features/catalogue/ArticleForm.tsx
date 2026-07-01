@@ -389,8 +389,8 @@ export function ArticleForm({ onClose, article }: Props) {
 
   const bnfFeedback = (
     <>
-      {bnfNotFound && <p className={styles.bnfMsg}>ISBN non trouvé dans le catalogue BNF.</p>}
-      {bnfFetchErr  && <p className={`${styles.bnfMsg} ${styles.bnfMsgError}`}>Le catalogue BNF est momentanément inaccessible.</p>}
+      {bnfNotFound && <p className={styles.bnfMsg}>Cet ISBN n'est pas encore référencé dans le catalogue BNF — vous pouvez créer la fiche et vérifier le dépôt légal plus tard.</p>}
+      {bnfFetchErr  && <p className={`${styles.bnfMsg} ${styles.bnfMsgError}`}>Impossible de joindre le catalogue BNF — la fiche peut être enregistrée et le dépôt légal vérifié ultérieurement.</p>}
       {bnfCard}
     </>
   )
