@@ -35,15 +35,17 @@ function fDate(iso: string) {
   return new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 function isoToInput(iso: string) { return iso.split('T')[0] }
+function toLocalISO(d: Date) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
+}
 
-function startOfMonth()  { const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), 1) }
-function startOfQuarter(){ const d = new Date(); const q = Math.floor(d.getMonth()/3)*3; return new Date(d.getFullYear(), q, 1) }
-function startOfYear()   { return new Date(new Date().getFullYear(), 0, 1) }
+function daysAgo(n: number) { const d = new Date(); d.setDate(d.getDate() - n); d.setHours(0,0,0,0); return d }
+function startOfYear()    { return new Date(new Date().getFullYear(), 0, 1) }
 
 const PRESETS = [
-  { key: 'month',   label: 'Ce mois',     from: () => startOfMonth() },
-  { key: 'quarter', label: 'Ce trimestre', from: () => startOfQuarter() },
-  { key: 'year',    label: 'Cette année',  from: () => startOfYear() },
+  { key: 'month',   label: '30 jours',    from: () => daysAgo(30) },
+  { key: 'quarter', label: '3 mois',      from: () => daysAgo(90) },
+  { key: 'year',    label: '12 mois',     from: () => daysAgo(365) },
   { key: 'custom',  label: 'Personnalisé', from: () => startOfYear() },
 ] as const
 
@@ -76,7 +78,7 @@ function CustomTooltip({ active, payload, label }: { active?: boolean; payload?:
 export function BilanPage() {
   const navigate = useNavigate()
   const [preset, setPreset]     = useState<PresetKey>('year')
-  const [customFrom, setCustomFrom] = useState(isoToInput(startOfYear().toISOString()))
+  const [customFrom, setCustomFrom] = useState(isoToInput(daysAgo(365).toISOString()))
   const [customTo,   setCustomTo]   = useState(isoToInput(new Date().toISOString()))
   const [showDetail, setShowDetail] = useState<string | null>(null)
 
@@ -86,7 +88,7 @@ export function BilanPage() {
   const { from, to } = useMemo(() => {
     if (preset === 'custom') return { from: customFrom, to: customTo }
     const f = PRESETS.find(p => p.key === preset)!.from()
-    return { from: isoToInput(f.toISOString()), to: isoToInput(new Date().toISOString()) }
+    return { from: toLocalISO(f), to: toLocalISO(new Date()) }
   }, [preset, customFrom, customTo])
 
   const { data, isLoading } = useBilan(from, to)
