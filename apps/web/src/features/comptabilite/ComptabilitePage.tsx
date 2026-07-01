@@ -107,7 +107,7 @@ export function ComptabilitePage() {
   const topQte = [...topArticles].sort((a, b) => b.quantite - a.quantite).slice(0, 10)
   const topCA  = [...topArticles].slice(0, 10)
 
-  const hasData = summary.nbVentes > 0 || exemplairesAuteurs.totalTTC > 0
+  const hasData = summary.nbVentes > 0 || (exemplairesAuteurs?.totalTTC ?? 0) > 0
 
   return (
     <div className={styles.page}>
@@ -140,15 +140,15 @@ export function ComptabilitePage() {
           </div>
 
           {/* ── Exemplaires auteurs ── */}
-          {exemplairesAuteurs.totalTTC > 0 && (
+          {(exemplairesAuteurs?.totalTTC ?? 0) > 0 && (
             <div className={styles.exemplairesBanner}>
               <span className={styles.exemplairesBannerLabel}>📗 Exemplaires auteurs — non inclus dans les stats ci-dessus</span>
               <span className={styles.exemplairesBannerValue}>
-                {fEur(exemplairesAuteurs.totalTTC)} TTC
+                {fEur(exemplairesAuteurs!.totalTTC)} TTC
                 {' · '}
-                {exemplairesAuteurs.nbVentes} vente{exemplairesAuteurs.nbVentes > 1 ? 's' : ''}
-                {exemplairesAuteurs.parAuteur.length > 0 && (
-                  <> · {exemplairesAuteurs.parAuteur.map(a => `${a.nomAuteur} (${fEur(a.caTTC)})`).join(', ')}</>
+                {exemplairesAuteurs!.nbVentes} vente{exemplairesAuteurs!.nbVentes > 1 ? 's' : ''}
+                {(exemplairesAuteurs!.parAuteur.length > 0) && (
+                  <> · {exemplairesAuteurs!.parAuteur.map(a => `${a.nomAuteur} (${fEur(a.caTTC)})`).join(', ')}</>
                 )}
               </span>
             </div>
@@ -271,7 +271,7 @@ export function ComptabilitePage() {
           </div>
 
           {/* ── Top bénéfice brut ── */}
-          {topBenefice.length > 0 && (
+          {(topBenefice?.length ?? 0) > 0 && (
             <ChartSection title="Top bénéfice brut" emoji="💎" full>
               <p className={styles.assocSub}>Marge brute estimée par titre (CA TTC - coût d'achat). Articles sans prix d'achat renseigné : coût = 0.</p>
               <ResponsiveContainer width="100%" height={Math.max(160, topBenefice.length * 38)}>
