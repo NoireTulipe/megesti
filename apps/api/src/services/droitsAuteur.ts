@@ -58,7 +58,7 @@ export async function calculerSoldeContrat(
   const lignes = await db.ligneVente.findMany({
     where: {
       ...articleFilter,
-      vente: { tenantId, statut: 'VALIDEE', dateVente: { gte: datePriseEffet } },
+      vente: { tenantId, statut: 'VALIDEE', dateVente: { gte: datePriseEffet }, auteurId: null },
     },
     select: {
       totalLigneHT:  true,

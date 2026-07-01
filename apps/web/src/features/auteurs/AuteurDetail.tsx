@@ -330,6 +330,58 @@ export function AuteurDetail({ auteur, isOpen, onClose, onEdit }: Props) {
           )}
           {tab === 'exemplaires' && !reseauOnly && (
             <div>
+              {/* ── Stats exemplaires ── */}
+              {exemplaires.length > 0 && (() => {
+                const validees   = exemplaires.filter(v => v.statut === 'VALIDEE')
+                const totalHT    = validees.reduce((s, v) => s + Number(v.totalHT), 0)
+                const totalQteEx = validees.reduce((s, v) => s + v.lignes.reduce((q, l) => q + l.quantite, 0), 0)
+                const byMonth = validees.reduce<Record<string, number>>((acc, v) => {
+                  const key = v.dateVente.slice(0, 7)
+                  acc[key] = (acc[key] ?? 0) + Number(v.totalHT)
+                  return acc
+                }, {})
+                const chartData = Object.entries(byMonth)
+                  .sort(([a], [b]) => a.localeCompare(b))
+                  .map(([key, ca]) => ({ label: key.slice(0, 7), ca: Math.round(ca * 100) / 100 }))
+                return (
+                  <div style={{ marginBottom: 20 }}>
+                    <div className={sty['ventes-stats']} style={{ marginBottom: 12 }}>
+                      <div className={sty['ventes-stat']}>
+                        <span className={sty['ventes-stat-value']}>{totalQteEx}</span>
+                        <span className={sty['ventes-stat-label']}>exemplaires</span>
+                      </div>
+                      <div className={sty['ventes-stat']}>
+                        <span className={sty['ventes-stat-value']}>{totalHT.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} €</span>
+                        <span className={sty['ventes-stat-label']}>CA HT total</span>
+                      </div>
+                      <div className={sty['ventes-stat']}>
+                        <span className={sty['ventes-stat-value']}>{validees.length}</span>
+                        <span className={sty['ventes-stat-label']}>commandes</span>
+                      </div>
+                    </div>
+                    {chartData.length > 1 && (
+                      <ResponsiveContainer width="100%" height={140}>
+                        <AreaChart data={chartData} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
+                          <defs>
+                            <linearGradient id="gradExemp" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="0%" stopColor="#8B7BAB" stopOpacity={0.28}/>
+                              <stop offset="100%" stopColor="#8B7BAB" stopOpacity={0}/>
+                            </linearGradient>
+                          </defs>
+                          <CartesianGrid strokeDasharray="4,3" stroke="#E2D5CA" vertical={false}/>
+                          <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#8C7066' }} axisLine={false} tickLine={false}/>
+                          <YAxis tick={{ fontSize: 10, fill: '#8C7066' }} axisLine={false} tickLine={false} width={36}
+                                 tickFormatter={(v: number) => `${v} €`}/>
+                          <Tooltip formatter={(v: number) => [`${v.toFixed(2)} € HT`, 'CA']} labelStyle={{ color: 'var(--ink)' }}/>
+                          <Area type="monotone" dataKey="ca" stroke="#8B7BAB" strokeWidth={2.5} fill="url(#gradExemp)"
+                                dot={{ fill: 'white', stroke: '#8B7BAB', strokeWidth: 2, r: 3.5 }}/>
+                        </AreaChart>
+                      </ResponsiveContainer>
+                    )}
+                  </div>
+                )
+              })()}
+
               <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
                 <button
                   type="button"

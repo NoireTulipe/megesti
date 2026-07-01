@@ -204,7 +204,7 @@ export const rapportRoutes: FastifyPluginAsync = async (app) => {
       ventesDirectesModes, ventesHorsSessionParMotif, ventesDepotResult,
       reversementsEncaisses, fraisPeriode,
       chargesPayees, chargesAVenir, reversementsEnAttente,
-      articlesStock, caResult, cogsResult,
+      articlesStock, caResult, cogsResult, exemplairesAuteursResult,
     ] = await Promise.all([
       // Ventes directes en session (pas PDV) par mode
       app.db.$queryRaw<{ mode: string; ca: number; nb: bigint }[]>(Prisma.sql`
@@ -296,6 +296,20 @@ export const rapportRoutes: FastifyPluginAsync = async (app) => {
         WHERE v."tenantId" = ${tenantId} AND v."statut" = 'VALIDEE'
           AND v."dateVente" >= ${from} AND v."dateVente" <= ${to}
       `),
+      // Ventes d'exemplaires auteurs — groupées par auteur
+      app.db.$queryRaw<{ auteurId: string; prenom: string; nom: string; caHT: number; caTTC: number; nb: bigint }[]>(Prisma.sql`
+        SELECT a."id" AS "auteurId", a."prenom", a."nom",
+          CAST(SUM(v."totalHT")  AS FLOAT) AS "caHT",
+          CAST(SUM(v."totalTTC") AS FLOAT) AS "caTTC",
+          COUNT(*) AS nb
+        FROM "Vente" v
+        JOIN "Auteur" a ON v."auteurId" = a."id"
+        WHERE v."tenantId" = ${tenantId} AND v."statut" = 'VALIDEE'
+          AND v."auteurId" IS NOT NULL
+          AND v."dateVente" >= ${from} AND v."dateVente" <= ${to}
+        GROUP BY a."id", a."prenom", a."nom"
+        ORDER BY "caHT" DESC
+      `),
     ])
 
     // ── Soldes réels des contrats (cumul depuis datePriseEffet − déjà versé) ──
@@ -337,7 +351,7 @@ export const rapportRoutes: FastifyPluginAsync = async (app) => {
       include: {
         pointDeVente: { select: { commissionFixe: true, commissionPourcent: true } },
         ventes: {
-          where: { statut: 'VALIDEE', dateVente: { gte: from, lte: to } },
+          where: { statut: 'VALIDEE', dateVente: { gte: from, lte: to }, auteurId: null },
           include: {
             lignes: {
               include: {
@@ -502,6 +516,17 @@ export const rapportRoutes: FastifyPluginAsync = async (app) => {
         ventesDepotHT,
         ventesDepotNb,
         reversementsEncaisses: reversementsEncaisses.reduce((s, r) => s + Number(r.montantTTC), 0),
+        exemplairesAuteurs: {
+          totalHT:  exemplairesAuteursResult.reduce((s, r) => s + r.caHT,  0),
+          totalTTC: exemplairesAuteursResult.reduce((s, r) => s + r.caTTC, 0),
+          parAuteur: exemplairesAuteursResult.map(r => ({
+            auteurId:  r.auteurId,
+            nomAuteur: `${r.prenom} ${r.nom}`.trim(),
+            caHT:      r.caHT,
+            caTTC:     r.caTTC,
+            nb:        Number(r.nb),
+          })),
+        },
         total: totalEntreesEff,
         detail: {
           ventesParMode:    ventesDirectesModes.map(v => ({ mode: v.mode, ca: v.ca, nb: Number(v.nb) })),

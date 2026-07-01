@@ -118,11 +118,13 @@ export function BilanPage() {
       value: m.ca,
       fill:  C.mauve,
     }))
+    const exemSlice = data.entreesEffectives.exemplairesAuteurs?.totalTTC ?? 0
     return [
-      { name: 'Ventes sessions',   value: ventesDirectes,        fill: C.rose },
+      { name: 'Ventes sessions',        value: ventesDirectes,        fill: C.rose },
       ...motifSlices,
-      { name: 'Ventes en dépôt',   value: ventesDepotTTC,        fill: C.ink },
-      { name: 'Reversements PDV',  value: reversementsEncaisses, fill: C.gold },
+      { name: 'Ventes en dépôt',        value: ventesDepotTTC,        fill: C.ink },
+      { name: 'Reversements PDV',       value: reversementsEncaisses, fill: C.gold },
+      { name: 'Exemplaires auteurs',    value: exemSlice,             fill: C.mauve },
     ].filter(d => d.value > 0)
   }, [data])
 
@@ -363,6 +365,18 @@ export function BilanPage() {
                         <span className={styles.detailSub}>{data.entreesEffectives.ventesDepotNb} vente{data.entreesEffectives.ventesDepotNb > 1 ? 's' : ''}</span>
                         <span className={styles.detailMontant}>{fEur(data.entreesEffectives.ventesDepotTTC)}</span>
                       </div>
+                    </>
+                  )}
+                  {(data.entreesEffectives.exemplairesAuteurs?.parAuteur.length ?? 0) > 0 && (
+                    <>
+                      <p className={styles.detailCat}>Exemplaires auteurs · {fEur(data.entreesEffectives.exemplairesAuteurs!.totalTTC)}</p>
+                      {data.entreesEffectives.exemplairesAuteurs!.parAuteur.map(a => (
+                        <div key={a.auteurId} className={styles.detailRow}>
+                          <span>{a.nomAuteur}</span>
+                          <span className={styles.detailSub}>{a.nb} commande{a.nb > 1 ? 's' : ''} · CA net (sans DA)</span>
+                          <span className={styles.detailMontant}>{fEur(a.caTTC)}</span>
+                        </div>
+                      ))}
                     </>
                   )}
                 </div>

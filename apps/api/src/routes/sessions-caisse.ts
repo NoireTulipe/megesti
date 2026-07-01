@@ -158,7 +158,7 @@ export const sessionCaisseRoutes: FastifyPluginAsync = async (app) => {
       include: {
         pointDeVente: { select: { commissionFixe: true, commissionPourcent: true } },
         ventes: {
-          where: { statut: 'VALIDEE' },
+          where: { statut: 'VALIDEE', auteurId: null },
           include: {
             lignes: {
               include: {
