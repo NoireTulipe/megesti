@@ -266,31 +266,35 @@ export function ComptabilitePage() {
           </div>
 
           {/* ── Top bénéfice brut ── */}
-          {(topBenefice?.length ?? 0) > 0 && (
-            <ChartSection title="Top bénéfice brut" emoji="💎" full>
-              <p className={styles.assocSub}>Marge brute estimée par titre (CA TTC - coût d'achat). Articles sans prix d'achat renseigné : coût = 0.</p>
-              <ResponsiveContainer width="100%" height={Math.max(160, topBenefice.length * 38)}>
-                <BarChart data={topBenefice} layout="vertical" margin={{ left: 0, right: 16 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--cream-dark)" horizontal={false} />
-                  <XAxis type="number" tickFormatter={v => fEur(v)} tick={{ fontSize: 10, fill: 'var(--text-soft)' }} axisLine={false} tickLine={false} />
-                  <YAxis type="category" dataKey="nom" width={120} tick={{ fontSize: 11, fill: 'var(--ink)' }} axisLine={false} tickLine={false}
-                    tickFormatter={v => v.length > 18 ? v.slice(0, 16) + '…' : v}
-                  />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Bar dataKey="benefice" name="Marge brute" radius={[0, 6, 6, 0]}>
-                    {topBenefice.map((r, i) => (
-                      <Cell key={i} fill={
-                        r.cout === 0 ? 'var(--cream-dark)'
-                        : i === 0    ? COLORS.sage
-                        : i < 3      ? '#7AAF7F'
-                        : '#A3C5A8'
-                      } />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </ChartSection>
-          )}
+          <ChartSection title="Top bénéfice brut" emoji="💎" full>
+            {!(topBenefice?.length) ? (
+              <p className={styles.noData}>Pas de données disponibles — rechargez après redémarrage de l'API.</p>
+            ) : (
+              <>
+                <p className={styles.assocSub}>Marge brute estimée par titre (CA TTC - coût d'achat). Articles sans prix d'achat renseigné : coût = 0, marge = CA.</p>
+                <ResponsiveContainer width="100%" height={Math.max(160, topBenefice.length * 38)}>
+                  <BarChart data={topBenefice} layout="vertical" margin={{ left: 0, right: 16 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--cream-dark)" horizontal={false} />
+                    <XAxis type="number" tickFormatter={v => fEur(v)} tick={{ fontSize: 10, fill: 'var(--text-soft)' }} axisLine={false} tickLine={false} />
+                    <YAxis type="category" dataKey="nom" width={120} tick={{ fontSize: 11, fill: 'var(--ink)' }} axisLine={false} tickLine={false}
+                      tickFormatter={v => v.length > 18 ? v.slice(0, 16) + '…' : v}
+                    />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Bar dataKey="benefice" name="Marge brute" radius={[0, 6, 6, 0]}>
+                      {topBenefice.map((r, i) => (
+                        <Cell key={i} fill={
+                          r.cout === 0 ? COLORS.gold
+                          : i === 0    ? COLORS.sage
+                          : i < 3      ? '#7AAF7F'
+                          : '#A3C5A8'
+                        } />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </>
+            )}
+          </ChartSection>
 
           {/* ── Points de vente ── */}
           {caParPDV.length > 0 && (

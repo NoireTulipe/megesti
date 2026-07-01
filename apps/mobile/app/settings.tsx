@@ -8,7 +8,6 @@ import { useThemeStore } from '@/store/themeStore'
 import { SumUp } from '@megesti/react-native-sumup'
 import { usePaymentModesStore, ALL_PAYMENT_MODES } from '@/store/paymentModesStore'
 import { Colors, Dark, Fonts, Radius, Shadow } from '@/constants/theme'
-import { Config } from '@/constants/Config'
 
 type Tab = 'compte' | 'apparence' | 'paiement'
 
@@ -74,7 +73,8 @@ export default function SettingsScreen() {
   async function handleSumupLogin() {
     setCheckingLogin(true)
     try {
-      await SumUp.init(Config.sumupAffiliateKey)
+      // init() est déjà appelé au démarrage (_layout.tsx) et est idempotent côté natif.
+      // On ne le rappelle pas ici pour éviter une double-initialisation du SDK.
       const success = await SumUp.login()
       setSumupLoggedIn(success)
       if (!success) Alert.alert('Connexion annulée', 'La connexion à SumUp a été annulée.')
