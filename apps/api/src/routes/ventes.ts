@@ -40,12 +40,13 @@ export const venteRoutes: FastifyPluginAsync = async (app) => {
 
   app.get('/', auth, async (request) => {
     const { tenantId } = request.tenant
-    const { sessionId, horsSession } = request.query as { sessionId?: string; horsSession?: string }
+    const { sessionId, horsSession, auteurId } = request.query as { sessionId?: string; horsSession?: string; auteurId?: string }
     return app.db.vente.findMany({
       where: {
         tenantId,
         ...(sessionId   && { sessionId }),
-        ...(horsSession === 'true' && { sessionId: null }),
+        ...(horsSession === 'true' && { sessionId: null, auteurId: null }),
+        ...(auteurId    && { auteurId }),
       },
       include: {
         lignes:      { include: { article: { select: { id: true, nom: true, reference: true } } } },
@@ -53,6 +54,103 @@ export const venteRoutes: FastifyPluginAsync = async (app) => {
       },
       orderBy: { dateVente: 'desc' },
     })
+  })
+
+  // ── Vente d'exemplaires auteur ────────────────────────────────────────────────
+  const ExemplaireAuteurSchema = z.object({
+    id:           z.string().uuid(),
+    auteurId:     z.string().uuid(),
+    modePaiement: z.enum(['CB', 'ESPECES', 'CHEQUE', 'VIREMENT', 'SUMUP']),
+    lignes:       z.array(LigneSchema).min(1),
+  })
+
+  app.post('/exemplaires-auteur', authEditor, async (request, reply) => {
+    const { tenantId } = request.tenant
+    const body = ExemplaireAuteurSchema.parse(request.body)
+
+    const auteur = await app.db.auteur.findFirst({ where: { id: body.auteurId, tenantId } })
+    if (!auteur) return reply.notFound('Auteur introuvable')
+
+    const articleIds = [...new Set(body.lignes.map((l) => l.articleId))]
+    const articles = await app.db.article.findMany({
+      where: { id: { in: articleIds }, tenantId },
+      include: { rayon: { select: { tauxTVA: true } } },
+    })
+    if (articles.length !== articleIds.length) return reply.notFound('Un ou plusieurs articles introuvables')
+
+    const tenant = await app.db.tenant.findUnique({ where: { id: tenantId }, select: { franchiseBaseVA: true } })
+    const tauxFactor = tenant?.franchiseBaseVA ? 0 : 1
+
+    const articleMap = new Map(articles.map((a) => [a.id, a]))
+
+    let totalHT = 0, totalTVA = 0, totalTTC = 0
+    const lignesData = body.lignes.map((l) => {
+      const article = articleMap.get(l.articleId)!
+      const prixHT  = l.prixUnitaireHT ?? Number(article.prixVenteHT)
+      const taux    = Number(article.rayon.tauxTVA) / 100 * tauxFactor
+      const ligneHT  = prixHT * l.quantite
+      const ligneTTC = ligneHT * (1 + taux)
+      totalHT  += ligneHT
+      totalTVA += ligneTTC - ligneHT
+      totalTTC += ligneTTC
+      return {
+        id:             crypto.randomUUID(),
+        articleId:      l.articleId,
+        quantite:       l.quantite,
+        prixUnitaireHT: prixHT,
+        tauxTVA:        Number(article.rayon.tauxTVA),
+        totalLigneHT:   Math.round(ligneHT  * 100) / 100,
+        totalLigneTTC:  Math.round(ligneTTC * 100) / 100,
+      }
+    })
+
+    const totalHTr  = Math.round(totalHT  * 100) / 100
+    const totalTVAr = Math.round(totalTVA * 100) / 100
+    const totalTTCr = Math.round(totalTTC * 100) / 100
+
+    const vente = await app.db.$transaction(async (tx) => {
+      const agg = await tx.vente.aggregate({ where: { tenantId }, _max: { numero: true } })
+      const numero = (agg._max.numero ?? 0) + 1
+
+      const lastVente = await tx.vente.findFirst({
+        where: { tenantId, hash: { not: null } },
+        orderBy: { numero: 'desc' },
+        select: { hash: true },
+      })
+      const previousHash = lastVente?.hash ?? computeGenesisHash(tenantId, secret)
+
+      const dateVente = new Date()
+      const hash = computeVenteHash(previousHash, {
+        id: body.id, numero, tenantId, sessionId: null,
+        dateVente, modePaiement: body.modePaiement,
+        totalHT: totalHTr, totalTVA: totalTVAr, totalTTC: totalTTCr,
+      }, secret)
+
+      const created = await tx.vente.create({
+        data: {
+          id: body.id, tenantId,
+          sessionId:    null,
+          motifVenteId: null,
+          auteurId:     body.auteurId,
+          numero, dateVente, modePaiement: body.modePaiement,
+          totalHT: totalHTr, totalTVA: totalTVAr, totalTTC: totalTTCr,
+          previousHash, hash,
+          lignes: { create: lignesData },
+        },
+        include: {
+          lignes: { include: { article: { select: { id: true, nom: true } } } },
+        },
+      })
+
+      // Débit stock
+      for (const l of body.lignes) {
+        await tx.article.update({ where: { id: l.articleId }, data: { stock: { decrement: l.quantite } } })
+      }
+
+      return created
+    })
+
+    return reply.status(201).send(vente)
   })
 
   app.post('/', authEditor, async (request, reply) => {

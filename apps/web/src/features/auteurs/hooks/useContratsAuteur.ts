@@ -14,6 +14,7 @@ export interface ContratAuteur {
   articleId:         string | null
   avance:            string | null
   avanceDue:         string
+  prixAuteurHT:      string | null
   dateSignature:     string | null
   datePriseEffet:    string | null
   dureeAns:          number | null
@@ -32,6 +33,7 @@ export interface CreateContratPayload {
   typeDAId:          string
   articleId?:        string
   avance?:           number
+  prixAuteurHT?:     number
   dateSignature?:    string   // ISO datetime
   datePriseEffet?:   string
   dureeAns?:         number
@@ -71,6 +73,7 @@ export interface UpdateContratPayload {
   typeDAId?:         string
   articleId?:        string | null
   avance?:           number | null
+  prixAuteurHT?:     number | null
   dateSignature?:    string
   datePriseEffet?:   string
   dureeAns?:         number | null

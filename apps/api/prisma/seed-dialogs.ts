@@ -122,6 +122,11 @@ const dialogs = [
     { title: 'Rappel rapide 💡', text: 'Pour ajouter un nouveau rayon, utilise le bouton Nouveau rayon. Clique sur + dans un rayon pour y ajouter des catégories.' },
     { text: 'N\'oublie pas d\'activer le mode Librairie sur tes rayons qui vendent des livres — la TVA et les champs spécifiques se configurent automatiquement.' },
   ]},
+  { slug: 'auteur-exemplaires-vide', description: 'Onglet Exemplaires auteur — aucune vente encore enregistrée', bulles: [
+    { title: 'Les exemplaires auteurs 📦', text: 'Un auteur peut acheter ses propres livres à un tarif préférentiel fixé dans son contrat — souvent proche du coût de fabrication. C\'est courant et ça renforce le lien avec l\'auteur.' },
+    { text: 'Pour chaque vente d\'exemplaires, MeGesti génère une transaction normale : comptabilisée, sécurisée, avec débit de stock. Rien de spécial côté caisse — c\'est juste une vente à un acheteur particulier.' },
+    { text: 'Pour commencer, fixe le prix auteur dans le contrat (champ "Prix exemplaire auteur"), puis clique sur le bouton "Vendre des exemplaires" en haut de cet onglet.' },
+  ]},
   { slug: 'article-bnf-declaration', description: 'Fiche article livre — obligation dépôt légal BNF', bulles: [
     { title: 'Le dépôt légal BNF 📚', text: 'Tout éditeur qui publie un livre en France a l\'obligation légale de le déclarer à la Bibliothèque nationale de France (BNF). C\'est le dépôt légal, institué par la loi du 20 juin 1992 (modifiée en 2006).\n\nÀ chaque nouveau titre publié, tu dois déposer 2 exemplaires physiques et remplir la déclaration en ligne sur le portail de la BNF.' },
     { text: 'Le dépôt légal sert à conserver le patrimoine éditorial national, à faire indexer ton livre dans le catalogue BNF (data.bnf.fr), et à officialiser sa publication. C\'est une obligation légale, pas un service optionnel — une omission peut entraîner des sanctions.', cta: { label: 'Portail dépôt légal BNF →', href: 'https://depotlegal.bnf.fr/' } },

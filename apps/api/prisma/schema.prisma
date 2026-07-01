@@ -386,6 +386,7 @@ model Vente {
   tenantId       String
   sessionId      String?      // null = vente hors session
   motifVenteId   String?
+  auteurId       String?      // non null = vente d'exemplaires à un auteur
   numero         Int
   dateVente      DateTime     @default(now())
   modePaiement   ModePaiement
@@ -401,12 +402,14 @@ model Vente {
   tenant      Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   session     SessionCaisse? @relation(fields: [sessionId],    references: [id])
   motifVente  MotifVente?    @relation(fields: [motifVenteId], references: [id])
+  auteur      Auteur?        @relation(fields: [auteurId],     references: [id])
   lignes      LigneVente[]
 
   @@unique([tenantId, numero])
   @@index([tenantId])
   @@index([sessionId])
   @@index([motifVenteId])
+  @@index([auteurId])
 }
 
 model LigneVente {
@@ -531,6 +534,7 @@ model Auteur {
   articles   ArticleAuteur[]
   contrats   ContratAuteur[]
   paiements  PaiementDA[]
+  ventesExemplaires Vente[]
 
   @@index([tenantId])
 }
@@ -803,6 +807,7 @@ model ContratAuteur {
   articleId        String?   // null = tous les articles de cet auteur
   avance            Decimal?       @db.Decimal(10, 2)
   avanceDue         Decimal        @default(0) @db.Decimal(10, 2)
+  prixAuteurHT      Decimal?       @db.Decimal(10, 2)  // prix de vente contractuel à l'auteur
   dateSignature     DateTime?
   datePriseEffet    DateTime?      // date d'effet (= signature si null)
   dureeAns          Int?           // null = durée indéterminée

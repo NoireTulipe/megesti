@@ -14,6 +14,7 @@ const CreateSchema = z.object({
   typeDAId:          z.string().uuid(),
   articleId:         z.string().uuid().optional(),
   avance:            z.number().nonnegative().optional(),
+  prixAuteurHT:      z.number().nonnegative().optional(),
   dateSignature:     z.string().datetime().optional(),
   datePriseEffet:    z.string().datetime().optional(),
   dureeAns:          z.number().int().positive().optional(),
@@ -27,6 +28,7 @@ const PatchSchema = z.object({
   typeDAId:          z.string().uuid().optional(),
   articleId:         z.string().uuid().nullable().optional(),
   avance:            z.number().nonnegative().nullable().optional(),
+  prixAuteurHT:      z.number().nonnegative().nullable().optional(),
   dateSignature:     z.string().datetime().optional(),
   datePriseEffet:    z.string().datetime().optional(),
   dureeAns:          z.number().int().positive().nullable().optional(),
@@ -67,7 +69,7 @@ export const contratAuteurRoutes: FastifyPluginAsync = async (app) => {
 
   app.post('/', authEditor, async (request, reply) => {
     const { tenantId } = request.tenant
-    const { avance, dateSignature, datePriseEffet, ...rest } = CreateSchema.parse(request.body)
+    const { avance, prixAuteurHT, dateSignature, datePriseEffet, ...rest } = CreateSchema.parse(request.body)
 
     const [auteur, typeDA] = await Promise.all([
       app.db.auteur.findFirst({ where: { id: rest.auteurId, tenantId } }),
@@ -84,6 +86,7 @@ export const contratAuteurRoutes: FastifyPluginAsync = async (app) => {
           ...coreRest,
           tenantId,
           avance:            avance ?? null,
+          prixAuteurHT:      prixAuteurHT ?? null,
           avanceDue:         0,
           dateSignature:     sigDate,
           datePriseEffet:    datePriseEffet ? new Date(datePriseEffet) : sigDate,
@@ -102,7 +105,7 @@ export const contratAuteurRoutes: FastifyPluginAsync = async (app) => {
     const existing = await app.db.contratAuteur.findFirst({ where: { id, tenantId } })
     if (!existing) return reply.notFound()
     const parsed = PatchSchema.parse(request.body)
-    const { avance, dateSignature, datePriseEffet, periodicite, datesFixesJSON, prochainVersement, ...rest } = parsed
+    const { avance, prixAuteurHT, dateSignature, datePriseEffet, periodicite, datesFixesJSON, prochainVersement, ...rest } = parsed
 
     // ?? ne suffit pas : null doit écraser, undefined doit conserver
     const periodeEffective = periodicite  !== undefined ? periodicite  : existing.periodicite
@@ -117,6 +120,7 @@ export const contratAuteurRoutes: FastifyPluginAsync = async (app) => {
       data: {
         ...rest,
         ...(avance         !== undefined ? { avance:         avance ?? null }                                     : {}),
+        ...(prixAuteurHT   !== undefined ? { prixAuteurHT:   prixAuteurHT ?? null }                               : {}),
         ...(dateSignature  !== undefined ? { dateSignature:  dateSignature  ? new Date(dateSignature)  : null }   : {}),
         ...(datePriseEffet !== undefined ? { datePriseEffet: datePriseEffet ? new Date(datePriseEffet) : null }   : {}),
         ...(periodicite    !== undefined ? { periodicite:    periodicite ?? null }                                 : {}),

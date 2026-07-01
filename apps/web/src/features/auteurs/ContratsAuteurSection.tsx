@@ -157,6 +157,7 @@ function ContratCard({ c, typesDA, articles, onDelete, onUpdate, onAppliquer, up
     typeDAId:          c.typeDAId,
     articleId:         c.articleId ?? '',
     avance:            c.avance ? String(Number(c.avance)) : '',
+    prixAuteurHT:      c.prixAuteurHT ? String(Number(c.prixAuteurHT)) : '',
     dateSignature:     c.dateSignature ? c.dateSignature.slice(0, 10) : '',
     datePriseEffet:    c.datePriseEffet ? c.datePriseEffet.slice(0, 10) : '',
     dureeAns:          c.dureeAns ? String(c.dureeAns) : '',
@@ -178,6 +179,7 @@ function ContratCard({ c, typesDA, articles, onDelete, onUpdate, onAppliquer, up
         typeDAId:          f.typeDAId || undefined,
         articleId:         f.articleId || null,
         avance:            f.avance ? Number(f.avance) : null,
+        prixAuteurHT:      f.prixAuteurHT ? Number(f.prixAuteurHT) : null,
         dateSignature:     sigDate,
         datePriseEffet:    effDate,
         dureeAns:          f.dureeAns ? Number(f.dureeAns) : null,
@@ -228,6 +230,12 @@ function ContratCard({ c, typesDA, articles, onDelete, onUpdate, onAppliquer, up
           <div className={sty.field}>
             <label className={sty.label}>À-valoir (€)</label>
             <input type="number" min={0} step={0.01} className={sty.input} value={f.avance} onChange={e => set('avance')(e.target.value)} placeholder="0.00" />
+          </div>
+        </div>
+        <div className={sty.row2}>
+          <div className={sty.field}>
+            <label className={sty.label}>Prix exemplaire auteur (€ HT)</label>
+            <input type="number" min={0} step={0.01} className={sty.input} value={f.prixAuteurHT} onChange={e => set('prixAuteurHT')(e.target.value)} placeholder="— Non fixé —" />
           </div>
         </div>
         {f.dureeAns && (
@@ -340,6 +348,11 @@ function ContratCard({ c, typesDA, articles, onDelete, onUpdate, onAppliquer, up
             {c.prochainVersement && ` · prochain ${fmtDate(c.prochainVersement)}`}
           </span>
         )}
+        {c.prixAuteurHT && (
+          <span style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--ink)', background: 'var(--cream-mid)', padding: '2px 7px', borderRadius: 10 }}>
+            Exemplaires : {Number(c.prixAuteurHT).toFixed(2)} € HT
+          </span>
+        )}
       </div>
       {c.periodicite && (
         <div>
@@ -370,6 +383,7 @@ interface FormState {
   typeDAId:          string
   articleId:         string
   avance:            string
+  prixAuteurHT:      string
   dateSignature:     string
   datePriseEffet:    string
   dureeAns:          string
@@ -380,7 +394,7 @@ interface FormState {
 }
 
 const formVide = (): FormState => ({
-  typeDAId: '', articleId: '', avance: '',
+  typeDAId: '', articleId: '', avance: '', prixAuteurHT: '',
   dateSignature: new Date().toISOString().slice(0, 10),
   datePriseEffet: '', dureeAns: '',
   reconduiteTacite: true,
@@ -411,6 +425,7 @@ function FormulaireContrat({ auteurId, articles, typesDA, onCreated, onCancel, i
       typeDAId:          f.typeDAId,
       articleId:         f.articleId || undefined,
       avance:            f.avance ? Number(f.avance) : undefined,
+      prixAuteurHT:      f.prixAuteurHT ? Number(f.prixAuteurHT) : undefined,
       dateSignature:     sigDate,
       datePriseEffet:    effDate,
       dureeAns:          f.dureeAns ? Number(f.dureeAns) : undefined,
@@ -463,6 +478,13 @@ function FormulaireContrat({ auteurId, articles, typesDA, onCreated, onCancel, i
           <label className={sty.label}>À-valoir (€)</label>
           <input type="number" min={0} step={0.01} className={sty.input} value={f.avance}
             onChange={(e) => set('avance')(e.target.value)} placeholder="0.00" />
+        </div>
+      </div>
+      <div className={sty.row2}>
+        <div className={sty.field}>
+          <label className={sty.label}>Prix exemplaire auteur (€ HT)</label>
+          <input type="number" min={0} step={0.01} className={sty.input} value={f.prixAuteurHT}
+            onChange={(e) => set('prixAuteurHT')(e.target.value)} placeholder="— Non fixé —" />
         </div>
       </div>
 

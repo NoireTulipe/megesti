@@ -2,8 +2,12 @@ import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { ContratsAuteurSection } from './ContratsAuteurSection'
+import { VenteExemplairesModal } from './VenteExemplairesModal'
+import { MascoteBlock } from '@/components/MascoteBlock'
 import { useAuteurDetail } from './hooks/useAuteurs'
 import { useVentesStatsAuteur } from './hooks/useVentesStatsAuteur'
+import { useContratsAuteur } from './hooks/useContratsAuteur'
+import { useVentesExemplaires } from './hooks/useExemplairesAuteur'
 import { usePlanFeatures } from '@/hooks/usePlanFeatures'
 import type { Auteur } from './hooks/useAuteurs'
 import sty from './AuteursPage.module.css'
@@ -45,14 +49,15 @@ function cardGradient(name: string) {
   return GRADIENTS[sum % GRADIENTS.length]
 }
 
-type TabId = 'profil' | 'ventes' | 'livres' | 'contrats'
+type TabId = 'profil' | 'ventes' | 'livres' | 'contrats' | 'exemplaires'
 type Period = 1 | 3 | 12
 
 const TABS: { id: TabId; label: string; path: string }[] = [
-  { id: 'profil',   label: 'Profil',   path: 'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2 M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z' },
-  { id: 'ventes',   label: 'Ventes',   path: 'M3 3v18h18 M18 17V9 M13 17V5 M8 17v-3' },
-  { id: 'livres',   label: 'Livres',   path: 'M4 19.5A2.5 2.5 0 0 1 6.5 17H20 M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z' },
-  { id: 'contrats', label: 'Contrats', path: 'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z M14 2v6h6 M16 13H8 M16 17H8 M10 9H8' },
+  { id: 'profil',      label: 'Profil',      path: 'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2 M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z' },
+  { id: 'ventes',      label: 'Ventes',      path: 'M3 3v18h18 M18 17V9 M13 17V5 M8 17v-3' },
+  { id: 'exemplaires', label: 'Exemplaires', path: 'M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16' },
+  { id: 'livres',      label: 'Livres',      path: 'M4 19.5A2.5 2.5 0 0 1 6.5 17H20 M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z' },
+  { id: 'contrats',    label: 'Contrats',    path: 'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z M14 2v6h6 M16 13H8 M16 17H8 M10 9H8' },
 ]
 
 interface Props {
@@ -69,20 +74,22 @@ export function AuteurDetail({ auteur, isOpen, onClose, onEdit }: Props) {
 
   // Onglets visibles selon le contexte
   const visibleTabs = TABS.filter(t => {
-    if (reseauOnly) return true                          // auto-édition : tout visible (contenu remplacé)
-    if (t.id === 'ventes' || t.id === 'livres') return hasContrat  // réseau sans contrat → cacher
+    if (reseauOnly) return t.id === 'profil'            // auto-édition : profil seulement (autres remplacés)
+    if (t.id === 'ventes' || t.id === 'livres' || t.id === 'exemplaires') return hasContrat
     return true
   })
 
-  const [tab, setTab]       = useState<TabId>('profil')
-  const [period, setPeriod] = useState<Period>(12)
+  const [tab, setTab]              = useState<TabId>('profil')
+  const [period, setPeriod]        = useState<Period>(12)
+  const [venteModalOpen, setVenteModalOpen] = useState(false)
 
-  const { data: detail, isLoading: loadingDetail } = useAuteurDetail(isOpen ? auteur.id : undefined)
-  const { data: stats,  isLoading: loadingStats  } = useVentesStatsAuteur(isOpen ? auteur.id : undefined, period)
+  const { data: detail,   isLoading: loadingDetail } = useAuteurDetail(isOpen ? auteur.id : undefined)
+  const { data: stats,    isLoading: loadingStats  } = useVentesStatsAuteur(isOpen ? auteur.id : undefined, period)
+  const { data: contrats = [] }                       = useContratsAuteur(tab === 'exemplaires' || venteModalOpen ? auteur.id : undefined)
+  const { data: exemplaires = [], isLoading: loadingExemplaires } = useVentesExemplaires(tab === 'exemplaires' ? auteur.id : undefined)
 
   const nomAffiche = auteur.pseudonyme ?? `${auteur.prenom} ${auteur.nom}`
   const gradient   = cardGradient(auteur.nom)
-  const articles   = detail?.articles ?? []
   const months     = stats?.months ?? []
   const totalQte   = months.reduce((s, m) => s + m.quantite, 0)
   const totalHT    = months.reduce((s, m) => s + m.totalHT, 0)
@@ -96,7 +103,18 @@ export function AuteurDetail({ auteur, isOpen, onClose, onEdit }: Props) {
 
   if (!isOpen) return null
 
-  return createPortal(
+  const articles = detail?.articles ?? []
+
+  return (
+    <>
+    <VenteExemplairesModal
+      auteur={auteur}
+      articles={articles}
+      contrats={contrats}
+      isOpen={venteModalOpen}
+      onClose={() => setVenteModalOpen(false)}
+    />
+    {createPortal(
     <div className={sty.backdrop} onClick={onClose}>
       <div
         className={`${sty.modal} ${sty['modal-xl']}`}
@@ -306,9 +324,78 @@ export function AuteurDetail({ auteur, isOpen, onClose, onEdit }: Props) {
             <ContratsAuteurSection auteur={auteur} />
           )}
 
+          {/* ── Exemplaires ── */}
+          {tab === 'exemplaires' && reseauOnly && (
+            <UpgradeNotice message="Les ventes d'exemplaires auteurs sont disponibles à partir du plan Edition." />
+          )}
+          {tab === 'exemplaires' && !reseauOnly && (
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
+                <button
+                  type="button"
+                  onClick={() => setVenteModalOpen(true)}
+                  style={{
+                    height: 36, padding: '0 18px', background: 'var(--ink-mid)', color: '#fff',
+                    border: 'none', borderRadius: 999, fontSize: '0.82rem', fontWeight: 600,
+                    cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
+                    transition: 'opacity 0.12s',
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.85')}
+                  onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
+                >
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                  </svg>
+                  Vendre des exemplaires
+                </button>
+              </div>
+
+              {loadingExemplaires ? (
+                <div style={{ height: 80, background: 'var(--cream-mid)', borderRadius: 12, animation: 'shimmer 1.6s infinite' }} />
+              ) : exemplaires.length === 0 ? (
+                <MascoteBlock slug="auteur-exemplaires-vide" />
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {exemplaires.filter((v) => v.statut === 'VALIDEE').map((v) => (
+                    <div key={v.id} style={{
+                      padding: '12px 16px', borderRadius: 12, border: '1px solid var(--cream-dark)',
+                      background: 'var(--ink-faint)', display: 'flex', gap: 12, alignItems: 'flex-start',
+                    }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--ink)', marginBottom: 4 }}>
+                          {new Date(v.dateVente).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                          <span style={{ fontWeight: 400, color: 'var(--text-soft)', marginLeft: 8 }}>
+                            · {v.modePaiement}
+                          </span>
+                        </div>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2px 12px' }}>
+                          {v.lignes.map((l) => (
+                            <span key={l.id} style={{ fontSize: '0.75rem', color: 'var(--text-soft)' }}>
+                              {l.article.nom} × {l.quantite} — {Number(l.prixUnitaireHT).toFixed(2)} € HT
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                      <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                        <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--ink)' }}>
+                          {Number(v.totalHT).toFixed(2)} € HT
+                        </div>
+                        <div style={{ fontSize: '0.7rem', color: 'var(--text-soft)', marginTop: 2 }}>
+                          N° {v.numero}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
         </div>
       </div>
     </div>,
     document.body
+  )}
+    </>
   )
 }
