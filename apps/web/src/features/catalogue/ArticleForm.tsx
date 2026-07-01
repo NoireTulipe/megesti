@@ -63,7 +63,7 @@ export function ArticleForm({ onClose, article }: Props) {
   const setActif        = useSetArticleActif()
   const saveCustomValues = useSaveCustomFieldValues()
   const { data: rayons = [] }      = useRayons()
-  const { data: allAuteurs = [] }  = useAuteurs({ avecContrat: true })
+  const { data: allAuteurs = [] }  = useAuteurs()
   const { data: imprimeurs = [] }  = useImprimeurs()
   const { data: customValues = {} } = useCustomFieldValues(article?.id, { enabled: !!article?.id })
 
