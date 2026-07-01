@@ -71,7 +71,6 @@ function CustomTooltip({ active, payload, label }: { active?: boolean; payload?:
 }
 
 
-import { MascoteBlock } from '@/components/MascoteBlock'
 
 // ── Composant principal ───────────────────────────────────────────────────────
 export function BilanPage() {
@@ -204,8 +203,17 @@ export function BilanPage() {
         </div>
       </PageHero>
 
-      {noData ? <MascoteBlock slug="bilan-no-data" /> : (
       <div className={styles.content}>
+      {noData && (
+        <div className={styles.emptyPeriod}>
+          <span className={styles.emptyPeriodIcon}>📭</span>
+          <div>
+            <p className={styles.emptyPeriodTitle}>Aucune vente sur cette période</p>
+            <p className={styles.emptyPeriodSub}>Essaie "Personnalisé" avec une plage plus large, ou vérifie que des sessions ont bien été clôturées.</p>
+          </div>
+          <button className={styles.periodBtn} onClick={() => setPreset('custom')}>Personnalisé →</button>
+        </div>
+      )}
 
         {/* ── KPI ROW ──────────────────────────────────────────────────────── */}
         {data && (
@@ -774,7 +782,6 @@ export function BilanPage() {
         )}
 
       </div>
-      )}
     </div>
   )
 }
