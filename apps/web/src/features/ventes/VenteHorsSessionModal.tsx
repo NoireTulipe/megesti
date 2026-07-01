@@ -1,4 +1,4 @@
-import { generateUUID } from '@/lib/utils'
+﻿import { generateUUID } from '@/lib/utils'
 import { useState, useMemo, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { useMotifVente, useCreateMotifVente } from './hooks/useMotifVente'
@@ -170,7 +170,7 @@ export function VenteHorsSessionModal({ isOpen, onClose }: Props) {
                   autoFocus
                   onKeyDown={e => { if (e.key === 'Enter') handleAddMotif() }}
                 />
-                <button className={styles.addMotifConfirm} onClick={handleAddMotif}>•o"</button>
+                <button className={styles.addMotifConfirm} onClick={handleAddMotif}>✓</button>
                 <button className={styles.addMotifCancel} onClick={() => setShowAddMotif(false)}>✕</button>
               </div>
             ) : (
@@ -243,7 +243,7 @@ export function VenteHorsSessionModal({ isOpen, onClose }: Props) {
                     <div key={l.articleId} className={styles.hsPanierLigne}>
                       <span className={styles.hsPanierNom}>{l.nom}</span>
                       <div className={styles.hsQtyWrap}>
-                        <button className={styles.hsQtyBtn} onClick={() => setQty(l.articleId, l.quantite - 1)}>•^'</button>
+                        <button className={styles.hsQtyBtn} onClick={() => setQty(l.articleId, l.quantite - 1)}>−</button>
                         <span className={styles.hsQtyVal}>{l.quantite}</span>
                         <button className={styles.hsQtyBtn} onClick={() => setQty(l.articleId, l.quantite + 1)}>+</button>
                       </div>
@@ -280,7 +280,7 @@ export function VenteHorsSessionModal({ isOpen, onClose }: Props) {
                 disabled={!motifId || cart.length === 0 || pending}
                 onClick={handleValider}
               >
-                {success ? '•o" Enregistrée' : pending ? 'Enregistrement…' : `Valider — ${fEur(totalTTC)}`}
+                {success ? '✓ Enregistrée' : pending ? 'Enregistrement…' : `Valider — ${fEur(totalTTC)}`}
               </button>
             </div>
           </div>

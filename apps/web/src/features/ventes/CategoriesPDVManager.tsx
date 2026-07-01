@@ -1,4 +1,4 @@
-import { generateUUID } from '@/lib/utils'
+﻿import { generateUUID } from '@/lib/utils'
 import { useState } from 'react'
 import {
   useCategoriesPointDeVente,
@@ -57,14 +57,14 @@ export function CategoriesPDVManager() {
                   onKeyDown={(e) => { if (e.key === 'Enter') handleUpdate(cat.id); if (e.key === 'Escape') setEditId(null) }}
                   autoFocus
                 />
-                <button className={styles.btnSave}   onClick={() => handleUpdate(cat.id)}>•o"</button>
+                <button className={styles.btnSave}   onClick={() => handleUpdate(cat.id)}>✓</button>
                 <button className={styles.btnCancel} onClick={() => setEditId(null)}>✕</button>
               </div>
             ) : (
               <div className={styles.readRow}>
                 <span className={styles.nom}>{cat.nom}</span>
                 <div className={styles.actions}>
-                  <button className={styles.btnEdit}   onClick={() => startEdit(cat.id, cat.nom)}>•oZ</button>
+                  <button className={styles.btnEdit}   onClick={() => startEdit(cat.id, cat.nom)}>✎</button>
                   <button
                     className={styles.btnDelete}
                     onClick={() => { if (confirm(`Supprimer « ${cat.nom} » ?`)) remove.mutate(cat.id) }}

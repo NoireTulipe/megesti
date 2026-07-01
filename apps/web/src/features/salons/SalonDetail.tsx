@@ -338,7 +338,7 @@ export function SalonDetail({ salon, onDone, onCancel }: Props) {
                 <input className={styles.contactInput} value={c.prenom}    onChange={(e) => updateContact(i, 'prenom',    e.target.value)} placeholder="Prénom" />
                 <input className={styles.contactInput} value={c.email}     onChange={(e) => updateContact(i, 'email',     e.target.value)} placeholder="email@…" />
                 <input className={styles.contactInput} value={c.telephone} onChange={(e) => updateContact(i, 'telephone', e.target.value)} placeholder="06…" />
-                <button className={styles.btnRemoveContact} onClick={() => removeContact(i)} title="Supprimer">•-</button>
+                <button className={styles.btnRemoveContact} onClick={() => removeContact(i)} title="Supprimer">×</button>
               </div>
             ))}
           </div>

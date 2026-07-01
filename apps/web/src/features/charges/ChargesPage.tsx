@@ -1,4 +1,4 @@
-import { generateUUID } from '@/lib/utils'
+﻿import { generateUUID } from '@/lib/utils'
 import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
@@ -216,7 +216,7 @@ function ChargeCard({ charge: c, occurrences, onEdit, onDelete }: CardProps) {
         {isAbo && c.periodicite && (
           <span className={styles.periodeBadge}>{PERIODICITE_LABELS[c.periodicite]}</span>
         )}
-        {!isAbo && c.statut === 'PAYE' && <span className={styles.payeBadge}>•o" Payé</span>}
+        {!isAbo && c.statut === 'PAYE' && <span className={styles.payeBadge}>✓ Payé</span>}
         {!isAbo && c.statut === 'PREVU' && <span className={styles.prevuBadge}>En attente</span>}
       </div>
 
@@ -226,7 +226,7 @@ function ChargeCard({ charge: c, occurrences, onEdit, onDelete }: CardProps) {
       {totalPeriode !== null ? (
         <div className={styles.cardMontantWrap}>
           <p className={styles.cardMontant}>{fEur(totalPeriode)}</p>
-          <p className={styles.cardMontantSub}>{occurrences!.length} •- {fEur(montant)}</p>
+          <p className={styles.cardMontantSub}>{occurrences!.length} × {fEur(montant)}</p>
         </div>
       ) : (
         <p className={styles.cardMontant}>{fEur(montant)}</p>
@@ -237,7 +237,7 @@ function ChargeCard({ charge: c, occurrences, onEdit, onDelete }: CardProps) {
         <div className={styles.occurrences}>
           {occPassed.length > 0 && (
             <span className={styles.occPasse}>
-              •o" {occPassed.length} payée{occPassed.length > 1 ? 's' : ''}
+              ✓ {occPassed.length} payée{occPassed.length > 1 ? 's' : ''}
               {occPassed.length <= 3 && ` (${occPassed.map(d => fDate(d.toISOString())).join(', ')})`}
             </span>
           )}

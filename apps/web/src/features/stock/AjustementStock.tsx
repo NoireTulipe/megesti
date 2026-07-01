@@ -127,7 +127,7 @@ export function AjustementStock({ article, onClose }: Props) {
           {mode === '=' ? 'Nouvelle valeur de stock' : mode === '+' ? 'Quantité à ajouter' : 'Quantité à retirer'}
         </label>
         <div className={styles.qteRow}>
-          <button className={styles.qteBtn} onClick={() => setQuantite(q => Math.max(0, q - 1))}>•^'</button>
+          <button className={styles.qteBtn} onClick={() => setQuantite(q => Math.max(0, q - 1))}>−</button>
           <input
             className={styles.qteInput}
             type="number"

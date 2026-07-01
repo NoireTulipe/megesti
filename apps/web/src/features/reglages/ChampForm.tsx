@@ -124,7 +124,7 @@ export function ChampForm({ entityType, onClose }: Props) {
             {options.map((o, i) => (
               <span key={i} className={styles.optionTag}>
                 {o}
-                <button type="button" onClick={() => setOptions(options.filter((_, j) => j !== i))}>•-</button>
+                <button type="button" onClick={() => setOptions(options.filter((_, j) => j !== i))}>×</button>
               </span>
             ))}
           </div>

@@ -127,15 +127,15 @@ function LigneRegle({
           ? <span className={styles.fallbackBadge}>… défaut</span>
           : (
             <div className={styles.orderBtns}>
-              <button className={styles.btnOrder} onClick={onUp}  disabled={index === 0}     title="Monter">•-•</button>
-              <button className={styles.btnOrder} onClick={onDown} disabled={index === total - 1} title="Descendre">•-•</button>
+              <button className={styles.btnOrder} onClick={onUp}  disabled={index === 0}     title="Monter">↑</button>
+              <button className={styles.btnOrder} onClick={onDown} disabled={index === total - 1} title="Descendre">↓</button>
             </div>
           )
         }
       </td>
       <td>
         {!isFallback && (
-          <button className={styles.btnRemoveRow} onClick={onRemove} title="Supprimer">•-</button>
+          <button className={styles.btnRemoveRow} onClick={onRemove} title="Supprimer">×</button>
         )}
       </td>
     </tr>
@@ -345,7 +345,7 @@ export function TypesDASection() {
               <button className={styles.btnEdit} onClick={() => setMode({ type: 'edit', typeDA: t })}>
                 Modifier
               </button>
-              <button className={styles.btnDelete} onClick={() => handleDelete(t)} title="Supprimer">•-</button>
+              <button className={styles.btnDelete} onClick={() => handleDelete(t)} title="Supprimer">×</button>
             </div>
           </div>
         ))}

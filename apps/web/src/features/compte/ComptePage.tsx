@@ -1,4 +1,4 @@
-import { generateUUID } from '@/lib/utils'
+﻿import { generateUUID } from '@/lib/utils'
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useMonTenant, useUpdateMonTenant } from '@/features/reglages/hooks/useMonTenant'
@@ -199,7 +199,7 @@ function OngletProfil({ tenant, updateTenant, user }: {
             onClick={handleSaveOwner}
             disabled={!ownerPrenom.trim() || !ownerNom.trim() || !ownerEmail.trim()}
           >
-            {ownerSaved ? '•o" Enregistré' : 'Enregistrer le propriétaire'}
+            {ownerSaved ? '✓ Enregistré' : 'Enregistrer le propriétaire'}
           </button>
         </div>
       </section>
@@ -229,7 +229,7 @@ function OngletProfil({ tenant, updateTenant, user }: {
             <button className={`${styles.btnSave} ${logoSaved ? styles.btnSaved : ''}`}
               onClick={() => save('logo', logoUrl || null, setLogoSaved)}
               disabled={updateTenant.isPending || logoUrl === (tenant.logo ?? '')}>
-              {logoSaved ? '•o" Enregistré' : updateTenant.isPending ? '…' : 'Enregistrer'}
+              {logoSaved ? '✓ Enregistré' : updateTenant.isPending ? '…' : 'Enregistrer'}
             </button>
           </div>
         </div>
@@ -246,7 +246,7 @@ function OngletProfil({ tenant, updateTenant, user }: {
           <button className={`${styles.btnSave} ${nameSaved ? styles.btnSaved : ''}`}
             onClick={() => save('name', name.trim(), setNameSaved)}
             disabled={updateTenant.isPending || !name.trim() || name === tenant.name}>
-            {nameSaved ? '•o" Enregistré' : updateTenant.isPending ? '…' : 'Enregistrer'}
+            {nameSaved ? '✓ Enregistré' : updateTenant.isPending ? '…' : 'Enregistrer'}
           </button>
         </div>
       </section>
@@ -262,7 +262,7 @@ function OngletProfil({ tenant, updateTenant, user }: {
           <button className={`${styles.btnSave} ${siteSaved ? styles.btnSaved : ''}`}
             onClick={() => save('siteWeb', siteWeb || null, setSiteSaved)}
             disabled={updateTenant.isPending || siteWeb === (tenant.siteWeb ?? '')}>
-            {siteSaved ? '•o" Enregistré' : updateTenant.isPending ? '…' : 'Enregistrer'}
+            {siteSaved ? '✓ Enregistré' : updateTenant.isPending ? '…' : 'Enregistrer'}
           </button>
         </div>
       </section>
@@ -279,7 +279,7 @@ function OngletProfil({ tenant, updateTenant, user }: {
           <button className={`${styles.btnSave} ${presSaved ? styles.btnSaved : ''}`}
             onClick={() => save('presentation', presentation || null, setPresSaved)}
             disabled={updateTenant.isPending || presentation === (tenant.presentation ?? '')}>
-            {presSaved ? '•o" Enregistré' : updateTenant.isPending ? '…' : 'Enregistrer'}
+            {presSaved ? '✓ Enregistré' : updateTenant.isPending ? '…' : 'Enregistrer'}
           </button>
         </div>
       </section>
@@ -303,7 +303,7 @@ function OngletProfil({ tenant, updateTenant, user }: {
             <input className={styles.input} type="password" value={pwdNew}
               onChange={e => setPwdNew(e.target.value)} placeholder="Nouveau mot de passe (min. 8 caractères)" />
             {pwdError && <p className={styles.pwdError}>{pwdError}</p>}
-            {pwdSaved && <p className={styles.pwdOk}>•o" Mot de passe modifié avec succès.</p>}
+            {pwdSaved && <p className={styles.pwdOk}>✓ Mot de passe modifié avec succès.</p>}
             <div className={styles.fieldRow}>
               <button className={styles.btnOutline} onClick={() => { setShowPwd(false); setPwdError(''); setPwdCurrent(''); setPwdNew('') }}>
                 Annuler

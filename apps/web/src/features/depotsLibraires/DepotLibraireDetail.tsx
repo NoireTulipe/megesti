@@ -1,4 +1,4 @@
-import { generateUUID } from '@/lib/utils'
+﻿import { generateUUID } from '@/lib/utils'
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import {
@@ -133,12 +133,12 @@ function TabContacts({ depot, depotId }: { depot: ReturnType<typeof useDepotLibr
           <div style={{ flex:1, minWidth:0 }}>
             <div style={{ fontWeight:700, fontSize:'0.88rem', color:'var(--ink)' }}>{c.prenom ? `${c.prenom} ${c.nom}` : c.nom}</div>
             <div style={{ fontSize:'0.75rem', color:'var(--text-soft)', marginTop:2, display:'flex', gap:12 }}>
-              {c.email     && <span>•o? {c.email}</span>}
+              {c.email     && <span>✉ {c.email}</span>}
               {c.telephone && <span>•~Z {c.telephone}</span>}
             </div>
           </div>
-          <button type="button" onClick={() => openEdit(c)} style={{ width:28, height:28, border:'1.5px solid var(--cream-dark)', borderRadius:8, background:'transparent', cursor:'pointer', color:'var(--text-soft)', display:'flex', alignItems:'center', justifyContent:'center' }}>•oZ</button>
-          <button type="button" onClick={() => del.mutate(c.id)}  style={{ width:28, height:28, border:'1.5px solid #FECACA', borderRadius:8, background:'#FEF2F2', cursor:'pointer', color:'#DC2626', display:'flex', alignItems:'center', justifyContent:'center' }}>•-</button>
+          <button type="button" onClick={() => openEdit(c)} style={{ width:28, height:28, border:'1.5px solid var(--cream-dark)', borderRadius:8, background:'transparent', cursor:'pointer', color:'var(--text-soft)', display:'flex', alignItems:'center', justifyContent:'center' }}>✎</button>
+          <button type="button" onClick={() => del.mutate(c.id)}  style={{ width:28, height:28, border:'1.5px solid #FECACA', borderRadius:8, background:'#FEF2F2', cursor:'pointer', color:'#DC2626', display:'flex', alignItems:'center', justifyContent:'center' }}>×</button>
         </div>
       ))}
 
@@ -296,9 +296,9 @@ function TabVentes({ depot, depotId }: { depot: ReturnType<typeof useDepotLibrai
             <div style={{ display:'flex', alignItems:'center', gap:12 }}>
               <button type="button" onClick={confirm} disabled={!selected || !qte || confirmer.isPending}
                 style={{ height:38, padding:'0 20px', background:'linear-gradient(135deg,var(--sage),#4A7A55)', color:'#fff', border:'none', borderRadius:'var(--r-pill)', fontSize:'0.85rem', fontWeight:600, cursor:'pointer', boxShadow:'0 3px 12px rgba(107,143,113,0.35)' }}>
-                {confirmer.isPending ? 'Enregistrement…' : '•o" Confirmer la vente'}
+                {confirmer.isPending ? 'Enregistrement…' : '✓ Confirmer la vente'}
               </button>
-              {success && <span style={{ fontSize:'0.82rem', color:'var(--sage)', fontWeight:600 }}>•o" {success}</span>}
+              {success && <span style={{ fontSize:'0.82rem', color:'var(--sage)', fontWeight:600 }}>✓ {success}</span>}
             </div>
           </div>
         )}
