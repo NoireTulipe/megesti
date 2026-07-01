@@ -127,6 +127,11 @@ const dialogs = [
     { text: 'Pour chaque vente d\'exemplaires, MeGesti génère une transaction normale : comptabilisée, sécurisée, avec débit de stock. Rien de spécial côté caisse — c\'est juste une vente à un acheteur particulier.' },
     { text: 'Pour commencer, fixe le prix auteur dans le contrat (champ "Prix exemplaire auteur"), puis clique sur le bouton "Vendre des exemplaires" en haut de cet onglet.' },
   ]},
+  { slug: 'reglages-da-bareme', description: 'Réglages / Barèmes DA — aide contextuelle', bulles: [
+    { title: 'Comment ça marche ?', text: 'Un barème, c\'est une liste de règles évaluées dans l\'ordre. La première qui correspond à la situation de vente s\'applique — les suivantes sont ignorées.\n\nLa dernière règle sans aucune condition est le filet de sécurité : elle s\'applique si aucune règle précédente ne correspond.' },
+    { title: 'La déduction commission', text: 'Si le lieu de vente prélève une commission (salon à 15%…), configure une déduction directement dans la règle : par exemple 40% − 2/3 de la commission.\n\nMeGesti calcule automatiquement : 40% − (2/3 × 15%) = 30% net pour l\'auteur. Il faut que le taux de commission soit renseigné dans la fiche du Point de vente.' },
+    { title: 'Illustrateur, co-auteur…', text: 'Un livre peut avoir plusieurs auteurs — auteur principal et illustrateur par exemple. Chacun a son propre contrat avec son propre barème.\n\nMeGesti calcule et comptabilise les droits de chacun séparément, sans les mélanger.' },
+  ]},
   { slug: 'article-bnf-declaration', description: 'Fiche article livre — obligation dépôt légal BNF', bulles: [
     { title: 'Le dépôt légal BNF 📚', text: 'Tout éditeur qui publie un livre en France a l\'obligation légale de le déclarer à la Bibliothèque nationale de France (BNF). C\'est le dépôt légal, institué par la loi du 20 juin 1992 (modifiée en 2006).\n\nÀ chaque nouveau titre publié, tu dois déposer 2 exemplaires physiques et remplir la déclaration en ligne sur le portail de la BNF.' },
     { text: 'Le dépôt légal sert à conserver le patrimoine éditorial national, à faire indexer ton livre dans le catalogue BNF (data.bnf.fr), et à officialiser sa publication. C\'est une obligation légale, pas un service optionnel — une omission peut entraîner des sanctions.', cta: { label: 'Portail dépôt légal BNF →', href: 'https://depotlegal.bnf.fr/' } },

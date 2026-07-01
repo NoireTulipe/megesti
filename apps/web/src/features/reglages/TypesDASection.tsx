@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useTypesDA, useCreateTypeDA, useUpdateTypeDA, useDeleteTypeDA } from './hooks/useTypesDA'
 import type { TypeDA } from './hooks/useTypesDA'
 import type { RegleDA, ConditionRegle, BaseCalcul, VendeurType, TypeVente } from '@megesti/business'
+import { MascoteBlock } from '@/components/MascoteBlock'
 import styles from './TypesDASection.module.css'
 
 // •"?•"? Helpers •"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?
@@ -285,6 +286,8 @@ function EditeurDA({
         Une ligne sans conditions sert de règle par défaut (fallback).
       </p>
 
+      <MascoteBlock slug="reglages-da-bareme" />
+
       <div className={styles.editorFooter}>
         <button className={styles.btnCancel} onClick={onCancel}>Annuler</button>
         <button
@@ -390,6 +393,8 @@ export function TypesDASection() {
       <button className={styles.btnAdd} onClick={() => setMode({ type: 'create' })}>
         + Nouveau barème
       </button>
+
+      <MascoteBlock slug="reglages-da-bareme" />
     </div>
   )
 }
