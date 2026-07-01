@@ -103,11 +103,11 @@ export function ComptabilitePage() {
     />
   )
 
-  const { summary, evolution, topArticles, caParRayon, caParPDV, caParMode, associations, periode } = data
+  const { summary, evolution, topArticles, caParRayon, caParPDV, caParMode, associations, periode, exemplairesAuteurs, topBenefice } = data
   const topQte = [...topArticles].sort((a, b) => b.quantite - a.quantite).slice(0, 10)
   const topCA  = [...topArticles].slice(0, 10)
 
-  const hasData = summary.nbVentes > 0
+  const hasData = summary.nbVentes > 0 || exemplairesAuteurs.totalTTC > 0
 
   return (
     <div className={styles.page}>
@@ -131,13 +131,28 @@ export function ComptabilitePage() {
       ) : (
         <div className={styles.content}>
 
-          {/* ── Métriques synthèse ── */}
+          {/* ── Métriques synthèse (ventes lecteurs uniquement) ── */}
           <div className={styles.statsRow}>
-            <StatCard emoji="💰" label="Chiffre d'affaires TTC" value={fEur(summary.totalTTC)} sub={`dont HT : ${fEur(summary.totalHT)}`} color={COLORS.rose} />
-            <StatCard emoji="🛒" label="Ventes validées" value={String(summary.nbVentes)} sub={summary.nbAnnulees > 0 ? `${summary.nbAnnulees} annulée${summary.nbAnnulees > 1 ? 's' : ''}` : 'Aucune annulation'} color={COLORS.sage} />
+            <StatCard emoji="💰" label="CA lecteurs TTC" value={fEur(summary.totalTTC)} sub={`dont HT : ${fEur(summary.totalHT)}`} color={COLORS.rose} />
+            <StatCard emoji="🛒" label="Ventes lecteurs" value={String(summary.nbVentes)} sub={summary.nbAnnulees > 0 ? `${summary.nbAnnulees} annulée${summary.nbAnnulees > 1 ? 's' : ''}` : 'Aucune annulation'} color={COLORS.sage} />
             <StatCard emoji="🎯" label="Ticket moyen" value={fEur(summary.ticketMoyen)} sub="par transaction" color={COLORS.gold} />
             <StatCard emoji="📦" label="Articles vendus" value={String(topArticles.reduce((s, a) => s + a.quantite, 0))} sub="toutes références" color={COLORS.mauve} />
           </div>
+
+          {/* ── Exemplaires auteurs ── */}
+          {exemplairesAuteurs.totalTTC > 0 && (
+            <div className={styles.exemplairesBanner}>
+              <span className={styles.exemplairesBannerLabel}>📗 Exemplaires auteurs — non inclus dans les stats ci-dessus</span>
+              <span className={styles.exemplairesBannerValue}>
+                {fEur(exemplairesAuteurs.totalTTC)} TTC
+                {' · '}
+                {exemplairesAuteurs.nbVentes} vente{exemplairesAuteurs.nbVentes > 1 ? 's' : ''}
+                {exemplairesAuteurs.parAuteur.length > 0 && (
+                  <> · {exemplairesAuteurs.parAuteur.map(a => `${a.nomAuteur} (${fEur(a.caTTC)})`).join(', ')}</>
+                )}
+              </span>
+            </div>
+          )}
 
           {/* ── Évolution CA ── */}
           <ChartSection title="Évolution du chiffre d'affaires" emoji="📈" full>
@@ -254,6 +269,33 @@ export function ComptabilitePage() {
               )}
             </ChartSection>
           </div>
+
+          {/* ── Top bénéfice brut ── */}
+          {topBenefice.length > 0 && (
+            <ChartSection title="Top bénéfice brut" emoji="💎" full>
+              <p className={styles.assocSub}>Marge brute estimée par titre (CA TTC - coût d'achat). Articles sans prix d'achat renseigné : coût = 0.</p>
+              <ResponsiveContainer width="100%" height={Math.max(160, topBenefice.length * 38)}>
+                <BarChart data={topBenefice} layout="vertical" margin={{ left: 0, right: 16 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--cream-dark)" horizontal={false} />
+                  <XAxis type="number" tickFormatter={v => fEur(v)} tick={{ fontSize: 10, fill: 'var(--text-soft)' }} axisLine={false} tickLine={false} />
+                  <YAxis type="category" dataKey="nom" width={120} tick={{ fontSize: 11, fill: 'var(--ink)' }} axisLine={false} tickLine={false}
+                    tickFormatter={v => v.length > 18 ? v.slice(0, 16) + '…' : v}
+                  />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Bar dataKey="benefice" name="Marge brute" radius={[0, 6, 6, 0]}>
+                    {topBenefice.map((r, i) => (
+                      <Cell key={i} fill={
+                        r.cout === 0 ? 'var(--cream-dark)'
+                        : i === 0    ? COLORS.sage
+                        : i < 3      ? '#7AAF7F'
+                        : '#A3C5A8'
+                      } />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartSection>
+          )}
 
           {/* ── Points de vente ── */}
           {caParPDV.length > 0 && (

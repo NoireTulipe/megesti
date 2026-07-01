@@ -46,12 +46,12 @@ export const rapportRoutes: FastifyPluginAsync = async (app) => {
     // DATE_TRUNC exige une constante SQL pour le premier argument — Prisma.raw, pas un paramètre bindé
     const trunc = Prisma.raw(granularite === 'week' ? `'week'` : granularite === 'month' ? `'month'` : `'day'`)
 
-    const [summary, evolutionRaw, topArticlesRaw, caRayonRaw, caPDVRaw, caModeRaw, associationsRaw] =
+    const [summary, evolutionRaw, topArticlesRaw, caRayonRaw, caPDVRaw, caModeRaw, associationsRaw, exemplairesAuteursRaw, topBeneficeRaw] =
       await Promise.all([
 
         // 1. Synthèse globale
         app.db.vente.aggregate({
-          where: { tenantId, statut: 'VALIDEE', dateVente: { gte: from, lte: to } },
+          where: { tenantId, statut: 'VALIDEE', dateVente: { gte: from, lte: to }, auteurId: null },
           _sum:   { totalTTC: true, totalHT: true },
           _count: { _all: true },
           _avg:   { totalTTC: true },
@@ -68,6 +68,7 @@ export const rapportRoutes: FastifyPluginAsync = async (app) => {
             AND "statut"   = 'VALIDEE'
             AND "dateVente" >= ${from}
             AND "dateVente" <= ${to}
+            AND "auteurId" IS NULL
           GROUP BY DATE_TRUNC(${trunc}, "dateVente")
           ORDER BY date ASC
         `),
@@ -88,6 +89,7 @@ export const rapportRoutes: FastifyPluginAsync = async (app) => {
             AND v."statut"   = 'VALIDEE'
             AND v."dateVente" >= ${from}
             AND v."dateVente" <= ${to}
+            AND v."auteurId" IS NULL
           GROUP BY a."id", a."nom", r."nom"
           ORDER BY ca DESC
           LIMIT 15
@@ -108,6 +110,7 @@ export const rapportRoutes: FastifyPluginAsync = async (app) => {
             AND v."statut"   = 'VALIDEE'
             AND v."dateVente" >= ${from}
             AND v."dateVente" <= ${to}
+            AND v."auteurId" IS NULL
           GROUP BY r."id", r."nom"
           ORDER BY ca DESC
         `),
@@ -126,6 +129,7 @@ export const rapportRoutes: FastifyPluginAsync = async (app) => {
             AND v."statut"   = 'VALIDEE'
             AND v."dateVente" >= ${from}
             AND v."dateVente" <= ${to}
+            AND v."auteurId" IS NULL
           GROUP BY pdv."id", pdv."nom"
           ORDER BY ca DESC
         `),
@@ -141,6 +145,7 @@ export const rapportRoutes: FastifyPluginAsync = async (app) => {
             AND "statut"    = 'VALIDEE'
             AND "dateVente" >= ${from}
             AND "dateVente" <= ${to}
+            AND "auteurId" IS NULL
           GROUP BY "modePaiement"
           ORDER BY ca DESC
         `),
@@ -162,14 +167,65 @@ export const rapportRoutes: FastifyPluginAsync = async (app) => {
             AND v."statut"    = 'VALIDEE'
             AND v."dateVente" >= ${from}
             AND v."dateVente" <= ${to}
+            AND v."auteurId" IS NULL
           GROUP BY a1."nom", a2."nom"
           ORDER BY nb DESC
+          LIMIT 10
+        `),
+
+        // 8. Exemplaires auteurs — ventes avec auteurId (achat d'auteur sur ses propres livres)
+        app.db.$queryRaw<{ auteurId: string; prenom: string; nom: string; caHT: number; caTTC: number; nb: bigint }[]>(Prisma.sql`
+          SELECT a."id" AS "auteurId", a."prenom", a."nom",
+            CAST(SUM(v."totalHT")  AS FLOAT) AS "caHT",
+            CAST(SUM(v."totalTTC") AS FLOAT) AS "caTTC",
+            COUNT(*) AS nb
+          FROM "Vente" v
+          JOIN "Auteur" a ON v."auteurId" = a."id"
+          WHERE v."tenantId" = ${tenantId} AND v."statut" = 'VALIDEE'
+            AND v."auteurId" IS NOT NULL
+            AND v."dateVente" >= ${from} AND v."dateVente" <= ${to}
+          GROUP BY a."id", a."prenom", a."nom"
+          ORDER BY "caHT" DESC
+        `),
+
+        // 9. Top bénéfice brut par article (ventes lecteurs uniquement)
+        app.db.$queryRaw<{ articleId: string; nom: string; quantite: bigint; ca: number; cout: number }[]>(Prisma.sql`
+          SELECT
+            a."id"                                  AS "articleId",
+            a."nom",
+            SUM(lv."quantite")                      AS quantite,
+            CAST(SUM(lv."totalLigneTTC") AS FLOAT)  AS ca,
+            CAST(SUM(
+              CASE
+                WHEN a."prixAchatLotHT" IS NOT NULL AND a."prixAchatLotQte" IS NOT NULL AND a."prixAchatLotQte" > 0
+                  THEN (a."prixAchatLotHT" / a."prixAchatLotQte") * lv."quantite"
+                WHEN a."prixAchatHT" IS NOT NULL THEN a."prixAchatHT" * lv."quantite"
+                ELSE 0
+              END
+            ) AS FLOAT) AS cout
+          FROM "LigneVente" lv
+          JOIN "Vente"   v ON lv."venteId"   = v."id"
+          JOIN "Article" a ON lv."articleId" = a."id"
+          WHERE v."tenantId" = ${tenantId}
+            AND v."statut"   = 'VALIDEE'
+            AND v."auteurId" IS NULL
+            AND v."dateVente" >= ${from}
+            AND v."dateVente" <= ${to}
+          GROUP BY a."id", a."nom"
+          ORDER BY (SUM(lv."totalLigneTTC") - SUM(
+            CASE
+              WHEN a."prixAchatLotHT" IS NOT NULL AND a."prixAchatLotQte" IS NOT NULL AND a."prixAchatLotQte" > 0
+                THEN (a."prixAchatLotHT" / a."prixAchatLotQte") * lv."quantite"
+              WHEN a."prixAchatHT" IS NOT NULL THEN a."prixAchatHT" * lv."quantite"
+              ELSE 0
+            END
+          )) DESC
           LIMIT 10
         `),
       ])
 
     const annulees = await app.db.vente.count({
-      where: { tenantId, statut: 'ANNULEE', dateVente: { gte: from, lte: to } },
+      where: { tenantId, statut: 'ANNULEE', dateVente: { gte: from, lte: to }, auteurId: null },
     })
 
     return {
@@ -187,6 +243,26 @@ export const rapportRoutes: FastifyPluginAsync = async (app) => {
       caParPDV:     caPDVRaw.map((r)     => ({ ...r, nbVentes: Number(r.nbVentes) })),
       caParMode:    caModeRaw.map((r)    => ({ ...r, nb: Number(r.nb) })),
       associations: associationsRaw.map((r) => ({ ...r, nb: Number(r.nb) })),
+      exemplairesAuteurs: {
+        totalHT:  exemplairesAuteursRaw.reduce((s, r) => s + r.caHT,  0),
+        totalTTC: exemplairesAuteursRaw.reduce((s, r) => s + r.caTTC, 0),
+        nbVentes: exemplairesAuteursRaw.reduce((s, r) => s + Number(r.nb), 0),
+        parAuteur: exemplairesAuteursRaw.map(r => ({
+          auteurId:  r.auteurId,
+          nomAuteur: `${r.prenom} ${r.nom}`.trim(),
+          caHT:      r.caHT,
+          caTTC:     r.caTTC,
+          nb:        Number(r.nb),
+        })),
+      },
+      topBenefice: topBeneficeRaw.map(r => ({
+        articleId: r.articleId,
+        nom:       r.nom,
+        quantite:  Number(r.quantite),
+        ca:        r.ca,
+        cout:      r.cout,
+        benefice:  r.ca - r.cout,
+      })),
     }
   })
 

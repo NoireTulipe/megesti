@@ -18,8 +18,10 @@ import { SumUp } from '@megesti/react-native-sumup'
 if (!SumUp.isAvailable()) { /* Expo Go → pas de SumUp */ }
 
 // Init + login
+// init() stocke la clé affilié ; login() ouvre l'écran de connexion SumUp natif
+// (saisie du compte marchand directement sur l'appareil — aucun token à passer).
 await SumUp.init('votre-cle-affilie')
-await SumUp.login('token-marchand')
+await SumUp.login()
 
 // Vérifier l'état
 const ready = await SumUp.isReady()
@@ -40,7 +42,7 @@ await SumUp.logout()
 Ajouter au `build.gradle` de l'app :
 ```gradle
 dependencies {
-    implementation 'com.sumup:merchant-sdk:3.5.+'
+    implementation 'com.sumup:merchant-sdk:4.1.0@aar'
 }
 ```
 

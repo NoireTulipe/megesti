@@ -18,6 +18,13 @@ export interface RapportVentes {
   caParPDV:    { pdvId: string; nom: string; ca: number; nbVentes: number }[]
   caParMode:   { mode: string; ca: number; nb: number }[]
   associations: { produit1: string; produit2: string; nb: number }[]
+  exemplairesAuteurs: {
+    totalHT:   number
+    totalTTC:  number
+    nbVentes:  number
+    parAuteur: { auteurId: string; nomAuteur: string; caHT: number; caTTC: number; nb: number }[]
+  }
+  topBenefice: { articleId: string; nom: string; quantite: number; ca: number; cout: number; benefice: number }[]
 }
 
 export function useRapportVentes(period: Period) {

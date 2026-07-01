@@ -5,7 +5,6 @@ import com.sumup.merchant.api.SumUpAPI
 import com.sumup.merchant.api.SumUpLogin
 import com.sumup.merchant.api.SumUpPayment
 import com.sumup.merchant.api.SumUpState
-import com.sumup.merchant.cardreader.terminal.TerminalManager
 import com.sumup.merchant.models.TransactionInfo
 import java.math.BigDecimal
 
@@ -14,11 +13,18 @@ class SumUpModule(reactContext: ReactApplicationContext) :
 
   override fun getName(): String = "SumUp"
 
+  // L'affiliate key est reçue à l'init puis réutilisée pour le login.
+  // On ne la demande pas côté JS lors du login : le SDK SumUp ouvre son propre
+  // écran de connexion marchand sur l'appareil, aucun identifiant ne transite
+  // par les serveurs MeGesti.
+  private var affiliateKey: String? = null
+
   // ── init ──────────────────────────────────────────────────────────
 
   @ReactMethod
   fun init(affiliateKey: String, promise: Promise) {
     try {
+      this.affiliateKey = affiliateKey
       SumUpAPI.init(reactApplicationContext, affiliateKey)
       promise.resolve(true)
     } catch (e: Exception) {
@@ -27,11 +33,19 @@ class SumUpModule(reactContext: ReactApplicationContext) :
   }
 
   // ── login ─────────────────────────────────────────────────────────
+  //
+  // Pas de paramètre token : on construit le SumUpLogin avec l'affiliate key
+  // stockée lors de init(). Le SDK affiche son écran de connexion natif.
 
   @ReactMethod
-  fun login(token: String, promise: Promise) {
+  fun login(promise: Promise) {
     try {
-      val login = SumUpLogin.builder(token).build()
+      val key = affiliateKey
+      if (key == null) {
+        promise.reject("NOT_INITIALIZED", "init() doit être appelé avant login()")
+        return
+      }
+      val login = SumUpLogin.builder(key).build()
       SumUpAPI.login(login, object : SumUpAPI.LoginCallback {
         override fun onSuccess() {
           promise.resolve(true)
@@ -50,6 +64,17 @@ class SumUpModule(reactContext: ReactApplicationContext) :
   @ReactMethod
   fun checkout(amount: Double, currency: String, title: String, promise: Promise) {
     try {
+      val activity = currentActivity
+      if (activity == null) {
+        val result = Arguments.createMap().apply {
+          putBoolean("success", false)
+          putString("errorCode", "NO_ACTIVITY")
+          putString("message", "Aucune activité en premier plan — réessayez.")
+        }
+        promise.resolve(result)
+        return
+      }
+
       val payment = SumUpPayment.builder()
         .total(BigDecimal.valueOf(amount))
         .currency(com.sumup.merchant.api.core.Currency.valueOf(currency))
@@ -57,7 +82,7 @@ class SumUpModule(reactContext: ReactApplicationContext) :
         .skipSuccessScreen()        // retour direct à l'app après paiement
         .build()
 
-      SumUpAPI.checkout(currentActivity!!, payment, object : SumUpAPI.PaymentCallback {
+      SumUpAPI.checkout(activity, payment, object : SumUpAPI.PaymentCallback {
         override fun onSuccess(transactionInfo: TransactionInfo) {
           val result = Arguments.createMap().apply {
             putBoolean("success", true)
