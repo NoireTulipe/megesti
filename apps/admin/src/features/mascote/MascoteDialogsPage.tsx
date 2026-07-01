@@ -251,7 +251,7 @@ export function MascoteDialogsPage() {
                   </select>
                   <img
                     key={form.imageName}
-                    src={`/img/mascotte/${form.imageName}`}
+                    src={`${import.meta.env.VITE_WEB_URL ?? ''}/img/mascotte/${form.imageName}`}
                     alt={form.imageName}
                     style={{ height: 80, width: 'auto', borderRadius: 6, border: '1px solid var(--border)' }}
                   />
