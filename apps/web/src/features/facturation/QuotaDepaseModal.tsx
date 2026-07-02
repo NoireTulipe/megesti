@@ -1,4 +1,4 @@
-import { createPortal } from 'react-dom'
+import { Overlay } from '@/components/ui/Overlay'
 import { usePacks, useCheckout } from './hooks/useFacturation'
 import styles from './QuotaDepaseModal.module.css'
 
@@ -8,8 +8,8 @@ export function QuotaDepaseModal({ onClose }: Props) {
   const { data: packs = [] } = usePacks()
   const checkout             = useCheckout()
 
-  const dialog = (
-    <div className={styles.backdrop} onClick={onClose}>
+  return (
+    <Overlay className={styles.backdrop} onClose={onClose}>
       <div className={styles.panel} onClick={e => e.stopPropagation()}>
         <div className={styles.accent} />
 
@@ -53,8 +53,6 @@ export function QuotaDepaseModal({ onClose }: Props) {
           </div>
         </div>
       </div>
-    </div>
+    </Overlay>
   )
-
-  return createPortal(dialog, document.body)
 }

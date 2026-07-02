@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { createPortal } from 'react-dom'
+import { Overlay } from '@/components/ui/Overlay'
 import { DateInput } from '@/components/DateInput'
 import { useHistoriqueSessions, useReopenSessionCaisse } from './hooks/useSessionsCaisse'
 import { BilanSession } from './BilanSession'
@@ -136,8 +136,8 @@ export function HistoriqueSessions() {
       )}
 
       {/* ── Bilan en modale (même style que la session active) ── */}
-      {bilanSessionObj && createPortal(
-        <div className={styles.bilanOverlay} onClick={() => setBilanSession(null)}>
+      {bilanSessionObj && (
+        <Overlay className={styles.bilanOverlay} onClose={() => setBilanSession(null)}>
           <div className={styles.bilanPanel} onClick={e => e.stopPropagation()}>
             <BilanSession
               sessionId={bilanSessionObj.id}
@@ -148,8 +148,7 @@ export function HistoriqueSessions() {
               onClose={() => setBilanSession(null)}
             />
           </div>
-        </div>,
-        document.body
+        </Overlay>
       )}
     </div>
   )

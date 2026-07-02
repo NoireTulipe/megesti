@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { createPortal } from 'react-dom'
+import { useState } from 'react'
+import { Overlay } from '@/components/ui/Overlay'
 import { ExternalLink, ThumbsUp, ThumbsDown } from 'lucide-react'
 import type { Imprimeur } from './hooks/useImprimeurs'
 import sty from '@/features/auteurs/AuteursPage.module.css'
@@ -28,13 +28,6 @@ interface Props {
 export function ImprimeurDetail({ imprimeur, isOpen, onClose, onEdit }: Props) {
   const [tab, setTab] = useState<TabId>('infos')
 
-  useEffect(() => {
-    if (!isOpen) return
-    const h = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
-    document.addEventListener('keydown', h)
-    return () => document.removeEventListener('keydown', h)
-  }, [isOpen, onClose])
-
   if (!isOpen) return null
 
   const sum      = [...imprimeur.nom].reduce((a, c) => a + c.charCodeAt(0), 0)
@@ -56,8 +49,8 @@ export function ImprimeurDetail({ imprimeur, isOpen, onClose, onEdit }: Props) {
     </span>
   )
 
-  return createPortal(
-    <div className={sty.backdrop} onClick={onClose}>
+  return (
+    <Overlay className={sty.backdrop} onClose={onClose}>
       <div
         className={`${sty.modal} ${sty['modal-xl']}`}
         style={{ display: 'flex', flexDirection: 'column', maxWidth: 780 }}
@@ -231,7 +224,6 @@ export function ImprimeurDetail({ imprimeur, isOpen, onClose, onEdit }: Props) {
 
         </div>
       </div>
-    </div>,
-    document.body
+    </Overlay>
   )
 }

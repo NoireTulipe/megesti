@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { createPortal } from 'react-dom'
+import { useState } from 'react'
+import { Overlay } from '@/components/ui/Overlay'
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { ContratsAuteurSection } from './ContratsAuteurSection'
 import { VenteExemplairesModal } from './VenteExemplairesModal'
@@ -96,13 +96,6 @@ export function AuteurDetail({ auteur, isOpen, onClose, onEdit }: Props) {
   const totalQte   = months.reduce((s, m) => s + m.quantite, 0)
   const totalHT    = months.reduce((s, m) => s + m.totalHT, 0)
 
-  useEffect(() => {
-    if (!isOpen) return
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
-    document.addEventListener('keydown', handler)
-    return () => document.removeEventListener('keydown', handler)
-  }, [isOpen, onClose])
-
   if (!isOpen) return null
 
   const articles = detail?.articles ?? []
@@ -116,8 +109,7 @@ export function AuteurDetail({ auteur, isOpen, onClose, onEdit }: Props) {
       isOpen={venteModalOpen}
       onClose={() => setVenteModalOpen(false)}
     />
-    {createPortal(
-    <div className={sty.backdrop} onClick={onClose}>
+    <Overlay className={sty.backdrop} onClose={onClose}>
       <div
         className={`${sty.modal} ${sty['modal-xl']}`}
         style={{ display: 'flex', flexDirection: 'column' }}
@@ -447,9 +439,7 @@ export function AuteurDetail({ auteur, isOpen, onClose, onEdit }: Props) {
 
         </div>
       </div>
-    </div>,
-    document.body
-  )}
+    </Overlay>
     </>
   )
 }

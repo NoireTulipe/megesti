@@ -1,7 +1,6 @@
 import { generateUUID } from '@/lib/utils'
-import { useState, useEffect } from 'react'
-import { createPortal } from 'react-dom'
-import { X } from 'lucide-react'
+import { useState } from 'react'
+import { Modal } from '@/components/ui/Modal'
 import { useCreateMouvement, type TypeMouvement } from './hooks/useMouvementsStock'
 import { useFranchiseTVA } from '@/hooks/useFranchiseTVA'
 import type { Article } from '@/features/catalogue/types'
@@ -37,18 +36,6 @@ export function AjustementStock({ article, onClose }: Props) {
   const [noteLibre,  setNoteLibre]  = useState('')
   const [montantHT,  setMontantHT]  = useState<string>('')
   const create = useCreateMouvement()
-
-  useEffect(() => {
-    const prev = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => { document.body.style.overflow = prev }
-  }, [])
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [onClose])
 
   const stockActuel = article.stock
 
@@ -86,18 +73,8 @@ export function AjustementStock({ article, onClose }: Props) {
     onClose()
   }
 
-  return createPortal(
-    <div className={styles.overlay} onClick={onClose}>
-      <div className={styles.panel} onClick={e => e.stopPropagation()}>
-      {/* En-tête */}
-      <div className={styles.header}>
-        <div className={styles.headerText}>
-          <h3 className={styles.title}>Ajustement de stock</h3>
-          <p className={styles.subtitle}>{article.nom}</p>
-        </div>
-        <button className={styles.closeBtn} onClick={onClose}><X size={15} /></button>
-      </div>
-
+  return (
+    <Modal isOpen title="Ajustement de stock" subtitle={article.nom} onClose={onClose} size="md">
       {/* Stock actuel */}
       <div className={styles.stockActuel}>
         <span className={styles.stockLabel}>Stock actuel</span>
@@ -232,9 +209,7 @@ export function AjustementStock({ article, onClose }: Props) {
           {create.isPending ? 'Enregistrement…' : 'Valider l\'ajustement'}
         </button>
       </div>
-      </div>
-    </div>,
-    document.body
+    </Modal>
   )
 }
 

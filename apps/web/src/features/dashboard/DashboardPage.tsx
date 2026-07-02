@@ -284,7 +284,7 @@ export function DashboardPage() {
 
       {/* ── Modals ── */}
       {modal === 'sale' && (
-        <Modal title="Nouvelle vente" onClose={() => { setModal(null); setSaleSubmitted(false) }}>
+        <Modal isOpen title="Nouvelle vente" onClose={() => { setModal(null); setSaleSubmitted(false) }}>
           {saleSubmitted ? (
             <div style={{ textAlign: 'center', padding: '20px 0' }}>
               <div style={{ fontSize: 40, marginBottom: 12 }}>✅</div>
@@ -314,7 +314,7 @@ export function DashboardPage() {
       )}
 
       {modal === 'book' && (
-        <Modal title="Nouveau livre au catalogue" onClose={() => setModal(null)}>
+        <Modal isOpen title="Nouveau livre au catalogue" onClose={() => setModal(null)}>
           <form onSubmit={e => { e.preventDefault(); setModal(null); addToast('Titre ajouté au catalogue') }}>
             <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-soft)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Titre</label>
             <input placeholder="Titre du livre" style={{ ...inputCss, marginTop: 4 }} />
@@ -328,7 +328,7 @@ export function DashboardPage() {
       )}
 
       {modal === 'event' && (
-        <Modal title="Nouvel événement" onClose={() => setModal(null)}>
+        <Modal isOpen title="Nouvel événement" onClose={() => setModal(null)}>
           <form onSubmit={e => { e.preventDefault(); setModal(null); addToast('Événement créé') }}>
             <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-soft)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Nom de l'événement</label>
             <input placeholder="ex. Salon du livre de Rennes" style={{ ...inputCss, marginTop: 4 }} />
@@ -342,7 +342,7 @@ export function DashboardPage() {
       )}
 
       {modal === 'invoice' && (
-        <Modal title="Nouvelle facture" onClose={() => setModal(null)}>
+        <Modal isOpen title="Nouvelle facture" onClose={() => setModal(null)}>
           <form onSubmit={e => { e.preventDefault(); setModal(null); addToast('Facture créée') }}>
             <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-soft)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Destinataire</label>
             <input placeholder="ex. Librairie Le Passage" style={{ ...inputCss, marginTop: 4 }} />

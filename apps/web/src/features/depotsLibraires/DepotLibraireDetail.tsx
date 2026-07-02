@@ -1,6 +1,6 @@
 ﻿import { generateUUID } from '@/lib/utils'
 import { useState } from 'react'
-import { createPortal } from 'react-dom'
+import { Overlay } from '@/components/ui/Overlay'
 import { useFranchiseTVA } from '@/hooks/useFranchiseTVA'
 import {
   useDepotLibraireDetail, useUpdateDepotLibraire,
@@ -336,8 +336,8 @@ export function DepotLibraireDetail({ depot, isOpen, onClose }: Props) {
 
   if (!isOpen) return null
 
-  return createPortal(
-    <div className={sty.backdrop} onClick={onClose}>
+  return (
+    <Overlay className={sty.backdrop} onClose={onClose}>
       <div className={`${sty.modal} ${sty['modal-xl']}`} style={{ display:'flex', flexDirection:'column' }}
         role="dialog" aria-modal="true" onClick={e => e.stopPropagation()}>
 
@@ -394,8 +394,7 @@ export function DepotLibraireDetail({ depot, isOpen, onClose }: Props) {
           {tab === 'ventes'   && <TabVentes   depot={detail} depotId={depot.id} />}
         </div>
       </div>
-    </div>,
-    document.body
+    </Overlay>
   )
 }
 

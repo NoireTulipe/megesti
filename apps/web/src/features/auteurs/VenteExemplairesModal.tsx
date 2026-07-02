@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { createPortal } from 'react-dom'
+import { Overlay } from '@/components/ui/Overlay'
 import { useCreateVenteExemplaire } from './hooks/useExemplairesAuteur'
 import type { ContratAuteur } from './hooks/useContratsAuteur'
 import type { Auteur } from './hooks/useAuteurs'
@@ -65,13 +65,6 @@ export function VenteExemplairesModal({ auteur, articles, contrats, isOpen, onCl
     setError(null)
   }, [isOpen, articles, contrats])
 
-  useEffect(() => {
-    if (!isOpen) return
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
-    document.addEventListener('keydown', handler)
-    return () => document.removeEventListener('keydown', handler)
-  }, [isOpen, onClose])
-
   if (!isOpen) return null
 
   const nomAffiche = auteur.pseudonyme ?? `${auteur.prenom} ${auteur.nom}`
@@ -120,8 +113,8 @@ export function VenteExemplairesModal({ auteur, articles, contrats, isOpen, onCl
     }
   }
 
-  return createPortal(
-    <div className={sty.backdrop} onClick={onClose}>
+  return (
+    <Overlay className={sty.backdrop} onClose={onClose}>
       <div
         className={sty.modal}
         style={{ width: '100%', maxWidth: 560, display: 'flex', flexDirection: 'column' }}
@@ -274,8 +267,7 @@ export function VenteExemplairesModal({ auteur, articles, contrats, isOpen, onCl
           </div>
         </div>
       </div>
-    </div>,
-    document.body,
+    </Overlay>
   )
 }
 

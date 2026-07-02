@@ -1,6 +1,6 @@
 ﻿import { generateUUID } from '@/lib/utils'
-import { useState, useMemo, useEffect } from 'react'
-import { createPortal } from 'react-dom'
+import { useState, useMemo } from 'react'
+import { Overlay } from '@/components/ui/Overlay'
 import { useMotifVente, useCreateMotifVente } from './hooks/useMotifVente'
 import { useCreateVenteHorsSession } from './hooks/useVentes'
 import type { ModePaiement, CartLigne } from './hooks/useVentes'
@@ -42,22 +42,6 @@ export function VenteHorsSessionModal({ isOpen, onClose }: Props) {
   const franchiseTVA             = useFranchiseTVA()
   const createVente              = useCreateVenteHorsSession()
   const createMotif              = useCreateMotifVente()
-
-  // Lock body scroll
-  useEffect(() => {
-    if (!isOpen) return
-    const prev = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => { document.body.style.overflow = prev }
-  }, [isOpen])
-
-  // Close on Escape
-  useEffect(() => {
-    if (!isOpen) return
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') handleClose() }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [isOpen, motifId])
 
   const filteredArticles = useMemo(() => {
     let list = articles.filter(a => a.actif)
@@ -125,8 +109,8 @@ export function VenteHorsSessionModal({ isOpen, onClose }: Props) {
 
   if (!isOpen) return null
 
-  const dialog = (
-    <div className={styles.hsOverlay} onClick={handleClose}>
+  return (
+    <Overlay className={styles.hsOverlay} onClose={handleClose}>
       <div className={styles.hsDialog} role="dialog" aria-modal="true" onClick={e => e.stopPropagation()}>
 
         {/* Accent + décos */}
@@ -286,10 +270,8 @@ export function VenteHorsSessionModal({ isOpen, onClose }: Props) {
           </div>
         </div>
       </div>
-    </div>
+    </Overlay>
   )
-
-  return createPortal(dialog, document.body)
 }
 
 

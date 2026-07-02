@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { createPortal } from 'react-dom'
+import { Overlay } from '@/components/ui/Overlay'
 import {
   AreaChart, Area, BarChart, Bar,
   XAxis, YAxis, Tooltip, ResponsiveContainer,
@@ -126,8 +126,8 @@ export function StockHistoriqueModal({ article, onClose }: Props) {
   const stockAlerte  = article.stockAlerte  > 0 ? article.stockAlerte  : null
   const stockTension = article.stockTension > 0 ? article.stockTension : null
 
-  const dialog = (
-    <div className={styles.backdrop} onClick={onClose}>
+  return (
+    <Overlay className={styles.backdrop} onClose={onClose}>
       <div className={styles.panel} onClick={e => e.stopPropagation()} role="dialog" aria-modal>
 
         {/* Barre accent */}
@@ -270,8 +270,6 @@ export function StockHistoriqueModal({ article, onClose }: Props) {
           </>
         )}
       </div>
-    </div>
+    </Overlay>
   )
-
-  return createPortal(dialog, document.body)
 }

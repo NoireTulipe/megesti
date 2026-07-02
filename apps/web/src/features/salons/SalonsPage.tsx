@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { createPortal } from 'react-dom'
+import { Overlay } from '@/components/ui/Overlay'
 import { useSalons } from './hooks/useSalons'
 import type { Salon } from './hooks/useSalons'
 import { SalonCard }   from './SalonCard'
@@ -31,24 +31,6 @@ export function SalonsPage() {
       if (fresh) setEditSalon(fresh)
     }
   }, [salons])
-
-  // Lock scroll + Escape quand un overlay est ouvert
-  const hasOverlay = showCreate || Boolean(editSalon)
-  useEffect(() => {
-    if (!hasOverlay) return
-    const prev = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => { document.body.style.overflow = prev }
-  }, [hasOverlay])
-
-  useEffect(() => {
-    if (!hasOverlay) return
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') { setShowCreate(false); setEditSalon(null) }
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [hasOverlay])
 
   function handleDone() {
     setShowCreate(false)
@@ -117,8 +99,8 @@ export function SalonsPage() {
       )}
 
       {/* ── Overlay création ── */}
-      {showCreate && createPortal(
-        <div className={styles.detailOverlay} onClick={() => setShowCreate(false)}>
+      {showCreate && (
+        <Overlay className={styles.detailOverlay} onClose={() => setShowCreate(false)}>
           <div className={styles.detailDialog} onClick={e => e.stopPropagation()}>
             <div className={styles.detailAccent} />
             <button className={styles.detailClose} onClick={() => setShowCreate(false)} aria-label="Fermer">
@@ -130,13 +112,12 @@ export function SalonsPage() {
               <SalonDetail onDone={handleDone} onCancel={() => setShowCreate(false)} />
             </div>
           </div>
-        </div>,
-        document.body
+        </Overlay>
       )}
 
       {/* ── Overlay édition ── */}
-      {editSalon && createPortal(
-        <div className={styles.detailOverlay} onClick={() => setEditSalon(null)}>
+      {editSalon && (
+        <Overlay className={styles.detailOverlay} onClose={() => setEditSalon(null)}>
           <div className={styles.detailDialog} onClick={e => e.stopPropagation()}>
             <div className={styles.detailAccent} />
             <button className={styles.detailClose} onClick={() => setEditSalon(null)} aria-label="Fermer">
@@ -152,8 +133,7 @@ export function SalonsPage() {
               />
             </div>
           </div>
-        </div>,
-        document.body
+        </Overlay>
       )}
     </div>
   )

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
-import { createPortal } from 'react-dom'
+import { Overlay } from '@/components/ui/Overlay'
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { getImageUrl } from '@/lib/api'
 import type { Article } from './types'
@@ -50,12 +50,10 @@ export function ArticleDetail({ article, isOpen, onClose, onEdit, onToggle }: Pr
     period,
   )
 
+  // Retour à l'onglet profil à la fermeture (Échap/scroll gérés par Overlay)
   useEffect(() => {
-    if (!isOpen) { setTab('profil'); return }
-    const h = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
-    document.addEventListener('keydown', h)
-    return () => document.removeEventListener('keydown', h)
-  }, [isOpen, onClose])
+    if (!isOpen) setTab('profil')
+  }, [isOpen])
 
   // Auto-vérification BNF à l'ouverture — une seule fois par session modale
   useEffect(() => {
@@ -112,8 +110,8 @@ export function ArticleDetail({ article, isOpen, onClose, onEdit, onToggle }: Pr
   const totalQte = useMemo(() => months.reduce((s, m) => s + m.quantite, 0), [months])
   const totalHT  = useMemo(() => months.reduce((s, m) => s + m.totalHT, 0), [months])
 
-  return createPortal(
-    <div className={sty.backdrop} onClick={onClose}>
+  return (
+    <Overlay className={sty.backdrop} onClose={onClose}>
       <div
         className={`${sty.modal} ${sty['modal-xl']}`}
         style={{ display: 'flex', flexDirection: 'column', maxWidth: 860 }}
@@ -409,7 +407,6 @@ export function ArticleDetail({ article, isOpen, onClose, onEdit, onToggle }: Pr
           )}
         </div>
       </div>
-    </div>,
-    document.body
+    </Overlay>
   )
 }

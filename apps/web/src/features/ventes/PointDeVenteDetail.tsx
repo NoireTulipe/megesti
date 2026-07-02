@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { createPortal } from 'react-dom'
+import { useState } from 'react'
+import { Overlay } from '@/components/ui/Overlay'
 import type { PointDeVente } from './hooks/usePointsDeVente'
 import sty from '@/features/auteurs/AuteursPage.module.css'
 
@@ -25,13 +25,6 @@ interface Props {
 export function PointDeVenteDetail({ pdv, isOpen, onClose, onEdit }: Props) {
   const [tab, setTab] = useState<TabId>('infos')
 
-  useEffect(() => {
-    if (!isOpen) return
-    const h = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
-    document.addEventListener('keydown', h)
-    return () => document.removeEventListener('keydown', h)
-  }, [isOpen, onClose])
-
   if (!isOpen) return null
 
   const commission = pdv.commissionPourcent
@@ -47,8 +40,8 @@ export function PointDeVenteDetail({ pdv, isOpen, onClose, onEdit }: Props) {
   const sum = [...pdv.nom].reduce((a, c) => a + c.charCodeAt(0), 0)
   const gradient = GRADIENTS[sum % GRADIENTS.length]
 
-  return createPortal(
-    <div className={sty.backdrop} onClick={onClose}>
+  return (
+    <Overlay className={sty.backdrop} onClose={onClose}>
       <div
         className={`${sty.modal} ${sty['modal-xl']}`}
         style={{ display: 'flex', flexDirection: 'column', maxWidth: 860 }}
@@ -217,7 +210,6 @@ export function PointDeVenteDetail({ pdv, isOpen, onClose, onEdit }: Props) {
 
         </div>
       </div>
-    </div>,
-    document.body
+    </Overlay>
   )
 }

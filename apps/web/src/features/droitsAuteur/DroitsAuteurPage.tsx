@@ -1,7 +1,7 @@
 import { generateUUID } from '@/lib/utils'
 import { useState, useEffect } from 'react'
 import { DateInput } from '@/components/DateInput'
-import { createPortal } from 'react-dom'
+import { Overlay } from '@/components/ui/Overlay'
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
 } from 'recharts'
@@ -89,8 +89,8 @@ function ModalPaiement({ contrat, onClose }: ModalPaiementProps) {
     onClose()
   }
 
-  const dialog = (
-    <div className={styles.modalOverlay} onClick={onClose}>
+  return (
+    <Overlay className={styles.modalOverlay} onClose={onClose}>
       <div className={styles.modal} role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
         <div className={styles.modalAccent} />
         <div className={styles.modalDecorations}>
@@ -168,10 +168,8 @@ function ModalPaiement({ contrat, onClose }: ModalPaiementProps) {
           </div>
         </div>
       </div>
-    </div>
+    </Overlay>
   )
-
-  return createPortal(dialog, document.body)
 }
 
 // •"?•"? Onglet … •"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?

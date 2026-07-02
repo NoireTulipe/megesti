@@ -1,6 +1,6 @@
 import { generateUUID } from '@/lib/utils'
 import { useState, useMemo } from 'react'
-import { createPortal } from 'react-dom'
+import { Overlay } from '@/components/ui/Overlay'
 import { useNavigate } from 'react-router-dom'
 import { usePointsDeVente } from './hooks/usePointsDeVente'
 import { useSessionsCaisse, useOpenSessionCaisse, useCloseSessionCaisse } from './hooks/useSessionsCaisse'
@@ -892,9 +892,9 @@ export function VentesPage() {
       </div>
 
       {/* •"?•"? Modale bilan •"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"? */}
-      {showBilan && createPortal(
-        <div className={styles.bilanOverlay}>
-          <div className={styles.bilanPanel} style={{ display: 'flex', flexDirection: 'column' }}>
+      {showBilan && (
+        <Overlay className={styles.bilanOverlay} onClose={() => { setShowBilan(false); setCloseModeActive(false) }}>
+          <div className={styles.bilanPanel} style={{ display: 'flex', flexDirection: 'column' }} onClick={e => e.stopPropagation()}>
             <div style={{ flex: 1, overflow: 'hidden' }}>
               <BilanSession
                 sessionId={activeSessionId!}
@@ -939,8 +939,7 @@ export function VentesPage() {
               </div>
             )}
           </div>
-        </div>,
-        document.body
+        </Overlay>
       )}
 
       <VenteHorsSessionModal isOpen={showHorsSession} onClose={() => setShowHorsSession(false)} />
