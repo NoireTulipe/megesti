@@ -23,6 +23,9 @@ export async function buildServer() {
     logger: {
       level: process.env['LOG_LEVEL'] ?? 'info',
     },
+    // Derrière Caddy : sans ça, request.ip = 127.0.0.1 pour tout le monde
+    // et le rate-limit par IP s'appliquerait à tous les clients cumulés
+    trustProxy: true,
   })
 
   const corsOrigins = (process.env['CORS_ORIGIN'] ?? 'http://localhost:5173,http://localhost:5174,http://localhost:5175,http://localhost:5176')
