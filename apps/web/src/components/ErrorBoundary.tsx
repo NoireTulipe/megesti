@@ -26,18 +26,19 @@ export class ErrorBoundary extends Component<Props, State> {
       <div style={{
         minHeight: '100vh', display: 'flex', flexDirection: 'column',
         alignItems: 'center', justifyContent: 'center', gap: '1rem',
-        fontFamily: 'system-ui, sans-serif', color: '#3D5470', padding: '2rem',
+        color: 'var(--ink)', padding: '2rem', background: 'var(--cream)',
       }}>
-        <h1 style={{ fontSize: '1.5rem', fontWeight: 600 }}>Oups, quelque chose s'est cassé</h1>
-        <p style={{ maxWidth: 480, textAlign: 'center', color: '#6b7280' }}>
+        <h1 style={{ fontSize: '1.6rem' }}>Oups, quelque chose s'est cassé</h1>
+        <p style={{ maxWidth: 480, textAlign: 'center', color: 'var(--text-mid)' }}>
           Une erreur inattendue s'est produite. Recharge la page pour reprendre —
           si le problème persiste, contacte le support.
         </p>
         <button
           onClick={() => window.location.reload()}
           style={{
-            padding: '0.6rem 1.4rem', borderRadius: 8, border: 'none',
-            background: '#C4907C', color: '#fff', fontSize: '1rem', cursor: 'pointer',
+            padding: '0.6rem 1.4rem', borderRadius: 'var(--radius-btn)', border: 'none',
+            background: 'var(--rose)', color: '#fff', fontSize: '1rem', cursor: 'pointer',
+            boxShadow: 'var(--shadow-rose)',
           }}
         >
           Recharger la page

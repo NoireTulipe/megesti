@@ -30,25 +30,7 @@ function UpgradeNotice({ message }: { message: string }) {
   )
 }
 
-const GRADIENTS = [
-  'linear-gradient(135deg,#C4907C,#D4A070)',
-  'linear-gradient(135deg,#8B7BAB,#A090C0)',
-  'linear-gradient(135deg,#6B8F71,#85A88A)',
-  'linear-gradient(135deg,#C9933A,#D4A855)',
-  'linear-gradient(135deg,#5B6E8A,#7090B8)',
-]
-const COVER_GRADIENTS = [
-  'linear-gradient(160deg,#C4907C,#8B7BAB)',
-  'linear-gradient(160deg,#8B7BAB,#6B8F71)',
-  'linear-gradient(160deg,#C9933A,#C4907C)',
-  'linear-gradient(160deg,#6B8F71,#5B6E8A)',
-  'linear-gradient(160deg,#5B6E8A,#C9933A)',
-]
-
-function cardGradient(name: string) {
-  const sum = [...name].reduce((a, c) => a + c.charCodeAt(0), 0)
-  return GRADIENTS[sum % GRADIENTS.length]
-}
+import { avatarGradient as cardGradient, coverGradient } from '@/lib/gradients'
 
 type TabId = 'profil' | 'ventes' | 'livres' | 'contrats' | 'exemplaires'
 type Period = 1 | 3 | 12
@@ -292,7 +274,7 @@ export function AuteurDetail({ auteur, isOpen, onClose, onEdit }: Props) {
                 </p>
               ) : articles.map(({ article }, i) => (
                 <div key={article.id} className={sty['livre-item']}>
-                  <div className={sty['livre-cover']} style={{ background: COVER_GRADIENTS[i % COVER_GRADIENTS.length] }}>
+                  <div className={sty['livre-cover']} style={{ background: coverGradient(article.nom) }}>
                     {article.nom[0].toUpperCase()}
                   </div>
                   <div className={sty['livre-info']}>

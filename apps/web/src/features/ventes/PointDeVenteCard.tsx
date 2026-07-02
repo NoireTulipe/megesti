@@ -1,17 +1,6 @@
 import sty from '@/features/auteurs/AuteursPage.module.css'
 import type { PointDeVente } from './hooks/usePointsDeVente'
-
-const GRADIENTS = [
-  'linear-gradient(135deg,#3D5470,#5470A0)',
-  'linear-gradient(135deg,#2A4A6A,#4A6A90)',
-  'linear-gradient(135deg,#1E3A5F,#3A5F8A)',
-  'linear-gradient(135deg,#304060,#506080)',
-]
-
-function cardGradient(name: string) {
-  const sum = [...name].reduce((a, c) => a + c.charCodeAt(0), 0)
-  return GRADIENTS[sum % GRADIENTS.length]
-}
+import { inkGradient as cardGradient } from '@/lib/gradients'
 
 interface Props {
   pdv:     PointDeVente

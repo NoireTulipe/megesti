@@ -4,6 +4,7 @@ import { AppLayout } from '@/components/layout/AppLayout'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { LoginPage }       from '@/features/auth/LoginPage'
 import { TenantLoginPage } from '@/features/auth/TenantLoginPage'
+import { PageLoader }      from '@/components/PageLoader'
 
 // Pages chargées à la demande : sort Recharts & co du bundle initial
 const DashboardPage     = lazy(() => import('@/features/dashboard/DashboardPage').then(m => ({ default: m.DashboardPage })))
@@ -19,13 +20,6 @@ const ReversementsPage  = lazy(() => import('@/features/reversements/Reversement
 const DroitsAuteurPage  = lazy(() => import('@/features/droitsAuteur/DroitsAuteurPage').then(m => ({ default: m.DroitsAuteurPage })))
 const FacturationPage   = lazy(() => import('@/features/facturation/FacturationPage').then(m => ({ default: m.FacturationPage })))
 
-function PageFallback() {
-  return (
-    <div style={{ display: 'flex', justifyContent: 'center', padding: '4rem', color: '#6b7280' }}>
-      Chargement…
-    </div>
-  )
-}
 
 export default function App() {
   return (
@@ -36,7 +30,7 @@ export default function App() {
       <Route path="/*" element={
         <ProtectedRoute>
           <AppLayout>
-            <Suspense fallback={<PageFallback />}>
+            <Suspense fallback={<PageLoader />}>
               <Routes>
                 <Route path="/"                 element={<DashboardPage />} />
                 <Route path="/catalogue"        element={<CataloguePage />} />

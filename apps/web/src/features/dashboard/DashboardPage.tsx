@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Check } from 'lucide-react'
+import { toast } from 'sonner'
 import { Icon } from '@/components/Icon'
 import { Modal } from '@/components/ui/Modal'
 import { DateField } from '@/components/DateInput'
@@ -19,7 +19,7 @@ import { METRIC_CA, METRIC_COMMANDES, METRIC_DROITS, QUICK_ACTIONS, IN_PREP } fr
 // ── Form styles partagés dans la page ──────────────────────
 const inputCss: React.CSSProperties = {
   width: '100%', padding: '10px 14px', borderRadius: 12,
-  border: '1.5px solid rgba(28,58,94,0.15)',
+  border: '1.5px solid var(--cream-dark)',
   fontFamily: 'Plus Jakarta Sans', fontSize: 13, color: 'var(--text)',
   background: 'var(--white)', outline: 'none', marginBottom: 12,
 }
@@ -28,22 +28,6 @@ const submitCss: React.CSSProperties = {
   background: 'var(--ink)', border: 'none', color: 'white',
   fontFamily: 'Plus Jakarta Sans', fontSize: 14, fontWeight: 600,
   cursor: 'pointer', marginTop: 4,
-}
-
-// ── Toast ──────────────────────────────────────────────────
-function Toast({ msg }: { msg: string }) {
-  return (
-    <div style={{
-      background: 'var(--ink)', color: 'white', padding: '12px 18px',
-      borderRadius: 12, fontSize: 13, fontWeight: 500,
-      boxShadow: '0 4px 20px rgba(28,58,94,0.3)',
-      display: 'flex', alignItems: 'center', gap: 8,
-      animation: 'slideIn 0.25s ease',
-    }}>
-      <Check size={14} color="var(--sage)" />
-      {msg}
-    </div>
-  )
 }
 
 // ── InPrep card ────────────────────────────────────────────
@@ -112,7 +96,6 @@ function DashboardGreeting() {
 export function DashboardPage() {
   const [modal, setModal] = useState<string | null>(null)
   const [saleSubmitted, setSaleSubmitted] = useState(false)
-  const [toasts, setToasts] = useState<Array<{ id: number; msg: string }>>([])
 
   const { data: stats }     = useDashboardStats()
   const { data: totauxRev } = useTotauxReversements()
@@ -158,11 +141,7 @@ export function DashboardPage() {
       }))
     : []
 
-  const addToast = (msg: string) => {
-    const id = Date.now()
-    setToasts(t => [...t, { id, msg }])
-    setTimeout(() => setToasts(t => t.filter(x => x.id !== id)), 3200)
-  }
+  const addToast = (msg: string) => toast.success(msg)
 
   return (
     <div style={{ padding: '28px 32px 40px', display: 'flex', flexDirection: 'column', gap: 22 }}>
@@ -275,11 +254,6 @@ export function DashboardPage() {
             : <p style={{ fontSize: 12, color: 'var(--text-soft)', textAlign: 'center', padding: '12px 0' }}>Aucune vente ce mois-ci</p>
           }
         </div>
-      </div>
-
-      {/* ── Toasts ── */}
-      <div style={{ position: 'fixed', bottom: 80, right: 24, display: 'flex', flexDirection: 'column', gap: 8, zIndex: 600 }}>
-        {toasts.map(t => <Toast key={t.id} msg={t.msg} />)}
       </div>
 
       {/* ── Modals ── */}

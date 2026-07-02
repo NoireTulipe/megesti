@@ -8,6 +8,7 @@ import { useUpdateArticle } from './hooks/useArticles'
 import { fetchBnfIsbn } from './hooks/useBnfLookup'
 import { HelpButton } from '@/components/HelpButton'
 import { useFranchiseTVA } from '@/hooks/useFranchiseTVA'
+import { coverGradient } from '@/lib/gradients'
 import sty from '@/features/auteurs/AuteursPage.module.css'
 
 interface Props {
@@ -97,14 +98,7 @@ export function ArticleDetail({ article, isOpen, onClose, onEdit, onToggle }: Pr
     ? '#DC2626'
     : article.stock <= article.stockTension ? '#D97706' : '#059669'
 
-  const COVERS = [
-    'linear-gradient(160deg,#C4907C,#8B7BAB)',
-    'linear-gradient(160deg,#8B7BAB,#6B8F71)',
-    'linear-gradient(160deg,#C9933A,#C4907C)',
-    'linear-gradient(160deg,#6B8F71,#5B6E8A)',
-    'linear-gradient(160deg,#5B6E8A,#C9933A)',
-  ]
-  const coverGradient = COVERS[article.nom.charCodeAt(0) % COVERS.length]
+  const coverGrad = coverGradient(article.nom)
 
   const months   = stats?.months ?? []
   const totalQte = useMemo(() => months.reduce((s, m) => s + m.quantite, 0), [months])
@@ -126,7 +120,7 @@ export function ArticleDetail({ article, isOpen, onClose, onEdit, onToggle }: Pr
           <div className={sty['detail-hero']}>
             <div style={{
               width: 80, height: 110, borderRadius: 8, flexShrink: 0,
-              background: article.imageUrl ? undefined : coverGradient,
+              background: article.imageUrl ? undefined : coverGrad,
               boxShadow: '0 6px 20px rgba(44,24,16,0.20)',
               overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>

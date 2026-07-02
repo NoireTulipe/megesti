@@ -1,18 +1,6 @@
 import styles from './AuteurCard.module.css'
 import type { Auteur } from './hooks/useAuteurs'
-
-const GRADIENTS = [
-  'linear-gradient(135deg,#C4907C,#D4A070)',
-  'linear-gradient(135deg,#8B7BAB,#A090C0)',
-  'linear-gradient(135deg,#6B8F71,#85A88A)',
-  'linear-gradient(135deg,#C9933A,#D4A855)',
-  'linear-gradient(135deg,#5B6E8A,#7090B8)',
-]
-
-function cardGradient(name: string) {
-  const sum = [...name].reduce((a, c) => a + c.charCodeAt(0), 0)
-  return GRADIENTS[sum % GRADIENTS.length]
-}
+import { avatarGradient as cardGradient } from '@/lib/gradients'
 
 function initiales(auteur: Auteur) {
   return `${auteur.prenom[0]}${auteur.nom[0]}`.toUpperCase()

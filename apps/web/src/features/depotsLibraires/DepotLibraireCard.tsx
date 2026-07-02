@@ -1,17 +1,6 @@
 import sty from '@/features/auteurs/AuteursPage.module.css'
 import type { DepotLibraireList } from './hooks/useDepotsLibraires'
-
-const GRADIENTS = [
-  'linear-gradient(135deg,#6B8F71,#85A88A)',
-  'linear-gradient(135deg,#5B7A60,#7A9E80)',
-  'linear-gradient(135deg,#4A7060,#6A9080)',
-  'linear-gradient(135deg,#3A6050,#5A8070)',
-]
-
-function cardGradient(name: string) {
-  const sum = [...name].reduce((a, c) => a + c.charCodeAt(0), 0)
-  return GRADIENTS[sum % GRADIENTS.length]
-}
+import { sageGradient as cardGradient } from '@/lib/gradients'
 
 interface Props {
   depot:   DepotLibraireList

@@ -11,12 +11,7 @@ const TABS: { id: TabId; label: string; path: string }[] = [
   { id: 'contacts', label: 'Contacts',     path: 'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2 M9 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8z M23 21v-2a4 4 0 0 0-3-3.87 M16 3.13a4 4 0 0 1 0 7.75' },
 ]
 
-const GRADIENTS = [
-  'linear-gradient(135deg,#C4907C,#D4A070)',
-  'linear-gradient(135deg,#C9933A,#D4A855)',
-  'linear-gradient(135deg,#6B8F71,#85A88A)',
-  'linear-gradient(135deg,#8B7BAB,#A090C0)',
-]
+import { avatarGradient } from '@/lib/gradients'
 
 interface Props {
   imprimeur: Imprimeur
@@ -30,8 +25,7 @@ export function ImprimeurDetail({ imprimeur, isOpen, onClose, onEdit }: Props) {
 
   if (!isOpen) return null
 
-  const sum      = [...imprimeur.nom].reduce((a, c) => a + c.charCodeAt(0), 0)
-  const gradient = GRADIENTS[sum % GRADIENTS.length]
+  const gradient = avatarGradient(imprimeur.nom)
 
   const Tag = ({ label, green }: { label: string; green: boolean }) => (
     <span style={{

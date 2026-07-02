@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Overlay } from '@/components/ui/Overlay'
 import type { PointDeVente } from './hooks/usePointsDeVente'
+import { inkGradient } from '@/lib/gradients'
 import sty from '@/features/auteurs/AuteursPage.module.css'
 
 type TabId = 'infos' | 'contacts' | 'reversements'
@@ -31,14 +32,7 @@ export function PointDeVenteDetail({ pdv, isOpen, onClose, onEdit }: Props) {
     ? `${Number(pdv.commissionPourcent)} %`
     : pdv.commissionFixe ? `${Number(pdv.commissionFixe).toFixed(2)} €` : null
 
-  const GRADIENTS = [
-    'linear-gradient(135deg,#3D5470,#5470A0)',
-    'linear-gradient(135deg,#2A4A6A,#4A6A90)',
-    'linear-gradient(135deg,#1E3A5F,#3A5F8A)',
-    'linear-gradient(135deg,#304060,#506080)',
-  ]
-  const sum = [...pdv.nom].reduce((a, c) => a + c.charCodeAt(0), 0)
-  const gradient = GRADIENTS[sum % GRADIENTS.length]
+  const gradient = inkGradient(pdv.nom)
 
   return (
     <Overlay className={sty.backdrop} onClose={onClose}>
