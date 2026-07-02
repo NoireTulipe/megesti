@@ -1,9 +1,11 @@
+/* Les @import DOIVENT précéder toute autre règle (y compris @tailwind),
+   sinon PostCSS ne les inline pas et le navigateur les ignore. */
+@import './animations.css';
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@import './animations.css';
-@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
 
 /* ════════════════════════════════════════════════════════════════
    MEGESTI — Design System
