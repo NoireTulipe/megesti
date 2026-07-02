@@ -1,8 +1,7 @@
 import type { FastifyPluginAsync } from 'fastify'
 import { z } from 'zod'
-import { computeGenesisHash, computeVenteHash, verifyChain } from '@megesti/business'
-
-const secret: string = process.env['CAISSE_SECRET'] ?? (() => { throw new Error('CAISSE_SECRET manquant') })()
+import { verifyChain } from '@megesti/business'
+import { creerVente, caisseSecret } from '../services/venteService.js'
 
 const LigneSchema = z.object({
   articleId:      z.string().uuid(),
@@ -71,83 +70,13 @@ export const venteRoutes: FastifyPluginAsync = async (app) => {
     const auteur = await app.db.auteur.findFirst({ where: { id: body.auteurId, tenantId } })
     if (!auteur) return reply.notFound('Auteur introuvable')
 
-    const articleIds = [...new Set(body.lignes.map((l) => l.articleId))]
-    const articles = await app.db.article.findMany({
-      where: { id: { in: articleIds }, tenantId },
-      include: { rayon: { select: { tauxTVA: true } } },
-    })
-    if (articles.length !== articleIds.length) return reply.notFound('Un ou plusieurs articles introuvables')
-
-    const tenant = await app.db.tenant.findUnique({ where: { id: tenantId }, select: { franchiseTva: true } })
-    const tauxFactor = tenant?.franchiseTva ? 0 : 1
-
-    const articleMap = new Map(articles.map((a) => [a.id, a]))
-
-    let totalHT = 0, totalTVA = 0, totalTTC = 0
-    const lignesData = body.lignes.map((l) => {
-      const article = articleMap.get(l.articleId)!
-      const prixHT  = l.prixUnitaireHT ?? Number(article.prixVenteHT)
-      const taux    = Number(article.rayon.tauxTVA) / 100 * tauxFactor
-      const ligneHT  = prixHT * l.quantite
-      const ligneTTC = ligneHT * (1 + taux)
-      totalHT  += ligneHT
-      totalTVA += ligneTTC - ligneHT
-      totalTTC += ligneTTC
-      return {
-        id:             crypto.randomUUID(),
-        articleId:      l.articleId,
-        quantite:       l.quantite,
-        prixUnitaireHT: prixHT,
-        tauxTVA:        Number(article.rayon.tauxTVA),
-        totalLigneHT:   Math.round(ligneHT  * 100) / 100,
-        totalLigneTTC:  Math.round(ligneTTC * 100) / 100,
-      }
-    })
-
-    const totalHTr  = Math.round(totalHT  * 100) / 100
-    const totalTVAr = Math.round(totalTVA * 100) / 100
-    const totalTTCr = Math.round(totalTTC * 100) / 100
-
-    const vente = await app.db.$transaction(async (tx) => {
-      const agg = await tx.vente.aggregate({ where: { tenantId }, _max: { numero: true } })
-      const numero = (agg._max.numero ?? 0) + 1
-
-      const lastVente = await tx.vente.findFirst({
-        where: { tenantId, hash: { not: null } },
-        orderBy: { numero: 'desc' },
-        select: { hash: true },
-      })
-      const previousHash = lastVente?.hash ?? computeGenesisHash(tenantId, secret)
-
-      const dateVente = new Date()
-      const hash = computeVenteHash(previousHash, {
-        id: body.id, numero, tenantId, sessionId: null,
-        dateVente, modePaiement: body.modePaiement,
-        totalHT: totalHTr, totalTVA: totalTVAr, totalTTC: totalTTCr,
-      }, secret)
-
-      const created = await tx.vente.create({
-        data: {
-          id: body.id, tenantId,
-          sessionId:    null,
-          motifVenteId: null,
-          auteurId:     body.auteurId,
-          numero, dateVente, modePaiement: body.modePaiement,
-          totalHT: totalHTr, totalTVA: totalTVAr, totalTTC: totalTTCr,
-          previousHash, hash,
-          lignes: { create: lignesData },
-        },
-        include: {
-          lignes: { include: { article: { select: { id: true, nom: true } } } },
-        },
-      })
-
-      // Débit stock
-      for (const l of body.lignes) {
-        await tx.article.update({ where: { id: l.articleId }, data: { stock: { decrement: l.quantite } } })
-      }
-
-      return created
+    const vente = await creerVente(app.db, {
+      id:           body.id,
+      tenantId,
+      auteurId:     body.auteurId,
+      modePaiement: body.modePaiement,
+      lignes:       body.lignes,
+      debiterStock: true,
     })
 
     return reply.status(201).send(vente)
@@ -158,13 +87,13 @@ export const venteRoutes: FastifyPluginAsync = async (app) => {
     const body = CreateVenteSchema.parse(request.body)
 
     // Résolution session ou motif
-    let debiterStockME = true
+    let debiterStock = true
     if (body.sessionId) {
       const session = await app.db.sessionCaisse.findFirst({
         where: { id: body.sessionId, tenantId, statut: 'OUVERTE' },
       })
       if (!session) return reply.notFound('Session de caisse introuvable ou fermée')
-      debiterStockME = session.debiterStockME
+      debiterStock = session.debiterStockME
     } else {
       const motif = await app.db.motifVente.findFirst({
         where: { id: body.motifVenteId, tenantId, actif: true },
@@ -172,84 +101,14 @@ export const venteRoutes: FastifyPluginAsync = async (app) => {
       if (!motif) return reply.notFound('Motif de vente introuvable')
     }
 
-    const articleIds = [...new Set(body.lignes.map((l) => l.articleId))]
-    const articles = await app.db.article.findMany({
-      where: { id: { in: articleIds }, tenantId },
-      include: { rayon: { select: { tauxTVA: true } } },
-    })
-    if (articles.length !== articleIds.length) return reply.notFound('Un ou plusieurs articles introuvables')
-
-    const tenant = await app.db.tenant.findUnique({ where: { id: tenantId }, select: { franchiseTva: true } })
-    const tauxFactor = tenant?.franchiseTva ? 0 : 1
-
-    const articleMap = new Map(articles.map((a) => [a.id, a]))
-
-    let totalHT = 0, totalTVA = 0, totalTTC = 0
-    const lignesData = body.lignes.map((l) => {
-      const article = articleMap.get(l.articleId)!
-      const prixHT  = l.prixUnitaireHT ?? Number(article.prixVenteHT)
-      const taux    = Number(article.rayon.tauxTVA) / 100 * tauxFactor
-      const ligneHT  = prixHT * l.quantite
-      const ligneTTC = ligneHT * (1 + taux)
-      totalHT  += ligneHT
-      totalTVA += ligneTTC - ligneHT
-      totalTTC += ligneTTC
-      return {
-        id:             crypto.randomUUID(),
-        articleId:      l.articleId,
-        quantite:       l.quantite,
-        prixUnitaireHT: prixHT,
-        tauxTVA:        Number(article.rayon.tauxTVA),
-        totalLigneHT:   Math.round(ligneHT  * 100) / 100,
-        totalLigneTTC:  Math.round(ligneTTC * 100) / 100,
-      }
-    })
-
-    const totalHTr  = Math.round(totalHT  * 100) / 100
-    const totalTVAr = Math.round(totalTVA * 100) / 100
-    const totalTTCr = Math.round(totalTTC * 100) / 100
-
-    const vente = await app.db.$transaction(async (tx) => {
-      const agg = await tx.vente.aggregate({ where: { tenantId }, _max: { numero: true } })
-      const numero = (agg._max.numero ?? 0) + 1
-
-      const lastVente = await tx.vente.findFirst({
-        where: { tenantId, hash: { not: null } },
-        orderBy: { numero: 'desc' },
-        select: { hash: true },
-      })
-      const previousHash = lastVente?.hash ?? computeGenesisHash(tenantId, secret)
-
-      const dateVente = new Date()
-      const hash = computeVenteHash(previousHash, {
-        id: body.id, numero, tenantId, sessionId: body.sessionId ?? null,
-        dateVente, modePaiement: body.modePaiement,
-        totalHT: totalHTr, totalTVA: totalTVAr, totalTTC: totalTTCr,
-      }, secret)
-
-      const created = await tx.vente.create({
-        data: {
-          id: body.id, tenantId,
-          sessionId:    body.sessionId    ?? null,
-          motifVenteId: body.motifVenteId ?? null,
-          numero, dateVente, modePaiement: body.modePaiement,
-          totalHT: totalHTr, totalTVA: totalTVAr, totalTTC: totalTTCr,
-          previousHash, hash,
-          lignes: { create: lignesData },
-        },
-        include: {
-          lignes:     { include: { article: { select: { id: true, nom: true } } } },
-          motifVente: { select: { id: true, libelle: true } },
-        },
-      })
-
-      if (debiterStockME) {
-        for (const l of body.lignes) {
-          await tx.article.update({ where: { id: l.articleId }, data: { stock: { decrement: l.quantite } } })
-        }
-      }
-
-      return created
+    const vente = await creerVente(app.db, {
+      id:           body.id,
+      tenantId,
+      sessionId:    body.sessionId    ?? null,
+      motifVenteId: body.motifVenteId ?? null,
+      modePaiement: body.modePaiement,
+      lignes:       body.lignes,
+      debiterStock,
     })
 
     return reply.status(201).send(vente)
@@ -267,14 +126,17 @@ export const venteRoutes: FastifyPluginAsync = async (app) => {
     if (!existing) return reply.notFound()
     if (existing.statut === 'ANNULEE') return reply.badRequest('Vente déjà annulée')
 
+    // Miroir exact de la logique de débit à la création : en session on suit
+    // debiterStockME, hors session et exemplaires auteur débitent toujours.
+    const stockDebite = existing.session ? existing.session.debiterStockME : true
+
     const updated = await app.db.$transaction(async (tx) => {
       const v = await tx.vente.update({
         where: { id },
         data:  { statut: 'ANNULEE', noteAnnulation: noteAnnulation ?? null },
         include: { lignes: { include: { article: { select: { id: true, nom: true } } } } },
       })
-      // Restorer le stock uniquement si la vente était en session avec debiterStockME
-      if (existing.session?.debiterStockME) {
+      if (stockDebite) {
         for (const l of existing.lignes) {
           await tx.article.update({ where: { id: l.articleId }, data: { stock: { increment: l.quantite } } })
         }
@@ -301,15 +163,17 @@ export const venteRoutes: FastifyPluginAsync = async (app) => {
       },
     })
 
-    const forVerification = ventes.map((v) => ({
-      ...v,
-      hash:         v.hash!,
-      previousHash: v.previousHash!,
-      totalHT:      Number(v.totalHT),
-      totalTVA:     Number(v.totalTVA),
-      totalTTC:     Number(v.totalTTC),
-    }))
+    const forVerification = ventes.flatMap((v) =>
+      v.hash && v.previousHash ? [{
+        ...v,
+        hash:         v.hash,
+        previousHash: v.previousHash,
+        totalHT:      Number(v.totalHT),
+        totalTVA:     Number(v.totalTVA),
+        totalTTC:     Number(v.totalTTC),
+      }] : []
+    )
 
-    return verifyChain(forVerification, tenantId, secret)
+    return verifyChain(forVerification, tenantId, caisseSecret)
   })
 }
