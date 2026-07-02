@@ -51,6 +51,7 @@ const formatEuros = (n?: number) =>
         return (
           <article class={`plan-card ${plan.highlight ? 'plan-highlight' : ''} reveal`} style={`transition-delay:${i * 80}ms`}>
             {plan.highlight && <span class="plan-badge">Le plus choisi</span>}
+            {plan.badge && <span class="plan-badge plan-badge-auteur">{plan.badge}</span>}
             <h3>{plan.name}</h3>
             <p class="plan-pitch">{plan.pitch}</p>
 
@@ -134,8 +135,13 @@ const formatEuros = (n?: number) =>
     white-space: nowrap;
     box-shadow: var(--shadow-rose);
   }
+  .plan-badge-auteur {
+    background: linear-gradient(135deg, var(--mauve), #6F5F93);
+    box-shadow: 0 4px 20px rgba(139, 123, 171, 0.3);
+  }
   /* Quand la card porte un badge, on pousse le h3 pour ne pas le coller */
-  .plan-highlight h3 {
+  .plan-highlight h3,
+  .plan-card:has(.plan-badge) h3 {
     margin-top: 1.5rem;
   }
   .plan-card h3 {

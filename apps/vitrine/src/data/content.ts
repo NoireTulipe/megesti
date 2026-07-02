@@ -7,22 +7,76 @@
 export const site = {
   name: 'MeGesti',
   domain: 'megesti.fr',
-  tagline: "L'atelier de l'éditeur",
+  tagline: "L'atelier de l'éditeur & de l'auteur",
   appUrl: 'https://app.megesti.fr',
   apiUrl: 'https://api.megesti.fr',
   adminUrl: 'https://admin.megesti.fr',
   // Disponibilité annoncée
   availability: 'Disponible en août 2026',
   description:
-    "MeGesti est l'outil de gestion des maisons d'édition indépendantes : catalogue, ventes en salon, droits d'auteur et conformité fiscale française réunis dans un seul logiciel métier.",
+    "MeGesti est l'outil de gestion des maisons d'édition indépendantes et des auteurs : catalogue, ventes en salon, droits d'auteur et conformité fiscale française réunis dans un seul logiciel métier.",
 }
 
 export const nav = [
   { label: 'Fonctionnalités', href: '#fonctionnalites' },
+  { label: 'Pour les auteurs', href: '#auteurs' },
   { label: 'Conformité', href: '#conformite' },
-  { label: 'Captures', href: '#captures' },
   { label: 'Forfaits', href: '#forfaits' },
   { label: 'FAQ', href: '#faq' },
+]
+
+// ─── Double parcours : arguments par public ─────────────────────
+export const audiences = {
+  editeur: {
+    id: 'editeurs',
+    eyebrow: 'Maisons d’édition',
+    title: 'Votre maison, enfin pilotée',
+    intro:
+      "De 1 à 10 personnes, un catalogue vivant, des auteurs à rémunérer et une conformité qui ne pardonne pas. MeGesti tient tout, au même endroit.",
+    points: [
+      { icon: 'box',     text: 'Catalogue, stock et dépôts-libraires suivis en temps réel' },
+      { icon: 'phone',   text: 'Encaissez en salon, même sans réseau — tout se réconcilie au retour' },
+      { icon: 'feather', text: 'Droits d’auteur calculés automatiquement, à-valoir recoupés' },
+      { icon: 'shield',  text: 'Caisse anti-fraude TVA et facturation électronique 2026 intégrées' },
+      { icon: 'sparkle', text: 'Offrez à vos auteurs la transparence sur leurs ventes et leurs droits' },
+    ],
+    cta: { label: 'Voir les forfaits', href: '#forfaits' },
+  },
+  auteur: {
+    id: 'auteurs',
+    eyebrow: 'Auteurs',
+    title: 'Votre plume mérite un vrai outil',
+    intro:
+      "Que vous soyez auto-édité ou publié par une maison, MeGesti travaille aussi pour vous.",
+    blocs: [
+      {
+        title: 'Vous vous auto-éditez',
+        points: [
+          'Votre catalogue et votre stock, sans tableur',
+          'Encaissez en dédicace et en salon, même hors réseau, avec une caisse conforme',
+          'Micro-entrepreneur ? La facturation électronique devient obligatoire dès septembre 2026 — vous êtes prêt',
+          'Un bilan simple : ce qui rentre, ce qui sort',
+        ],
+      },
+      {
+        title: 'Vous êtes publié par une maison',
+        points: [
+          'Votre maison utilise MeGesti ? Suivez vos ventes et vos droits en toute transparence',
+          'Vos ventes d’exemplaires en dédicace sont tracées et comptent dans vos droits',
+          'Fini le relevé annuel opaque : les chiffres, en continu',
+        ],
+      },
+    ],
+    cta: { label: 'Demander un accès', href: 'mailto:contact@megesti.fr?subject=Acc%C3%A8s%20auteur%20MeGesti' },
+  },
+}
+
+// ─── Chiffres clés (bande animée) ───────────────────────────────
+export const stats = [
+  { value: 100, suffix: ' %', label: 'hors-ligne en salon' },
+  { value: 4,   suffix: '',   label: 'conditions loi anti-fraude remplies' },
+  { value: 10,  suffix: ' ans', label: 'd’archivage des factures' },
+  { value: 0,   suffix: '',   label: 'Excel. Promis.' },
 ]
 
 // ─── 8 fonctionnalités phares (basées sur le code réel) ─────────
@@ -93,7 +147,7 @@ export const compliance = {
     {
       law: 'Facturation électronique — 2026-2027',
       detail:
-        "L'émission et la réception des factures B2B deviennent obligatoirement dématérialisées. MeGesti parle nativement le langage des Plateformes Agréées et archive vos flux pour 10 ans.",
+        "L'émission et la réception des factures B2B deviennent obligatoirement dématérialisées. Dès septembre 2026, toutes les entreprises — y compris les auteurs micro-entrepreneurs — doivent pouvoir recevoir. MeGesti parle nativement le langage des Plateformes Agréées et archive vos flux pour 10 ans.",
       risk: "Obligation progressive selon la taille de l'entreprise",
     },
   ],
@@ -101,13 +155,17 @@ export const compliance = {
 
 // ─── Persona / pour qui ─────────────────────────────────────────
 export const personas = {
-  title: "Pensé pour les éditeurs indépendants",
+  title: "Pensé pour le monde du livre indépendant",
   intro:
     "MeGesti ne s'adresse pas à tout le monde. Il s'adresse à celles et ceux qui vivent le livre au quotidien.",
   items: [
     {
       title: 'Maisons d’édition indépendantes',
       text: "De 1 à 10 personnes. Vous gérez un catalogue, des auteurs, des stocks et une comptabilité qui vous échappent dans Excel.",
+    },
+    {
+      title: 'Auteurs',
+      text: "Auto-édité, vous êtes votre propre maison : catalogue, dédicaces, factures. Publié, vous suivez vos ventes et vos droits en transparence.",
     },
     {
       title: 'Éditeurs sur salon',
@@ -139,8 +197,16 @@ export const faq = [
     a: "Oui, et c'est un point fort. La chaîne d'intégrité et l'archivage journalier répondent à la loi anti-fraude TVA de 2018. La facturation électronique 2026-2027 est intégrée via une Plateforme Agréée.",
   },
   {
+    q: 'Je suis auteur auto-édité, MeGesti est-il fait pour moi ?',
+    a: "Oui. Le forfait Auto-édition vous donne un catalogue, la vente en salon et dédicace (même hors-ligne, avec une caisse conforme), et la facturation électronique — obligatoire en réception pour les micro-entrepreneurs dès septembre 2026.",
+  },
+  {
+    q: 'Ma maison d’édition utilise MeGesti : qu’est-ce que ça m’apporte en tant qu’auteur ?',
+    a: "De la transparence. Vos ventes, vos droits et le recoupement de vos à-valoir sont calculés en continu selon votre contrat — plus besoin d'attendre le relevé annuel pour savoir où vous en êtes.",
+  },
+  {
     q: 'Faut-il être à l’aise avec l’informatique ?',
-    a: "Non. MeGesti est conçu pour des éditeurs, pas pour des informaticiens. L'interface est épurée et la mascotte MeGestine guide pas à pas dans l'application.",
+    a: "Non. MeGesti est conçu pour des éditeurs et des auteurs, pas pour des informaticiens. L'interface est épurée et la mascotte MeGestine guide pas à pas dans l'application.",
   },
 ]
 
@@ -150,6 +216,7 @@ export const plans = [
     code: 'AUTO_EDITION',
     name: 'Auto-édition',
     pitch: "Pour l'auteur qui s'auto-édite",
+    badge: 'Pour les auteurs',
     highlight: false,
     includes: [
       'Catalogue jusqu’à 20 articles',

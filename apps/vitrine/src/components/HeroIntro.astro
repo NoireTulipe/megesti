@@ -25,8 +25,8 @@ import Icon from './Icon.astro'
     </div>
 
     <h1 class="intro-title">
-      <span class="line-1">L’atelier</span>
-      <span class="line-2"><em>de l’éditeur</em></span>
+      <span class="line-1">L’atelier de l’éditeur</span>
+      <span class="line-2"><em>&amp; de l’auteur</em></span>
     </h1>
 
     <p class="intro-slogan">
@@ -35,9 +35,13 @@ import Icon from './Icon.astro'
     </p>
 
     <div class="intro-actions">
-      <a href="#pitch" class="btn btn-primary btn-lg">
-        Découvrir MeGesti
+      <a href="#editeurs" class="btn btn-primary btn-lg">
+        Je suis éditeur
         <Icon name="arrow" size={20} />
+      </a>
+      <a href="#auteurs" class="btn btn-on-dark btn-lg">
+        Je suis auteur
+        <Icon name="feather" size={20} />
       </a>
     </div>
   </div>
@@ -166,8 +170,8 @@ import Icon from './Icon.astro'
 
   .intro-title {
     color: #fff;
-    font-size: clamp(3.5rem, 9vw, 7rem);
-    line-height: 0.98;
+    font-size: clamp(2.8rem, 7vw, 5.5rem);
+    line-height: 1.04;
     letter-spacing: -0.02em;
     margin-bottom: 1.75rem;
   }
@@ -175,6 +179,9 @@ import Icon from './Icon.astro'
   .intro-title .line-2 {
     display: block;
   }
+  /* Entrée séquencée des deux lignes */
+  .intro-title .line-1 { animation: fadeUp 0.8s var(--ease-out) 0.15s both; }
+  .intro-title .line-2 { animation: fadeUp 0.8s var(--ease-out) 0.35s both; }
   .intro-title em {
     font-style: italic;
     background: linear-gradient(120deg, var(--rose-mid), var(--gold));
@@ -199,6 +206,9 @@ import Icon from './Icon.astro'
   .intro-actions {
     display: flex;
     justify-content: center;
+    gap: 0.9rem;
+    flex-wrap: wrap;
+    animation: fadeUp 0.8s var(--ease-out) 0.55s both;
   }
   .btn-lg {
     padding: 1.1rem 2.25rem;
@@ -253,6 +263,6 @@ import Icon from './Icon.astro'
 
   @media (prefers-reduced-motion: reduce) {
     .orb, .intro-logo, .logo-glow { animation: none; }
-    .intro-content { animation: none; }
+    .intro-content, .intro-title .line-1, .intro-title .line-2, .intro-actions { animation: none; }
   }
 </style>
