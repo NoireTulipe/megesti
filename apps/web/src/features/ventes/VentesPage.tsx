@@ -62,7 +62,6 @@ export function VentesPage() {
   const [fondOuverture,   setFondOuverture]   = useState(0)
   const [debiterStockME,  setDebiterStockME]  = useState(true)
   const [sessionNom,      setSessionNom]      = useState('')
-  const [showCloseModal,  setShowCloseModal]  = useState(false)
   const [fondFermeture,   setFondFermeture]   = useState(0)
 
   // •"?•"? Articles / Rayon •"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?
@@ -76,7 +75,8 @@ export function VentesPage() {
   const [editPrixVal,  setEditPrixVal]  = useState('')
 
   // •"?•"? Bilan •"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?
-  const [showBilan, setShowBilan] = useState(false)
+  const [showBilan,       setShowBilan]       = useState(false)
+  const [closeModeActive, setCloseModeActive] = useState(false)
 
   // •"?•"? Annulation vente •"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?
   const [annulerConfirmId, setAnnulerConfirmId] = useState<string | null>(null)
@@ -247,7 +247,8 @@ export function VentesPage() {
     await closeSession.mutateAsync({ id: activeSessionId, fondFermeture: fondFermeture || undefined })
     setActiveSessionId(null)
     setCart([])
-    setShowCloseModal(false)
+    setShowBilan(false)
+    setCloseModeActive(false)
     setFondFermeture(0)
   }
 
@@ -439,7 +440,7 @@ export function VentesPage() {
               <>
                 <span className={styles.sessionMetricSep} />
                 <div className={styles.sessionMetric}>
-                  <span className={styles.sessionMetricLabel}>Bénéfice HT</span>
+                  <span className={styles.sessionMetricLabel}>{franchiseTVA ? 'Bénéfice' : 'Bénéfice HT'}</span>
                   <span className={styles.sessionMetricVal}
                     style={{ color: sessionStats.benefice >= 0 ? '#166534' : '#991b1b', fontWeight: 800 }}>
                     {sessionStats.benefice >= 0 ? '+' : ''}
@@ -458,10 +459,10 @@ export function VentesPage() {
           <button className={styles.btnHorsSessionSm} onClick={() => setShowHorsSession(true)}>
             Hors session
           </button>
-          <button className={styles.btnBilan} onClick={() => setShowBilan(true)}>
+          <button className={styles.btnBilan} onClick={() => { setShowBilan(true); setCloseModeActive(false) }}>
             Bilan
           </button>
-          <button className={styles.btnFermer} onClick={() => setShowCloseModal(true)}>
+          <button className={styles.btnFermer} onClick={() => { setShowBilan(true); setCloseModeActive(true) }}>
             Fermer la session
           </button>
         </div>
@@ -613,10 +614,14 @@ export function VentesPage() {
                                 if (e.key === 'Enter') confirmPrixEdit(l.articleId)
                                 if (e.key === 'Escape') { setEditPrixId(null); setEditPrixVal('') }
                               }}
+                              onBlur={() => confirmPrixEdit(l.articleId)}
                               autoFocus
                             />
-                            <button className={styles.prixEditSave} onClick={() => confirmPrixEdit(l.articleId)}>✓</button>
-                            <button className={styles.prixEditCancel} onClick={() => { setEditPrixId(null); setEditPrixVal('') }}>✕</button>
+                            <button
+                              className={styles.prixEditCancel}
+                              onMouseDown={(e) => e.preventDefault()}
+                              onClick={() => { setEditPrixId(null); setEditPrixVal('') }}
+                            >✕</button>
                           </div>
                         ) : (
                           <button
@@ -889,17 +894,50 @@ export function VentesPage() {
       {/* •"?•"? Modale bilan •"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"? */}
       {showBilan && createPortal(
         <div className={styles.bilanOverlay}>
-          <div className={styles.bilanPanel}>
-            <BilanSession
-              sessionId={activeSessionId!}
-              ventes={ventes}
-              frais={fraisSession}
-              articles={articles}
-              sessionNom={activeSession.nom ?? activeSession.pointDeVente.nom}
-              commissionFixe={activeSession.pointDeVente.commissionFixe}
-              commissionPourcent={activeSession.pointDeVente.commissionPourcent}
-              onClose={() => setShowBilan(false)}
-            />
+          <div className={styles.bilanPanel} style={{ display: 'flex', flexDirection: 'column' }}>
+            <div style={{ flex: 1, overflow: 'hidden' }}>
+              <BilanSession
+                sessionId={activeSessionId!}
+                ventes={ventes}
+                frais={fraisSession}
+                articles={articles}
+                sessionNom={activeSession.nom ?? activeSession.pointDeVente.nom}
+                commissionFixe={activeSession.pointDeVente.commissionFixe}
+                commissionPourcent={activeSession.pointDeVente.commissionPourcent}
+                onClose={() => { setShowBilan(false); setCloseModeActive(false) }}
+              />
+            </div>
+            {closeModeActive && (
+              <div style={{
+                padding: '16px 20px', borderTop: '1.5px solid rgba(255,255,255,0.1)',
+                background: 'var(--ink)', display: 'flex', gap: 12, alignItems: 'center',
+              }}>
+                <label style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.7)', whiteSpace: 'nowrap' }}>
+                  Fond de caisse (€)
+                </label>
+                <input
+                  type="number" min={0} value={fondFermeture}
+                  onChange={(e) => setFondFermeture(Number(e.target.value))}
+                  style={{
+                    flex: 1, padding: '8px 12px', borderRadius: 8,
+                    border: '1.5px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.08)',
+                    color: '#fff', fontSize: '0.9rem',
+                  }}
+                />
+                <button
+                  onClick={handleFermerSession}
+                  disabled={closeSession.isPending}
+                  style={{
+                    padding: '9px 18px', borderRadius: 8, border: 'none',
+                    background: closeSession.isPending ? 'rgba(200,93,58,0.4)' : 'var(--terra)',
+                    color: '#fff', fontWeight: 700, fontSize: '0.85rem',
+                    cursor: closeSession.isPending ? 'not-allowed' : 'pointer', whiteSpace: 'nowrap',
+                  }}
+                >
+                  {closeSession.isPending ? 'Clôture…' : '✓ Clôturer la session'}
+                </button>
+              </div>
+            )}
           </div>
         </div>,
         document.body
@@ -920,34 +958,6 @@ export function VentesPage() {
         isPending={openSession.isPending}
       />
 
-      <Modal isOpen={showCloseModal} onClose={() => setShowCloseModal(false)} title="Fermer la session" width={420}>
-        <div className={styles.modalForm}>
-          <p className={styles.modalText}>
-            Vous allez fermer la session de <strong>{activeSession.pointDeVente.nom}</strong>.
-            {ventes.filter((v) => v.statut === 'VALIDEE').length > 0 && (
-              <> {ventes.filter((v) => v.statut === 'VALIDEE').length} vente(s) enregistrée(s).</>
-            )}
-          </p>
-          <div>
-            <label className={styles.modalLabel}>Fond de caisse en fin de session (€)</label>
-            <input
-              type="number" min={0} value={fondFermeture}
-              onChange={(e) => setFondFermeture(Number(e.target.value))}
-              className={styles.modalInput}
-            />
-          </div>
-          <div className={styles.modalActions}>
-            <button className={styles.btnModalCancel} onClick={() => setShowCloseModal(false)}>Annuler</button>
-            <button
-              className={styles.btnModalDanger}
-              onClick={handleFermerSession}
-              disabled={closeSession.isPending}
-            >
-              Fermer la session
-            </button>
-          </div>
-        </div>
-      </Modal>
     </div>
   )
 }

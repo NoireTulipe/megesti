@@ -8,7 +8,7 @@ const CreateTenantSchema = z.object({
   name:          z.string().min(1),
   slug:          z.string().min(2).regex(/^[a-z0-9-]+$/),
   plan:          PlanEnum.default('AUTO_EDITION'),
-  franchiseBaseVA: z.boolean().default(false),
+  franchiseTva: z.boolean().default(false),
   adminEmail:    z.string().email(),
   adminPassword: z.string().min(8),
   adminPrenom:   z.string().min(1),
@@ -44,7 +44,7 @@ export const adminTenantRoutes: FastifyPluginAsync = async (app) => {
       orderBy: { createdAt: 'desc' },
       select: {
         id: true, name: true, slug: true, plan: true, actif: true,
-        franchiseBaseVA: true, createdAt: true,
+        franchiseTva: true, createdAt: true,
         _count: { select: { users: true, ventes: true } },
       },
     })
@@ -58,7 +58,7 @@ export const adminTenantRoutes: FastifyPluginAsync = async (app) => {
       where: { id },
       select: {
         id: true, name: true, slug: true, plan: true, actif: true,
-        franchiseBaseVA: true, createdAt: true, updatedAt: true,
+        franchiseTva: true, createdAt: true, updatedAt: true,
         _count: { select: { users: true, ventes: true, articles: true, salons: true } },
         users: {
           select: { id: true, email: true, firstName: true, lastName: true, role: true, active: true, createdAt: true },
@@ -84,7 +84,7 @@ export const adminTenantRoutes: FastifyPluginAsync = async (app) => {
           name: body.name,
           slug: body.slug,
           plan: body.plan,
-          franchiseBaseVA: body.franchiseBaseVA,
+          franchiseTva: body.franchiseTva,
         },
       })
       await tx.user.create({

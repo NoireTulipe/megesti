@@ -1,0 +1,21 @@
+.input {
+  padding: 9px 12px;
+  border: 1.5px solid var(--cream-dark);
+  border-radius: 8px;
+  background: var(--cream);
+  color: var(--ink);
+  font-size: 0.88rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--rose);
+}
+
+.input::-webkit-calendar-picker-indicator {
+  opacity: 0.5;
+  cursor: pointer;
+}

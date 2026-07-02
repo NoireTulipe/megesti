@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react'
 import { createPortal } from 'react-dom'
+import { DateInput } from '@/components/DateInput'
 import { useHistoriqueSessions, useReopenSessionCaisse } from './hooks/useSessionsCaisse'
 import { BilanSession } from './BilanSession'
 import styles from './VentesPage.module.css'
@@ -61,9 +62,9 @@ export function HistoriqueSessions() {
         ))}
         {periode === 'perso' && (
           <div className={styles.customDatesInline}>
-            <input type="date" value={customFrom} onChange={e => setCustomFrom(e.target.value)} className={styles.customInput} />
+            <DateInput value={customFrom} onChange={setCustomFrom} className={styles.customInput} />
             <span>→</span>
-            <input type="date" value={customTo} onChange={e => setCustomTo(e.target.value)} className={styles.customInput} />
+            <DateInput value={customTo}   onChange={setCustomTo}   className={styles.customInput} />
           </div>
         )}
       </div>

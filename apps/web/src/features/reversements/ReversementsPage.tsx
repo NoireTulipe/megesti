@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { DateInput } from '@/components/DateInput'
 import { useReversements, useEncaisserReversement, useAnnulerReversement, useAjusterReversement } from './hooks/useReversements'
 import type { Reversement, TypePaiementRemise, StatutReversement } from './hooks/useReversements'
 import { EmptyState } from '@/components/ui/EmptyState'
@@ -98,7 +99,7 @@ function ModalEncaisser({ reversement, onClose }: ModalEncaisserProps) {
 
           <div className={styles.field}>
             <label className={styles.label}>Date de réception</label>
-            <input type="date" className={styles.input} value={date} onChange={e => setDate(e.target.value)} />
+            <DateInput value={date} onChange={setDate} className={styles.input} />
           </div>
 
           <div className={styles.field}>

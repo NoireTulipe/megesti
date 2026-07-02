@@ -4,6 +4,7 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
 } from 'recharts'
 import { useRapportVentes, type Period } from './hooks/useRapports'
+import { useFranchiseTVA } from '@/hooks/useFranchiseTVA'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { MascoteBlock } from '@/components/MascoteBlock'
 import { PageHero } from '@/components/PageHero'
@@ -93,6 +94,7 @@ function ChartSection({ title, emoji, children, full = false }: { title: string;
 export function ComptabilitePage() {
   const [period, setPeriod] = useState<Period>('30d')
   const { data, isLoading, isError } = useRapportVentes(period)
+  const franchiseTVA = useFranchiseTVA()
 
   if (isLoading) return <LoadingState />
   if (isError || !data) return (
@@ -371,13 +373,16 @@ export function ComptabilitePage() {
                       <span className={styles.pdvRank}>{i + 1}</span>
                       <span className={styles.pdvNom}>{a.nomAuteur}</span>
                       <span className={styles.pdvVentes}>{a.nb} vente{a.nb > 1 ? 's' : ''}</span>
-                      <span className={styles.pdvVentes}>{fEur(a.caHT)} HT</span>
+                      {!franchiseTVA && <span className={styles.pdvVentes}>{fEur(a.caHT)} HT</span>}
                       <span className={styles.pdvCA}>{fEur(a.caTTC)}</span>
                     </div>
                   ))}
                 </div>
                 <p className={styles.assocSub} style={{ marginTop: 14, textAlign: 'right' }}>
-                  Total : <strong>{fEur(exemplairesAuteurs.totalHT)} HT</strong> · <strong>{fEur(exemplairesAuteurs.totalTTC)} TTC</strong>
+                  {franchiseTVA
+                    ? <>Total : <strong>{fEur(exemplairesAuteurs.totalTTC)}</strong></>
+                    : <>Total : <strong>{fEur(exemplairesAuteurs.totalHT)} HT</strong> · <strong>{fEur(exemplairesAuteurs.totalTTC)} TTC</strong></>
+                  }
                 </p>
               </>
             )}

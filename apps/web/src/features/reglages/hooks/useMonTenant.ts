@@ -6,7 +6,7 @@ export interface MonTenant {
   name:             string
   slug:             string
   plan:             string
-  franchiseBaseVA:  boolean
+  franchiseTva:     boolean
   logo:             string | null
   siteWeb:          string | null
   presentation:     string | null

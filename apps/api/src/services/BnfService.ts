@@ -14,7 +14,7 @@ export interface BnfLivreInfo {
   resume:           string | null
   imageUrl:         string | null
   prixTTC:          number | null
-  prixVenteHT:      number | null   // calculé selon franchiseBaseVA du tenant
+  prixVenteHT:      number | null   // calculé selon franchiseTva du tenant
 }
 
 /** Extrait tous les datafields UNIMARC correspondant au tag donné */
@@ -62,7 +62,7 @@ function parsePrixTTC(raw: string | undefined): number | null {
 
 export async function lookupIsbn(
   isbn: string,
-  franchiseBaseVA: boolean,
+  franchiseTva: boolean,
 ): Promise<BnfLivreInfo | null> {
   const url =
     `${BNF_SRU_URL}?version=1.2&operation=searchRetrieve` +
@@ -95,7 +95,7 @@ export async function lookupIsbn(
   const prixTTC = parsePrixTTC(f010.get('d'))
   let prixVenteHT: number | null = null
   if (prixTTC !== null) {
-    prixVenteHT = franchiseBaseVA
+    prixVenteHT = franchiseTva
       ? prixTTC
       : Math.round((prixTTC / (1 + TVA_LIVRE)) * 100) / 100
   }

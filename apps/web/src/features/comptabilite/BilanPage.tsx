@@ -5,6 +5,8 @@ import {
   ResponsiveContainer, Cell, PieChart, Pie,
 } from 'recharts'
 import { useBilan } from './hooks/useBilan'
+import { useFranchiseTVA } from '@/hooks/useFranchiseTVA'
+import { DateInput } from '@/components/DateInput'
 import {
   useCharges,
   TYPE_CHARGE_LABELS, TYPE_CHARGE_COLORS, PERIODICITE_LABELS,
@@ -83,6 +85,7 @@ export function BilanPage() {
   const [showDetail, setShowDetail] = useState<string | null>(null)
 
   const { features } = usePlanFeatures()
+  const franchiseTVA = useFranchiseTVA()
   const { data: charges = [] } = useCharges()
 
   const { from, to } = useMemo(() => {
@@ -98,7 +101,7 @@ export function BilanPage() {
     if (!data) return []
     const { caHT, coutDesVentes, totalFrais, totalChargesPayees, totalDroits, resultatNet } = data.pnl
     return [
-      { label: 'CA HT',         valeur: caHT,             couleur: C.sage,  signe: '+' },
+      { label: franchiseTVA ? 'CA TTC' : 'CA HT', valeur: caHT, couleur: C.sage, signe: '+' },
       { label: 'Coût des ventes', valeur: coutDesVentes,    couleur: C.gold,  signe: '-' },
       { label: 'Frais sessions',valeur: totalFrais,        couleur: C.terra, signe: '-' },
       { label: 'Droits auteurs',valeur: totalDroits,       couleur: C.mauve, signe: '-' },
@@ -188,9 +191,9 @@ export function BilanPage() {
         extra={preset === 'custom' ? (
           <div className={styles.customDates}>
             <label className={styles.customLabel}>Du</label>
-            <input type="date" className={styles.customInput} value={customFrom} onChange={e => setCustomFrom(e.target.value)} />
+            <DateInput value={customFrom} onChange={setCustomFrom} className={styles.customInput} />
             <label className={styles.customLabel}>au</label>
-            <input type="date" className={styles.customInput} value={customTo}   onChange={e => setCustomTo(e.target.value)} />
+            <DateInput value={customTo}   onChange={setCustomTo}   className={styles.customInput} />
           </div>
         ) : undefined}
       >
@@ -228,7 +231,7 @@ export function BilanPage() {
               <p className={styles.kpiVal} style={{ color: data.pnl.resultatNet >= 0 ? C.green : C.red }}>
                 {data.pnl.resultatNet >= 0 ? '+' : ''}{fEur(data.pnl.resultatNet)}
               </p>
-              <p className={styles.kpiSub}>CA HT : {fEur(data.pnl.caHT)}</p>
+              {!franchiseTVA && <p className={styles.kpiSub}>CA HT : {fEur(data.pnl.caHT)}</p>}
             </div>
             <div className={styles.kpiCard} style={{ '--accent': C.sage } as React.CSSProperties}>
               <p className={styles.kpiLabel}>Encaissé</p>

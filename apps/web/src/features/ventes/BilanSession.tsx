@@ -9,6 +9,7 @@ import { useArticles } from '@/features/catalogue/hooks/useArticles'
 import type { Article } from '@/features/catalogue/types'
 import { HelpButton } from '@/components/HelpButton'
 import { usePlanFeatures } from '@/hooks/usePlanFeatures'
+import { useFranchiseTVA } from '@/hooks/useFranchiseTVA'
 import styles from './BilanSession.module.css'
 
 function fEur(v: number) {
@@ -77,6 +78,7 @@ interface Props {
 export function BilanSession({ sessionId, ventes: ventesProp, frais: fraisProp, articles: articlesProp, sessionNom, pdvNom, commissionFixe, commissionPourcent, onClose }: Props) {
   const { data: droitsData } = useSessionDroits(sessionId)
   const { can, upgradeMessage } = usePlanFeatures()
+  const franchiseTVA = useFranchiseTVA()
   const [selectedVenteId, setSelectedVenteId] = useState<string | null>(null)
 
   const fetchRemote = ventesProp === undefined
@@ -164,7 +166,7 @@ export function BilanSession({ sessionId, ventes: ventesProp, frais: fraisProp, 
             </span>
             <span className={styles.heroVal}>{fEur(caTTC)}</span>
             <span className={styles.heroSub}>
-              HT {fEur(caHT)} · {nbVentes} vente{nbVentes > 1 ? 's' : ''}
+              {!franchiseTVA && `HT ${fEur(caHT)} · `}{nbVentes} vente{nbVentes > 1 ? 's' : ''}
             </span>
           </div>
 
@@ -452,7 +454,7 @@ export function BilanSession({ sessionId, ventes: ventesProp, frais: fraisProp, 
                           <span className={modified ? styles.venteDetailPrixRemise : ''}>
                             {fEur(prixUsed)}
                           </span>
-                          {' '}HT
+                          {!franchiseTVA && ' HT'}
                           {modified && <span className={styles.venteDetailRemiseBadge}>remisé</span>}
                         </span>
                       </div>
@@ -487,14 +489,18 @@ export function BilanSession({ sessionId, ventes: ventesProp, frais: fraisProp, 
 
             {/* Footer totaux */}
             <div className={styles.venteDetailFooter}>
-              <div className={styles.venteDetailTaxRow}>
-                <span>Total HT</span><span>{fEur(parseFloat(selectedVente.totalHT))}</span>
-              </div>
-              <div className={styles.venteDetailTaxRow}>
-                <span>TVA</span><span>{fEur(parseFloat(selectedVente.totalTVA))}</span>
-              </div>
+              {!franchiseTVA && (
+                <>
+                  <div className={styles.venteDetailTaxRow}>
+                    <span>Total HT</span><span>{fEur(parseFloat(selectedVente.totalHT))}</span>
+                  </div>
+                  <div className={styles.venteDetailTaxRow}>
+                    <span>TVA</span><span>{fEur(parseFloat(selectedVente.totalTVA))}</span>
+                  </div>
+                </>
+              )}
               <div className={styles.venteDetailTotalRow}>
-                <span className={styles.venteDetailTotalLabel}>Total TTC</span>
+                <span className={styles.venteDetailTotalLabel}>{franchiseTVA ? 'Total' : 'Total TTC'}</span>
                 <span className={styles.venteDetailTotalVal}>{fEur(parseFloat(selectedVente.totalTTC))}</span>
               </div>
             </div>

@@ -78,8 +78,8 @@ export const venteRoutes: FastifyPluginAsync = async (app) => {
     })
     if (articles.length !== articleIds.length) return reply.notFound('Un ou plusieurs articles introuvables')
 
-    const tenant = await app.db.tenant.findUnique({ where: { id: tenantId }, select: { franchiseBaseVA: true } })
-    const tauxFactor = tenant?.franchiseBaseVA ? 0 : 1
+    const tenant = await app.db.tenant.findUnique({ where: { id: tenantId }, select: { franchiseTva: true } })
+    const tauxFactor = tenant?.franchiseTva ? 0 : 1
 
     const articleMap = new Map(articles.map((a) => [a.id, a]))
 
@@ -179,8 +179,8 @@ export const venteRoutes: FastifyPluginAsync = async (app) => {
     })
     if (articles.length !== articleIds.length) return reply.notFound('Un ou plusieurs articles introuvables')
 
-    const tenant = await app.db.tenant.findUnique({ where: { id: tenantId }, select: { franchiseBaseVA: true } })
-    const tauxFactor = tenant?.franchiseBaseVA ? 0 : 1
+    const tenant = await app.db.tenant.findUnique({ where: { id: tenantId }, select: { franchiseTva: true } })
+    const tauxFactor = tenant?.franchiseTva ? 0 : 1
 
     const articleMap = new Map(articles.map((a) => [a.id, a]))
 

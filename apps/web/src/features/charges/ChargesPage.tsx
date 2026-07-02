@@ -1,5 +1,6 @@
 ﻿import { generateUUID } from '@/lib/utils'
 import { useState, useMemo } from 'react'
+import { DateInput } from '@/components/DateInput'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 import {
@@ -129,7 +130,7 @@ function ChargeForm({ initial, onDone }: FormProps) {
       <div className={styles.formRow}>
         <div className={styles.formGroup}>
           <label className={styles.formLabel}>{isAbo ? 'Date de début' : 'Date d\'effet'}</label>
-          <input className={styles.formInput} type="date" value={dateEffet} onChange={e => setDateEffet(e.target.value)} required />
+          <DateInput value={dateEffet} onChange={setDateEffet} className={styles.formInput} />
         </div>
 
         {isAbo ? (
@@ -154,7 +155,7 @@ function ChargeForm({ initial, onDone }: FormProps) {
             {statut === 'PAYE' && (
               <div className={styles.formGroup}>
                 <label className={styles.formLabel}>Date de paiement</label>
-                <input className={styles.formInput} type="date" value={datePaiement} onChange={e => setDatePaiement(e.target.value)} />
+                <DateInput value={datePaiement} onChange={setDatePaiement} className={styles.formInput} />
               </div>
             )}
           </>
@@ -383,9 +384,9 @@ export function ChargesPage() {
             {preset === 'custom' && (
               <div className={styles.customDates}>
                 <label className={styles.customLabel}>Du</label>
-                <input type="date" className={styles.customInput} value={customFrom} onChange={e => setCustomFrom(e.target.value)} />
+                <DateInput value={customFrom} onChange={setCustomFrom} className={styles.customInput} />
                 <label className={styles.customLabel}>au</label>
-                <input type="date" className={styles.customInput} value={customTo}   onChange={e => setCustomTo(e.target.value)} />
+                <DateInput value={customTo}   onChange={setCustomTo}   className={styles.customInput} />
               </div>
             )}
             {!isLoading && chargesFiltrees.length > 0 && (

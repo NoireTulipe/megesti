@@ -1,5 +1,6 @@
 import { generateUUID } from '@/lib/utils'
 import { useState, useEffect } from 'react'
+import { DateInput } from '@/components/DateInput'
 import { createPortal } from 'react-dom'
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
@@ -117,15 +118,15 @@ function ModalPaiement({ contrat, onClose }: ModalPaiementProps) {
             </div>
             <div className={styles.field}>
               <label className={styles.label}>Date de versement</label>
-              <input type="date" className={styles.input} value={dateVersement} onChange={(e) => setDate(e.target.value)} />
+              <DateInput value={dateVersement} onChange={setDate} className={styles.input} />
             </div>
             <div className={styles.field}>
               <label className={styles.label}>Période du</label>
-              <input type="date" className={styles.input} value={dateDebut} onChange={(e) => setDateDebut(e.target.value)} />
+              <DateInput value={dateDebut} onChange={setDateDebut} className={styles.input} />
             </div>
             <div className={styles.field}>
               <label className={styles.label}>Au</label>
-              <input type="date" className={styles.input} value={dateFin} onChange={(e) => setDateFin(e.target.value)} />
+              <DateInput value={dateFin} onChange={setDateFin} className={styles.input} />
             </div>
             <div className={styles.field}>
               <label className={styles.label}>Mode</label>

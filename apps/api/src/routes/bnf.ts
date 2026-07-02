@@ -13,11 +13,11 @@ export const bnfRoutes: FastifyPluginAsync = async (app) => {
 
     const tenant = await app.db.tenant.findUniqueOrThrow({
       where:  { id: tenantId },
-      select: { franchiseBaseVA: true },
+      select: { franchiseTva: true },
     })
 
     try {
-      const info = await lookupIsbn(isbn, tenant.franchiseBaseVA)
+      const info = await lookupIsbn(isbn, tenant.franchiseTva)
       if (!info) return reply.notFound()
       return info
     } catch (err) {

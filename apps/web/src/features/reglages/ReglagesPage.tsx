@@ -225,11 +225,11 @@ export function ReglagesPage() {
                 </div>
 
                 <div className={styles.fiscalOptions}>
-                  <label className={`${styles.fiscalOption} ${!tenant?.franchiseBaseVA ? styles.fiscalOptionActive : ''}`}>
+                  <label className={`${styles.fiscalOption} ${!tenant?.franchiseTva ? styles.fiscalOptionActive : ''}`}>
                     <input
                       type="radio"
-                      checked={!tenant?.franchiseBaseVA}
-                      onChange={() => updateTenant.mutate({ franchiseBaseVA: false })}
+                      checked={!tenant?.franchiseTva}
+                      onChange={() => updateTenant.mutate({ franchiseTva: false })}
                       className={styles.fiscalRadio}
                     />
                     <div>
@@ -240,11 +240,11 @@ export function ReglagesPage() {
                     </div>
                   </label>
 
-                  <label className={`${styles.fiscalOption} ${tenant?.franchiseBaseVA ? styles.fiscalOptionActive : ''}`}>
+                  <label className={`${styles.fiscalOption} ${tenant?.franchiseTva ? styles.fiscalOptionActive : ''}`}>
                     <input
                       type="radio"
-                      checked={!!tenant?.franchiseBaseVA}
-                      onChange={() => updateTenant.mutate({ franchiseBaseVA: true })}
+                      checked={!!tenant?.franchiseTva}
+                      onChange={() => updateTenant.mutate({ franchiseTva: true })}
                       className={styles.fiscalRadio}
                     />
                     <div>
@@ -253,7 +253,7 @@ export function ReglagesPage() {
                         Micro-entreprise ou EI sous le seuil de franchise (art. 293 B CGI).
                         TVA non collectée — les prix HT = TTC, mention légale automatique.
                       </p>
-                      {tenant?.franchiseBaseVA && (
+                      {tenant?.franchiseTva && (
                         <p className={styles.fiscalMention}>
                           Mention appliquée : <em>« TVA non applicable, art. 293 B du CGI »</em>
                         </p>

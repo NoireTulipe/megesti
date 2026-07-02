@@ -7,5 +7,5 @@ import { useMonTenant } from '@/features/reglages/hooks/useMonTenant'
  */
 export function useFranchiseTVA(): boolean {
   const { data } = useMonTenant()
-  return data?.franchiseBaseVA ?? false
+  return data?.franchiseTva ?? false
 }
