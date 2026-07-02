@@ -27,9 +27,16 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
         runtimeCaching: [
           {
-            urlPattern: /^https:\/\/api\./,
+            // L'API est servie sous /api sur la même origine (proxy Caddy) —
+            // l'ancien pattern ^https://api\. ne matchait jamais.
+            // Auth exclue : jamais de réponse login/me servie depuis le cache.
+            urlPattern: ({ url }) =>
+              url.pathname.startsWith('/api/') && !url.pathname.startsWith('/api/auth/'),
             handler: 'NetworkFirst',
-            options: { cacheName: 'api-cache' },
+            options: {
+              cacheName: 'api-cache',
+              expiration: { maxEntries: 100, maxAgeSeconds: 24 * 60 * 60 },
+            },
           },
         ],
       },

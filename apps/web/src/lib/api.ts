@@ -42,12 +42,23 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   })
 
   if (!res.ok) {
+    handleUnauthorized(res.status, path)
     const body = await res.json().catch(() => ({ message: res.statusText }))
     throw new ApiError(res.status, body.message ?? res.statusText)
   }
 
   if (res.status === 204) return undefined as T
   return res.json() as Promise<T>
+}
+
+/** Token invalide/expiré en cours de session : purge + retour au login (sauf sur les pages de connexion). */
+function handleUnauthorized(status: number, path: string): void {
+  if (status !== 401 || path.startsWith('/auth/login')) return
+  clearToken()
+  const { pathname } = window.location
+  if (!pathname.startsWith('/login') && !pathname.startsWith('/t/')) {
+    window.location.assign('/login')
+  }
 }
 
 export const api = {
