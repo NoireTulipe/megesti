@@ -48,6 +48,7 @@ export function useCreateVenteExemplaire() {
   return useMutation({
     mutationFn: ({ auteurId, ...rest }: CreateVenteExemplairePayload) =>
       api.post<VenteExemplaire>('/ventes/exemplaires-auteur', { id: generateUUID(), auteurId, ...rest }),
+    meta: { successMessage: "Vente d'exemplaires enregistrée" },
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: KEY(vars.auteurId) })
       // Invalider le stock des articles

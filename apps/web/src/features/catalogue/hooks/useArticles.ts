@@ -25,6 +25,7 @@ export function useCreateArticle() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (p: CreateArticlePayload) => api.post<Article>('/articles', p),
+    meta: { successMessage: 'Article créé' },
     onSuccess:  () => qc.invalidateQueries({ queryKey: KEYS.all() }),
   })
 }
@@ -34,6 +35,7 @@ export function useUpdateArticle() {
   return useMutation({
     mutationFn: ({ id, ...body }: Partial<CreateArticlePayload> & { id: string }) =>
       api.patch<Article>(`/articles/${id}`, body),
+    meta: { successMessage: 'Article mis à jour' },
     onSuccess: () => qc.invalidateQueries({ queryKey: KEYS.all() }),
   })
 }
@@ -51,6 +53,7 @@ export function useDeleteArticle() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (id: string) => api.delete<void>(`/articles/${id}`),
+    meta: { successMessage: 'Article archivé' },
     onSuccess:  () => qc.invalidateQueries({ queryKey: KEYS.all() }),
   })
 }

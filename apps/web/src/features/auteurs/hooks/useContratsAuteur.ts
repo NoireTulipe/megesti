@@ -100,6 +100,7 @@ export function useCreateContratAuteur() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (p: CreateContratPayload) => api.post<ContratAuteur>('/contrats-auteur', p),
+    meta: { successMessage: 'Contrat créé' },
     onSuccess:  () => {
       qc.invalidateQueries({ queryKey: KEY })
       qc.invalidateQueries({ queryKey: AUTEUR_KEY })
@@ -113,6 +114,7 @@ export function useUpdateContratAuteur() {
   return useMutation({
     mutationFn: ({ id, ...data }: UpdateContratPayload & { id: string }) =>
       api.patch<ContratAuteur>(`/contrats-auteur/${id}`, data),
+    meta: { successMessage: 'Contrat mis à jour' },
     onSuccess: async () => {
       await qc.invalidateQueries({ queryKey: KEY })
       await qc.invalidateQueries({ queryKey: DA_KEY })
@@ -124,6 +126,7 @@ export function useDeleteContratAuteur() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (id: string) => api.delete(`/contrats-auteur/${id}`),
+    meta: { successMessage: 'Contrat supprimé' },
     onSuccess:  () => {
       qc.invalidateQueries({ queryKey: KEY })
       qc.invalidateQueries({ queryKey: AUTEUR_KEY })

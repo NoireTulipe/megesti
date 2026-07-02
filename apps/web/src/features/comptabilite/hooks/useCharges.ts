@@ -51,6 +51,7 @@ export function useCreateCharge() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (body: ChargeInput) => api.post<Charge>('/charges', body),
+    meta: { successMessage: 'Charge enregistrée' },
     onSuccess:  () => qc.invalidateQueries({ queryKey: KEY }),
   })
 }
@@ -60,6 +61,7 @@ export function useUpdateCharge() {
   return useMutation({
     mutationFn: ({ id, ...body }: Partial<ChargeInput> & { id: string }) =>
       api.patch<Charge>(`/charges/${id}`, body),
+    meta: { successMessage: 'Charge mise à jour' },
     onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
   })
 }
@@ -68,6 +70,7 @@ export function useDeleteCharge() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (id: string) => api.delete(`/charges/${id}`),
+    meta: { successMessage: 'Charge supprimée' },
     onSuccess:  () => qc.invalidateQueries({ queryKey: KEY }),
   })
 }

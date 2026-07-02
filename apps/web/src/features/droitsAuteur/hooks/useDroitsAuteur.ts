@@ -118,6 +118,7 @@ export function useCreatePaiementDA() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (p: CreatePaiementPayload) => api.post<PaiementDA>('/droits-auteur/paiements', p),
+    meta: { successMessage: 'Paiement enregistré' },
     onSuccess:  () => {
       qc.invalidateQueries({ queryKey: ['droits-auteur'] })
     },
@@ -129,6 +130,7 @@ export function usePatchPaiementDA() {
   return useMutation({
     mutationFn: ({ id, ...data }: { id: string; statut: 'PAYE' | 'ANNULE' }) =>
       api.patch<PaiementDA>(`/droits-auteur/paiements/${id}`, data),
+    meta: { successMessage: 'Paiement mis à jour' },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['droits-auteur'] }),
   })
 }

@@ -74,6 +74,7 @@ export function useCreateVente() {
       modePaiement: ModePaiement
       lignes: { articleId: string; quantite: number; prixUnitaireHT?: number }[]
     }) => api.post<Vente>('/ventes', p),
+    meta: { successMessage: 'Vente enregistrée' },
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: KEYS.session(vars.sessionId) })
       qc.invalidateQueries({ queryKey: ['articles'] })
@@ -90,6 +91,7 @@ export function useCreateVenteHorsSession() {
       modePaiement: ModePaiement
       lignes: { articleId: string; quantite: number; prixUnitaireHT?: number }[]
     }) => api.post<Vente>('/ventes', { ...p, sessionId: null }),
+    meta: { successMessage: 'Vente enregistrée' },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: KEYS.horsSession() })
       qc.invalidateQueries({ queryKey: ['articles'] })
@@ -103,6 +105,7 @@ export function useAnnulerVente() {
   return useMutation({
     mutationFn: ({ id, noteAnnulation }: { id: string; noteAnnulation?: string }) =>
       api.patch<Vente>(`/ventes/${id}/annuler`, { noteAnnulation }),
+    meta: { successMessage: 'Vente annulée' },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: KEYS.all() })
       qc.invalidateQueries({ queryKey: ['articles'] })

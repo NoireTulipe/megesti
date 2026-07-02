@@ -67,6 +67,7 @@ export function useCreateAuteur() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (payload: CreateAuteurPayload) => api.post<Auteur>('/auteurs', payload),
+    meta: { successMessage: 'Auteur créé' },
     onSuccess:  () => qc.invalidateQueries({ queryKey: KEYS.all() }),
   })
 }
@@ -76,6 +77,7 @@ export function useUpdateAuteur() {
   return useMutation({
     mutationFn: ({ id, ...data }: Partial<CreateAuteurPayload> & { id: string }) =>
       api.patch<Auteur>(`/auteurs/${id}`, data),
+    meta: { successMessage: 'Auteur mis à jour' },
     onSuccess: () => qc.invalidateQueries({ queryKey: KEYS.all() }),
   })
 }
@@ -84,6 +86,7 @@ export function useDeleteAuteur() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (id: string) => api.delete<void>(`/auteurs/${id}`),
+    meta: { successMessage: 'Auteur supprimé' },
     onSuccess:  () => qc.invalidateQueries({ queryKey: KEYS.all() }),
   })
 }

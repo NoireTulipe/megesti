@@ -51,6 +51,7 @@ export function useOpenSessionCaisse() {
   return useMutation({
     mutationFn: (p: { id: string; pointDeVenteId: string; nom?: string; fondOuverture?: number; debiterStockME?: boolean }) =>
       api.post<SessionCaisse>('/sessions-caisse', p),
+    meta: { successMessage: 'Session de caisse ouverte' },
     onSuccess: () => qc.invalidateQueries({ queryKey: KEYS.all() }),
   })
 }
@@ -60,6 +61,7 @@ export function useCloseSessionCaisse() {
   return useMutation({
     mutationFn: ({ id, fondFermeture }: { id: string; fondFermeture?: number }) =>
       api.patch<SessionCaisse>(`/sessions-caisse/${id}/fermer`, { fondFermeture }),
+    meta: { successMessage: 'Session de caisse fermée' },
     onSuccess: () => qc.invalidateQueries({ queryKey: KEYS.all() }),
   })
 }

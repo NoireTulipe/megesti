@@ -89,6 +89,7 @@ export function useCreateMouvement() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (p: CreateMouvementPayload) => api.post('/mouvements-stock', p),
+    meta: { successMessage: 'Mouvement de stock enregistré' },
     onSuccess:  () => {
       qc.refetchQueries({ queryKey: ['articles'] })
       qc.refetchQueries({ queryKey: KEYS.all() })
