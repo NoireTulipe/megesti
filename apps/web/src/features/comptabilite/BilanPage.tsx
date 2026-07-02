@@ -647,10 +647,12 @@ export function BilanPage() {
               <div>
                 <p className={styles.detailCat} style={{ marginBottom: 8 }}>Entrées effectives</p>
                 {[
-                  { label: 'Ventes en session',       val: data.entreesEffectives.ventesDirectes },
-                  { label: 'Ventes hors session',     val: data.entreesEffectives.ventesHorsSession },
-                  { label: 'Ventes en dépôt (CA brut)', val: data.entreesEffectives.ventesDepotTTC, extra: data.entreesEffectives.ventesDepotNb > 0 ? `${data.entreesEffectives.ventesDepotNb} vente${data.entreesEffectives.ventesDepotNb > 1 ? 's' : ''}` : undefined },
-                  { label: 'Reversements PDV encaissés', val: data.entreesEffectives.reversementsEncaisses },
+                  { label: 'Ventes en session (lecteurs)',  val: data.entreesEffectives.ventesDirectes },
+                  { label: 'Ventes hors session',          val: data.entreesEffectives.ventesHorsSession },
+                  { label: 'Ventes en dépôt (CA brut)',    val: data.entreesEffectives.ventesDepotTTC, extra: data.entreesEffectives.ventesDepotNb > 0 ? `${data.entreesEffectives.ventesDepotNb} vente${data.entreesEffectives.ventesDepotNb > 1 ? 's' : ''}` : undefined },
+                  { label: 'Reversements PDV encaissés',   val: data.entreesEffectives.reversementsEncaisses },
+                  { label: 'Exemplaires auteurs',          val: data.entreesEffectives.exemplairesAuteurs?.totalTTC ?? 0,
+                    extra: (data.entreesEffectives.exemplairesAuteurs?.parAuteur ?? []).map(a => a.nomAuteur).join(', ') || undefined },
                 ].filter(r => r.val > 0).map((r, i) => (
                   <div key={i} className={styles.detailRow}>
                     <span>{r.label}{r.extra && <span className={styles.detailSub}> · {r.extra}</span>}</span>

@@ -289,6 +289,7 @@ export const rapportRoutes: FastifyPluginAsync = async (app) => {
         WHERE "tenantId" = ${tenantId} AND "statut" = 'VALIDEE'
           AND "modePaiement" != 'PDV'
           AND "sessionId" IS NOT NULL
+          AND "auteurId" IS NULL
           AND "dateVente" >= ${from} AND "dateVente" <= ${to}
         GROUP BY "modePaiement" ORDER BY ca DESC
       `),
@@ -300,6 +301,7 @@ export const rapportRoutes: FastifyPluginAsync = async (app) => {
         JOIN "MotifVente" mv ON v."motifVenteId" = mv."id"
         WHERE v."tenantId" = ${tenantId} AND v."statut" = 'VALIDEE'
           AND v."sessionId" IS NULL
+          AND v."auteurId" IS NULL
           AND v."dateVente" >= ${from} AND v."dateVente" <= ${to}
         GROUP BY mv."id", mv."libelle" ORDER BY ca DESC
       `),
@@ -313,6 +315,7 @@ export const rapportRoutes: FastifyPluginAsync = async (app) => {
         WHERE v."tenantId" = ${tenantId} AND v."statut" = 'VALIDEE'
           AND v."modePaiement" = 'PDV'
           AND v."sessionId" IS NOT NULL
+          AND v."auteurId" IS NULL
           AND v."dateVente" >= ${from} AND v."dateVente" <= ${to}
       `),
 
@@ -544,9 +547,11 @@ export const rapportRoutes: FastifyPluginAsync = async (app) => {
     const ventesDepotNb  = Number(ventesDepotResult[0]?.nb ?? 0)
 
     // Entrées : CA brut (ventes directes + hors session + reversements bruts)
+    const exemplairesAuteursTotal = exemplairesAuteursResult.reduce((s, r) => s + r.caTTC, 0)
     const totalEntreesEff  = ventesDirectesModes.reduce((s, v) => s + v.ca, 0)
                            + totalVentesHorsSession
                            + reversementsEncaisses.reduce((s, r) => s + Number(r.montantTTC), 0)
+                           + exemplairesAuteursTotal
     // Sorties effectives : frais + charges + DA payés + commissions PDV encaissés
     const totalSortiesEff  = totalFrais + totalChargesPayees + totalDAPaies + commissionsEncaissees
     // Entrées prévues : reversements bruts en attente

@@ -33,7 +33,8 @@
         {
           "cameraPermission": "Permettre à MeGesti d'utiliser l'appareil photo pour scanner les codes-barres ISBN."
         }
-      ]
+      ],
+      "./plugins/withSingleTopLaunchMode.js"
     ],
     "experiments": {
       "typedRoutes": true
