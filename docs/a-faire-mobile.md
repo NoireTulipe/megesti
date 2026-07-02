@@ -40,17 +40,33 @@ Comme sur le site web : un beau formulaire d'ajout de PDV.
 - Définir l'URL par défaut sur `https://api.megesti.com/api` dans `src/constants/Config.ts` (au lieu du fallback `DEV_HOST` local actuel).
 - Dans le menu dev caché (`src/components/DevMenu.tsx`, onglet Config) : ajouter un bouton « Réinitialiser l'adresse API » qui remet la valeur par défaut (vider l'override du `devStore`).
 
-## Chantier 5 — Finir l'intégration SumUp
+## Chantier 5 — Intégration SumUp ✅ FAIT (validé sur terminal Air)
 
-`packages/react-native-sumup` est un stub. À finaliser lors du prochain `expo prebuild` :
-1. `com.sumup:merchant-sdk:4.1.0` déjà dans `build.gradle` — vérifier la compat native.
-2. `pod 'SumUpSDK'` dans le Podfile iOS.
-3. Brancher les vrais appels SDK dans les fichiers `.kt` / `.swift`.
-4. Valider le flux `login → checkout` dans `caisse.tsx` + `settings.tsx`.
+Intégration native SumUp Android fonctionnelle (login + checkout testés sur terminal Air réel).
+
+**Module natif réel :** `apps/mobile/android/app/.../sumup/SumUpModule.kt`
+(le `packages/react-native-sumup/.../SumUpModule.kt` n'est PAS compilé — il est marqué obsolète).
+
+**Ce qui a été corrigé (2026-07-02) :**
+1. Init propre via `SumUpState.init()` au lieu de réflexion fragile sur `ReaderModuleCoreState` (la réflexion appelait une méthode à 2 args avec 3 args → échec silencieux → `baseUrl = null` → crash okhttp3).
+2. `prepareForCheckout()` déplacé après le login (le SDK l'exige — bytecode : *"Log in first before calling prepareForCheckout()"*).
+3. `launchMode` MainActivity : `singleTask` → `singleTop`. `singleTask` empêche `onActivityResult` de recevoir les résultats des activités enfant (login/checkout SumUp). Plugin `withSingleTopLaunchMode.js` rend le changement persistant à travers `expo prebuild`.
+4. Handler login : vérifie `isLoggedIn()` (état réel) et pas seulement `resultCode` (`RESULT_OK` n'indique que la fin de l'activité, pas le succès d'auth).
+5. `init()` idempotent (garde `sdkInitialized`) + dispatch sur main thread (`Handler(Looper.getMainLooper())`) car le SDK SumUp exige le thread UI.
+6. `settings.tsx` : `handleSumupLogin` rappelle `init()` (idempotent) avant `login()` — nécessaire si SumUp n'était pas activé au démarrage.
+
+**Modèle SumUp (à retenir) :** un compte marchand SumUp = la ME. La ME saisit SES identifiants (email/mdp du compte marchand) une fois dans Réglages. Le SDK reste connecté. Les utilisateurs de la ME encaissent sans ressaisir. Le SDK exige username/password (pas de token/API key pour le login SDK — voir issues sumup-android-sdk #64, #243).
+
+**Reste à faire SumUp :**
+- iOS : `pod 'SumUpSDK'` + adapter `SumUpModule.swift` (équivalent du module Kotlin).
+- Mise à jour SDK : 4.1.0 → 7.x (API différente) — pas urgent tant que le 4.1.0 fonctionne.
 
 ---
 
 ## Fait (mobile)
+
+### 2026-07-02 — Intégration SumUp native (login + checkout validés)
+Voir Chantier 5 ci-dessus pour le détail.
 
 ### 2026-07-01 — Pipeline lecture « serveur d'abord + delta local »
 - API : handler P2002 → 409 (`apps/api/src/server.ts`) pour des retries idempotents propres.

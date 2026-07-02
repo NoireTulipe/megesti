@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { useCreateVenteExemplaire } from './hooks/useExemplairesAuteur'
 import type { ContratAuteur } from './hooks/useContratsAuteur'
 import type { Auteur } from './hooks/useAuteurs'
+import { useFranchiseTVA } from '@/hooks/useFranchiseTVA'
 import sty from './AuteursPage.module.css'
 import formSty from './AuteurForm.module.css'
 
@@ -45,6 +46,7 @@ interface Props {
 }
 
 export function VenteExemplairesModal({ auteur, articles, contrats, isOpen, onClose }: Props) {
+  const franchiseTVA = useFranchiseTVA()
   const createVente = useCreateVenteExemplaire()
 
   const [selections, setSelections] = useState<Record<string, SelectionRow>>({})
@@ -152,7 +154,7 @@ export function VenteExemplairesModal({ auteur, articles, contrats, isOpen, onCl
                 <tr style={{ fontSize: '0.7rem', color: 'var(--text-soft)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                   <th style={{ textAlign: 'left',  paddingBottom: 10, fontWeight: 700 }}>Livre</th>
                   <th style={{ textAlign: 'center', paddingBottom: 10, fontWeight: 700, width: 100 }}>Qté</th>
-                  <th style={{ textAlign: 'right',  paddingBottom: 10, fontWeight: 700, width: 110 }}>Prix HT</th>
+                  <th style={{ textAlign: 'right',  paddingBottom: 10, fontWeight: 700, width: 110 }}>{franchiseTVA ? 'Prix' : 'Prix HT'}</th>
                 </tr>
               </thead>
               <tbody>
@@ -242,7 +244,7 @@ export function VenteExemplairesModal({ auteur, articles, contrats, isOpen, onCl
             </div>
             {hasSelections && (
               <div style={{ textAlign: 'right' }}>
-                <div style={{ fontSize: '0.72rem', color: 'var(--text-soft)' }}>Total HT</div>
+                <div style={{ fontSize: '0.72rem', color: 'var(--text-soft)' }}>{franchiseTVA ? 'Total' : 'Total HT'}</div>
                 <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--ink)' }}>
                   {totalHT.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} €
                 </div>

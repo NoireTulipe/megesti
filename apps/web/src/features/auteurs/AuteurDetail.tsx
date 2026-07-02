@@ -9,6 +9,7 @@ import { useVentesStatsAuteur } from './hooks/useVentesStatsAuteur'
 import { useContratsAuteur } from './hooks/useContratsAuteur'
 import { useVentesExemplaires } from './hooks/useExemplairesAuteur'
 import { usePlanFeatures } from '@/hooks/usePlanFeatures'
+import { useFranchiseTVA } from '@/hooks/useFranchiseTVA'
 import type { Auteur } from './hooks/useAuteurs'
 import sty from './AuteursPage.module.css'
 
@@ -68,6 +69,7 @@ interface Props {
 }
 
 export function AuteurDetail({ auteur, isOpen, onClose, onEdit }: Props) {
+  const franchiseTVA        = useFranchiseTVA()
   const { features }        = usePlanFeatures()
   const reseauOnly          = features.auteurs === 'reseau'
   const hasContrat          = auteur._count.contrats > 0
@@ -255,7 +257,7 @@ export function AuteurDetail({ auteur, isOpen, onClose, onEdit }: Props) {
                     </div>
                     <div className={sty['ventes-stat']}>
                       <span className={sty['ventes-stat-value']}>{totalHT.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} €</span>
-                      <span className={sty['ventes-stat-label']}>CA HT total</span>
+                      <span className={sty['ventes-stat-label']}>{franchiseTVA ? 'CA total' : 'CA HT total'}</span>
                     </div>
                     <div className={sty['ventes-stat']}>
                       <span className={sty['ventes-stat-value']}>{(totalQte / (months.length || 1)).toFixed(0)}</span>
@@ -305,7 +307,7 @@ export function AuteurDetail({ auteur, isOpen, onClose, onEdit }: Props) {
                     <div className={sty['livre-nom']}>{article.nom}</div>
                     <div className={sty['livre-meta']}>
                       {article.isbn && <span>ISBN {article.isbn}</span>}
-                      <span>{Number(article.prixVenteHT).toFixed(2)} € HT</span>
+                      <span>{Number(article.prixVenteHT).toFixed(2)} €{!franchiseTVA && ' HT'}</span>
                       <span className={article.stock <= 0 ? sty['stock-vide'] : sty['stock-ok']}>
                         {article.stock > 0 ? `${article.stock} en stock` : 'Rupture'}
                       </span>
@@ -352,7 +354,7 @@ export function AuteurDetail({ auteur, isOpen, onClose, onEdit }: Props) {
                       </div>
                       <div className={sty['ventes-stat']}>
                         <span className={sty['ventes-stat-value']}>{totalHT.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} €</span>
-                        <span className={sty['ventes-stat-label']}>CA HT total</span>
+                        <span className={sty['ventes-stat-label']}>{franchiseTVA ? 'CA total' : 'CA HT total'}</span>
                       </div>
                       <div className={sty['ventes-stat']}>
                         <span className={sty['ventes-stat-value']}>{validees.length}</span>

@@ -7,6 +7,7 @@ import { useVentesStatsArticle } from './hooks/useVentesStatsArticle'
 import { useUpdateArticle } from './hooks/useArticles'
 import { fetchBnfIsbn } from './hooks/useBnfLookup'
 import { HelpButton } from '@/components/HelpButton'
+import { useFranchiseTVA } from '@/hooks/useFranchiseTVA'
 import sty from '@/features/auteurs/AuteursPage.module.css'
 
 interface Props {
@@ -32,6 +33,7 @@ const fmtEuro = (v: string | number | null) =>
   v != null ? `${Number(v).toFixed(2)} €` : '—'
 
 export function ArticleDetail({ article, isOpen, onClose, onEdit, onToggle }: Props) {
+  const franchiseTVA = useFranchiseTVA()
   const [tab, setTab]         = useState<TabId>('profil')
   const [period, setPeriod]   = useState<Period>(12)
   const [bnfDeclaree, setBnfDeclaree]     = useState(article.bnfDeclaree)
@@ -207,20 +209,22 @@ export function ArticleDetail({ article, isOpen, onClose, onEdit, onToggle }: Pr
             <div className={sty['profil-grid']}>
 
               <div className={sty['profil-field']}>
-                <label>Prix de vente HT</label>
+                <label>{franchiseTVA ? 'Prix de vente' : 'Prix de vente HT'}</label>
                 <span style={{ fontFamily: "'DM Serif Display',serif", fontSize: '1.3rem', color: 'var(--ink)' }}>
                   {fmtEuro(article.prixVenteHT)}
                 </span>
               </div>
 
-              <div className={sty['profil-field']}>
-                <label>TVA applicable</label>
-                <span>{Number(article.rayon.tauxTVA)} %</span>
-              </div>
+              {!franchiseTVA && (
+                <div className={sty['profil-field']}>
+                  <label>TVA applicable</label>
+                  <span>{Number(article.rayon.tauxTVA)} %</span>
+                </div>
+              )}
 
               {article.prixAchatHT && (
                 <div className={sty['profil-field']}>
-                  <label>Prix d'achat HT</label>
+                  <label>{franchiseTVA ? "Prix d'achat" : "Prix d'achat HT"}</label>
                   <span>{fmtEuro(article.prixAchatHT)}</span>
                 </div>
               )}
@@ -377,7 +381,7 @@ export function ArticleDetail({ article, isOpen, onClose, onEdit, onToggle }: Pr
                     </div>
                     <div className={sty['ventes-stat']}>
                       <span className={sty['ventes-stat-value']}>{totalHT.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} €</span>
-                      <span className={sty['ventes-stat-label']}>CA HT total</span>
+                      <span className={sty['ventes-stat-label']}>{franchiseTVA ? 'CA total' : 'CA HT total'}</span>
                     </div>
                     <div className={sty['ventes-stat']}>
                       <span className={sty['ventes-stat-value']}>{(totalQte / (months.length || 1)).toFixed(0)}</span>

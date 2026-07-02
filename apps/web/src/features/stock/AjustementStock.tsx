@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
 import { useCreateMouvement, type TypeMouvement } from './hooks/useMouvementsStock'
+import { useFranchiseTVA } from '@/hooks/useFranchiseTVA'
 import type { Article } from '@/features/catalogue/types'
 import styles from './AjustementStock.module.css'
 
@@ -29,6 +30,7 @@ interface Props {
 }
 
 export function AjustementStock({ article, onClose }: Props) {
+  const franchiseTVA = useFranchiseTVA()
   const [mode,       setMode]       = useState<Mode>('=')
   const [quantite,   setQuantite]   = useState<number>(0)
   const [motifType,  setMotifType]  = useState<MotifSortie>(MOTIFS_SORTIE[0])
@@ -165,7 +167,7 @@ export function AjustementStock({ article, onClose }: Props) {
               <div>
                 <p className={styles.fraisNoticeTitle}>Cette sortie sera enregistrée dans les frais</p>
                 <div className={styles.fraisNoticeRow}>
-                  <label className={styles.fraisNoticeLabel}>Valeur HT (optionnel)</label>
+                  <label className={styles.fraisNoticeLabel}>{franchiseTVA ? 'Valeur (optionnel)' : 'Valeur HT (optionnel)'}</label>
                   <div className={styles.fraisNoticeInput}>
                     <input
                       className={styles.montantInput}

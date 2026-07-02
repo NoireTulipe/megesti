@@ -1,6 +1,7 @@
 ﻿import { generateUUID } from '@/lib/utils'
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
+import { useFranchiseTVA } from '@/hooks/useFranchiseTVA'
 import {
   useDepotLibraireDetail, useUpdateDepotLibraire,
   useCreateContact, useUpdateContact, useDeleteContact,
@@ -309,7 +310,7 @@ function TabVentes({ depot, depotId }: { depot: ReturnType<typeof useDepotLibrai
         {depot?.articles.map(a => (
           <div key={a.id} style={{ display:'flex', justifyContent:'space-between', padding:'8px 0', borderBottom:'1px solid var(--cream-dark)', fontSize:'0.82rem', color:'var(--ink)' }}>
             <span>{a.article.nom}</span>
-            <span style={{ color:'var(--text-soft)' }}>{a.quantiteVendue} / {a.quantiteEnvoyee} vendus · {fmtEuro(a.quantiteVendue * Number(a.article.prixVenteHT))} HT</span>
+            <span style={{ color:'var(--text-soft)' }}>{a.quantiteVendue} / {a.quantiteEnvoyee} vendus · {fmtEuro(a.quantiteVendue * Number(a.article.prixVenteHT))}{franchiseTVA ? '' : ' HT'}</span>
           </div>
         ))}
       </div>
@@ -326,6 +327,7 @@ interface Props {
 }
 
 export function DepotLibraireDetail({ depot, isOpen, onClose }: Props) {
+  const franchiseTVA = useFranchiseTVA()
   const [tab, setTab] = useState<TabId>('infos')
   const { data: detail } = useDepotLibraireDetail(isOpen ? depot.id : undefined)
 

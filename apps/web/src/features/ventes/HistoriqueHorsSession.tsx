@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
 import { DateInput } from '@/components/DateInput'
 import { useVentesHorsSession } from './hooks/useVentes'
+import { useFranchiseTVA } from '@/hooks/useFranchiseTVA'
 import styles from './VentesPage.module.css'
 
 type Periode = '1m' | '3m' | '1a' | 'perso'
@@ -25,6 +26,7 @@ const MODE_LABEL: Record<string, string> = {
 }
 
 export function HistoriqueHorsSession() {
+  const franchiseTVA = useFranchiseTVA()
   const today = new Date().toISOString().slice(0, 10)
   const [periode,    setPeriode]    = useState<Periode>('3m')
   const [customFrom, setCustomFrom] = useState(today)
@@ -88,10 +90,12 @@ export function HistoriqueHorsSession() {
               <strong>{fEur(totalTTC)}</strong>
               <span>CA TTC</span>
             </div>
-            <div className={styles.horsSessionStat}>
-              <strong>{fEur(totalHT)}</strong>
-              <span>CA HT</span>
-            </div>
+            {!franchiseTVA && (
+              <div className={styles.horsSessionStat}>
+                <strong>{fEur(totalHT)}</strong>
+                <span>CA HT</span>
+              </div>
+            )}
           </div>
 
           {/* Filtre motif */}

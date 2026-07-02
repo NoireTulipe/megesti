@@ -11,6 +11,7 @@ import {
   type TypeCharge, type Periodicite, type CategorieCharge, type Charge,
 } from '@/features/comptabilite/hooks/useCharges'
 import { usePlanFeatures } from '@/hooks/usePlanFeatures'
+import { useFranchiseTVA } from '@/hooks/useFranchiseTVA'
 import { PageHero } from '@/components/PageHero'
 import styles from './ChargesPage.module.css'
 
@@ -45,6 +46,7 @@ type PresetKey = typeof PRESETS[number]['key']
 interface FormProps { initial?: Charge | null; onDone: () => void }
 
 function ChargeForm({ initial, onDone }: FormProps) {
+  const franchiseTVA = useFranchiseTVA()
   const create = useCreateCharge()
   const update = useUpdateCharge()
 
@@ -122,7 +124,7 @@ function ChargeForm({ initial, onDone }: FormProps) {
             placeholder={isAbo ? 'ex. Abonnement Stripe' : 'ex. Stand salon Paris'} required />
         </div>
         <div className={styles.formGroup}>
-          <label className={styles.formLabel}>Montant HT (€)</label>
+          <label className={styles.formLabel}>{franchiseTVA ? 'Montant (€)' : 'Montant HT (€)'}</label>
           <input className={styles.formInput} type="number" min="0" step="0.01" value={montant} onChange={e => setMontant(e.target.value)} required />
         </div>
       </div>

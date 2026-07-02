@@ -1,7 +1,7 @@
 import { Lock } from 'lucide-react'
 import { ChevronLeft } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-import { NAV_MAIN, NAV_RESEAU, NAV_ADMIN, type NavKey, type NavItem } from '@/config/navigation'
+import { NAV_MAIN, NAV_ADMIN, type NavKey, type NavItem } from '@/config/navigation'
 import { useMonTenant } from '@/features/reglages/hooks/useMonTenant'
 import { useAuthStore } from '@/store/authStore'
 import { usePlanFeatures } from '@/hooks/usePlanFeatures'
@@ -18,12 +18,9 @@ interface SidebarProps {
 
 // Mapping item de nav → feature requise
 const NAV_FEATURE_GATES: Partial<Record<NavKey, keyof PlanFeatures>> = {
-  depotsLibraires: 'depotsLibraires',
-  droitsAuteur:    'droitsAuteur',
-  reversements:    'reversements',
-  facturation:     'facturationElectronique',
-  charges:         'charges',
-  imprimeurs:      'imprimeurs',
+  droitsAuteur: 'droitsAuteur',
+  reversements: 'reversements',
+  facturation:  'facturationElectronique',
 }
 
 export function Sidebar({ active, onNav, collapsed, onToggle }: SidebarProps) {
@@ -74,10 +71,6 @@ export function Sidebar({ active, onNav, collapsed, onToggle }: SidebarProps) {
       <nav className={styles.nav}>
         {!collapsed && <div className={styles.groupLabel}>Principal</div>}
         {renderNav(NAV_MAIN)}
-
-        <div style={{ height: 8 }} />
-        {!collapsed && <div className={styles.groupLabel}>Réseau</div>}
-        {renderNav(NAV_RESEAU)}
 
         <div style={{ height: 8 }} />
         {!collapsed && <div className={styles.groupLabel}>Administratif</div>}

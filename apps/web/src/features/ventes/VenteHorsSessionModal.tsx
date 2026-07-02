@@ -271,7 +271,7 @@ export function VenteHorsSessionModal({ isOpen, onClose }: Props) {
             {/* Total + valider */}
             <div className={styles.hsFooter}>
               <div className={styles.hsTotalBlock}>
-                <span className={styles.hsTotalHT}>Total HT : {fEur(totalHT)}</span>
+                {!franchiseTVA && <span className={styles.hsTotalHT}>Total HT : {fEur(totalHT)}</span>}
                 {!franchiseTVA && <span className={styles.hsTotalTTC}>TTC : {fEur(totalTTC)}</span>}
                 {franchiseTVA && <span className={styles.hsTotalTTC}>Total : {fEur(totalTTC)}</span>}
               </div>

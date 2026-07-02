@@ -645,7 +645,7 @@ export function ArticleForm({ onClose, article }: Props) {
             </div>
             <div className={styles.row2}>
               <div className={styles.field}>
-                <label className={styles.label} htmlFor="prixAchatLotHT">Prix lot HT</label>
+                <label className={styles.label} htmlFor="prixAchatLotHT">{franchiseTVA ? 'Prix lot' : 'Prix lot HT'}</label>
                 <div className={styles.inputWithUnit}>
                   <input id="prixAchatLotHT" className={styles.input} inputMode="decimal" placeholder="0.00" {...register('prixAchatLotHT')} />
                   <span className={styles.unit}>€</span>

@@ -7,6 +7,7 @@ import {
 import type { ContratAuteur, CreateContratPayload, UpdateContratPayload, PeriodiciteDA, DateFixe } from './hooks/useContratsAuteur'
 import { useTypesDA } from '@/features/reglages/hooks/useTypesDA'
 import { useArticles } from '@/features/catalogue/hooks/useArticles'
+import { useFranchiseTVA } from '@/hooks/useFranchiseTVA'
 import type { Auteur } from './hooks/useAuteurs'
 import sty from './AuteurForm.module.css'
 
@@ -152,6 +153,7 @@ interface ContratCardProps {
 }
 
 function ContratCard({ c, typesDA, articles, onDelete, onUpdate, onAppliquer, updating, applying }: ContratCardProps) {
+  const franchiseTVA = useFranchiseTVA()
   const [editing, setEditing] = useState(false)
   const defaultArticleId = c.articleId ?? (articles.length === 1 ? articles[0]!.id : '')
   const [f, setF] = useState({
@@ -241,7 +243,7 @@ function ContratCard({ c, typesDA, articles, onDelete, onUpdate, onAppliquer, up
         </div>
         <div className={sty.row2}>
           <div className={sty.field}>
-            <label className={sty.label}>Prix exemplaire auteur (€ HT)</label>
+            <label className={sty.label}>{franchiseTVA ? 'Prix exemplaire auteur (€)' : 'Prix exemplaire auteur (€ HT)'}</label>
             <input type="number" min={0} step={0.01} className={sty.input} value={f.prixAuteurHT} onChange={e => set('prixAuteurHT')(e.target.value)} placeholder="— Non fixé —" />
           </div>
         </div>
@@ -357,7 +359,7 @@ function ContratCard({ c, typesDA, articles, onDelete, onUpdate, onAppliquer, up
         )}
         {c.prixAuteurHT && (
           <span style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--ink)', background: 'var(--cream-mid)', padding: '2px 7px', borderRadius: 10 }}>
-            Exemplaires : {Number(c.prixAuteurHT).toFixed(2)} € HT
+            Exemplaires : {Number(c.prixAuteurHT).toFixed(2)} €{!franchiseTVA && ' HT'}
           </span>
         )}
       </div>
@@ -419,6 +421,7 @@ interface FormulaireProps {
 }
 
 function FormulaireContrat({ auteurId, articles, typesDA, onCreated, onCancel, isPending, onSubmit }: FormulaireProps) {
+  const franchiseTVA = useFranchiseTVA()
   const [f, setF] = useState<FormState>(() => formVide(articles))
   const set = (k: keyof FormState) => (v: string | boolean) => setF((s) => ({ ...s, [k]: v }))
 
@@ -496,7 +499,7 @@ function FormulaireContrat({ auteurId, articles, typesDA, onCreated, onCancel, i
       </div>
       <div className={sty.row2}>
         <div className={sty.field}>
-          <label className={sty.label}>Prix exemplaire auteur (€ HT)</label>
+          <label className={sty.label}>{franchiseTVA ? 'Prix exemplaire auteur (€)' : 'Prix exemplaire auteur (€ HT)'}</label>
           <input type="number" min={0} step={0.01} className={sty.input} value={f.prixAuteurHT}
             onChange={(e) => set('prixAuteurHT')(e.target.value)} placeholder="— Non fixé —" />
         </div>

@@ -718,7 +718,7 @@ export function VentesPage() {
           )}
           {fraisSession.filter(f => f.actif).length > 0 && (
             <span className={styles.sectionAccTotal}>
-              {fraisSession.filter(f => f.actif).reduce((s, f) => s + (f.montantHT ? parseFloat(f.montantHT) : 0), 0).toFixed(2)} € HT
+              {fraisSession.filter(f => f.actif).reduce((s, f) => s + (f.montantHT ? parseFloat(f.montantHT) : 0), 0).toFixed(2)} €{!franchiseTVA && ' HT'}
             </span>
           )}
           <svg className={styles.sectionAccChevron} style={{ transform: fraisOpen ? 'rotate(180deg)' : undefined }} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="6 9 12 15 18 9"/></svg>
@@ -763,7 +763,7 @@ export function VentesPage() {
                       value={fraisMontant}
                       onChange={e => setFraisMontant(e.target.value)}
                     />
-                    <span className={styles.fraisMontantUnit}>€ HT</span>
+                    <span className={styles.fraisMontantUnit}>€{!franchiseTVA && ' HT'}</span>
                   </div>
                   <button
                     className={styles.btnFraisValider}
@@ -796,7 +796,7 @@ export function VentesPage() {
                     <span className={styles.fraisMotif}>{f.motif}</span>
                     <span className={styles.fraisType}>{TYPE_FRAIS_LABELS[f.type]}</span>
                     <span className={styles.fraisMontant}>
-                      {f.montantHT ? `${parseFloat(f.montantHT).toFixed(2)} € HT` : '—'}
+                      {f.montantHT ? `${parseFloat(f.montantHT).toFixed(2)} €${franchiseTVA ? '' : ' HT'}` : '—'}
                     </span>
                     {f.actif ? (
                       <button className={styles.btnDeleteFrais} onClick={() => deleteFrais.mutate(f.id)} title="Supprimer">✕</button>
@@ -808,7 +808,7 @@ export function VentesPage() {
                 <div className={styles.fraisTotal}>
                   Total frais :&nbsp;
                   <strong>
-                    {fraisSession.filter(f => f.actif).reduce((s, f) => s + (f.montantHT ? parseFloat(f.montantHT) : 0), 0).toFixed(2)} € HT
+                    {fraisSession.filter(f => f.actif).reduce((s, f) => s + (f.montantHT ? parseFloat(f.montantHT) : 0), 0).toFixed(2)} €{!franchiseTVA && ' HT'}
                   </strong>
                 </div>
               </div>
