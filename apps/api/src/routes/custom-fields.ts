@@ -2,6 +2,7 @@ import type { FastifyPluginAsync } from 'fastify'
 import { Prisma } from '@prisma/client'
 import { z } from 'zod'
 import { CreateCustomFieldDefinitionSchema, ENTITY_TYPES } from '@megesti/shared'
+import { assertTenantOwned } from '../lib/ownership.js'
 
 const FilterQuery = z.object({
   entityType: z.enum(ENTITY_TYPES).optional(),
@@ -39,6 +40,10 @@ export const customFieldRoutes: FastifyPluginAsync = async (app) => {
   app.post('/', authAdmin, async (request, reply) => {
     const { tenantId } = request.tenant
     const body = CreateCustomFieldDefinitionSchema.parse(request.body)
+    await Promise.all([
+      assertTenantOwned(app.db, 'rayon', (body as { rayonId?: string }).rayonId, tenantId),
+      assertTenantOwned(app.db, 'thesaurus', body.fieldType === 'thesaurus' ? body.thesaurusId : null, tenantId),
+    ])
     const definition = await app.db.customFieldDefinition.create({
       data: {
         id:          body.id,

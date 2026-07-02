@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { evaluateDA, calculateRoyalties } from '@megesti/business'
 import type { FormuleDA, ContexteVente } from '@megesti/business'
 import { prochaineDateVersement } from '../services/droitsAuteur.js'
+import { assertTenantOwned } from '../lib/ownership.js'
 
 const DateFixeSchema = z.object({ mois: z.number().int().min(1).max(12), jour: z.number().int().min(1).max(31) })
 const PeriodiciteSchema = z.enum(['MENSUEL','TRIMESTRIEL','TOUS_LES_4_MOIS','SEMESTRIEL','ANNUEL','DATES_FIXES'])
@@ -77,6 +78,7 @@ export const contratAuteurRoutes: FastifyPluginAsync = async (app) => {
     ])
     if (!auteur) return reply.notFound('Auteur introuvable')
     if (!typeDA) return reply.notFound('Barème DA introuvable')
+    await assertTenantOwned(app.db, 'article', rest.articleId, tenantId)
 
     const sigDate = dateSignature ? new Date(dateSignature) : null
     const { periodicite, datesFixesJSON, prochainVersement, ...coreRest } = rest
@@ -105,6 +107,10 @@ export const contratAuteurRoutes: FastifyPluginAsync = async (app) => {
     const existing = await app.db.contratAuteur.findFirst({ where: { id, tenantId } })
     if (!existing) return reply.notFound()
     const parsed = PatchSchema.parse(request.body)
+    await Promise.all([
+      assertTenantOwned(app.db, 'typeDA',  parsed.typeDAId,  tenantId),
+      assertTenantOwned(app.db, 'article', parsed.articleId, tenantId),
+    ])
     const { avance, prixAuteurHT, dateSignature, datePriseEffet, periodicite, datesFixesJSON, prochainVersement, ...rest } = parsed
 
     // ?? ne suffit pas : null doit écraser, undefined doit conserver

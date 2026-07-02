@@ -34,7 +34,10 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
     return { name: tenant.name, slug: tenant.slug, logo: tenant.logo }
   })
 
-  app.post('/login', async (request, reply) => {
+  app.post('/login', {
+    // Anti brute-force : 10 tentatives/min/IP
+    config: { rateLimit: { max: 10, timeWindow: '1 minute' } },
+  }, async (request, reply) => {
     const body = LoginSchema.parse(request.body)
 
     // Si slug fourni → login scopé au tenant (multi-tenant propre)

@@ -1,6 +1,7 @@
 import type { FastifyPluginAsync } from 'fastify'
 import { z } from 'zod'
 import { getPlanFeatures } from '@megesti/shared'
+import { assertTenantOwned } from '../lib/ownership.js'
 
 const ContactSchema = z.object({
   nom:          z.string().min(1),
@@ -59,6 +60,7 @@ export const pointDeVenteRoutes: FastifyPluginAsync = async (app) => {
   app.post('/', authAdmin, async (request, reply) => {
     const { tenantId } = request.tenant
     const { contacts, ...body } = CreateSchema.parse(request.body)
+    await assertTenantOwned(app.db, 'categoriePointDeVente', body.categorieId, tenantId)
 
     if (body.encaissementDirect === false && !getPlanFeatures(request.tenant.plan).reversements) {
       return reply.status(402).send({
@@ -85,6 +87,7 @@ export const pointDeVenteRoutes: FastifyPluginAsync = async (app) => {
     const existing = await app.db.pointDeVente.findFirst({ where: { id, tenantId } })
     if (!existing) return reply.notFound()
     const { contacts, ...body } = PatchSchema.parse(request.body)
+    await assertTenantOwned(app.db, 'categoriePointDeVente', body.categorieId, tenantId)
 
     if (body.encaissementDirect === false && !getPlanFeatures(request.tenant.plan).reversements) {
       return reply.status(402).send({

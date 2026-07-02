@@ -4,6 +4,7 @@ import { mkdir } from 'node:fs/promises'
 import path from 'node:path'
 import sharp from 'sharp'
 import { getPlanFeatures } from '@megesti/shared'
+import { assertTenantOwned } from '../lib/ownership.js'
 
 const CreateArticleSchema = z.object({
   id:              z.string().uuid(),
@@ -119,6 +120,13 @@ export const articleRoutes: FastifyPluginAsync = async (app) => {
 
     const { auteurIds, ...rest } = CreateArticleSchema.parse(request.body)
 
+    await Promise.all([
+      assertTenantOwned(app.db, 'rayon',     rest.rayonId,     tenantId),
+      assertTenantOwned(app.db, 'categorie', rest.categorieId, tenantId),
+      assertTenantOwned(app.db, 'imprimeur', rest.imprimeurId, tenantId),
+      assertTenantOwned(app.db, 'auteur',    auteurIds,        tenantId),
+    ])
+
     // ── Auteur virtuel (plan Auto-édition) ──
     let resolvedAuteurIds = auteurIds
     if (features.auteurs === 'reseau' && auteurIds.length === 0) {
@@ -151,6 +159,13 @@ export const articleRoutes: FastifyPluginAsync = async (app) => {
     const { auteurIds, ...rest } = PatchArticleSchema.parse(request.body)
     const existing = await app.db.article.findFirst({ where: { id, tenantId } })
     if (!existing) return reply.notFound()
+
+    await Promise.all([
+      assertTenantOwned(app.db, 'rayon',     rest.rayonId,     tenantId),
+      assertTenantOwned(app.db, 'categorie', rest.categorieId, tenantId),
+      assertTenantOwned(app.db, 'imprimeur', rest.imprimeurId, tenantId),
+      assertTenantOwned(app.db, 'auteur',    auteurIds,        tenantId),
+    ])
 
     return app.db.$transaction(async (tx) => {
       if (auteurIds !== undefined) {

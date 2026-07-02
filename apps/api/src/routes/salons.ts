@@ -1,6 +1,7 @@
 import type { FastifyPluginAsync } from 'fastify'
 import type { Prisma } from '@prisma/client'
 import { z } from 'zod'
+import { assertTenantOwned } from '../lib/ownership.js'
 
 const ContactSchema = z.object({
   id:        z.string().uuid(),
@@ -86,6 +87,7 @@ export const salonRoutes: FastifyPluginAsync = async (app) => {
   app.post('/', authEditor, async (request, reply) => {
     const { tenantId } = request.tenant
     const { contacts, dateDebut, dateFin, prixPrevuFixe, prixPrevuPct, creerPointDeVente, ...rest } = CreateSchema.parse(request.body)
+    await assertTenantOwned(app.db, 'typeSalon', rest.typeSalonId, tenantId)
 
     const rec = await app.db.$transaction(async (tx) => {
       const salon = await tx.salon.create({
@@ -115,6 +117,7 @@ export const salonRoutes: FastifyPluginAsync = async (app) => {
     const { contacts, dateDebut, dateFin, creerPointDeVente, nom, ...rest } = PatchSchema.parse(request.body)
     const existing = await app.db.salon.findFirst({ where: { id, tenantId } })
     if (!existing) return reply.notFound()
+    await assertTenantOwned(app.db, 'typeSalon', rest.typeSalonId, tenantId)
 
     return app.db.$transaction(async (tx) => {
       if (contacts !== undefined) {

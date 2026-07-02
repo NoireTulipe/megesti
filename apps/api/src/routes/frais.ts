@@ -1,5 +1,6 @@
 import type { FastifyPluginAsync } from 'fastify'
 import { z } from 'zod'
+import { assertTenantOwned } from '../lib/ownership.js'
 
 const CreateSchema = z.object({
   id:        z.string().uuid(),
@@ -30,6 +31,7 @@ export const fraisRoutes: FastifyPluginAsync = async (app) => {
   app.post('/', authEditor, async (request, reply) => {
     const { tenantId } = request.tenant
     const body = CreateSchema.parse(request.body)
+    await assertTenantOwned(app.db, 'sessionCaisse', body.sessionId, tenantId)
     const rec = await app.db.frais.create({
       data: { ...body, tenantId } as any,
     })
@@ -42,6 +44,7 @@ export const fraisRoutes: FastifyPluginAsync = async (app) => {
     const body = PatchSchema.parse(request.body)
     const existing = await app.db.frais.findFirst({ where: { id, tenantId } })
     if (!existing) return reply.notFound()
+    await assertTenantOwned(app.db, 'sessionCaisse', body.sessionId, tenantId)
     return app.db.frais.update({ where: { id }, data: body })
   })
 
