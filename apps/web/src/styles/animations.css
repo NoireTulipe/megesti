@@ -109,3 +109,55 @@
 .zone-animate {
   animation: fadeUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
+
+/* ════════════════════════════════════════════════════════════════
+   Entrée en cascade — poser .stagger sur un conteneur de grille
+   ════════════════════════════════════════════════════════════════ */
+
+.stagger > * {
+  animation: fadeUp 0.45s var(--ease-out) backwards;
+}
+.stagger > *:nth-child(1)  { animation-delay: 0.00s; }
+.stagger > *:nth-child(2)  { animation-delay: 0.04s; }
+.stagger > *:nth-child(3)  { animation-delay: 0.08s; }
+.stagger > *:nth-child(4)  { animation-delay: 0.12s; }
+.stagger > *:nth-child(5)  { animation-delay: 0.16s; }
+.stagger > *:nth-child(6)  { animation-delay: 0.20s; }
+.stagger > *:nth-child(7)  { animation-delay: 0.24s; }
+.stagger > *:nth-child(8)  { animation-delay: 0.28s; }
+.stagger > *:nth-child(9)  { animation-delay: 0.32s; }
+.stagger > *:nth-child(10) { animation-delay: 0.36s; }
+.stagger > *:nth-child(11) { animation-delay: 0.40s; }
+.stagger > *:nth-child(n+12) { animation-delay: 0.44s; }
+
+/* ════════════════════════════════════════════════════════════════
+   Transition d'entrée de page (wrapper keyé sur la route)
+   ════════════════════════════════════════════════════════════════ */
+
+.page-enter {
+  animation: fadeUp 0.25s var(--ease-out);
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   Shimmer — balayage lumineux des skeletons
+   ════════════════════════════════════════════════════════════════ */
+
+@keyframes shimmer {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(100%); }
+}
+
+/* ════════════════════════════════════════════════════════════════
+   Accessibilité — coupe le décoratif si l'OS le demande
+   ════════════════════════════════════════════════════════════════ */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

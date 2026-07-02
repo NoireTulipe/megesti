@@ -48,7 +48,10 @@ export function AppLayout({ children }: AppLayoutProps) {
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
         <Header />
         <main style={{ flex: 1, overflowY: 'auto', position: 'relative' }}>
-          {children}
+          {/* key sur la route : rejoue l'animation d'entrée à chaque navigation */}
+          <div key={location.pathname} className="page-enter">
+            {children}
+          </div>
         </main>
       </div>
       <PopupOverlay />

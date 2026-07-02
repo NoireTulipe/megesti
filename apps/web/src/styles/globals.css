@@ -147,6 +147,31 @@
   }
 
   #root { height: 100%; display: flex; flex-direction: column; }
+
+  /* Appui tactile universel — feedback immédiat sur tous les boutons */
+  button:not(:disabled) {
+    transition: transform var(--t-fast) var(--ease-out);
+  }
+  button:not(:disabled):active {
+    transform: scale(0.97);
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════
+   SKELETONS — shimmer global (matche les .skeleton des CSS modules)
+   ════════════════════════════════════════════════════════════════ */
+
+[class*="skeleton"] {
+  position: relative;
+  overflow: hidden;
+}
+[class*="skeleton"]::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.55), transparent);
+  animation: shimmer 1.4s var(--ease-out) infinite;
 }
 
 /* ════════════════════════════════════════════════════════════════

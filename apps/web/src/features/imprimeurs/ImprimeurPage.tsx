@@ -75,7 +75,7 @@ export function ImprimeurPage() {
       )}
 
       {!isLoading && !isError && items.length > 0 && (
-        <div className={sty.grid}>
+        <div className={`${sty.grid} stagger`}>
           {items.map(item => (
             <ImprimeurCard
               key={item.id}

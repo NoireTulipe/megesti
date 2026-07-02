@@ -88,7 +88,7 @@ export function MaisonsEditionPage() {
 
       {/* ── Grille ── */}
       {!isLoading && !isError && items.length > 0 && (
-        <div className={styles.grid}>
+        <div className={`${styles.grid} stagger`}>
           {items.map(item => (
             <MaisonEditionCard
               key={item.id}

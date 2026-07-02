@@ -92,7 +92,7 @@ export function PointsDeVentePage() {
 
       {!isLoading && !isError && (
         items.length > 0 ? (
-          <div className={sty.grid}>
+          <div className={`${sty.grid} stagger`}>
             {items.map(item => (
               <PointDeVenteCard key={item.id} pdv={item} onClick={() => setDetail(item)} />
             ))}

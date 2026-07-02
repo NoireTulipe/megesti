@@ -122,7 +122,7 @@ export function AuteursPage() {
         )}
 
         {!isLoading && !isError && auteurs.length > 0 && (
-          <div className={styles.grid}>
+          <div className={`${styles.grid} stagger`}>
             {auteurs.map(auteur => (
               <AuteurCard
                 key={auteur.id}

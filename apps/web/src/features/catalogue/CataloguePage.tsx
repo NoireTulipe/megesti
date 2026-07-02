@@ -200,7 +200,7 @@ export function CataloguePage() {
       )}
 
       {!isLoading && !isError && articles.length > 0 && (
-        <div className={styles.grid}>
+        <div className={`${styles.grid} stagger`}>
           {articles.map(article => (
             <ArticleCard
               key={article.id}

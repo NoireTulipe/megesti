@@ -76,7 +76,7 @@ export function DepotsLibrairesPage() {
       )}
 
       {!isLoading && !isError && items.length > 0 && (
-        <div className={sty.grid}>
+        <div className={`${sty.grid} stagger`}>
           {items.map(item => (
             <DepotLibraireCard
               key={item.id}

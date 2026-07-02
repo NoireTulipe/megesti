@@ -86,7 +86,7 @@ export function SalonsPage() {
 
       {/* ── Grille ── */}
       {!isLoading && salons.length > 0 && (
-        <div className={styles.grid}>
+        <div className={`${styles.grid} stagger`}>
           {salons.map(salon => (
             <SalonCard
               key={salon.id}
