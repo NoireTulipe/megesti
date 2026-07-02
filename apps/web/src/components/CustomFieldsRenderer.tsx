@@ -2,6 +2,7 @@ import type { UseFormRegister, FieldErrors } from 'react-hook-form'
 import { useCustomFields, useCustomFieldsByRayon } from '@/features/reglages/hooks/useCustomFields'
 import { useThesauri } from '@/features/reglages/hooks/useThesaurus'
 import { buildValidateRule } from '@/lib/customFieldValidation'
+import { DateField } from '@/components/DateInput'
 import type { EntityType } from '@megesti/shared'
 import type { CustomFieldDef } from '@/features/reglages/hooks/useCustomFields'
 import styles from './CustomFieldsRenderer.module.css'
@@ -136,7 +137,7 @@ function renderFieldInner(
         <input id={fieldName} className={styles.input} inputMode="decimal" placeholder={ph ?? '0'} {...register(fieldName, rules)} />
       )}
       {champ.fieldType === 'date' && (
-        <input id={fieldName} type="date" className={styles.input} {...register(fieldName, rules)} />
+        <DateField id={fieldName} className={styles.input} {...register(fieldName, rules)} />
       )}
       {champ.fieldType === 'boolean' && (
         <label className={styles.checkboxRow}>

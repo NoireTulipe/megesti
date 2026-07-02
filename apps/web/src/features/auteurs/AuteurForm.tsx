@@ -14,6 +14,7 @@ import { useCustomFieldValues, useSaveCustomFieldValues } from '@/features/regla
 import { validateCustomFields } from '@/lib/customFieldValidation'
 import { FIXED_SECTIONS } from '@/lib/fixedSections'
 import { usePlanFeatures } from '@/hooks/usePlanFeatures'
+import { DateInput } from '@/components/DateInput'
 import styles from './AuteurForm.module.css'
 
 const FIXED_CATEGORIES = FIXED_SECTIONS.auteur.map((s) => s.label)
@@ -231,7 +232,7 @@ export function AuteurForm({ onClose, auteur }: Props) {
                 </div>
                 <div className={styles.field}>
                   <label className={styles.label}>Date de signature</label>
-                  <input type="date" className={styles.input} value={contratDateSig} onChange={(e) => setContratDateSig(e.target.value)} />
+                  <DateInput className={styles.input} value={contratDateSig} onChange={setContratDateSig} />
                 </div>
               </div>
               <div className={styles.row2}>

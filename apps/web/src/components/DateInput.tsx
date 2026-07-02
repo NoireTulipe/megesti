@@ -1,3 +1,4 @@
+import type { ComponentProps } from 'react'
 import styles from './DateInput.module.css'
 
 interface Props {
@@ -24,6 +25,14 @@ export function DateInput({ value, onChange, min, max, required, className, id }
       className={`${styles.input} ${className ?? ''}`}
     />
   )
+}
+
+/**
+ * Variante à props natives (onChange événementiel), pour react-hook-form :
+ * <DateField {...register('dateDebut')} />
+ */
+export function DateField({ className, ...rest }: Omit<ComponentProps<'input'>, 'type'>) {
+  return <input type="date" className={`${styles.input} ${className ?? ''}`} {...rest} />
 }
 
 /** Formate une date ISO en "DD/MM/YYYY" pour l'affichage. */

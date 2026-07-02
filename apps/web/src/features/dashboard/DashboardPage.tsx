@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Check } from 'lucide-react'
 import { Icon } from '@/components/Icon'
 import { Modal } from '@/components/ui/Modal'
+import { DateField } from '@/components/DateInput'
 import { MetricCard } from './MetricCard'
 import { AlertItem } from './AlertItem'
 import { ActivityItem } from './ActivityItem'
@@ -320,7 +321,7 @@ export function DashboardPage() {
             <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-soft)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Auteur</label>
             <input placeholder="Nom, prénom" style={{ ...inputCss, marginTop: 4 }} />
             <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-soft)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Date de parution prévue</label>
-            <input type="date" style={{ ...inputCss, marginTop: 4 }} />
+            <DateField style={{ marginTop: 4, width: '100%' }} />
             <button type="submit" style={submitCss}>Ajouter au catalogue</button>
           </form>
         </Modal>
@@ -332,7 +333,7 @@ export function DashboardPage() {
             <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-soft)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Nom de l'événement</label>
             <input placeholder="ex. Salon du livre de Rennes" style={{ ...inputCss, marginTop: 4 }} />
             <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-soft)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Date</label>
-            <input type="date" style={{ ...inputCss, marginTop: 4 }} />
+            <DateField style={{ marginTop: 4, width: '100%' }} />
             <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-soft)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Lieu</label>
             <input placeholder="Ville ou adresse" style={{ ...inputCss, marginTop: 4 }} />
             <button type="submit" style={submitCss}>Créer l'événement</button>

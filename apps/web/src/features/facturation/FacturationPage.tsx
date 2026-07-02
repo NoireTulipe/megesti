@@ -13,6 +13,7 @@ import { DestinatairePicker } from './DestinatairePicker'
 import { QuotaDepaseModal } from './QuotaDepaseModal'
 import type { Article } from '@/features/catalogue/types'
 import { api } from '@/lib/api'
+import { DateInput } from '@/components/DateInput'
 import styles from './FacturationPage.module.css'
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -210,12 +211,12 @@ function EmissionForm({ onSent, onQuotaDepasse }: { onSent: () => void; onQuotaD
         <div className={styles.invoiceDates}>
           <div className={styles.invoiceDateField}>
             <label>Date d'émission</label>
-            <input type="date" value={dateEm} onChange={e => setDateEm(e.target.value)} required className={styles.dateInput} />
+            <DateInput value={dateEm} onChange={setDateEm} required className={styles.dateInput} />
           </div>
           <div className={styles.invoiceDateSep}>→</div>
           <div className={styles.invoiceDateField}>
             <label>Échéance</label>
-            <input type="date" value={dateEch} onChange={e => setDateEch(e.target.value)} className={styles.dateInput} />
+            <DateInput value={dateEch} onChange={setDateEch} className={styles.dateInput} />
           </div>
         </div>
       </div>

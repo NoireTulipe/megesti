@@ -9,6 +9,7 @@ import { useTypesDA } from '@/features/reglages/hooks/useTypesDA'
 import { useArticles } from '@/features/catalogue/hooks/useArticles'
 import { useFranchiseTVA } from '@/hooks/useFranchiseTVA'
 import type { Auteur } from './hooks/useAuteurs'
+import { DateInput } from '@/components/DateInput'
 import sty from './AuteurForm.module.css'
 
 // •"?•"? Helpers •"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?
@@ -97,11 +98,9 @@ function PeriodiciteFields({ periodicite, datesFixesJSON, prochainVersement, onC
             <label style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-soft)', display: 'block', marginBottom: 4 }}>
               Prochain versement
             </label>
-            <input
-              type="date"
-              style={{ padding: '8px 10px', border: '1.5px solid var(--cream-dark)', borderRadius: 8, fontSize: '0.85rem', background: '#fff' }}
+            <DateInput
               value={prochainVersement}
-              onChange={(e) => onChange(periodicite, datesFixesJSON, e.target.value)}
+              onChange={(v) => onChange(periodicite, datesFixesJSON, v)}
             />
           </div>
         )}
@@ -224,11 +223,11 @@ function ContratCard({ c, typesDA, articles, onDelete, onUpdate, onAppliquer, up
         <div className={sty.row2}>
           <div className={sty.field}>
             <label className={sty.label}>Date de signature</label>
-            <input type="date" className={sty.input} value={f.dateSignature} onChange={e => set('dateSignature')(e.target.value)} />
+            <DateInput className={sty.input} value={f.dateSignature} onChange={set('dateSignature')} />
           </div>
           <div className={sty.field}>
             <label className={sty.label}>Date de prise d'effet</label>
-            <input type="date" className={sty.input} value={f.datePriseEffet} onChange={e => set('datePriseEffet')(e.target.value)} />
+            <DateInput className={sty.input} value={f.datePriseEffet} onChange={set('datePriseEffet')} />
           </div>
         </div>
         <div className={sty.row2}>
@@ -476,12 +475,11 @@ function FormulaireContrat({ auteurId, articles, typesDA, onCreated, onCancel, i
       <div className={sty.row2}>
         <div className={sty.field}>
           <label className={sty.label}>Date de signature</label>
-          <input type="date" className={sty.input} value={f.dateSignature} onChange={(e) => set('dateSignature')(e.target.value)} />
+          <DateInput className={sty.input} value={f.dateSignature} onChange={set('dateSignature')} />
         </div>
         <div className={sty.field}>
           <label className={sty.label}>Date de prise d'effet</label>
-          <input type="date" className={sty.input} value={f.datePriseEffet} onChange={(e) => set('datePriseEffet')(e.target.value)}
-            placeholder={f.dateSignature || '= date de signature'} />
+          <DateInput className={sty.input} value={f.datePriseEffet} onChange={set('datePriseEffet')} />
         </div>
       </div>
 

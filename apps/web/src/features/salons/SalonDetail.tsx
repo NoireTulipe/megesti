@@ -4,6 +4,7 @@ import type { Salon, ContactSalon, CreateSalonPayload } from './hooks/useSalons'
 import { salonCA } from './hooks/useSalons'
 import { useCreateSalon, useUpdateSalon } from './hooks/useSalons'
 import { useTypesSalon, useCreateTypeSalon } from './hooks/useTypesSalon'
+import { DateInput } from '@/components/DateInput'
 import styles from './SalonDetail.module.css'
 
 // •"?•"? Helpers •"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?
@@ -278,11 +279,11 @@ export function SalonDetail({ salon, onDone, onCancel }: Props) {
           <div className={styles.grid2}>
             <div className={styles.field}>
               <label className={styles.label}>Date de début</label>
-              <input className={styles.input} type="date" value={dateDebut} onChange={(e) => setDateDebut(e.target.value)} />
+              <DateInput className={styles.input} value={dateDebut} onChange={setDateDebut} />
             </div>
             <div className={styles.field}>
               <label className={styles.label}>Date de fin</label>
-              <input className={styles.input} type="date" value={dateFin} onChange={(e) => setDateFin(e.target.value)} />
+              <DateInput className={styles.input} value={dateFin} onChange={setDateFin} />
             </div>
           </div>
         </section>

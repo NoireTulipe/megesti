@@ -13,6 +13,7 @@ import { useCustomFieldValues, useSaveCustomFieldValues } from '@/features/regla
 import { CustomFieldsRenderer } from '@/components/CustomFieldsRenderer'
 import { validateCustomFields } from '@/lib/customFieldValidation'
 import { DualRangeSlider } from '@/components/DualRangeSlider'
+import { DateField } from '@/components/DateInput'
 import { useFranchiseTVA } from '@/hooks/useFranchiseTVA'
 import { usePlanFeatures } from '@/hooks/usePlanFeatures'
 import { useMonTenant } from '@/features/reglages/hooks/useMonTenant'
@@ -713,7 +714,7 @@ export function ArticleForm({ onClose, article }: Props) {
               )}
               <div className={styles.field}>
                 <label className={styles.label} htmlFor="datePublication">Date de publication</label>
-                <input id="datePublication" type="date" className={styles.input} {...register('datePublication')} />
+                <DateField id="datePublication" className={styles.input} {...register('datePublication')} />
               </div>
               <div className={styles.field}>
                 <label className={styles.label}>Auteur{!reseauOnly ? 's' : ''}</label>

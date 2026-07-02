@@ -10,6 +10,7 @@ import { useCustomFields } from '@/features/reglages/hooks/useCustomFields'
 import { useCustomFieldValues, useSaveCustomFieldValues } from '@/features/reglages/hooks/useCustomFieldValues'
 import { validateCustomFields } from '@/lib/customFieldValidation'
 import { FIXED_SECTIONS } from '@/lib/fixedSections'
+import { DateField } from '@/components/DateInput'
 import styles from '@/styles/entityForm.module.css'
 
 const FIXED_CATEGORIES = FIXED_SECTIONS.salon.map((s) => s.label)
@@ -118,11 +119,11 @@ export function SalonForm({ onClose, salon }: Props) {
         <div className={styles.row2}>
           <div className={styles.field}>
             <label className={styles.label} htmlFor="dateDebut">Date de début</label>
-            <input id="dateDebut" type="date" className={styles.input} {...register('dateDebut')} />
+            <DateField id="dateDebut" className={styles.input} {...register('dateDebut')} />
           </div>
           <div className={styles.field}>
             <label className={styles.label} htmlFor="dateFin">Date de fin</label>
-            <input id="dateFin" type="date" className={styles.input} {...register('dateFin')} />
+            <DateField id="dateFin" className={styles.input} {...register('dateFin')} />
           </div>
         </div>
         <CustomFieldsRenderer entityType="salon" onlyCategory="Dates" register={register} errors={errors} />
