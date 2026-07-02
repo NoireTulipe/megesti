@@ -12,6 +12,15 @@
   flex-shrink: 0;
 }
 
+/* Voile rose→mauve très léger par-dessus le bandeau */
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, rgba(196,144,124,0.10) 0%, transparent 45%, rgba(139,123,171,0.10) 100%);
+  pointer-events: none;
+}
+
 .heroBlob {
   position: absolute;
   top: -100px; right: -100px;
@@ -20,6 +29,17 @@
   background: radial-gradient(circle, rgba(139,123,171,0.18) 0%, rgba(196,144,124,0.08) 50%, transparent 70%);
   pointer-events: none;
   animation: blobPulse 7s ease-in-out infinite;
+}
+
+/* Second blob rose, bas-gauche, en dérive lente */
+.heroBlobLeft {
+  position: absolute;
+  bottom: -140px; left: -80px;
+  width: 320px; height: 320px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(196,144,124,0.16) 0%, rgba(201,147,58,0.06) 55%, transparent 75%);
+  pointer-events: none;
+  animation: blobDriftB 18s ease-in-out infinite;
 }
 
 @keyframes blobPulse {
@@ -46,10 +66,12 @@
 }
 
 .heroSub {
-  font-size: 0.82rem;
-  color: rgba(255,255,255,0.45);
+  font-family: 'DM Serif Display', Georgia, serif;
+  font-size: 0.95rem;
+  color: rgba(255,255,255,0.55);
   margin: 0;
   font-style: italic;
+  letter-spacing: 0.01em;
 }
 
 .heroActions {

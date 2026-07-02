@@ -656,13 +656,13 @@ export function VentesPage() {
                 <div className={styles.totalRow} style={{ color: 'var(--text-soft)', fontSize: '0.72rem' }}>
                   <span>TVA non applicable — art. 293 B CGI</span>
                 </div>
-                <div className={styles.totalRowBig}><span>Total</span><span>{totals.ttc} €</span></div>
+                <div className={styles.totalRowBig}><span>Total</span><span key={totals.ttc} className={styles.totalValuePulse}>{totals.ttc} €</span></div>
               </>
             ) : (
               <>
                 <div className={styles.totalRow}><span>Total HT</span><span>{totals.ht} €</span></div>
                 <div className={styles.totalRow}><span>TVA</span><span>{totals.tva} €</span></div>
-                <div className={styles.totalRowBig}><span>Total TTC</span><span>{totals.ttc} €</span></div>
+                <div className={styles.totalRowBig}><span>Total TTC</span><span key={totals.ttc} className={styles.totalValuePulse}>{totals.ttc} €</span></div>
               </>
             )}
           </div>

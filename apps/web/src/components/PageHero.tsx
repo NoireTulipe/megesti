@@ -14,6 +14,7 @@ export function PageHero({ title, subtitle, children, extra }: PageHeroProps) {
   return (
     <header className={styles.hero}>
       <div className={styles.heroBlob} aria-hidden="true" />
+      <div className={styles.heroBlobLeft} aria-hidden="true" />
       <div className={styles.heroContent}>
         <div>
           <h1 className={styles.heroTitle}>{title}</h1>
