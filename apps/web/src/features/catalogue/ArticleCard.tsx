@@ -41,6 +41,14 @@ export function ArticleCard({ article, onEdit, onToggle, onClick }: Props) {
           )
         }
         {retire && <span className={styles.badgeRetire}>Retiré</span>}
+        {!article.vendable && (
+          <span
+            className={styles.badgeRetire}
+            style={{ background: 'var(--mauve)', top: retire ? 38 : undefined }}
+          >
+            Matière première
+          </span>
+        )}
         {onToggle && (
           <button
             className={`${styles.retireBtn}${retire ? ` ${styles.retireBtnRestore}` : ''}`}
@@ -64,7 +72,10 @@ export function ArticleCard({ article, onEdit, onToggle, onClick }: Props) {
         {article.isbn && <p className={styles.isbn}>{article.isbn}</p>}
 
         <div className={styles.footer}>
-          <span className={styles.prix}>{Number(article.prixVenteHT).toFixed(2)} €</span>
+          {article.vendable
+            ? <span className={styles.prix}>{Number(article.prixVenteHT).toFixed(2)} €</span>
+            : <span className={styles.prix} style={{ color: 'var(--text-soft)', fontStyle: 'italic', fontWeight: 400 }}>Non vendable</span>
+          }
           <StockPill article={article} />
         </div>
 

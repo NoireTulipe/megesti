@@ -21,6 +21,7 @@ const CreateArticleSchema = z.object({
   stock:           z.number().int().nonnegative().default(0),
   stockAlerte:     z.number().int().nonnegative().default(0),
   stockTension:    z.number().int().nonnegative().default(0),
+  vendable:        z.boolean().default(true),
   isbn:            z.string().optional().nullable().transform(v => v ? v.replace(/[-\s]/g, '') : v),
   datePublication: z.string().optional().nullable().transform((v) => v ? new Date(v) : null),
   auteurIds:       z.array(z.string().uuid()).default([]),
@@ -46,6 +47,7 @@ const PatchArticleSchema = z.object({
   auteurIds:       z.array(z.string().uuid()).optional(),
   imprimeurId:     z.string().uuid().optional().nullable(),
   actif:           z.boolean().optional(),
+  vendable:        z.boolean().optional(),
   bnfDeclaree:     z.boolean().optional(),
 })
 
@@ -54,6 +56,7 @@ const ListQuerySchema = z.object({
   rayonId:     z.string().uuid().optional(),
   categorieId: z.string().uuid().optional(),
   actif:       z.enum(['true', 'false']).optional(),
+  vendable:    z.enum(['true', 'false']).optional(),
   take:        z.coerce.number().int().positive().max(1000).optional(),
 })
 
@@ -74,12 +77,13 @@ export const articleRoutes: FastifyPluginAsync = async (app) => {
 
   app.get('/', auth, async (request) => {
     const { tenantId } = request.tenant
-    const { q, rayonId, categorieId, actif, take } = ListQuerySchema.parse(request.query)
+    const { q, rayonId, categorieId, actif, vendable, take } = ListQuerySchema.parse(request.query)
 
     return app.db.article.findMany({
       where: {
         tenantId,
         actif:       actif !== undefined ? actif === 'true' : true,
+        ...(vendable !== undefined && { vendable: vendable === 'true' }),
         ...(rayonId     && { rayonId }),
         ...(categorieId && { categorieId }),
         ...(q           && { nom: { contains: q, mode: 'insensitive' } }),
@@ -105,9 +109,9 @@ export const articleRoutes: FastifyPluginAsync = async (app) => {
     const { tenantId, plan } = request.tenant
     const features = getPlanFeatures(plan)
 
-    // ── Quota articles actifs ──
+    // ── Quota articles actifs (les matières premières ne comptent pas) ──
     if (features.maxArticles !== null) {
-      const count = await app.db.article.count({ where: { tenantId, actif: true } })
+      const count = await app.db.article.count({ where: { tenantId, actif: true, vendable: true } })
       if (count >= features.maxArticles) {
         return reply.status(402).send({
           error:   'ArticleQuotaReached',

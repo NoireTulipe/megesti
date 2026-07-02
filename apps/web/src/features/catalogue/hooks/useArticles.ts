@@ -4,18 +4,20 @@ import type { Article, CreateArticlePayload } from '../types'
 
 const KEYS = {
   all:  () => ['articles'] as const,
-  list: (rayonId?: string, q?: string, actif?: boolean) =>
-    ['articles', 'list', rayonId ?? '', q ?? '', String(actif ?? true)] as const,
+  list: (rayonId?: string, q?: string, actif?: boolean, vendable?: boolean) =>
+    ['articles', 'list', rayonId ?? '', q ?? '', String(actif ?? true), String(vendable ?? 'all')] as const,
 }
 
-export function useArticles(rayonId?: string, q?: string, actif = true) {
+/** `vendable: true` dans les contextes de vente (caisse, dépôts…) pour exclure les matières premières. */
+export function useArticles(rayonId?: string, q?: string, actif = true, vendable?: boolean) {
   return useQuery({
-    queryKey: KEYS.list(rayonId, q, actif),
+    queryKey: KEYS.list(rayonId, q, actif, vendable),
     queryFn:  () => {
       const params = new URLSearchParams()
       if (rayonId) params.set('rayonId', rayonId)
       if (q)       params.set('q', q)
       params.set('actif', String(actif))
+      if (vendable !== undefined) params.set('vendable', String(vendable))
       return api.get<Article[]>(`/articles?${params.toString()}`)
     },
   })

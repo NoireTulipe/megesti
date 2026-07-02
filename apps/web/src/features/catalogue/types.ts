@@ -42,6 +42,7 @@ export interface Article {
   stockAlerte:     number
   stockTension:    number
   actif:           boolean
+  vendable:        boolean
   isbn:            string | null
   datePublication: string | null
   bnfDeclaree:     boolean
@@ -66,6 +67,7 @@ export interface CreateArticlePayload {
   stock?:           number
   stockAlerte?:     number
   stockTension?:    number
+  vendable?:        boolean
   isbn?:            string | null
   datePublication?: string | null
   auteurIds:        string[]

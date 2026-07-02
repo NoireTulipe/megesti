@@ -47,6 +47,7 @@ const schema = z.object({
   isbn:            z.string().regex(/^[\dX]*$/i, 'ISBN invalide — chiffres uniquement').optional(),
   datePublication: z.string().optional(),
   imprimeurId:     z.string().optional().nullable(),
+  vendable:        z.boolean().default(true),
 })
 
 type FormValues = z.infer<typeof schema>
@@ -142,10 +143,12 @@ export function ArticleForm({ onClose, article }: Props) {
         isbn:            article.isbn ?? '',
         datePublication: article.datePublication ?? '',
         imprimeurId:     article.imprimeurId ?? null,
-      } : { stock: 0 },
+        vendable:        article.vendable,
+      } : { stock: 0, vendable: true },
     })
 
   const selectedRayonId    = useWatch({ control, name: 'rayonId' })
+  const watchVendable      = useWatch({ control, name: 'vendable', defaultValue: article?.vendable ?? true })
   const watchPrixHT        = useWatch({ control, name: 'prixVenteHT' })
   const watchLotHT         = useWatch({ control, name: 'prixAchatLotHT' })
   const watchLotQte        = useWatch({ control, name: 'prixAchatLotQte' })
@@ -297,7 +300,8 @@ export function ArticleForm({ onClose, article }: Props) {
       nom:             values.nom,
       reference:       values.reference   || null,
       description:     values.description || null,
-      prixVenteHT:     values.prixVenteHT,
+      prixVenteHT:     values.vendable ? values.prixVenteHT : 0,
+      vendable:        values.vendable,
       prixAchatHT:     values.prixAchatHT     ?? null,
       prixAchatLotHT:  values.prixAchatLotHT  ?? null,
       prixAchatLotQte: values.prixAchatLotQte ?? null,
@@ -604,10 +608,22 @@ export function ArticleForm({ onClose, article }: Props) {
                 </span>
               )}
             </p>
-            <div className={styles.prixVenteRow}>
+            {/* Matière première : stock géré mais jamais proposée à la vente */}
+            <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', userSelect: 'none', marginBottom: 14 }}>
+              <input
+                type="checkbox"
+                checked={!watchVendable}
+                onChange={(e) => setValue('vendable', !e.target.checked, { shouldDirty: true })}
+                style={{ width: 16, height: 16, accentColor: 'var(--mauve)', cursor: 'pointer' }}
+              />
+              <span style={{ fontSize: '0.85rem', color: 'var(--ink)' }}>
+                Matière première <span style={{ color: 'var(--text-soft)' }}>(papier, encre… — stock suivi, jamais vendable en caisse ni en dépôt)</span>
+              </span>
+            </label>
+            <div className={styles.prixVenteRow} style={!watchVendable ? { opacity: 0.45, pointerEvents: 'none' } : undefined}>
               <div className={styles.field} style={{ flex: 1 }}>
                 <label className={styles.label} htmlFor="prixVenteHT">
-                  {franchiseTVA ? 'Prix de vente' : 'Prix vente HT'} <span className={styles.req}>*</span>
+                  {franchiseTVA ? 'Prix de vente' : 'Prix vente HT'} {watchVendable && <span className={styles.req}>*</span>}
                 </label>
                 <div className={styles.inputWithUnit}>
                   <input
@@ -615,6 +631,7 @@ export function ArticleForm({ onClose, article }: Props) {
                     className={`${styles.input} ${errors.prixVenteHT ? styles.inputError : ''}`}
                     inputMode="decimal"
                     placeholder="0.00"
+                    disabled={!watchVendable}
                     {...register('prixVenteHT', { onBlur: onHTBlur })}
                   />
                   <span className={styles.unit}>€</span>

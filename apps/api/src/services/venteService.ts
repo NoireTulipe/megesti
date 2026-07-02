@@ -49,6 +49,10 @@ export async function creerVente(db: PrismaClient, params: CreerVenteParams) {
   })
   if (articles.length !== articleIds.length) throw httpError(404, 'Un ou plusieurs articles introuvables')
 
+  // Garde matière première : jamais vendable, quel que soit le canal (web, mobile)
+  const nonVendable = articles.find((a) => !a.vendable)
+  if (nonVendable) throw httpError(400, `« ${nonVendable.nom} » est une matière première, non vendable`)
+
   const tenant = await db.tenant.findUnique({ where: { id: tenantId }, select: { franchiseTva: true } })
   const tauxFactor = tenant?.franchiseTva ? 0 : 1
 

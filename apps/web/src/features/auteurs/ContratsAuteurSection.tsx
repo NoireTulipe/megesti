@@ -541,7 +541,7 @@ export function ContratsAuteurSection({ auteur, allArticles = false }: Props) {
 
   const { data: contrats = [] }  = useContratsAuteur(auteur.id)
   const { data: typesDA = [] }   = useTypesDA()
-  const { data: articles = [] }  = useArticles(undefined, undefined, true)
+  const { data: articles = [] }  = useArticles(undefined, undefined, true, true)
   const createContrat            = useCreateContratAuteur()
   const updateContrat            = useUpdateContratAuteur()
   const deleteContrat            = useDeleteContratAuteur()

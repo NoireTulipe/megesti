@@ -147,6 +147,11 @@ export function ArticleDetail({ article, isOpen, onClose, onEdit, onToggle }: Pr
                 <span className={sty['detail-hero-pill']} style={{ color: stockCouleur, fontWeight: 700 }}>
                   {article.stock} en stock
                 </span>
+                {!article.vendable && (
+                  <span style={{ background: 'var(--mauve-light)', color: 'var(--mauve)', border: '1px solid var(--mauve)', padding: '2px 12px', borderRadius: 99, fontSize: '0.72rem', fontWeight: 700 }}>
+                    Matière première
+                  </span>
+                )}
                 {retire && (
                   <span style={{ background: '#FEE2E2', color: '#DC2626', border: '1px solid #FECACA', padding: '2px 12px', borderRadius: 99, fontSize: '0.72rem', fontWeight: 700 }}>
                     Retiré

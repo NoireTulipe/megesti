@@ -481,6 +481,8 @@ model Article {
   stockAlerte     Int       @default(0)
   stockTension    Int       @default(0)
   actif           Boolean   @default(true)
+  // false = matière première (papier, encre…) : stock géré, jamais vendable
+  vendable        Boolean   @default(true)
   imprimeurId     String?
   // Champs librairie — null pour les autres rayons
   isbn            String?

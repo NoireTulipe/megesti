@@ -173,7 +173,7 @@ function TabContacts({ depot, depotId }: { depot: ReturnType<typeof useDepotLibr
 function TabStock({ depot, depotId }: { depot: ReturnType<typeof useDepotLibraireDetail>['data']; depotId: string }) {
   const envoyer  = useEnvoyerArticle(depotId)
   const retirer  = useRetirerArticle(depotId)
-  const { data: articles = [] } = useArticles(undefined, undefined, true)
+  const { data: articles = [] } = useArticles(undefined, undefined, true, true)
   const [showForm, setShowForm] = useState(false)
   const [articleId, setArticleId] = useState('')
   const [qte, setQte]             = useState('')

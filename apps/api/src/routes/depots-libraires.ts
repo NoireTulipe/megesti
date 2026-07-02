@@ -146,6 +146,7 @@ export const depotLibraireRoutes: FastifyPluginAsync = async (app) => {
     if (!depot) return reply.notFound()
     const article = await app.db.article.findFirst({ where: { id: body.articleId, tenantId } })
     if (!article) return reply.notFound('Article introuvable')
+    if (!article.vendable) return reply.badRequest(`« ${article.nom} » est une matière première, non vendable en dépôt`)
     if (article.stock < body.quantiteEnvoyee) return reply.badRequest('Stock insuffisant')
 
     // Sortie de stock + création ArticleDepot (transaction callback — plus robuste avec nouveaux modèles)

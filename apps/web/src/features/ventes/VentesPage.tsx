@@ -96,7 +96,7 @@ export function VentesPage() {
   const { data: sessions       = [] } = useSessionsCaisse({ statut: 'OUVERTE' })
   const { data: sessionsFermees = [] } = useSessionsCaisse({ statut: 'FERMEE' })
   const { data: rayons    = [] } = useRayons()
-  const { data: articles  = [] } = useArticles()
+  const { data: articles  = [] } = useArticles(undefined, undefined, true, true)
   const { data: ventes    = [] } = useVentes(activeSessionId ?? undefined)
 
   const franchiseTVA = useFranchiseTVA()

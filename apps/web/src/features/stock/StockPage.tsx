@@ -12,6 +12,7 @@ import styles from './StockPage.module.css'
 
 type StockTab    = 'stocks' | 'historique'
 type StockStatus = 'alerte' | 'tension' | 'ok'
+type TypeFilter  = 'all' | 'articles' | 'mp'
 
 function getStatus(a: Article): StockStatus {
   if (a.stock <= a.stockAlerte)  return 'alerte'
@@ -59,6 +60,7 @@ export function StockPage() {
   const [activeTab,    setActiveTab]    = useState<StockTab>('stocks')
   const [rayonFilter,  setRayonFilter]  = useState<string>('')
   const [statusFilter, setStatusFilter] = useState<StockStatus | 'all'>('all')
+  const [typeFilter,   setTypeFilter]   = useState<TypeFilter>('all')
   const [search,       setSearch]       = useState('')
   const [sortBy,       setSortBy]       = useState<'critique' | 'alpha'>('critique')
   const [editingId,    setEditingId]    = useState<string | null>(null)
@@ -71,6 +73,7 @@ export function StockPage() {
 
   const filtered = useMemo(() =>
     articles
+      .filter(a => typeFilter === 'all' || (typeFilter === 'mp' ? !a.vendable : a.vendable))
       .filter(a => statusFilter === 'all' || getStatus(a) === statusFilter)
       .filter(a => !search || a.nom.toLowerCase().includes(search.toLowerCase()))
       .sort((a, b) => {
@@ -81,7 +84,7 @@ export function StockPage() {
         }
         return a.nom.localeCompare(b.nom, 'fr')
       })
-  , [articles, statusFilter, search, sortBy])
+  , [articles, typeFilter, statusFilter, search, sortBy])
 
   const counts = useMemo(() => ({
     alerte:  articles.filter(a => getStatus(a) === 'alerte').length,
@@ -186,6 +189,23 @@ export function StockPage() {
             </nav>
           )}
 
+          {/* Filtre type : articles vendables / matières premières */}
+          <nav className={styles['rayon-nav']}>
+            {([
+              { key: 'all',      label: 'Tous' },
+              { key: 'articles', label: 'Articles' },
+              { key: 'mp',       label: 'Matières premières' },
+            ] as { key: TypeFilter; label: string }[]).map(({ key, label }) => (
+              <button
+                key={key}
+                className={`${styles['rayon-btn']} ${typeFilter === key ? styles.active : ''}`}
+                onClick={() => setTypeFilter(key)}
+              >
+                {label}
+              </button>
+            ))}
+          </nav>
+
           {/* Cartes synthèse */}
           <div className={styles.summaryRow}>
             {(['alerte', 'tension', 'ok'] as StockStatus[]).map(s => (
@@ -247,6 +267,11 @@ export function StockPage() {
                         <div className={styles.articleNom}>{article.nom}</div>
                         <div className={styles.articleMeta}>
                           <span className={styles.rayonBadge}>{article.rayon.nom}</span>
+                          {!article.vendable && (
+                            <span className={styles.rayonBadge} style={{ background: 'var(--mauve-light)', color: 'var(--mauve)' }}>
+                              Matière première
+                            </span>
+                          )}
                           {article.isbn && <span className={styles.isbn}>{article.isbn}</span>}
                         </div>
                       </div>

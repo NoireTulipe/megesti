@@ -82,7 +82,7 @@ export function CataloguePage() {
   const { features }                                = usePlanFeatures()
   const { data: rayons = [] }                       = useRayons()
   const { data: articles = [], isLoading, isError } = useArticles(activeRayon, debouncedSearch || undefined, tab === 'actifs')
-  const { data: allActifs = [] }                    = useArticles(undefined, undefined, true) // pour le quota
+  const { data: allActifs = [] }                    = useArticles(undefined, undefined, true, true) // pour le quota (MP exclues)
   const setActif = useSetArticleActif()
 
   useEffect(() => {

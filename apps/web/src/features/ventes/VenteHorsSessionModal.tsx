@@ -37,7 +37,7 @@ export function VenteHorsSessionModal({ isOpen, onClose }: Props) {
   const [success,       setSuccess]       = useState(false)
 
   const { data: motifs   = [] } = useMotifVente()
-  const { data: articles = [] } = useArticles()
+  const { data: articles = [] } = useArticles(undefined, undefined, true, true)
   const { data: rayons   = [] } = useRayons()
   const franchiseTVA             = useFranchiseTVA()
   const createVente              = useCreateVenteHorsSession()
