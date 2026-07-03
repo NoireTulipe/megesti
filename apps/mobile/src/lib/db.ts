@@ -20,6 +20,7 @@ export async function initDb(): Promise<void> {
     `ALTER TABLE articles ADD COLUMN categorie_nom TEXT`,
     `ALTER TABLE articles ADD COLUMN thumb_app_url TEXT`,
     `ALTER TABLE articles ADD COLUMN prix_achat_ht REAL`,
+    `ALTER TABLE articles ADD COLUMN vendable INTEGER NOT NULL DEFAULT 1`,
     `ALTER TABLE frais_locaux ADD COLUMN actif INTEGER NOT NULL DEFAULT 1`,
     `ALTER TABLE frais_locaux ADD COLUMN synced_at TEXT`,
     `ALTER TABLE sessions ADD COLUMN synced_at TEXT`,
@@ -44,6 +45,7 @@ export async function initDb(): Promise<void> {
       isbn TEXT,
       thumb_app_url TEXT,
       prix_achat_ht REAL,
+      vendable INTEGER NOT NULL DEFAULT 1,
       actif INTEGER NOT NULL DEFAULT 1
     );
 

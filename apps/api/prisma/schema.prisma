@@ -436,8 +436,9 @@ model Rayon {
   tenantId    String
   nom         String
   ordre       Int     @default(0)
-  isLibrairie Boolean @default(false)
-  tauxTVA     Decimal @default(20) @db.Decimal(5, 2)
+  isLibrairie        Boolean @default(false)
+  isMatieresPremiere Boolean @default(false)
+  tauxTVA            Decimal @default(20) @db.Decimal(5, 2)
 
   tenant     Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   categories Categorie[]

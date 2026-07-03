@@ -142,12 +142,19 @@ export function RayonsSection() {
 
   async function handleToggleLibrairie(id: string, current: boolean) {
     const newIsLibrairie = !current
-    // TVA auto : 5.5 % mode librairie, 20 % mode général
     const newTVA = newIsLibrairie ? 5.5 : 20
     setRayons((prev) => prev.map((r) =>
-      r.id === id ? { ...r, isLibrairie: newIsLibrairie, tauxTVA: String(newTVA) } : r
+      r.id === id ? { ...r, isLibrairie: newIsLibrairie, isMatieresPremiere: false, tauxTVA: String(newTVA) } : r
     ))
-    await updateRayon.mutateAsync({ id, isLibrairie: newIsLibrairie, tauxTVA: newTVA })
+    await updateRayon.mutateAsync({ id, isLibrairie: newIsLibrairie, isMatieresPremiere: false, tauxTVA: newTVA })
+  }
+
+  async function handleToggleMatieresPremiere(id: string, current: boolean) {
+    const newVal = !current
+    setRayons((prev) => prev.map((r) =>
+      r.id === id ? { ...r, isMatieresPremiere: newVal, isLibrairie: false } : r
+    ))
+    await updateRayon.mutateAsync({ id, isMatieresPremiere: newVal, isLibrairie: false })
   }
 
   async function handleUpdateTVA(id: string, taux: number) {
@@ -241,6 +248,7 @@ export function RayonsSection() {
                   }
                   onRename={handleRenameRayon}
                   onToggleLibrairie={handleToggleLibrairie}
+                  onToggleMatieresPremiere={handleToggleMatieresPremiere}
                   onUpdateTVA={handleUpdateTVA}
                   onDelete={handleDeleteRayon}
                   onAddCategorie={openCatModal}
@@ -339,20 +347,21 @@ export function RayonsSection() {
 // •"?•"? Rayon sortable •"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?
 
 interface SortableRayonProps {
-  rayon:             Rayon
-  isExpanded:        boolean
-  onToggleExpand:    () => void
-  onRename:          (id: string, nom: string) => Promise<void>
-  onToggleLibrairie: (id: string, current: boolean) => Promise<void>
-  onUpdateTVA:       (id: string, taux: number) => Promise<void>
-  onDelete:          (id: string, nom: string) => Promise<void>
-  onAddCategorie:    (rayonId: string) => void
-  onRenameCategorie: (id: string, rayonId: string, nom: string) => Promise<void>
-  onDeleteCategorie: (id: string, rayonId: string, nom: string) => Promise<void>
+  rayon:                    Rayon
+  isExpanded:               boolean
+  onToggleExpand:           () => void
+  onRename:                 (id: string, nom: string) => Promise<void>
+  onToggleLibrairie:        (id: string, current: boolean) => Promise<void>
+  onToggleMatieresPremiere: (id: string, current: boolean) => Promise<void>
+  onUpdateTVA:              (id: string, taux: number) => Promise<void>
+  onDelete:                 (id: string, nom: string) => Promise<void>
+  onAddCategorie:           (rayonId: string) => void
+  onRenameCategorie:        (id: string, rayonId: string, nom: string) => Promise<void>
+  onDeleteCategorie:        (id: string, rayonId: string, nom: string) => Promise<void>
 }
 
 function SortableRayon({
-  rayon, isExpanded, onToggleExpand, onRename, onToggleLibrairie, onUpdateTVA,
+  rayon, isExpanded, onToggleExpand, onRename, onToggleLibrairie, onToggleMatieresPremiere, onUpdateTVA,
   onDelete, onAddCategorie, onRenameCategorie, onDeleteCategorie,
 }: SortableRayonProps) {
   const [editing,     setEditing]     = useState(false)
@@ -451,6 +460,16 @@ function SortableRayon({
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
             <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+          </svg>
+        </button>
+
+        <button
+          className={`${styles.btnLibrairie} ${rayon.isMatieresPremiere ? styles.btnMpActive : ''}`}
+          onClick={() => onToggleMatieresPremiere(rayon.id, rayon.isMatieresPremiere)}
+          title={rayon.isMatieresPremiere ? 'Rayon matières premières — hors caisses et dépôts' : 'Marquer comme rayon matières premières'}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M3 3h18v4H3z"/><path d="M3 7v14"/><path d="M21 7v14"/><path d="M3 17h18"/>
           </svg>
         </button>
 

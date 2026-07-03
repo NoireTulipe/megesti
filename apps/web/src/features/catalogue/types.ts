@@ -1,10 +1,11 @@
 export interface Rayon {
-  id:          string
-  nom:         string
-  ordre:       number
-  isLibrairie: boolean
-  tauxTVA:     string   // Decimal sérialisé
-  categories:  Categorie[]
+  id:                 string
+  nom:                string
+  ordre:              number
+  isLibrairie:        boolean
+  isMatieresPremiere: boolean
+  tauxTVA:            string   // Decimal sérialisé
+  categories:         Categorie[]
 }
 
 export interface Categorie {

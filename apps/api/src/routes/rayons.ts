@@ -2,18 +2,20 @@ import type { FastifyPluginAsync } from 'fastify'
 import { z } from 'zod'
 
 const CreateRayonSchema = z.object({
-  id:          z.string().uuid(),
-  nom:         z.string().min(1),
-  ordre:       z.number().int().nonnegative().default(0),
-  isLibrairie: z.boolean().default(false),
-  tauxTVA:     z.number().min(0).max(100).default(20),
+  id:                z.string().uuid(),
+  nom:               z.string().min(1),
+  ordre:             z.number().int().nonnegative().default(0),
+  isLibrairie:       z.boolean().default(false),
+  isMatieresPremiere: z.boolean().default(false),
+  tauxTVA:           z.number().min(0).max(100).default(20),
 })
 
 const PatchRayonSchema = z.object({
-  nom:         z.string().min(1).optional(),
-  ordre:       z.number().int().nonnegative().optional(),
-  isLibrairie: z.boolean().optional(),
-  tauxTVA:     z.number().min(0).max(100).optional(),
+  nom:               z.string().min(1).optional(),
+  ordre:             z.number().int().nonnegative().optional(),
+  isLibrairie:       z.boolean().optional(),
+  isMatieresPremiere: z.boolean().optional(),
+  tauxTVA:           z.number().min(0).max(100).optional(),
 })
 
 export const rayonRoutes: FastifyPluginAsync = async (app) => {

@@ -269,8 +269,14 @@ export function ArticleForm({ onClose, article }: Props) {
       })
     }
   }, [customValues, isEdit, setValue])
-  const isLibrairie = selectedRayon?.isLibrairie ?? false
-  const categories  = selectedRayon?.categories ?? []
+  const isLibrairie        = selectedRayon?.isLibrairie        ?? false
+  const isMatieresPremiere = selectedRayon?.isMatieresPremiere ?? false
+  const categories         = selectedRayon?.categories         ?? []
+
+  // Rayon MP → forcer vendable=false automatiquement
+  useEffect(() => {
+    if (isMatieresPremiere) setValue('vendable', false, { shouldDirty: true })
+  }, [isMatieresPremiere, setValue])
 
   const { data: rayonChamps = [] } = useCustomFieldsByRayon(
     selectedRayonId ?? '', { enabled: !!selectedRayonId },
@@ -608,18 +614,27 @@ export function ArticleForm({ onClose, article }: Props) {
                 </span>
               )}
             </p>
-            {/* Matière première : stock géré mais jamais proposée à la vente */}
-            <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', userSelect: 'none', marginBottom: 14 }}>
-              <input
-                type="checkbox"
-                checked={!watchVendable}
-                onChange={(e) => setValue('vendable', !e.target.checked, { shouldDirty: true })}
-                style={{ width: 16, height: 16, accentColor: 'var(--mauve)', cursor: 'pointer' }}
-              />
-              <span style={{ fontSize: '0.85rem', color: 'var(--ink)' }}>
-                Matière première <span style={{ color: 'var(--text-soft)' }}>(papier, encre… — stock suivi, jamais vendable en caisse ni en dépôt)</span>
-              </span>
-            </label>
+            {/* Matière première */}
+            {isMatieresPremiere ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14, padding: '6px 10px', background: '#f0f7ff', borderRadius: 6, border: '1px solid #93c5fd' }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" strokeWidth="2" strokeLinecap="round"><path d="M3 3h18v4H3z"/><path d="M3 7v14"/><path d="M21 7v14"/><path d="M3 17h18"/></svg>
+                <span style={{ fontSize: '0.82rem', color: '#1d4ed8' }}>
+                  Rayon matières premières — cet article ne sera jamais proposé en caisse ni en dépôt.
+                </span>
+              </div>
+            ) : (
+              <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', userSelect: 'none', marginBottom: 14 }}>
+                <input
+                  type="checkbox"
+                  checked={!watchVendable}
+                  onChange={(e) => setValue('vendable', !e.target.checked, { shouldDirty: true })}
+                  style={{ width: 16, height: 16, accentColor: 'var(--mauve)', cursor: 'pointer' }}
+                />
+                <span style={{ fontSize: '0.85rem', color: 'var(--ink)' }}>
+                  Matière première <span style={{ color: 'var(--text-soft)' }}>(papier, encre… — stock suivi, jamais vendable en caisse ni en dépôt)</span>
+                </span>
+              </label>
+            )}
             <div className={styles.prixVenteRow} style={!watchVendable ? { opacity: 0.45, pointerEvents: 'none' } : undefined}>
               <div className={styles.field} style={{ flex: 1 }}>
                 <label className={styles.label} htmlFor="prixVenteHT">

@@ -83,7 +83,11 @@ export const articleRoutes: FastifyPluginAsync = async (app) => {
       where: {
         tenantId,
         actif:       actif !== undefined ? actif === 'true' : true,
-        ...(vendable !== undefined && { vendable: vendable === 'true' }),
+        ...(vendable !== undefined && {
+          vendable: vendable === 'true',
+          // Exclure aussi les articles des rayons MP quand on demande les vendables (caisse, dépôts)
+          ...(vendable === 'true' && { rayon: { isMatieresPremiere: false } }),
+        }),
         ...(rayonId     && { rayonId }),
         ...(categorieId && { categorieId }),
         ...(q           && { nom: { contains: q, mode: 'insensitive' } }),

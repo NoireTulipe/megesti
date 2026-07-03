@@ -217,6 +217,7 @@
 }
 .btnLibrairie:hover      { opacity: 0.8; }
 .btnLibrairieActive      { opacity: 1; background: #fff8f0; border-color: var(--terra); }
+.btnMpActive             { opacity: 1; background: #f0f7ff; border-color: #3B82F6; }
 
 .btnExpand {
   width: 22px; height: 22px;

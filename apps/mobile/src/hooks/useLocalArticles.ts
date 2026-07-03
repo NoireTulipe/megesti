@@ -19,6 +19,7 @@ export interface LocalArticle {
   categorie_id: string | null
   categorie_nom: string | null
   isbn: string | null
+  vendable: number  // 1 = vendable, 0 = matière première
   actif: number
 }
 
@@ -29,7 +30,8 @@ interface ApiArticle {
   imageUrl: string | null
   prixVenteHT: number
   prixAchatHT: number | null
-  rayon: { nom: string; tauxTVA: number }
+  vendable: boolean
+  rayon: { nom: string; tauxTVA: number; isMatieresPremiere: boolean }
   categorie: { id: string; nom: string } | null
   isbn: string | null
   stock: number
@@ -77,7 +79,7 @@ function fullUrl(path: string | null): string | null {
   return `${base}${path}`
 }
 
-export function useLocalArticles(ids?: string[]) {
+export function useLocalArticles(ids?: string[], includeNonVendable = false) {
   const [articles, setArticles] = useState<LocalArticle[]>([])
   const [loading, setLoading] = useState(true)
   const addLog = useDevStore(s => s.addLog)
@@ -92,13 +94,14 @@ export function useLocalArticles(ids?: string[]) {
         ids,
       )
     } else {
+      const vendableClause = includeNonVendable ? '' : 'AND vendable = 1'
       rows = await db.getAllAsync<LocalArticle>(
-        'SELECT * FROM articles WHERE actif = 1 ORDER BY nom ASC',
+        `SELECT * FROM articles WHERE actif = 1 ${vendableClause} ORDER BY nom ASC`,
       )
     }
     setArticles(rows)
     setLoading(false)
-  }, [ids?.join(',')])
+  }, [ids?.join(','), includeNonVendable])
 
   useEffect(() => { refresh() }, [refresh])
 
@@ -115,15 +118,16 @@ export function useLocalArticles(ids?: string[]) {
         const imageUrl = fullUrl(a.imageUrl)
         const thumbAppUrl = imageUrl?.replace('thumb_web', 'thumb_app') ?? null
 
+        const vendable = (a.vendable && !a.rayon.isMatieresPremiere) ? 1 : 0
         await db.runAsync(
           `INSERT OR REPLACE INTO articles
             (id, nom, reference, image_url, thumb_app_url, prix_vente_ht, prix_achat_ht, taux_tva,
-             stock_local, stock_alerte, rayon_nom, categorie_id, categorie_nom, isbn, actif)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`,
+             stock_local, stock_alerte, rayon_nom, categorie_id, categorie_nom, isbn, vendable, actif)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`,
           [a.id, a.nom, a.reference, imageUrl, thumbAppUrl,
            Number(a.prixVenteHT), a.prixAchatHT != null ? Number(a.prixAchatHT) : null, Number(a.rayon.tauxTVA),
            a.stock, a.stockAlerte ?? 0,
-           a.rayon.nom, a.categorie?.id ?? null, a.categorie?.nom ?? null, a.isbn],
+           a.rayon.nom, a.categorie?.id ?? null, a.categorie?.nom ?? null, a.isbn, vendable],
         )
       }
       addLog('info', `${filtered.length} articles téléchargés`)
