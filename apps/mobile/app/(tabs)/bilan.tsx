@@ -463,9 +463,14 @@ export default function BilanScreen() {
 
   const load = useCallback(async () => {
     const [from, to] = activeRange
-    // Delta local = ventes/frais NON remontés au serveur. Calculé dans tous les cas
-    // (pas cher) pour être ajouté par-dessus la réponse serveur le cas échéant.
+    // Delta local = ventes NON remontées au serveur (synced=0). Sert à ajouter
+    // les ventes en attente par-dessus les agrégats serveur, sans double-compte.
     const delta = await loadBilan(from, to, mode, 'delta')
+    // Frais et sessions : le serveur ne renvoie JAMAIS de frais dans /rapports/ventes,
+    // donc on lit toujours le cache local complet (full) pour ces données —
+    // qu'elles soient synchronisées ou non. (Bug historique : on prenait le delta
+    // de frais, ce qui masquait tous les frais déjà synchronisés → total à 0.)
+    const fraisEtSessions = await loadBilan(from, to, mode, 'full')
 
     try {
       const resp = await api.get<any>(
@@ -495,15 +500,15 @@ export default function BilanScreen() {
         totaux: {
           ca: merged.ca,
           venteCount: merged.venteCount,
-          // Frais : serveur n'en renvoie pas dans /rapports/ventes → on prend le delta.
-          // (cohérent : un frais en attente doit impacter le net affiché)
-          fraisTotal: delta.totaux.fraisTotal,
-          net: merged.ca - delta.totaux.fraisTotal,
-          sessionCount: delta.totaux.sessionCount,
+          // Frais et sessions : toujours depuis le local complet (le serveur
+          // n'en fournit pas dans ce endpoint).
+          fraisTotal: fraisEtSessions.totaux.fraisTotal,
+          net: merged.ca - fraisEtSessions.totaux.fraisTotal,
+          sessionCount: fraisEtSessions.totaux.sessionCount,
           panierMoyen: merged.venteCount > 0 ? merged.ca / merged.venteCount : 0,
         },
         parMode: merged.parMode, topArticles: merged.topArticles, parPdv: merged.parPdv,
-        parMois: delta.parMois, sessions: delta.sessions, fraisRows: delta.fraisRows,
+        parMois: fraisEtSessions.parMois, sessions: fraisEtSessions.sessions, fraisRows: fraisEtSessions.fraisRows,
       })
       return
     } catch {

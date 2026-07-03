@@ -5,7 +5,8 @@ const NativeSumUp = NativeModules['SumUp' as any] as
   | {
       init(affiliateKey: string): Promise<boolean>
       isReady(): Promise<boolean>
-      login(): Promise<boolean>
+      getAccessToken(): Promise<string | null>
+      login(accessToken?: string | null): Promise<boolean>
       checkout(amount: number, currency: string, title: string): Promise<CheckoutResult>
       logout(): Promise<void>
     }
@@ -28,14 +29,24 @@ export const SumUp = {
     return NativeSumUp.isReady()
   },
 
-  // La connexion ouvre l'écran de connexion SumUp natif directement sur l'appareil.
-  // Aucun identifiant marchand ne transite par les serveurs MeGesti.
-  async login(): Promise<boolean> {
+  /** Récupère l'access token SumUp courant (null si non connecté). */
+  async getAccessToken(): Promise<string | null> {
+    if (!NativeSumUp) return null
+    return NativeSumUp.getAccessToken()
+  },
+
+  /**
+   * Connexion SumUp.
+   * @param accessToken si fourni, tente un login transparent (sans écran).
+   *                    Sinon, ouvre l'écran SumUp natif (saisie identifiants).
+   * Aucun identifiant marchand ne transite par les serveurs MeGesti.
+   */
+  async login(accessToken?: string | null): Promise<boolean> {
     if (!NativeSumUp) {
       console.warn('[SumUp] Module natif non disponible — build native requise')
       return false
     }
-    return NativeSumUp.login()
+    return NativeSumUp.login(accessToken ?? null)
   },
 
   async checkout(amount: number, currency = 'EUR', title = 'Achat MeGesti'): Promise<CheckoutResult> {

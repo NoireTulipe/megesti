@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useArticles } from '@/features/catalogue/hooks/useArticles'
 import { useRayons }   from '@/features/catalogue/hooks/useRayons'
+import { RayonNav, useRayonFilter } from '@/features/catalogue/RayonNav'
 import { AjustementStock }      from './AjustementStock'
 import { HistoriqueMouvements } from './HistoriqueMouvements'
 import { StockHistoriqueModal } from './StockHistoriqueModal'
@@ -58,7 +59,6 @@ function StockBar({ article, maxRef }: StockBarProps) {
 
 export function StockPage() {
   const [activeTab,    setActiveTab]    = useState<StockTab>('stocks')
-  const [rayonFilter,  setRayonFilter]  = useState<string>('')
   const [statusFilter, setStatusFilter] = useState<StockStatus | 'all'>('all')
   const [typeFilter,   setTypeFilter]   = useState<TypeFilter>('all')
   const [search,       setSearch]       = useState('')
@@ -69,11 +69,13 @@ export function StockPage() {
   const { can, upgradeMessage } = usePlanFeatures()
 
   const { data: rayons = [] }              = useRayons()
-  const { data: articles = [], isLoading } = useArticles(rayonFilter || undefined, undefined, true)
+  const { activeRayon, activeCat, handleRayonChange, handleCatChange } = useRayonFilter('megesti:stock:filter', rayons)
+  const { data: articles = [], isLoading } = useArticles(activeRayon || undefined, undefined, true)
 
   const filtered = useMemo(() =>
     articles
       .filter(a => typeFilter === 'all' || (typeFilter === 'mp' ? !a.vendable : a.vendable))
+      .filter(a => !activeCat || a.categorie?.id === activeCat)
       .filter(a => statusFilter === 'all' || getStatus(a) === statusFilter)
       .filter(a => !search || a.nom.toLowerCase().includes(search.toLowerCase()))
       .sort((a, b) => {
@@ -168,25 +170,15 @@ export function StockPage() {
       {/* ── Onglet Stocks ── */}
       {activeTab === 'stocks' && (
         <>
-          {/* Filtre rayons — remplace le <select> */}
+          {/* Filtre rayons / catégories */}
           {rayons.length > 0 && (
-            <nav className={styles['rayon-nav']}>
-              <button
-                className={`${styles['rayon-btn']} ${!rayonFilter ? styles.active : ''}`}
-                onClick={() => setRayonFilter('')}
-              >
-                Tous
-              </button>
-              {rayons.map(r => (
-                <button
-                  key={r.id}
-                  className={`${styles['rayon-btn']} ${rayonFilter === r.id ? styles.active : ''}`}
-                  onClick={() => setRayonFilter(r.id)}
-                >
-                  {r.nom}
-                </button>
-              ))}
-            </nav>
+            <RayonNav
+              rayons={rayons}
+              activeRayon={activeRayon}
+              activeCat={activeCat}
+              onRayonChange={handleRayonChange}
+              onCatChange={handleCatChange}
+            />
           )}
 
           {/* Filtre type : articles vendables / matières premières */}

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useArticles, useSetArticleActif } from './hooks/useArticles'
 import { useRayons } from './hooks/useRayons'
+import { RayonNav, useRayonFilter } from './RayonNav'
 import { ArticleCard }   from './ArticleCard'
 import { ArticleDetail } from './ArticleDetail'
 import { ArticleForm }   from './ArticleForm'
@@ -72,16 +73,18 @@ function ArticleQuota({ used, max }: { used: number; max: number | null }) {
 export function CataloguePage() {
   const [search, setSearch]           = useState('')
   const [debouncedSearch, setDebounced] = useState('')
-  const [activeRayon, setActiveRayon] = useState<string | undefined>(undefined)
   const [tab, setTab]                 = useState<CatalogueTab>('actifs')
   const [detailArticle, setDetail]    = useState<Article | null>(null)
   const [showCreate, setShowCreate]   = useState(false)
   const [editArticle, setEditArticle] = useState<Article | null>(null)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const { features }                                = usePlanFeatures()
-  const { data: rayons = [] }                       = useRayons()
+  const { features }          = usePlanFeatures()
+  const { data: rayons = [] } = useRayons()
+  const { activeRayon, activeCat, handleRayonChange, handleCatChange } = useRayonFilter('megesti:catalogue:filter', rayons)
+
   const { data: articles = [], isLoading, isError } = useArticles(activeRayon, debouncedSearch || undefined, tab === 'actifs')
+  const displayArticles = activeCat ? articles.filter(a => a.categorie?.id === activeCat) : articles
   const { data: allActifs = [] }                    = useArticles(undefined, undefined, true, true) // pour le quota (MP exclues)
   const setActif = useSetArticleActif()
 
@@ -96,7 +99,7 @@ export function CataloguePage() {
 
       <PageHero
         title="Catalogue"
-        subtitle={<>{articles.length} article{articles.length !== 1 ? 's' : ''}{debouncedSearch ? ` · résultats pour « ${debouncedSearch} »` : ''}</>}
+        subtitle={<>{displayArticles.length} article{displayArticles.length !== 1 ? 's' : ''}{debouncedSearch ? ` · résultats pour « ${debouncedSearch} »` : ''}</>}
       >
         <div className={styles['header-actions']}>
           {tab === 'actifs' && (
@@ -147,25 +150,15 @@ export function CataloguePage() {
         <HelpButton slug="aide-catalogue-switch" className={styles['tab-help']} />
       </div>
 
-      {/* ── Filtres rayons ── */}
+      {/* ── Filtres rayons / catégories ── */}
       {rayons.length > 0 && (
-        <nav className={styles['rayon-nav']}>
-          <button
-            className={`${styles['rayon-btn']} ${!activeRayon ? styles.active : ''}`}
-            onClick={() => setActiveRayon(undefined)}
-          >
-            Tous
-          </button>
-          {rayons.map(r => (
-            <button
-              key={r.id}
-              className={`${styles['rayon-btn']} ${activeRayon === r.id ? styles.active : ''}`}
-              onClick={() => setActiveRayon(r.id)}
-            >
-              {r.nom}
-            </button>
-          ))}
-        </nav>
+        <RayonNav
+          rayons={rayons}
+          activeRayon={activeRayon}
+          activeCat={activeCat}
+          onRayonChange={handleRayonChange}
+          onCatChange={handleCatChange}
+        />
       )}
 
       {/* ── Grille ── */}
@@ -182,7 +175,7 @@ export function CataloguePage() {
         </div>
       )}
 
-      {!isLoading && !isError && articles.length === 0 && (
+      {!isLoading && !isError && displayArticles.length === 0 && (
         rayons.length === 0 ? (
           <MascoteBlock slug="catalogue-no-rayon" />
         ) : !debouncedSearch && tab === 'actifs' ? (
@@ -199,9 +192,9 @@ export function CataloguePage() {
         )
       )}
 
-      {!isLoading && !isError && articles.length > 0 && (
+      {!isLoading && !isError && displayArticles.length > 0 && (
         <div className={`${styles.grid} stagger`}>
-          {articles.map(article => (
+          {displayArticles.map(article => (
             <ArticleCard
               key={article.id}
               article={article}
