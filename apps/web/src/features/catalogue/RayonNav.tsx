@@ -32,7 +32,7 @@ export function RayonNav({ rayons, activeRayon, activeCat, onRayonChange, onCatC
       </nav>
 
       {cats.length > 0 && (
-        <nav className={styles.catRow}>
+        <nav className={styles.catWrap}>
           <button
             className={`${styles.catBtn} ${!activeCat ? styles.catActive : ''}`}
             onClick={() => onCatChange(undefined)}

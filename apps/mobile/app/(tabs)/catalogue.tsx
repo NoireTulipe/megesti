@@ -45,6 +45,15 @@ export default function StockScreen() {
     (a.nom.toLowerCase().includes(search.toLowerCase()) || (a.isbn ?? '').includes(search))
   )
 
+  // Compteurs d'alerte stock (sémantique alignée sur le web).
+  // Alerte : rupture ou sous le seuil critique (stock_alerte).
+  // Attention : sous le seuil de tension (stock_tension) mais pas encore en alerte.
+  const enAlerte = articles.filter(a => a.stock_local <= 0 || (a.stock_alerte > 0 && a.stock_local <= a.stock_alerte))
+  const enAttention = articles.filter(a => {
+    if (a.stock_local <= 0 || (a.stock_alerte > 0 && a.stock_local <= a.stock_alerte)) return false
+    return a.stock_tension > 0 && a.stock_local <= a.stock_tension
+  })
+
   // Caméra via expo-camera (évite le bug expo-image-picker + nouvelle archi RN)
   function openCameraCapture(article: LocalArticle) {
     addLog('info', `[photo] Ouverture caméra native — article=${article.id}`)
@@ -122,6 +131,30 @@ export default function StockScreen() {
           <TextInput style={styles.heroSearchInput} value={search} onChangeText={setSearch}
             placeholder="Titre ou ISBN…" placeholderTextColor="rgba(255,255,255,0.4)" />
         </View>
+
+        {/* Rangée d'alertes stock */}
+        {(enAlerte.length > 0 || enAttention.length > 0) && (
+          <View style={styles.heroAlertsRow}>
+            {enAlerte.length > 0 && (
+              <TouchableOpacity style={[styles.heroAlertCase, styles.heroAlertCritical]}
+                activeOpacity={0.7}
+                onPress={() => router.push('/stock-alertes?niveau=alerte')}>
+                <Text style={styles.heroAlertEmoji}>🚨</Text>
+                <Text style={styles.heroAlertCount}>{enAlerte.length}</Text>
+                <Text style={styles.heroAlertLabel}>Alerte</Text>
+              </TouchableOpacity>
+            )}
+            {enAttention.length > 0 && (
+              <TouchableOpacity style={[styles.heroAlertCase, styles.heroAlertWarn]}
+                activeOpacity={0.7}
+                onPress={() => router.push('/stock-alertes?niveau=attention')}>
+                <Text style={styles.heroAlertEmoji}>⚠️</Text>
+                <Text style={styles.heroAlertCount}>{enAttention.length}</Text>
+                <Text style={styles.heroAlertLabel}>Attention</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
       </LinearGradient>
 
       <ScrollView
@@ -185,6 +218,15 @@ export default function StockScreen() {
                     </View>
                     <Text style={styles.detailRow}>Prix : {a.prix_vente_ht.toFixed(2)} €</Text>
                     <Text style={styles.detailRow}>TVA : {a.taux_tva}%</Text>
+                    <TouchableOpacity
+                      style={styles.stockMoveBtn}
+                      activeOpacity={0.7}
+                      onPress={(e) => {
+                        e.stopPropagation()
+                        router.push(`/stock-mouvement?articleId=${a.id}`)
+                      }}>
+                      <Text style={styles.stockMoveBtnTxt}>📦 Mouvement de stock</Text>
+                    </TouchableOpacity>
                   </View>
                 )}
               </View>
@@ -195,15 +237,28 @@ export default function StockScreen() {
                 <Text style={[styles.cardPrice, isDark && { color: Dark.text }]}>{a.prix_vente_ht.toFixed(2)} €</Text>
                 <View style={[
                   styles.stockBadge,
-                  a.stock_local <= 0 ? styles.stockBadgeRupture : a.stock_local <= (a.stock_alerte || 3) ? styles.stockBadgeLow : styles.stockBadgeOk,
+                  a.stock_local <= 0
+                    ? styles.stockBadgeRupture
+                    : (a.stock_alerte > 0 && a.stock_local <= a.stock_alerte)
+                      ? styles.stockBadgeLow
+                      : (a.stock_tension > 0 && a.stock_local <= a.stock_tension)
+                        ? styles.stockBadgeTension
+                        : styles.stockBadgeOk,
                 ]}>
                   <Text style={[
                     styles.stockBadgeText,
-                    a.stock_local <= 0 ? styles.stockBadgeTextRupture : a.stock_local <= (a.stock_alerte || 3) ? styles.stockBadgeTextLow : styles.stockBadgeTextOk,
+                    a.stock_local <= 0
+                      ? styles.stockBadgeTextRupture
+                      : (a.stock_alerte > 0 && a.stock_local <= a.stock_alerte)
+                        ? styles.stockBadgeTextLow
+                        : (a.stock_tension > 0 && a.stock_local <= a.stock_tension)
+                          ? styles.stockBadgeTextTension
+                          : styles.stockBadgeTextOk,
                   ]}>
                     {a.stock_local}
                   </Text>
                 </View>
+                <Text style={styles.stockEditHint}>✎</Text>
               </TouchableOpacity>
             </TouchableOpacity>
           ))
@@ -282,6 +337,13 @@ const styles = StyleSheet.create({
   heroSearch: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.12)', borderRadius: Radius.md, paddingHorizontal: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
   heroSearchIcon: { fontSize: 15, marginRight: 6 },
   heroSearchInput: { flex: 1, fontFamily: Fonts.body, fontSize: 14, color: Colors.white, paddingVertical: 10 },
+  heroAlertsRow: { flexDirection: 'row', gap: 10, marginTop: 12 },
+  heroAlertCase: { flex: 1, borderRadius: Radius.md, paddingVertical: 12, alignItems: 'center', borderWidth: 1.5 },
+  heroAlertCritical: { backgroundColor: 'rgba(196,84,74,0.25)', borderColor: 'rgba(196,84,74,0.6)' },
+  heroAlertWarn: { backgroundColor: 'rgba(212,160,23,0.2)', borderColor: 'rgba(212,160,23,0.5)' },
+  heroAlertEmoji: { fontSize: 16, marginBottom: 2 },
+  heroAlertCount: { fontFamily: Fonts.displayItalic, fontSize: 22, color: Colors.white, fontStyle: 'italic' },
+  heroAlertLabel: { fontFamily: Fonts.body, fontSize: 11, color: 'rgba(255,255,255,0.8)', marginTop: 2, textTransform: 'uppercase', letterSpacing: 0.5 },
   list: { paddingHorizontal: 20 },
   empty: { alignItems: 'center', paddingTop: 80 },
   emptyEmoji: { fontSize: 48, marginBottom: 16 },
@@ -320,12 +382,17 @@ const styles = StyleSheet.create({
   cardPrice: { fontFamily: Fonts.body, fontSize: 14, fontWeight: '700', color: Colors.sage },
   stockBadge: { marginTop: 6, paddingHorizontal: 10, paddingVertical: 4, borderRadius: Radius.full, minWidth: 36, alignItems: 'center' },
   stockBadgeOk: { backgroundColor: Colors.sageLight },
-  stockBadgeLow: { backgroundColor: Colors.goldLight },
+  stockBadgeLow: { backgroundColor: Colors.terraLight },
+  stockBadgeTension: { backgroundColor: Colors.goldLight },
   stockBadgeRupture: { backgroundColor: Colors.terraLight },
+  stockEditHint: { fontFamily: Fonts.body, fontSize: 10, color: Colors.textSoft, marginTop: 3, opacity: 0.6 },
   stockBadgeText: { fontFamily: Fonts.body, fontSize: 11, fontWeight: '700' },
   stockBadgeTextOk: { color: Colors.sage },
-  stockBadgeTextLow: { color: Colors.gold },
+  stockBadgeTextLow: { color: Colors.terra },
+  stockBadgeTextTension: { color: Colors.gold },
   stockBadgeTextRupture: { color: Colors.terra },
+  stockMoveBtn: { marginTop: 10, paddingVertical: 10, borderRadius: Radius.md, backgroundColor: Colors.cream, borderWidth: 1.5, borderColor: Colors.sage, alignItems: 'center' },
+  stockMoveBtnTxt: { fontFamily: Fonts.body, fontSize: 13, fontWeight: '600', color: Colors.sage },
   stockInput: {
     marginTop: 6, width: 48, height: 30, borderRadius: Radius.full,
     backgroundColor: Colors.cream, borderWidth: 1.5, borderColor: Colors.sage,

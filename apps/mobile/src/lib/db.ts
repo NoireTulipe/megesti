@@ -16,6 +16,7 @@ export async function initDb(): Promise<void> {
   // Migrations pour les bases existantes (ALTER TABLE ADD COLUMN ignore si déjà présent)
   for (const col of [
     `ALTER TABLE articles ADD COLUMN stock_alerte INTEGER NOT NULL DEFAULT 0`,
+    `ALTER TABLE articles ADD COLUMN stock_tension INTEGER NOT NULL DEFAULT 0`,
     `ALTER TABLE articles ADD COLUMN categorie_id TEXT`,
     `ALTER TABLE articles ADD COLUMN categorie_nom TEXT`,
     `ALTER TABLE articles ADD COLUMN thumb_app_url TEXT`,
@@ -39,6 +40,7 @@ export async function initDb(): Promise<void> {
       taux_tva REAL NOT NULL DEFAULT 5.5,
       stock_local INTEGER NOT NULL DEFAULT 0,
       stock_alerte INTEGER NOT NULL DEFAULT 0,
+      stock_tension INTEGER NOT NULL DEFAULT 0,
       rayon_nom TEXT,
       categorie_id TEXT,
       categorie_nom TEXT,

@@ -306,7 +306,7 @@ export function ArticleForm({ onClose, article }: Props) {
       nom:             values.nom,
       reference:       values.reference   || null,
       description:     values.description || null,
-      prixVenteHT:     values.vendable ? values.prixVenteHT : 0,
+      prixVenteHT:     values.prixVenteHT,
       vendable:        values.vendable,
       prixAchatHT:     values.prixAchatHT     ?? null,
       prixAchatLotHT:  values.prixAchatLotHT  ?? null,
