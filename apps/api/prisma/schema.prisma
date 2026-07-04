@@ -72,6 +72,7 @@ model Tenant {
   motifsVente            MotifVente[]
   facturesEmises         FactureEmission[]
   facturesRecues         FactureReception[]
+  interventionsAdmin     InterventionAdmin[]
 }
 
 // ─── Facturation électronique ─────────────────────────────────────────────────
@@ -140,6 +141,29 @@ model AdminUser {
   nom          String
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+
+  interventions InterventionAdmin[]
+}
+
+// Journal des interventions manuelles du support sur les données d'un tenant.
+// Trace obligatoire (ticket) — c'est ce qui rend acceptable une opération
+// hors du flux normal de l'app (ex: désannulation de vente) vis-à-vis de la
+// conformité caisse : l'événement reste horodaté, attribué et motivé.
+model InterventionAdmin {
+  id        String   @id @default(uuid())
+  adminId   String
+  tenantId  String
+  action    String   // ex: DESANNULATION_VENTE — String volontaire : nouvelles actions sans migration
+  ticket    String   // référence du ticket d'intervention client
+  note      String?
+  detail    Json?    // snapshot avant intervention, pour audit
+  createdAt DateTime @default(now())
+
+  admin  AdminUser @relation(fields: [adminId], references: [id])
+  tenant Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([createdAt])
 }
 
 // ─── MeGestine dialogs (CMS) ─────────────────────────────────────────────────

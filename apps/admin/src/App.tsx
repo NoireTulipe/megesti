@@ -7,6 +7,7 @@ import { TenantsPage }        from './features/tenants/TenantsPage'
 import { TenantDetail }       from './features/tenants/TenantDetail'
 import { MascoteDialogsPage } from './features/mascote/MascoteDialogsPage'
 import { PopupsPage }         from './features/popups/PopupsPage'
+import { InterventionsPage }  from './features/interventions/InterventionsPage'
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
   const token = useAuthStore(s => s.token)
@@ -27,6 +28,7 @@ export default function App() {
               <Route path="/tenants/:id"        element={<TenantDetail />} />
               <Route path="/megestine"          element={<MascoteDialogsPage />} />
               <Route path="/popups"             element={<PopupsPage />} />
+              <Route path="/interventions"      element={<InterventionsPage />} />
               <Route path="*"                   element={<Navigate to="/" replace />} />
             </Routes>
           </AdminLayout>

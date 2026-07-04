@@ -138,7 +138,7 @@ export default function StockScreen() {
             {enAlerte.length > 0 && (
               <TouchableOpacity style={[styles.heroAlertCase, styles.heroAlertCritical]}
                 activeOpacity={0.7}
-                onPress={() => router.push('/stock-alertes?niveau=alerte')}>
+                onPress={() => router.push({ pathname: '/stock-alertes', params: { niveau: 'alerte' } })}>
                 <Text style={styles.heroAlertEmoji}>🚨</Text>
                 <Text style={styles.heroAlertCount}>{enAlerte.length}</Text>
                 <Text style={styles.heroAlertLabel}>Alerte</Text>
@@ -147,7 +147,7 @@ export default function StockScreen() {
             {enAttention.length > 0 && (
               <TouchableOpacity style={[styles.heroAlertCase, styles.heroAlertWarn]}
                 activeOpacity={0.7}
-                onPress={() => router.push('/stock-alertes?niveau=attention')}>
+                onPress={() => router.push({ pathname: '/stock-alertes', params: { niveau: 'attention' } })}>
                 <Text style={styles.heroAlertEmoji}>⚠️</Text>
                 <Text style={styles.heroAlertCount}>{enAttention.length}</Text>
                 <Text style={styles.heroAlertLabel}>Attention</Text>
