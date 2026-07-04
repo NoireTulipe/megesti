@@ -6,7 +6,6 @@ import { ActivityIndicator, View, Text } from 'react-native'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import * as SplashScreen from 'expo-splash-screen'
-import * as SecureStore from 'expo-secure-store'
 import { useAuthStore } from '@/store/authStore'
 import { useDevStore } from '@/store/devStore'
 import { useThemeStore } from '@/store/themeStore'
@@ -18,9 +17,6 @@ import { DevMenu } from '@/components/DevMenu'
 import { initDb } from '@/lib/db'
 import { Colors, Dark, Fonts } from '@/constants/theme'
 import '@/i18n'
-
-// Clé SecureStore pour l'access token SumUp (login transparent au redémarrage).
-const SUMUP_TOKEN_KEY = 'megesti_sumup_token'
 
 SplashScreen.preventAutoHideAsync()
 
@@ -48,20 +44,11 @@ function AuthGate({ children }: { children: React.ReactNode }) {
     hydratePaymentModes().then(async () => {
       const modes = usePaymentModesStore.getState().enabled
       if (!modes.includes('SUMUP') || !SumUp.isAvailable()) return
-      try {
-        await SumUp.init(Config.sumupAffiliateKey)
-        // Si déjà connecté (session persistée par le SDK), rien à faire.
-        if (await SumUp.isReady()) return
-        // Sinon, retenter un login transparent si on a un token stocké.
-        const storedToken = await SecureStore.getItemAsync(SUMUP_TOKEN_KEY)
-        if (storedToken) {
-          const ok = await SumUp.login(storedToken)
-          if (!ok) {
-            // Token invalide/expiré → on le purge, il faudra un login interactif.
-            await SecureStore.deleteItemAsync(SUMUP_TOKEN_KEY)
-          }
-        }
-      } catch {}
+      // Init au démarrage pour que isReady() reflète l'état réel. Le SDK 4.x
+      // n'expose pas de token (getAccessToken renvoie null), donc pas de login
+      // transparent possible ici : la reconnexion se fait à l'encaissement
+      // (caisse) ou dans les réglages, via l'écran SumUp.
+      try { await SumUp.init(Config.sumupAffiliateKey) } catch {}
     })
   }, [])
 

@@ -466,16 +466,20 @@ export default function BilanScreen() {
     // Delta local = ventes NON remontées au serveur (synced=0). Sert à ajouter
     // les ventes en attente par-dessus les agrégats serveur, sans double-compte.
     const delta = await loadBilan(from, to, mode, 'delta')
-    // Frais et sessions : le serveur ne renvoie JAMAIS de frais dans /rapports/ventes,
-    // donc on lit toujours le cache local complet (full) pour ces données —
-    // qu'elles soient synchronisées ou non. (Bug historique : on prenait le delta
-    // de frais, ce qui masquait tous les frais déjà synchronisés → total à 0.)
+    // Sessions et fallback frais : cache local complet. Le local ne connaît que
+    // ce qui a été saisi sur CET appareil — pour les frais, la source de vérité
+    // est le serveur (GET /frais), fusionné plus bas quand il est joignable.
     const fraisEtSessions = await loadBilan(from, to, mode, 'full')
 
     try {
-      const resp = await api.get<any>(
-        `/rapports/ventes?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`,
-      )
+      const [resp, serverFrais] = await Promise.all([
+        api.get<any>(
+          `/rapports/ventes?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`,
+        ),
+        // Tous les frais du tenant (tous appareils). Nullable : un échec ici ne
+        // doit pas faire basculer tout le bilan en mode hors ligne.
+        api.get<any[]>('/frais').catch(() => null),
+      ])
       const serverCa    = Number(resp?.summary?.totalTTC ?? 0)
       const serverCount = Number(resp.summary?.nbVentes ?? 0)
 
@@ -494,21 +498,40 @@ export default function BilanScreen() {
         parMode: delta.parMode, topArticles: delta.topArticles, parPdv: delta.parPdv,
       })
 
+      // Frais : serveur (toutes sessions, tous appareils) + delta local non
+      // synchronisé, dédupliqué par UUID. Fallback : cache local complet.
+      let fraisTotal = fraisEtSessions.totaux.fraisTotal
+      let sessions = fraisEtSessions.sessions
+      if (serverFrais) {
+        const inPeriod = serverFrais.filter(f =>
+          f.actif !== false && typeof f.date === 'string' && f.date >= from && f.date <= to)
+        const serverIds = new Set(inPeriod.map(f => f.id))
+        const fraisMerged = [
+          ...inPeriod.map(f => ({ montant: Number(f.montantHT ?? 0), sessionId: f.sessionId ?? null })),
+          ...delta.fraisRows.filter(f => !serverIds.has(f.id))
+            .map(f => ({ montant: f.montant_ht ?? 0, sessionId: f.session_id })),
+        ]
+        fraisTotal = fraisMerged.reduce((s, f) => s + f.montant, 0)
+        const bySession = new Map<string, number>()
+        for (const f of fraisMerged) {
+          if (f.sessionId) bySession.set(f.sessionId, (bySession.get(f.sessionId) ?? 0) + f.montant)
+        }
+        sessions = sessions.map(s => ({ ...s, frais: bySession.get(s.session_id) ?? s.frais }))
+      }
+
       setSource('server')
       setData({
         ...EMPTY,
         totaux: {
           ca: merged.ca,
           venteCount: merged.venteCount,
-          // Frais et sessions : toujours depuis le local complet (le serveur
-          // n'en fournit pas dans ce endpoint).
-          fraisTotal: fraisEtSessions.totaux.fraisTotal,
-          net: merged.ca - fraisEtSessions.totaux.fraisTotal,
+          fraisTotal,
+          net: merged.ca - fraisTotal,
           sessionCount: fraisEtSessions.totaux.sessionCount,
           panierMoyen: merged.venteCount > 0 ? merged.ca / merged.venteCount : 0,
         },
         parMode: merged.parMode, topArticles: merged.topArticles, parPdv: merged.parPdv,
-        parMois: fraisEtSessions.parMois, sessions: fraisEtSessions.sessions, fraisRows: fraisEtSessions.fraisRows,
+        parMois: fraisEtSessions.parMois, sessions, fraisRows: fraisEtSessions.fraisRows,
       })
       return
     } catch {
@@ -742,24 +765,4 @@ const styles = StyleSheet.create({
   sesRight:     { alignItems: 'flex-end' },
   sesCa:        { fontFamily: Fonts.body, fontSize: 15, fontWeight: '800', color: Colors.gold },
   sesVentes:    { fontFamily: Fonts.body, fontSize: 11, color: Colors.textSoft, marginTop: 2 },
-
-  // Accordéon frais
-  accordion: {
-    backgroundColor: Colors.white, borderRadius: Radius.lg, marginBottom: 12, padding: 14,
-    ...Shadow.card, marginHorizontal: 20,
-  },
-  accordionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  accordionTitle: { fontFamily: Fonts.body, fontSize: 14, fontWeight: '700', color: Colors.text },
-  accordionArrow: { fontFamily: Fonts.body, fontSize: 11, color: Colors.textSoft },
-  accordionBody: { marginTop: 10, paddingTop: 10, borderTopWidth: 1, borderTopColor: Colors.cream },
-  fraisRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 6 },
-  fraisInfo: { flex: 1, marginRight: 8 },
-  fraisMotif: { fontFamily: Fonts.body, fontSize: 13, fontWeight: '600', color: Colors.text },
-  fraisMeta: { fontFamily: Fonts.body, fontSize: 10, color: Colors.textSoft, marginTop: 1 },
-  fraisMontant: { fontFamily: Fonts.body, fontSize: 13, fontWeight: '600', color: Colors.text, marginRight: 10 },
-  fraisDelete: {
-    width: 28, height: 28, borderRadius: 14,
-    backgroundColor: Colors.terraLight, justifyContent: 'center', alignItems: 'center',
-  },
-  fraisDeleteIcon: { fontSize: 11, color: Colors.terra, fontWeight: '700' },
 })

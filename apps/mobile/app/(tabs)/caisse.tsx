@@ -20,6 +20,7 @@ import { Colors, Dark, Fonts, Radius, Shadow, Gradients } from '@/constants/them
 import { useAppTheme } from '@/hooks/useAppTheme'
 import { usePaymentModesStore, ALL_PAYMENT_MODES, DEFAULT_PAYMENT_MODES } from '@/store/paymentModesStore'
 import { SumUp } from '@megesti/react-native-sumup'
+import { Config } from '@/constants/Config'
 import { BarcodeIcon } from '@/components/BarcodeIcon'
 
 type PaymentMode = 'CB' | 'ESPECES' | 'CHEQUE' | 'VIREMENT' | 'PAYPAL' | 'SUMUP' | 'PDV'
@@ -195,6 +196,8 @@ export default function CaisseScreen() {
 
   const [showSessionModal, setShowSessionModal] = useState(false)
   const [fondCaisse, setFondCaisse] = useState('')
+  const [showCloseModal, setShowCloseModal] = useState(false)
+  const [fondFermeture, setFondFermeture] = useState('')
   const [selectedPdvId, setSelectedPdvId] = useState<string | null>(null)
   const [pdvSearch, setPdvSearch] = useState('')
   const [search, setSearch] = useState('')
@@ -343,6 +346,13 @@ export default function CaisseScreen() {
   }
 
   function handleCloseSession() {
+    // Encaissement direct = caisse physique : le fond de fermeture doit être
+    // compté et saisi (conformité caisse). Sinon, pas de fond à déclarer.
+    if (encaissementDirect) {
+      setFondFermeture('')
+      setShowCloseModal(true)
+      return
+    }
     Alert.alert(
       'Fermer la session',
       'Confirmer la fermeture de la session ?',
@@ -351,6 +361,13 @@ export default function CaisseScreen() {
         { text: 'Fermer', style: 'destructive', onPress: () => closeSession(0) },
       ]
     )
+  }
+
+  async function confirmCloseSession() {
+    const fond = parseFloat(fondFermeture.replace(',', '.'))
+    if (isNaN(fond) || fond < 0) return
+    setShowCloseModal(false)
+    await closeSession(fond)
   }
 
   const [editingPrice, setEditingPrice] = useState<string | null>(null)
@@ -402,6 +419,20 @@ export default function CaisseScreen() {
     try {
       // ── Encaissement SumUp : déclencher le terminal avant d'enregistrer ──
       if (payment === 'SUMUP') {
+        // La session SumUp ne survit pas à un kill du process : si elle est
+        // perdue, on rouvre l'écran de connexion SumUp ici plutôt que de
+        // renvoyer l'utilisateur dans les réglages.
+        if (!(await SumUp.isReady())) {
+          await SumUp.init(Config.sumupAffiliateKey)
+          const loggedIn = await SumUp.login()
+          if (!loggedIn) {
+            setSaleError('Connexion SumUp requise pour encaisser.')
+            addLog('warn', 'SumUp : reconnexion refusée ou annulée')
+            setSubmitting(false)
+            return
+          }
+          addLog('info', 'SumUp : reconnexion automatique OK')
+        }
         const result = await SumUp.checkout(total, 'EUR', 'Vente MeGesti')
         if (!result.success) {
           setSaleError(result.message ?? 'Paiement SumUp annulé ou échoué.')
@@ -875,6 +906,37 @@ export default function CaisseScreen() {
             </View>
           </View>
         </View>
+      </Modal>
+
+      {/* ── Fermeture de session : saisie du fond de caisse final ── */}
+      <Modal visible={showCloseModal} transparent animationType="fade" onRequestClose={() => setShowCloseModal(false)}>
+        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setShowCloseModal(false)}>
+          <View style={styles.modalCard} onStartShouldSetResponder={() => true}>
+            <Text style={styles.modalTitle}>Fermer la session</Text>
+            <Text style={styles.sectionLabel}>Fond de caisse à la fermeture (€)</Text>
+            <TextInput style={styles.modalInput} value={fondFermeture} onChangeText={setFondFermeture}
+              placeholder="0.00" placeholderTextColor={Colors.textSoft} keyboardType="decimal-pad" autoFocus />
+            <View style={styles.modalActions}>
+              <TouchableOpacity onPress={() => setShowCloseModal(false)} style={styles.modalBtnCancel} activeOpacity={0.7}>
+                <Text style={styles.modalBtnCancelText}>Annuler</Text>
+              </TouchableOpacity>
+              {(() => {
+                const canClose = fondFermeture.trim() !== '' && !isNaN(parseFloat(fondFermeture.replace(',', '.')))
+                return (
+                  <TouchableOpacity onPress={canClose ? confirmCloseSession : undefined}
+                    activeOpacity={canClose ? 0.85 : 1} style={styles.modalBtnConfirm}>
+                    <LinearGradient
+                      colors={canClose ? Gradients.caisse : [Colors.textSoft, Colors.textSoft]}
+                      start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+                      style={styles.modalBtnConfirmBg}>
+                      <Text style={styles.modalBtnConfirmText}>Fermer</Text>
+                    </LinearGradient>
+                  </TouchableOpacity>
+                )
+              })()}
+            </View>
+          </View>
+        </TouchableOpacity>
       </Modal>
     </View>
   )

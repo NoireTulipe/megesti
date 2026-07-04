@@ -43,7 +43,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   login: async (email, password) => {
     const data = await api.post<{ token: string }>('/auth/login', { email, password })
     const token = data.token
-    const payload = JSON.parse(atob(token.split('.')[1] ?? ''))
+    let payload: Record<string, any>
+    try {
+      payload = JSON.parse(atob(token.split('.')[1] ?? ''))
+    } catch {
+      throw new Error('Réponse de connexion invalide (token illisible)')
+    }
 
     const user: AuthUser = {
       id:         payload.sub ?? payload.userId,

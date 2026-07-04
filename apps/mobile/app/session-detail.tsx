@@ -4,7 +4,8 @@ import { router, useLocalSearchParams } from 'expo-router'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { api } from '@/lib/api'
-import { getDb } from '@/lib/db'
+import { getDb, generateUUID } from '@/lib/db'
+import { syncEngine } from '@/lib/sync'
 import { mergeVentesByUuid } from '@/lib/merge'
 import { useAppTheme } from '@/hooks/useAppTheme'
 import { Colors, Dark, Fonts, Radius, Shadow } from '@/constants/theme'
@@ -76,6 +77,8 @@ export default function SessionDetailScreen() {
     try {
       const fraisId = generateUUID()
       const date = new Date().toISOString()
+      // Clavier FR : la virgule est le séparateur décimal ("12,50" → 12.50)
+      const montantHT = parseFloat(fraisMontant.replace(',', '.')) || 0
       // Sauvegarder en local (créer un stub session si FK manquante)
       const db = await getDb()
       const ses = await db.getFirstAsync<{ id: string }>('SELECT id FROM sessions WHERE id = ?', [id])
@@ -86,15 +89,19 @@ export default function SessionDetailScreen() {
           [id, generateUUID(), data?.pointDeVente?.nom ?? 'Session distante'],
         )
       }
+      // Envoyer au serveur ; en cas d'échec, mise en queue pour retry
+      const payload = { id: fraisId, sessionId: id, type: fraisType, motif: fraisMotif.trim(), montantHT, date }
+      let synced = 0
+      try {
+        await api.post('/frais', payload)
+        synced = 1
+      } catch {
+        await syncEngine.enqueue('frais', fraisId, 'create', payload)
+      }
       await db.runAsync(
-        `INSERT INTO frais_locaux (id, session_id, type, motif, montant_ht, date, actif, synced) VALUES (?, ?, ?, ?, ?, ?, 1, 0)`,
-        [fraisId, id, fraisType, fraisMotif.trim(), parseFloat(fraisMontant) || 0, date],
+        `INSERT INTO frais_locaux (id, session_id, type, motif, montant_ht, date, actif, synced) VALUES (?, ?, ?, ?, ?, ?, 1, ?)`,
+        [fraisId, id, fraisType, fraisMotif.trim(), montantHT, date, synced],
       )
-      // Envoyer au serveur
-      api.post('/frais', {
-        id: fraisId, sessionId: id, type: fraisType,
-        motif: fraisMotif.trim(), montantHT: parseFloat(fraisMontant) || 0, date,
-      }).catch(() => {})
       setShowFraisForm(false)
       setFraisMotif('')
       setFraisMontant('')
@@ -108,13 +115,6 @@ export default function SessionDetailScreen() {
       )
       setFraisList(fl)
     } finally { setFraisSaving(false) }
-  }
-
-  function generateUUID(): string {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
-      const r = (Math.random() * 16) | 0
-      return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16)
-    })
   }
 
   // Delta local : ventes de cette session non remontées au serveur (synced=0).
@@ -345,7 +345,7 @@ export default function SessionDetailScreen() {
                     onPress={async () => {
                       const db = await getDb()
                       await db.runAsync(`UPDATE frais_locaux SET actif = 0 WHERE id = ?`, [f.id])
-                      api.delete(`/frais/${f.id}`).catch(() => {})
+                      api.delete(`/frais/${f.id}`).catch(() => syncEngine.enqueue('frais', f.id, 'delete', {}))
                       const fl = await db.getAllAsync<any>('SELECT id, type, motif, montant_ht, date, synced, actif FROM frais_locaux WHERE session_id = ? ORDER BY date DESC', [id])
                       setFraisList(fl)
                       const ft = await db.getFirstAsync<{ total: number }>('SELECT COALESCE(SUM(montant_ht),0) as total FROM frais_locaux WHERE session_id = ? AND actif = 1', [id])

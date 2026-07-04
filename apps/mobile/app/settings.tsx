@@ -3,7 +3,6 @@ import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Switch, Alert } f
 import { router } from 'expo-router'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import * as SecureStore from 'expo-secure-store'
 import { useAuthStore } from '@/store/authStore'
 import { useThemeStore } from '@/store/themeStore'
 import { SumUp } from '@megesti/react-native-sumup'
@@ -68,6 +67,9 @@ export default function SettingsScreen() {
 
   async function refreshSumupLoginState() {
     if (!SumUp.isAvailable()) return
+    // init() d'abord : sans lui, isReady() répond false même si le SDK a
+    // conservé la session (cas d'un process relancé qui arrive ici en premier).
+    try { await SumUp.init(Config.sumupAffiliateKey) } catch {}
     const ready = await SumUp.isReady()
     setSumupLoggedIn(ready)
   }
@@ -80,11 +82,7 @@ export default function SettingsScreen() {
       await SumUp.init(Config.sumupAffiliateKey)
       const success = await SumUp.login()
       setSumupLoggedIn(success)
-      if (success) {
-        // Stocker l'access token pour retenter un login transparent au prochain démarrage.
-        const token = await SumUp.getAccessToken()
-        if (token) await SecureStore.setItemAsync('megesti_sumup_token', token)
-      } else {
+      if (!success) {
         Alert.alert('Connexion annulée', 'La connexion à SumUp a été annulée.')
       }
     } catch (e: any) {
@@ -96,7 +94,6 @@ export default function SettingsScreen() {
 
   async function handleSumupLogout() {
     await SumUp.logout()
-    await SecureStore.deleteItemAsync('megesti_sumup_token')
     setSumupLoggedIn(false)
   }
 

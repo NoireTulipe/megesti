@@ -76,7 +76,8 @@ async function processQueue() {
       id: number; entity_type: string; entity_id: string
       operation: string; payload: string; retry_count: number
     }>(
-      'SELECT * FROM sync_queue ORDER BY id ASC LIMIT 20',
+      // retry_count >= 5 = entrées abandonnées : on ne les repompe pas en boucle
+      'SELECT * FROM sync_queue WHERE retry_count < 5 ORDER BY id ASC LIMIT 20',
     )
 
     if (pending.length === 0) {
@@ -93,7 +94,8 @@ async function processQueue() {
             await api.post('/ventes', body)
             break
           case 'frais':
-            await api.post('/frais', body)
+            if (item.operation === 'delete') await api.delete(`/frais/${item.entity_id}`)
+            else await api.post('/frais', body)
             break
           case 'session_close':
             await api.patch(`/sessions-caisse/${item.entity_id}/fermer`, body)
@@ -118,7 +120,9 @@ async function processQueue() {
         // bien sur le serveur, il ne faut surtout PAS la recompter dans le delta.
         const alreadyOnServer =
           (item.entity_type === 'session_close' && (e?.message?.includes('déjà fermée') || e?.status === 400)) ||
-          ((item.entity_type === 'vente' || item.entity_type === 'frais') && e?.status === 409)
+          ((item.entity_type === 'vente' || item.entity_type === 'frais') && e?.status === 409) ||
+          // 404 sur un delete de frais : déjà supprimé (ou jamais créé) côté serveur
+          (item.entity_type === 'frais' && item.operation === 'delete' && e?.status === 404)
 
         if (alreadyOnServer) {
           const table = item.entity_type === 'vente' ? 'ventes_locales' : item.entity_type === 'frais' ? 'frais_locaux' : 'sessions'
