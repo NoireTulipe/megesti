@@ -5,7 +5,7 @@ import {
 } from 'react-native'
 import { Image } from 'expo-image'
 import { GestureDetector, Gesture } from 'react-native-gesture-handler'
-import { router, useFocusEffect } from 'expo-router'
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useLocalSession, usePointsDeVente } from '@/hooks/useLocalSession'
@@ -13,9 +13,13 @@ import { useLocalArticles, LocalArticle } from '@/hooks/useLocalArticles'
 import { getDb } from '@/lib/db'
 import { useLocalVentes } from '@/hooks/useLocalVentes'
 import { api } from '@/lib/api'
+import { syncEngine } from '@/lib/sync'
+import { SessionCloseModal } from '@/components/SessionCloseModal'
+import { SaleSuccessOverlay } from '@/components/SaleSuccessOverlay'
 import { useDevStore } from '@/store/devStore'
 import { useScannerStore } from '@/store/scannerStore'
 import { useCategoryColorsStore, CAT_PALETTE } from '@/store/categoryColorsStore'
+import { useThemeStore } from '@/store/themeStore'
 import { Colors, Dark, Fonts, Radius, Shadow, Gradients } from '@/constants/theme'
 import { useAppTheme } from '@/hooks/useAppTheme'
 import { usePaymentModesStore, ALL_PAYMENT_MODES, DEFAULT_PAYMENT_MODES } from '@/store/paymentModesStore'
@@ -111,6 +115,9 @@ export default function CaisseScreen() {
 
   const enabledModes = usePaymentModesStore(s => s.enabled)
   const sumupTerminal = usePaymentModesStore(s => s.sumupTerminal)
+  const lastUsedMode = usePaymentModesStore(s => s.lastUsed)
+  const setLastUsedMode = usePaymentModesStore(s => s.setLastUsed)
+  const saleAnimation = useThemeStore(s => s.saleAnimation)
 
   // Modes affichés = modes activés dans les settings, SUMUP uniquement si module dispo
   // Fallback sur les modes par défaut si la liste est vide (sécurité)
@@ -119,12 +126,16 @@ export default function CaisseScreen() {
     activeModes.includes(m.mode) && (m.mode !== 'SUMUP' || SumUp.isAvailable())
   )
 
-  const { session, openSession, closeSession, refresh: refreshSession, validateWithServer } = useLocalSession()
+  const { session, openSession, closeSession, activateSession, refresh: refreshSession, validateWithServer } = useLocalSession()
   useEffect(() => { validateWithServer() }, []) // une fois au montage
   const { pdvs, loading: pdvsLoading, error: pdvsError } = usePointsDeVente()
   const { articles, pullFromServer } = useLocalArticles()
-  const { createVente } = useLocalVentes(session?.id)
+  const { ventes, createVente, cancelVente } = useLocalVentes(session?.id)
   const addLog = useDevStore(s => s.addLog)
+
+  // Compteur de synchro en attente (affiché dans le header)
+  const [pendingSync, setPendingSync] = useState(0)
+  useEffect(() => syncEngine.subscribe((_s, c) => setPendingSync(c)), [])
 
   const hasSession = !!session
   const sessionPdv = hasSession ? pdvs.find(p => p.id === session!.point_de_vente_id) : null
@@ -145,25 +156,15 @@ export default function CaisseScreen() {
     }
   }, [hasSession]))
 
-  // Adopter une session distante (ferme l'éventuelle session locale d'abord)
+  // Reprendre une session distante : on l'active localement sans rien fermer
+  // ni déplacer — les autres sessions ouvertes restent fidèles au serveur.
   async function adoptSession(remote: any) {
     try {
-      const db = await getDb()
-      // Récupérer l'ID de l'ancienne session locale pour migrer les ventes
-      const oldSession = await db.getFirstAsync<{ id: string }>(
-        'SELECT id FROM sessions WHERE statut = ? LIMIT 1', ['OUVERTE'],
-      )
-      await db.runAsync(`UPDATE sessions SET statut = 'FERMEE' WHERE statut = 'OUVERTE'`)
+      await activateSession(remote)
       const articleIds = await pullFromServer()
-      await db.runAsync(
-        `INSERT OR REPLACE INTO sessions (id, point_de_vente_id, point_de_vente_nom, date_ouverture, fond_ouverture, debiter_stock, statut, articles_exposes, synced)
-         VALUES (?, ?, ?, datetime('now'), ?, 1, 'OUVERTE', ?, 1)`,
-        [remote.id, remote.pointDeVenteId, remote.pointDeVente?.nom ?? 'Session', remote.fondOuverture ?? 0, JSON.stringify(articleIds)],
-      )
-      // Migrer les ventes de l'ancienne session vers la nouvelle, puis supprimer l'orpheline
-      if (oldSession && oldSession.id !== remote.id) {
-        await db.runAsync(`UPDATE ventes_locales SET session_id = ? WHERE session_id = ?`, [remote.id, oldSession.id])
-        await db.runAsync(`DELETE FROM sessions WHERE id = ?`, [oldSession.id])
+      if (articleIds.length > 0) {
+        const db = await getDb()
+        await db.runAsync('UPDATE sessions SET articles_exposes = ? WHERE id = ?', [JSON.stringify(articleIds), remote.id])
       }
       await refreshSession()
       addLog('info', `Session reprise: ${remote.pointDeVente?.nom}`)
@@ -197,7 +198,6 @@ export default function CaisseScreen() {
   const [showSessionModal, setShowSessionModal] = useState(false)
   const [fondCaisse, setFondCaisse] = useState('')
   const [showCloseModal, setShowCloseModal] = useState(false)
-  const [fondFermeture, setFondFermeture] = useState('')
   const [selectedPdvId, setSelectedPdvId] = useState<string | null>(null)
   const [pdvSearch, setPdvSearch] = useState('')
   const [search, setSearch] = useState('')
@@ -206,10 +206,21 @@ export default function CaisseScreen() {
 
   const [cart, setCart] = useState<CartItem[]>([])
   const [showCart, setShowCart] = useState(false)
-  const [showConfirm, setShowConfirm] = useState(false)
   const [saleError, setSaleError] = useState<string | null>(null)
   const [selectedPayment, setSelectedPayment] = useState<PaymentMode>('CB')
   const [submitting, setSubmitting] = useState(false)
+  // Rendu monnaie (mode espèces) : montant reçu du client
+  const [recu, setRecu] = useState('')
+  // Flash de succès après une vente
+  const [success, setSuccess] = useState<{ amount: number; hint: string | null } | null>(null)
+
+  // Présélectionner le dernier mode de paiement utilisé à l'ouverture du panier
+  useEffect(() => {
+    if (showCart && lastUsedMode && PAYMENT_MODES.some(p => p.mode === lastUsedMode)) {
+      setSelectedPayment(lastUsedMode)
+    }
+    if (!showCart) { setRecu(''); setSaleError(null) }
+  }, [showCart])
 
   const exposedIds: string[] = session?.articles_exposes ? JSON.parse(session.articles_exposes) : []
 
@@ -345,29 +356,35 @@ export default function CaisseScreen() {
     } catch (e: any) { addLog('error', `Erreur ouverture: ${e?.message}`) }
   }
 
-  function handleCloseSession() {
-    // Encaissement direct = caisse physique : le fond de fermeture doit être
-    // compté et saisi (conformité caisse). Sinon, pas de fond à déclarer.
-    if (encaissementDirect) {
-      setFondFermeture('')
-      setShowCloseModal(true)
-      return
-    }
-    Alert.alert(
-      'Fermer la session',
-      'Confirmer la fermeture de la session ?',
-      [
-        { text: 'Annuler', style: 'cancel' },
-        { text: 'Fermer', style: 'destructive', onPress: () => closeSession(0) },
-      ]
-    )
-  }
+  // Espèces encaissées sur cet appareil pour la session courante — sert au
+  // calcul de l'attendu en caisse à la fermeture.
+  const ventesValides = ventes.filter(v => v.statut !== 'ANNULEE')
+  const especesLocal = ventesValides
+    .filter(v => v.mode_paiement === 'ESPECES')
+    .reduce((s, v) => s + v.total_ttc, 0)
 
-  async function confirmCloseSession() {
-    const fond = parseFloat(fondFermeture.replace(',', '.'))
-    if (isNaN(fond) || fond < 0) return
-    setShowCloseModal(false)
-    await closeSession(fond)
+  // Dernière vente annulable (moins de 10 minutes, non annulée)
+  const lastVente = ventesValides[0] ?? null
+  const lastVenteRecent = !!lastVente &&
+    Date.now() - new Date(lastVente.date_vente).getTime() < 10 * 60_000
+
+  function confirmCancelLastVente() {
+    if (!lastVente) return
+    Alert.alert(
+      'Annuler la dernière vente',
+      `Annuler la vente de ${lastVente.total_ttc.toFixed(2)} € ?`,
+      [
+        { text: 'Non', style: 'cancel' },
+        {
+          text: 'Annuler la vente', style: 'destructive',
+          onPress: async () => {
+            await cancelVente(lastVente.id)
+            pullFromServer().catch(() => {})
+            addLog('info', `Vente annulée: ${lastVente.total_ttc.toFixed(2)} €`)
+          },
+        },
+      ],
+    )
   }
 
   const [editingPrice, setEditingPrice] = useState<string | null>(null)
@@ -410,6 +427,20 @@ export default function CaisseScreen() {
   }
 
   function clearCart() { setCart([]); setShowCart(false) }
+
+  // Ouverture pilotée depuis la vue Sessions (/caisse?openSession=1)
+  const { openSession: openSessionParam } = useLocalSearchParams<{ openSession?: string }>()
+  useFocusEffect(useCallback(() => {
+    if (openSessionParam === '1') {
+      setShowSessionModal(true)
+      router.setParams({ openSession: undefined })
+    }
+  }, [openSessionParam]))
+
+  // Rendu monnaie : différence entre le montant reçu et le total
+  const recuNum = parseFloat(recu.replace(',', '.'))
+  const rendu = selectedPayment === 'ESPECES' && recu.trim() !== '' && !isNaN(recuNum)
+    ? recuNum - total : null
 
   async function handleSale() {
     if (cart.length === 0 || submitting) return
@@ -454,15 +485,109 @@ export default function CaisseScreen() {
           tauxTva: item.tauxTva,
         })),
       })
-      setCart([]); setShowCart(false); setShowConfirm(false)
+      // Capturer le montant et le rendu AVANT de vider le panier
+      const amount = total
+      const hint = payment === 'ESPECES' && rendu != null && rendu > 0
+        ? `À rendre : ${rendu.toFixed(2)} €` : null
+      if (payment !== 'PDV') setLastUsedMode(payment)
+      setCart([]); setShowCart(false); setRecu('')
+      setSuccess({ amount, hint })
       refreshSession()
-      addLog('info', `Vente validée: ${total.toFixed(2)} €`)
+      addLog('info', `Vente validée: ${amount.toFixed(2)} €`)
     } catch (e: any) {
       addLog('error', `Erreur vente: ${e?.message}`)
       setSaleError(e?.message ?? 'Erreur inconnue')
       if (hasSession) pullFromServer().catch(() => {})
     } finally { setSubmitting(false) }
   }
+
+  // Modal « Nouvelle session » — partagé entre les deux rendus (avec ou sans
+  // session active) : on peut désormais ouvrir une session depuis la vue Sessions
+  // même quand une autre est déjà active.
+  const sessionModal = (
+    <Modal visible={showSessionModal} transparent animationType="fade">
+      <TouchableOpacity style={styles.modalOverlay} activeOpacity={1}
+        onPress={() => setShowSessionModal(false)}>
+        <View style={styles.modalCard} onStartShouldSetResponder={() => true}>
+          <Text style={styles.modalTitle}>Nouvelle session</Text>
+          <View style={styles.pdvLabelRow}>
+            <Text style={styles.sectionLabel}>Point de vente</Text>
+            <TouchableOpacity onPress={() => { setShowSessionModal(false); router.push('/point-de-vente-new') }} activeOpacity={0.7}>
+              <Text style={styles.pdvCreateLink}>＋ Créer</Text>
+            </TouchableOpacity>
+          </View>
+          {pdvsLoading ? (
+            <Text style={styles.hint}>Chargement…</Text>
+          ) : pdvsError ? (
+            <Text style={styles.errorHint}>Erreur : {pdvsError}</Text>
+          ) : pdvs.length === 0 ? (
+            <Text style={styles.hint}>Aucun point de vente. Touchez « ＋ Créer » pour en ajouter un.</Text>
+          ) : (
+            <>
+              {pdvs.length > 6 && (
+                <TextInput
+                  style={styles.pdvSearchInput}
+                  value={pdvSearch}
+                  onChangeText={setPdvSearch}
+                  placeholder="Rechercher un point de vente…"
+                  placeholderTextColor={Colors.textSoft}
+                />
+              )}
+              <ScrollView style={styles.pdvList} showsVerticalScrollIndicator={false}>
+                {pdvs
+                  .filter(pdv => pdv.nom.toLowerCase().includes(pdvSearch.trim().toLowerCase()))
+                  .map(pdv => (
+                  <TouchableOpacity key={pdv.id}
+                    style={[styles.pdvOption, selectedPdvId === pdv.id && styles.pdvOptionActive]}
+                    onPress={() => setSelectedPdvId(pdv.id)} activeOpacity={0.7}>
+                    <Text style={[styles.pdvOptionText, selectedPdvId === pdv.id && styles.pdvOptionTextActive]}>
+                      {pdv.nom}
+                    </Text>
+                    {pdv.encaissementDirect && (
+                      <Text style={styles.pdvOptionMeta}>Règlement à la caisse du PDV</Text>
+                    )}
+                  </TouchableOpacity>
+                ))}
+                {pdvs.filter(pdv => pdv.nom.toLowerCase().includes(pdvSearch.trim().toLowerCase())).length === 0 && (
+                  <Text style={[styles.hint, { textAlign: 'center', paddingVertical: 16 }]}>
+                    Aucun point de vente ne correspond.
+                  </Text>
+                )}
+              </ScrollView>
+            </>
+          )}
+          {selectedPdvId && pdvs.find(p => p.id === selectedPdvId)?.encaissementDirect && (
+            <>
+              <Text style={styles.sectionLabel}>Fond de caisse (€)</Text>
+              <TextInput style={styles.modalInput} value={fondCaisse} onChangeText={setFondCaisse}
+                placeholder="0.00" placeholderTextColor={Colors.textSoft} keyboardType="decimal-pad" />
+            </>
+          )}
+          <View style={styles.modalActions}>
+            <TouchableOpacity onPress={() => setShowSessionModal(false)}
+              style={styles.modalBtnCancel} activeOpacity={0.7}>
+              <Text style={styles.modalBtnCancelText}>Annuler</Text>
+            </TouchableOpacity>
+            {(() => {
+              const sel = pdvs.find(p => p.id === selectedPdvId)
+              const canOpen = !!selectedPdvId && (!sel?.encaissementDirect || !!fondCaisse)
+              return (
+                <TouchableOpacity onPress={canOpen ? handleOpenSession : undefined}
+                  activeOpacity={canOpen ? 0.85 : 1} style={styles.modalBtnConfirm}>
+                  <LinearGradient
+                    colors={canOpen ? Gradients.caisse : [Colors.textSoft, Colors.textSoft]}
+                    start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+                    style={styles.modalBtnConfirmBg}>
+                    <Text style={styles.modalBtnConfirmText}>Ouvrir</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+              )
+            })()}
+          </View>
+        </View>
+      </TouchableOpacity>
+    </Modal>
+  )
 
   // ════════════════════════════════════════════════════════════════
   // RENDU : Session fermée
@@ -509,88 +634,7 @@ export default function CaisseScreen() {
           </TouchableOpacity>
         </ScrollView>
 
-        <Modal visible={showSessionModal} transparent animationType="fade">
-          <TouchableOpacity style={styles.modalOverlay} activeOpacity={1}
-            onPress={() => setShowSessionModal(false)}>
-            <View style={styles.modalCard} onStartShouldSetResponder={() => true}>
-              <Text style={styles.modalTitle}>Nouvelle session</Text>
-              <View style={styles.pdvLabelRow}>
-                <Text style={styles.sectionLabel}>Point de vente</Text>
-                <TouchableOpacity onPress={() => { setShowSessionModal(false); router.push('/point-de-vente-new') }} activeOpacity={0.7}>
-                  <Text style={styles.pdvCreateLink}>＋ Créer</Text>
-                </TouchableOpacity>
-              </View>
-              {pdvsLoading ? (
-                <Text style={styles.hint}>Chargement…</Text>
-              ) : pdvsError ? (
-                <Text style={styles.errorHint}>Erreur : {pdvsError}</Text>
-              ) : pdvs.length === 0 ? (
-                <Text style={styles.hint}>Aucun point de vente. Touchez « ＋ Créer » pour en ajouter un.</Text>
-              ) : (
-                <>
-                  {pdvs.length > 6 && (
-                    <TextInput
-                      style={styles.pdvSearchInput}
-                      value={pdvSearch}
-                      onChangeText={setPdvSearch}
-                      placeholder="Rechercher un point de vente…"
-                      placeholderTextColor={Colors.textSoft}
-                    />
-                  )}
-                  <ScrollView style={styles.pdvList} showsVerticalScrollIndicator={false}>
-                    {pdvs
-                      .filter(pdv => pdv.nom.toLowerCase().includes(pdvSearch.trim().toLowerCase()))
-                      .map(pdv => (
-                      <TouchableOpacity key={pdv.id}
-                        style={[styles.pdvOption, selectedPdvId === pdv.id && styles.pdvOptionActive]}
-                        onPress={() => setSelectedPdvId(pdv.id)} activeOpacity={0.7}>
-                        <Text style={[styles.pdvOptionText, selectedPdvId === pdv.id && styles.pdvOptionTextActive]}>
-                          {pdv.nom}
-                        </Text>
-                        {pdv.encaissementDirect && (
-                          <Text style={styles.pdvOptionMeta}>Règlement à la caisse du PDV</Text>
-                        )}
-                      </TouchableOpacity>
-                    ))}
-                    {pdvs.filter(pdv => pdv.nom.toLowerCase().includes(pdvSearch.trim().toLowerCase())).length === 0 && (
-                      <Text style={[styles.hint, { textAlign: 'center', paddingVertical: 16 }]}>
-                        Aucun point de vente ne correspond.
-                      </Text>
-                    )}
-                  </ScrollView>
-                </>
-              )}
-              {selectedPdvId && pdvs.find(p => p.id === selectedPdvId)?.encaissementDirect && (
-                <>
-                  <Text style={styles.sectionLabel}>Fond de caisse (€)</Text>
-                  <TextInput style={styles.modalInput} value={fondCaisse} onChangeText={setFondCaisse}
-                    placeholder="0.00" placeholderTextColor={Colors.textSoft} keyboardType="decimal-pad" />
-                </>
-              )}
-              <View style={styles.modalActions}>
-                <TouchableOpacity onPress={() => setShowSessionModal(false)}
-                  style={styles.modalBtnCancel} activeOpacity={0.7}>
-                  <Text style={styles.modalBtnCancelText}>Annuler</Text>
-                </TouchableOpacity>
-                {(() => {
-                  const sel = pdvs.find(p => p.id === selectedPdvId)
-                  const canOpen = !!selectedPdvId && (!sel?.encaissementDirect || !!fondCaisse)
-                  return (
-                    <TouchableOpacity onPress={canOpen ? handleOpenSession : undefined}
-                      activeOpacity={canOpen ? 0.85 : 1} style={styles.modalBtnConfirm}>
-                      <LinearGradient
-                        colors={canOpen ? Gradients.caisse : [Colors.textSoft, Colors.textSoft]}
-                        start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-                        style={styles.modalBtnConfirmBg}>
-                        <Text style={styles.modalBtnConfirmText}>Ouvrir</Text>
-                      </LinearGradient>
-                    </TouchableOpacity>
-                  )
-                })()}
-              </View>
-            </View>
-          </TouchableOpacity>
-        </Modal>
+        {sessionModal}
       </View>
     )
   }
@@ -623,20 +667,16 @@ export default function CaisseScreen() {
             <Text style={styles.headerPdv}>{session!.point_de_vente_nom}</Text>
             <Text style={styles.headerSub}>
               {filtered.length} articles · {cart.length > 0 ? `${cart.length} au panier` : 'Session ouverte'}
+              {pendingSync > 0 ? ` · 📡 ${pendingSync} en attente` : ''}
             </Text>
           </View>
           <View style={{ flexDirection: 'row', gap: 8 }}>
             <TouchableOpacity
-              onPress={async () => {
-                const db = await getDb()
-                await db.runAsync(`UPDATE sessions SET statut = 'FERMEE' WHERE statut = 'OUVERTE'`)
-                await refreshSession()
-                setRemoteSessions([])
-              }}
+              onPress={() => router.push('/sessions')}
               style={styles.changeBtn} activeOpacity={0.7}>
               <Text style={styles.changeBtnText}>Changer</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={handleCloseSession} style={styles.closeBtn} activeOpacity={0.7}>
+            <TouchableOpacity onPress={() => setShowCloseModal(true)} style={styles.closeBtn} activeOpacity={0.7}>
               <Text style={styles.closeBtnText}>Fermer</Text>
             </TouchableOpacity>
           </View>
@@ -767,7 +807,7 @@ export default function CaisseScreen() {
         <TouchableOpacity
           style={[styles.cartBar, { bottom: TAB_BAR_H + 8 }]}
           activeOpacity={0.9}
-          onPress={() => { setShowCart(true); setShowConfirm(false) }}>
+          onPress={() => setShowCart(true)}>
           <LinearGradient colors={Gradients.caisse} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
             style={styles.cartBarBg}>
             <View style={styles.cartBarBadge}>
@@ -846,37 +886,8 @@ export default function CaisseScreen() {
               ))}
             </ScrollView>
             <View style={[styles.sheetFooter, { paddingBottom: insets.bottom + 8 }]}>
-              <View style={styles.sheetTotalRow}>
-                <Text style={styles.sheetTotalLabel}>Total</Text>
-                <Text style={styles.sheetTotalValue}>{total.toFixed(2)} €</Text>
-              </View>
-              <TouchableOpacity activeOpacity={0.85} onPress={() => setShowConfirm(true)}>
-                <LinearGradient colors={Gradients.sessions} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-                  style={styles.validateBtn}>
-                  <Text style={styles.validateBtnText}>Valider la vente</Text>
-                </LinearGradient>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </TouchableOpacity>
-      </Modal>
-
-      {/* ── Confirmation paiement ── */}
-      <Modal visible={showConfirm} transparent animationType="fade" onRequestClose={() => setShowConfirm(false)}>
-        <View style={styles.confirmOverlay}>
-          <View style={styles.confirmCard}>
-            <Text style={styles.confirmTitle}>Confirmer la vente</Text>
-            <Text style={styles.confirmTotal}>{total.toFixed(2)} €</Text>
-            <Text style={styles.confirmArticles}>{cart.length} article{cart.length > 1 ? 's' : ''}</Text>
-            {saleError && (
-              <View style={styles.confirmError}>
-                <Text style={styles.confirmErrorText}>{saleError}</Text>
-                <Text style={styles.confirmErrorHint}>Les articles seront resynchronisés. Réessayez.</Text>
-              </View>
-            )}
-            {encaissementDirect && (
-              <>
-                <Text style={styles.confirmSectionLabel}>Mode de paiement</Text>
+              {/* Mode de paiement intégré au panier : une étape de moins */}
+              {encaissementDirect && (
                 <View style={styles.confirmPayRow}>
                   {PAYMENT_MODES.map(p => (
                     <TouchableOpacity key={p.mode}
@@ -889,55 +900,73 @@ export default function CaisseScreen() {
                     </TouchableOpacity>
                   ))}
                 </View>
-              </>
-            )}
-            <View style={styles.confirmActions}>
-              <TouchableOpacity style={styles.confirmBtnCancel} activeOpacity={0.7}
-                onPress={() => { setShowConfirm(false); setSaleError(null) }}>
-                <Text style={styles.confirmBtnCancelText}>Retour</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.confirmBtnOk} activeOpacity={0.85}
-                disabled={submitting} onPress={handleSale}>
+              )}
+              {/* Rendu monnaie (espèces) */}
+              {encaissementDirect && selectedPayment === 'ESPECES' && (
+                <View style={styles.renduRow}>
+                  <Text style={styles.renduLbl}>Reçu</Text>
+                  <TextInput
+                    style={styles.renduInput} value={recu} onChangeText={setRecu}
+                    placeholder={total.toFixed(2)} placeholderTextColor={Colors.textSoft}
+                    keyboardType="decimal-pad" />
+                  <Text style={[styles.renduVal, rendu != null && rendu < 0 && { color: Colors.terra }]}>
+                    {rendu == null ? '' : rendu >= 0 ? `À rendre : ${rendu.toFixed(2)} €` : `Manque ${(-rendu).toFixed(2)} €`}
+                  </Text>
+                </View>
+              )}
+              {saleError && (
+                <View style={styles.confirmError}>
+                  <Text style={styles.confirmErrorText}>{saleError}</Text>
+                </View>
+              )}
+              <View style={styles.sheetTotalRow}>
+                <Text style={styles.sheetTotalLabel}>Total</Text>
+                <Text style={styles.sheetTotalValue}>{total.toFixed(2)} €</Text>
+              </View>
+              <TouchableOpacity activeOpacity={0.85} disabled={submitting} onPress={handleSale}>
                 <LinearGradient colors={Gradients.sessions} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-                  style={styles.confirmBtnOkBg}>
-                  <Text style={styles.confirmBtnOkText}>{submitting ? 'Envoi…' : 'Confirmer'}</Text>
+                  style={styles.validateBtn}>
+                  <Text style={styles.validateBtnText}>
+                    {submitting ? 'Encaissement…' : `Encaisser ${total.toFixed(2)} €`}
+                  </Text>
                 </LinearGradient>
               </TouchableOpacity>
             </View>
           </View>
-        </View>
-      </Modal>
-
-      {/* ── Fermeture de session : saisie du fond de caisse final ── */}
-      <Modal visible={showCloseModal} transparent animationType="fade" onRequestClose={() => setShowCloseModal(false)}>
-        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setShowCloseModal(false)}>
-          <View style={styles.modalCard} onStartShouldSetResponder={() => true}>
-            <Text style={styles.modalTitle}>Fermer la session</Text>
-            <Text style={styles.sectionLabel}>Fond de caisse à la fermeture (€)</Text>
-            <TextInput style={styles.modalInput} value={fondFermeture} onChangeText={setFondFermeture}
-              placeholder="0.00" placeholderTextColor={Colors.textSoft} keyboardType="decimal-pad" autoFocus />
-            <View style={styles.modalActions}>
-              <TouchableOpacity onPress={() => setShowCloseModal(false)} style={styles.modalBtnCancel} activeOpacity={0.7}>
-                <Text style={styles.modalBtnCancelText}>Annuler</Text>
-              </TouchableOpacity>
-              {(() => {
-                const canClose = fondFermeture.trim() !== '' && !isNaN(parseFloat(fondFermeture.replace(',', '.')))
-                return (
-                  <TouchableOpacity onPress={canClose ? confirmCloseSession : undefined}
-                    activeOpacity={canClose ? 0.85 : 1} style={styles.modalBtnConfirm}>
-                    <LinearGradient
-                      colors={canClose ? Gradients.caisse : [Colors.textSoft, Colors.textSoft]}
-                      start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-                      style={styles.modalBtnConfirmBg}>
-                      <Text style={styles.modalBtnConfirmText}>Fermer</Text>
-                    </LinearGradient>
-                  </TouchableOpacity>
-                )
-              })()}
-            </View>
-          </View>
         </TouchableOpacity>
       </Modal>
+
+      {/* ── Annulation rapide de la dernière vente (panier vide) ── */}
+      {cart.length === 0 && lastVenteRecent && (
+        <TouchableOpacity
+          style={[styles.undoChip, { bottom: TAB_BAR_H + 8 }]}
+          activeOpacity={0.8}
+          onPress={confirmCancelLastVente}>
+          <Text style={styles.undoChipText}>↩  Annuler la dernière vente ({lastVente!.total_ttc.toFixed(2)} €)</Text>
+        </TouchableOpacity>
+      )}
+
+      {sessionModal}
+
+      {/* ── Fermeture de session : fond compté + attendu en caisse ── */}
+      <SessionCloseModal
+        visible={showCloseModal}
+        pdvNom={session?.point_de_vente_nom ?? ''}
+        fondOuverture={Number(session?.fond_ouverture) || 0}
+        especes={especesLocal}
+        askFond={encaissementDirect}
+        onCancel={() => setShowCloseModal(false)}
+        onConfirm={async (fond) => { setShowCloseModal(false); await closeSession(fond) }}
+      />
+
+      {/* ── Flash de succès après vente ── */}
+      {success && (
+        <SaleSuccessOverlay
+          amount={success.amount} hint={success.hint}
+          animated={saleAnimation}
+          onDone={() => setSuccess(null)}
+        />
+      )}
     </View>
   )
 }
@@ -1139,25 +1168,32 @@ const styles = StyleSheet.create({
   validateBtn: { paddingVertical: 16, borderRadius: Radius.md, alignItems: 'center' },
   validateBtnText: { fontFamily: Fonts.body, fontSize: 15, fontWeight: '700', color: Colors.white },
 
-  confirmOverlay: { flex: 1, backgroundColor: 'rgba(36,39,51,0.5)', justifyContent: 'center', alignItems: 'center', padding: 28 },
-  confirmCard: { backgroundColor: Colors.white, borderRadius: Radius.xl, padding: 28, width: '100%', maxWidth: 340, alignItems: 'center', shadowColor: Colors.text, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.10, shadowRadius: 24, elevation: 8 },
-  confirmTitle: { fontFamily: Fonts.displayItalic, fontSize: 18, color: Colors.rose, fontStyle: 'italic', marginBottom: 16 },
-  confirmTotal: { fontFamily: Fonts.displayItalic, fontSize: 42, color: Colors.sage, fontStyle: 'italic' },
-  confirmArticles: { fontFamily: Fonts.body, fontSize: 13, color: Colors.textSoft, marginBottom: 20 },
-  confirmError: { backgroundColor: Colors.terraLight, borderRadius: Radius.md, padding: 12, marginBottom: 16, borderWidth: 1, borderColor: 'rgba(200,93,58,0.2)' },
+  confirmError: { backgroundColor: Colors.terraLight, borderRadius: Radius.md, padding: 12, marginBottom: 12, borderWidth: 1, borderColor: 'rgba(200,93,58,0.2)' },
   confirmErrorText: { fontFamily: Fonts.body, fontSize: 12, fontWeight: '700', color: Colors.terra, textAlign: 'center' },
-  confirmErrorHint: { fontFamily: Fonts.body, fontSize: 10, color: Colors.textSoft, textAlign: 'center', marginTop: 4 },
-  confirmSectionLabel: { fontFamily: Fonts.body, fontSize: 11, fontWeight: '700', color: Colors.textSoft, textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 8, alignSelf: 'flex-start' },
-  confirmPayRow: { flexDirection: 'row', gap: 6, marginBottom: 24, alignSelf: 'stretch' },
+  confirmPayRow: { flexDirection: 'row', gap: 6, marginBottom: 12, alignSelf: 'stretch' },
   confirmPayChip: { flex: 1, alignItems: 'center', padding: 10, borderRadius: Radius.md, backgroundColor: Colors.cream, borderWidth: 2, borderColor: 'transparent' },
   confirmPayChipActive: { borderColor: Colors.rose, backgroundColor: Colors.roseLight },
   confirmPayEmoji: { fontSize: 18, marginBottom: 2 },
   confirmPayLabel: { fontFamily: Fonts.body, fontSize: 9, fontWeight: '600', color: Colors.textSoft },
   confirmPayLabelActive: { color: Colors.roseDark },
-  confirmActions: { flexDirection: 'row', gap: 10, alignSelf: 'stretch' },
-  confirmBtnCancel: { flex: 1, paddingVertical: 14, alignItems: 'center', borderRadius: Radius.md, backgroundColor: Colors.cream },
-  confirmBtnCancelText: { fontFamily: Fonts.body, fontSize: 14, fontWeight: '600', color: Colors.textMid },
-  confirmBtnOk: { flex: 1.5, borderRadius: Radius.md, overflow: 'hidden' },
-  confirmBtnOkBg: { paddingVertical: 14, alignItems: 'center' },
-  confirmBtnOkText: { fontFamily: Fonts.body, fontSize: 14, fontWeight: '700', color: Colors.white },
+
+  // Rendu monnaie
+  renduRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 12 },
+  renduLbl: { fontFamily: Fonts.body, fontSize: 12, fontWeight: '700', color: Colors.textSoft, textTransform: 'uppercase', letterSpacing: 0.5 },
+  renduInput: {
+    fontFamily: Fonts.body, fontSize: 15, color: Colors.text, backgroundColor: Colors.cream,
+    borderRadius: Radius.md, paddingHorizontal: 12, paddingVertical: 9, width: 100,
+    borderWidth: 1.5, borderColor: 'rgba(196,132,122,0.2)',
+  },
+  renduVal: { flex: 1, fontFamily: Fonts.body, fontSize: 14, fontWeight: '800', color: Colors.sage, textAlign: 'right' },
+
+  // Chip annulation dernière vente
+  undoChip: {
+    position: 'absolute', alignSelf: 'center',
+    backgroundColor: Colors.white, borderRadius: Radius.full,
+    paddingHorizontal: 16, paddingVertical: 10,
+    borderWidth: 1, borderColor: Colors.creamDark,
+    shadowColor: Colors.text, shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.08, shadowRadius: 10, elevation: 4,
+  },
+  undoChipText: { fontFamily: Fonts.body, fontSize: 12, fontWeight: '600', color: Colors.textMid },
 })

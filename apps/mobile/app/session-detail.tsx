@@ -7,6 +7,7 @@ import { api } from '@/lib/api'
 import { getDb, generateUUID } from '@/lib/db'
 import { syncEngine } from '@/lib/sync'
 import { mergeVentesByUuid } from '@/lib/merge'
+import { FRAIS_TYPES, fraisLabel, fraisEmoji } from '@/constants/frais'
 import { useAppTheme } from '@/hooks/useAppTheme'
 import { Colors, Dark, Fonts, Radius, Shadow } from '@/constants/theme'
 
@@ -22,11 +23,13 @@ function parseLignesJson(json: string): VenteLigne[] {
       nom?: string; articleId?: string; quantite: number
       totalLigneHT?: number; totalLigneTTC?: number; prixUnitaireHT?: number; tauxTva?: number
     }[]
+    // Convention MeGesti : prixUnitaireHT contient le prix TTC (nom historique).
+    // Fallback si les totaux de ligne manquent : TTC = prix × qté, HT dérivé.
     return raw.map(l => ({
       articleId:    l.articleId ?? '',
       quantite:     l.quantite,
-      totalLigneHT: l.totalLigneHT ?? (l.prixUnitaireHT ?? 0) * l.quantite,
-      totalLigneTTC: l.totalLigneTTC ?? (l.prixUnitaireHT ?? 0) * l.quantite * (1 + (l.tauxTva ?? 0) / 100),
+      totalLigneHT: l.totalLigneHT ?? ((l.prixUnitaireHT ?? 0) * l.quantite) / (1 + (l.tauxTva ?? 0) / 100),
+      totalLigneTTC: l.totalLigneTTC ?? (l.prixUnitaireHT ?? 0) * l.quantite,
       article:      { nom: l.nom ?? 'Article inconnu' },
     }))
   } catch {
@@ -337,7 +340,7 @@ export default function SessionDetailScreen() {
                 <View key={f.id} style={[s.fraisRow, isDark && { borderBottomColor: 'rgba(255,255,255,0.04)' }, f.actif === 0 && { opacity: 0.45 }]}>
                   <View style={{ flex: 1 }}>
                     <Text style={[s.fraisMotif, isDark && { color: Dark.text }, f.actif === 0 && { textDecorationLine: 'line-through' as const }]}>{f.motif}</Text>
-                    <Text style={[s.fraisMeta, isDark && { color: Dark.textSoft }]}>{f.type} · {new Date(f.date).toLocaleDateString('fr-FR')}{f.actif === 0 ? ' · Annulé' : ''}</Text>
+                    <Text style={[s.fraisMeta, isDark && { color: Dark.textSoft }]}>{fraisEmoji(f.type)} {fraisLabel(f.type)} · {new Date(f.date).toLocaleDateString('fr-FR')}{f.actif === 0 ? ' · Annulé' : ''}</Text>
                   </View>
                   <Text style={[s.fraisMontant, isDark && { color: Dark.text }, f.actif === 0 && { textDecorationLine: 'line-through' as const }]}>{Number(f.montant_ht).toFixed(2)} €</Text>
                   <TouchableOpacity
@@ -493,11 +496,13 @@ export default function SessionDetailScreen() {
 
             <Text style={s.modalLabel}>Type</Text>
             <View style={s.typeRow}>
-              {(['DEPLACEMENT', 'REPAS', 'HEBERGEMENT', 'STAND', 'AUTRE'] as const).map(t => (
-                <TouchableOpacity key={t}
-                  style={[s.typeChip, fraisType === t && s.typeChipActive]}
-                  onPress={() => setFraisType(t)} activeOpacity={0.7}>
-                  <Text style={[s.typeChipText, fraisType === t && s.typeChipTextActive]}>{t}</Text>
+              {FRAIS_TYPES.map(t => (
+                <TouchableOpacity key={t.value}
+                  style={[s.typeChip, fraisType === t.value && s.typeChipActive]}
+                  onPress={() => setFraisType(t.value)} activeOpacity={0.7}>
+                  <Text style={[s.typeChipText, fraisType === t.value && s.typeChipTextActive]}>
+                    {t.emoji} {t.label}
+                  </Text>
                 </TouchableOpacity>
               ))}
             </View>

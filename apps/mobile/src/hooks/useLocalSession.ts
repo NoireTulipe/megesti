@@ -16,6 +16,16 @@ export interface LocalSession {
   statut: 'OUVERTE' | 'FERMEE'
   articles_exposes: string | null // JSON array d'IDs
   synced: number
+  active: number
+}
+
+/** Session distante telle que renvoyée par GET /sessions-caisse */
+export interface RemoteSessionInfo {
+  id: string
+  pointDeVenteId: string
+  pointDeVente?: { nom: string } | null
+  fondOuverture?: number | null
+  dateOuverture?: string | null
 }
 
 export interface PointDeVente {
@@ -49,8 +59,12 @@ export function useLocalSession() {
 
   const refresh = useCallback(async () => {
     const db = await getDb()
+    // Seule la session explicitement active est servie à la caisse. Pas de
+    // fallback sur "la plus récente ouverte" : plusieurs sessions peuvent être
+    // OUVERTE localement, et enregistrer des ventes sur la mauvaise serait pire
+    // que de redemander à l'utilisateur d'en choisir une.
     const row = await db.getFirstAsync<LocalSession>(
-      'SELECT * FROM sessions WHERE statut = ? ORDER BY date_ouverture DESC LIMIT 1',
+      'SELECT * FROM sessions WHERE statut = ? AND active = 1 LIMIT 1',
       ['OUVERTE'],
     )
     setSession(row ?? null)
@@ -59,22 +73,25 @@ export function useLocalSession() {
 
   useEffect(() => { refresh() }, [refresh])
 
-  // Valider la session locale contre le serveur (appelé au démarrage)
+  // Valider les sessions locales ouvertes contre le serveur (appelé au démarrage)
   async function validateWithServer() {
     const db = await getDb()
-    const local = await db.getFirstAsync<LocalSession>(
-      'SELECT * FROM sessions WHERE statut = ? ORDER BY date_ouverture DESC LIMIT 1',
-      ['OUVERTE'],
+    const locals = await db.getAllAsync<LocalSession>(
+      'SELECT * FROM sessions WHERE statut = ?', ['OUVERTE'],
     )
-    if (!local) return
+    if (locals.length === 0) return
     try {
       const data = await api.get<any[]>('/sessions-caisse?statut=OUVERTE')
-      const stillOpen = data.some((s: any) => s.id === local.id)
-      if (!stillOpen) {
+      const openIds = new Set(data.map((s: any) => s.id))
+      let changed = false
+      for (const local of locals) {
+        // Les sessions jamais synchronisées ne sont pas sur le serveur : on n'y touche pas.
+        if (!local.synced || openIds.has(local.id)) continue
         addLog('warn', `Session ${local.id} fermée ailleurs → mise à jour locale`)
-        await db.runAsync(`UPDATE sessions SET statut = 'FERMEE', synced = 1 WHERE id = ?`, [local.id])
-        await refresh()
+        await db.runAsync(`UPDATE sessions SET statut = 'FERMEE', active = 0 WHERE id = ?`, [local.id])
+        changed = true
       }
+      if (changed) await refresh()
     } catch {
       // serveur injoignable, on garde l'état local
     }
@@ -100,9 +117,10 @@ export function useLocalSession() {
       addLog('warn', `Session stockée en local (serveur injoignable): ${e.message}`)
     }
 
+    await db.runAsync(`UPDATE sessions SET active = 0 WHERE active = 1`)
     await db.runAsync(
-      `INSERT INTO sessions (id, point_de_vente_id, point_de_vente_nom, salon_id, date_ouverture, fond_ouverture, debiter_stock, statut, articles_exposes, synced)
-       VALUES (?, ?, ?, ?, datetime('now'), ?, 1, 'OUVERTE', ?, ?)`,
+      `INSERT INTO sessions (id, point_de_vente_id, point_de_vente_nom, salon_id, date_ouverture, fond_ouverture, debiter_stock, statut, articles_exposes, synced, active)
+       VALUES (?, ?, ?, ?, datetime('now'), ?, 1, 'OUVERTE', ?, ?, 1)`,
       [id, pdvId, pdvNom, salonId ?? null, fondOuverture, JSON.stringify(articleIds), synced],
     )
     addLog('info', `Session ouverte: ${pdvNom} (${articleIds.length} articles)`)
@@ -110,10 +128,32 @@ export function useLocalSession() {
     return id
   }
 
-  async function closeSession(fondFermeture: number) {
-    if (!session) return
+  /**
+   * Rend une session distante active dans la caisse. Ne ferme rien, ne déplace
+   * aucune vente : les autres sessions ouvertes restent OUVERTE (fidèle au serveur).
+   */
+  async function activateSession(remote: RemoteSessionInfo) {
     const db = await getDb()
-    const sessionId = session.id
+    await db.runAsync(`UPDATE sessions SET active = 0 WHERE active = 1`)
+    await db.runAsync(
+      `INSERT INTO sessions (id, point_de_vente_id, point_de_vente_nom, date_ouverture, fond_ouverture, debiter_stock, statut, articles_exposes, synced, active)
+       VALUES (?, ?, ?, ?, ?, 1, 'OUVERTE', '[]', 1, 1)
+       ON CONFLICT(id) DO UPDATE SET
+         statut = 'OUVERTE', active = 1, synced = 1,
+         point_de_vente_nom = excluded.point_de_vente_nom,
+         fond_ouverture = excluded.fond_ouverture`,
+      [
+        remote.id, remote.pointDeVenteId, remote.pointDeVente?.nom ?? 'Session',
+        remote.dateOuverture ?? new Date().toISOString(), Number(remote.fondOuverture) || 0,
+      ],
+    )
+    addLog('info', `Session active: ${remote.pointDeVente?.nom ?? remote.id}`)
+    await refresh()
+  }
+
+  /** Ferme une session par id (active ou non) : serveur d'abord, fallback queue. */
+  async function closeSessionById(sessionId: string, fondFermeture: number) {
+    const db = await getDb()
 
     // Essayer le serveur d'abord
     let synced = 0
@@ -132,7 +172,7 @@ export function useLocalSession() {
     }
 
     await db.runAsync(
-      `UPDATE sessions SET statut = 'FERMEE', fond_fermeture = ?, synced = ? WHERE id = ?`,
+      `UPDATE sessions SET statut = 'FERMEE', active = 0, fond_fermeture = ?, synced = ? WHERE id = ?`,
       [fondFermeture, synced, sessionId],
     )
 
@@ -145,7 +185,12 @@ export function useLocalSession() {
     await refresh()
   }
 
-  return { session, loading, refresh, openSession, closeSession, validateWithServer }
+  async function closeSession(fondFermeture: number) {
+    if (!session) return
+    await closeSessionById(session.id, fondFermeture)
+  }
+
+  return { session, loading, refresh, openSession, closeSession, closeSessionById, activateSession, validateWithServer }
 }
 
 export interface SessionWithStats extends LocalSession {

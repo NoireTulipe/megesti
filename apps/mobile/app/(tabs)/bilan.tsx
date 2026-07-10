@@ -11,6 +11,7 @@ import { api } from '@/lib/api'
 import { syncEngine } from '@/lib/sync'
 import { mergeBilanAggregates } from '@/lib/merge'
 import { Colors, Dark, Fonts, Radius, Shadow, Gradients } from '@/constants/theme'
+import { fraisLabel, fraisEmoji } from '@/constants/frais'
 import { useAppTheme } from '@/hooks/useAppTheme'
 
 // ─── Types ────────────────────────────────────────────────────────────
@@ -502,19 +503,23 @@ export default function BilanScreen() {
       // synchronisé, dédupliqué par UUID. Fallback : cache local complet.
       let fraisTotal = fraisEtSessions.totaux.fraisTotal
       let sessions = fraisEtSessions.sessions
+      let fraisRows = fraisEtSessions.fraisRows
       if (serverFrais) {
         const inPeriod = serverFrais.filter(f =>
           f.actif !== false && typeof f.date === 'string' && f.date >= from && f.date <= to)
         const serverIds = new Set(inPeriod.map(f => f.id))
-        const fraisMerged = [
-          ...inPeriod.map(f => ({ montant: Number(f.montantHT ?? 0), sessionId: f.sessionId ?? null })),
-          ...delta.fraisRows.filter(f => !serverIds.has(f.id))
-            .map(f => ({ montant: f.montant_ht ?? 0, sessionId: f.session_id })),
-        ]
-        fraisTotal = fraisMerged.reduce((s, f) => s + f.montant, 0)
+        fraisRows = [
+          ...inPeriod.map((f): FraisRow => ({
+            id: String(f.id), type: String(f.type ?? 'AUTRE'), motif: String(f.motif ?? ''),
+            montant_ht: Number(f.montantHT ?? 0), date: String(f.date),
+            session_id: f.sessionId ?? null, synced: 1,
+          })),
+          ...delta.fraisRows.filter(f => !serverIds.has(f.id)),
+        ].sort((a, b) => b.date.localeCompare(a.date))
+        fraisTotal = fraisRows.reduce((s, f) => s + (f.montant_ht ?? 0), 0)
         const bySession = new Map<string, number>()
-        for (const f of fraisMerged) {
-          if (f.sessionId) bySession.set(f.sessionId, (bySession.get(f.sessionId) ?? 0) + f.montant)
+        for (const f of fraisRows) {
+          if (f.session_id) bySession.set(f.session_id, (bySession.get(f.session_id) ?? 0) + (f.montant_ht ?? 0))
         }
         sessions = sessions.map(s => ({ ...s, frais: bySession.get(s.session_id) ?? s.frais }))
       }
@@ -531,7 +536,7 @@ export default function BilanScreen() {
           panierMoyen: merged.venteCount > 0 ? merged.ca / merged.venteCount : 0,
         },
         parMode: merged.parMode, topArticles: merged.topArticles, parPdv: merged.parPdv,
-        parMois: fraisEtSessions.parMois, sessions, fraisRows: fraisEtSessions.fraisRows,
+        parMois: fraisEtSessions.parMois, sessions, fraisRows,
       })
       return
     } catch {
@@ -565,7 +570,7 @@ export default function BilanScreen() {
   const [pending, setPending] = useState(0)
   useEffect(() => syncEngine.subscribe((_s, c) => setPending(c)), [])
 
-  const { totaux, parMode, topArticles, parPdv, parMois, sessions } = data
+  const { totaux, parMode, topArticles, parPdv, parMois, sessions, fraisRows } = data
   const maxModeCa = parMode.length > 0 ? Math.max(...parMode.map(m => m.ca)) : 1
 
   return (
@@ -708,6 +713,29 @@ export default function BilanScreen() {
 
           </>
         )}
+
+        {/* ── Frais de la période (visible même sans vente) ── */}
+        {fraisRows.length > 0 && (
+          <Section isDark={isDark} title={`Frais de la période (${fraisRows.length})`}>
+            {fraisRows.slice(0, 15).map(f => (
+              <View key={f.id} style={styles.fraisRow}>
+                <Text style={styles.fraisEmoji}>{fraisEmoji(f.type)}</Text>
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.fraisMotif, isDark && { color: Dark.text }]} numberOfLines={1}>{f.motif}</Text>
+                  <Text style={[styles.fraisMeta, isDark && { color: Dark.textSoft }]}>
+                    {fraisLabel(f.type)} · {fmtDate(f.date)}
+                  </Text>
+                </View>
+                <Text style={styles.fraisMontant}>{(f.montant_ht ?? 0).toFixed(2)} €</Text>
+              </View>
+            ))}
+            {fraisRows.length > 15 && (
+              <Text style={[styles.fraisMore, isDark && { color: Dark.textSoft }]}>
+                + {fraisRows.length - 15} autres frais sur la période
+              </Text>
+            )}
+          </Section>
+        )}
       </ScrollView>
     </View>
   )
@@ -765,4 +793,12 @@ const styles = StyleSheet.create({
   sesRight:     { alignItems: 'flex-end' },
   sesCa:        { fontFamily: Fonts.body, fontSize: 15, fontWeight: '800', color: Colors.gold },
   sesVentes:    { fontFamily: Fonts.body, fontSize: 11, color: Colors.textSoft, marginTop: 2 },
+
+  // Frais de la période
+  fraisRow:     { flexDirection: 'row', alignItems: 'center', paddingVertical: 7, gap: 10 },
+  fraisEmoji:   { fontSize: 16, width: 24, textAlign: 'center' },
+  fraisMotif:   { fontFamily: Fonts.body, fontSize: 13, fontWeight: '600', color: Colors.text },
+  fraisMeta:    { fontFamily: Fonts.body, fontSize: 10, color: Colors.textSoft, marginTop: 1 },
+  fraisMontant: { fontFamily: Fonts.body, fontSize: 13, fontWeight: '700', color: Colors.terra },
+  fraisMore:    { fontFamily: Fonts.body, fontSize: 11, color: Colors.textSoft, fontStyle: 'italic', textAlign: 'center', marginTop: 6 },
 })

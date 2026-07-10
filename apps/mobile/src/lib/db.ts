@@ -30,6 +30,18 @@ export async function initDb(): Promise<void> {
     try { await db.execAsync(col) } catch { /* colonne existe déjà */ }
   }
 
+  // 'active' = session affichée dans la caisse. Distinct de 'statut' :
+  // plusieurs sessions peuvent être OUVERTE (serveur), une seule est active ici.
+  // Au premier passage (colonne créée), la session ouverte la plus récente
+  // devient active pour ne pas perdre la session en cours.
+  try {
+    await db.execAsync(`ALTER TABLE sessions ADD COLUMN active INTEGER NOT NULL DEFAULT 0`)
+    await db.execAsync(
+      `UPDATE sessions SET active = 1
+       WHERE id = (SELECT id FROM sessions WHERE statut = 'OUVERTE' ORDER BY date_ouverture DESC LIMIT 1)`,
+    )
+  } catch { /* colonne existe déjà */ }
+
   await db.execAsync(`
     CREATE TABLE IF NOT EXISTS articles (
       id TEXT PRIMARY KEY,
@@ -63,7 +75,8 @@ export async function initDb(): Promise<void> {
       statut TEXT NOT NULL DEFAULT 'OUVERTE',
       articles_exposes TEXT,
       synced INTEGER NOT NULL DEFAULT 0,
-      synced_at TEXT
+      synced_at TEXT,
+      active INTEGER NOT NULL DEFAULT 0
     );
 
     CREATE TABLE IF NOT EXISTS ventes_locales (

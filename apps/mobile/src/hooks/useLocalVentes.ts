@@ -24,6 +24,7 @@ export interface LigneVente {
   articleId: string
   nom: string
   quantite: number
+  /** Prix unitaire TTC (prix public). Nom historique conservé pour compat payload. */
   prixUnitaireHT: number
   tauxTva: number
   totalHT: number
@@ -61,12 +62,15 @@ export function useLocalVentes(sessionId?: string) {
     const id = generateUUID()
     const dateVente = new Date().toISOString()
 
-    // Calculer les totaux
+    // Calculer les totaux.
+    // Convention MeGesti : les prix sont TTC (prix public payé par le client,
+    // montant encaissé par le terminal). Le HT est dérivé par division.
+    // NB : la franchise de TVA du tenant n'est pas connue localement — le
+    // serveur reste la référence pour HT/TVA ; le TTC est identique des deux côtés.
     let totalHT = 0, totalTVA = 0, totalTTC = 0
     const lignesCompletes: LigneVente[] = input.lignes.map(l => {
-      const ligneHT = l.prixUnitaireHT * l.quantite
-      const tauxTVA = l.tauxTva / 100
-      const ligneTTC = ligneHT * (1 + tauxTVA)
+      const ligneTTC = l.prixUnitaireHT * l.quantite
+      const ligneHT  = ligneTTC / (1 + l.tauxTva / 100)
       totalHT += ligneHT
       totalTVA += ligneTTC - ligneHT
       totalTTC += ligneTTC

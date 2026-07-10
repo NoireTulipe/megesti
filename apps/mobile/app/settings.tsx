@@ -47,6 +47,8 @@ export default function SettingsScreen() {
   const logout = useAuthStore(s => s.logout)
   const isDark = useThemeStore(s => s.isDark)
   const toggleTheme = useThemeStore(s => s.toggle)
+  const saleAnimation = useThemeStore(s => s.saleAnimation)
+  const toggleSaleAnimation = useThemeStore(s => s.toggleSaleAnimation)
 
   const [tab, setTab] = useState<Tab>('compte')
 
@@ -208,6 +210,24 @@ export default function SettingsScreen() {
                     onValueChange={toggleTheme}
                     trackColor={{ false: Colors.creamDark, true: Colors.inkFaint }}
                     thumbColor={isDark ? Colors.ink : Colors.textSoft}
+                  />}
+                  last
+                  isDark={isDark}
+                />
+              </View>
+            </View>
+
+            <View style={s.section}>
+              <Text style={[s.sectionTitle, isDark && s.sectionTitleDark]}>Caisse</Text>
+              <View style={[s.sectionBody, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : Colors.white, borderWidth: isDark ? 1 : 0, borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'transparent', shadowColor: isDark ? 'transparent' : Colors.text, elevation: isDark ? 0 : 3 }]}>
+                <SettingRow
+                  label="Animation de vente"
+                  sub="Coche animée après chaque encaissement. Décochée : confirmation fixe (2 s)."
+                  right={<Switch
+                    value={saleAnimation}
+                    onValueChange={toggleSaleAnimation}
+                    trackColor={{ false: Colors.creamDark, true: Colors.inkFaint }}
+                    thumbColor={saleAnimation ? Colors.ink : Colors.textSoft}
                   />}
                   last
                   isDark={isDark}

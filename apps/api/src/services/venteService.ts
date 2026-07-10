@@ -8,6 +8,11 @@ export type ModePaiement = 'CB' | 'ESPECES' | 'CHEQUE' | 'VIREMENT' | 'SUMUP' | 
 export interface LigneVenteInput {
   articleId:       string
   quantite:        number
+  /**
+   * Prix unitaire appliqué, TTC (prix public payé par le client).
+   * Absent → prix de l'article. Le nom du champ est historique : il est
+   * conservé pour compatibilité avec les payloads des apps déjà installées.
+   */
   prixUnitaireHT?: number
 }
 
@@ -62,10 +67,14 @@ export async function creerVente(db: PrismaClient, params: CreerVenteParams) {
   const lignesData = params.lignes.map((l) => {
     const article = articleMap.get(l.articleId)
     if (!article) throw httpError(404, 'Article introuvable')
-    const prixHT  = l.prixUnitaireHT ?? Number(article.prixVenteHT)
+    // Convention MeGesti : le prix (saisi en caisse ou stocké sur l'article)
+    // est le prix public TTC — ce que le client paie réellement, ce que le
+    // terminal encaisse. Le HT est dérivé par division ; on n'ajoute JAMAIS
+    // la TVA par-dessus le prix. Tenant en franchise de TVA : taux = 0 → HT = TTC.
+    const prixTTC = l.prixUnitaireHT ?? Number(article.prixVenteHT)
     const taux    = Number(article.rayon.tauxTVA) / 100 * tauxFactor
-    const ligneHT  = prixHT * l.quantite
-    const ligneTTC = ligneHT * (1 + taux)
+    const ligneTTC = prixTTC * l.quantite
+    const ligneHT  = ligneTTC / (1 + taux)
     totalHT  += ligneHT
     totalTVA += ligneTTC - ligneHT
     totalTTC += ligneTTC
@@ -73,7 +82,7 @@ export async function creerVente(db: PrismaClient, params: CreerVenteParams) {
       id:             crypto.randomUUID(),
       articleId:      l.articleId,
       quantite:       l.quantite,
-      prixUnitaireHT: prixHT,
+      prixUnitaireHT: Math.round(prixTTC / (1 + taux) * 100) / 100,
       tauxTVA:        Number(article.rayon.tauxTVA),
       totalLigneHT:   Math.round(ligneHT  * 100) / 100,
       totalLigneTTC:  Math.round(ligneTTC * 100) / 100,

@@ -3,10 +3,10 @@ import { View, Text, TouchableOpacity, ScrollView, StyleSheet, RefreshControl } 
 import { router, useFocusEffect } from 'expo-router'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { useLocalSession } from '@/hooks/useLocalSession'
+import { useLocalSession, usePointsDeVente } from '@/hooks/useLocalSession'
 import { useLocalVentes } from '@/hooks/useLocalVentes'
 import { api } from '@/lib/api'
-import { getDb } from '@/lib/db'
+import { SessionCloseModal } from '@/components/SessionCloseModal'
 import { useAppTheme } from '@/hooks/useAppTheme'
 import { Colors, Dark, Fonts, Radius, Shadow, Gradients } from '@/constants/theme'
 
@@ -35,13 +35,20 @@ function fmtTime(iso: string): string {
 export default function SessionsScreen() {
   const insets = useSafeAreaInsets()
   const { isDark } = useAppTheme()
-  const { session, refresh: refreshSession } = useLocalSession()
+  const { session, refresh: refreshSession, activateSession, closeSessionById } = useLocalSession()
   const { ventes, refresh: refreshVentes } = useLocalVentes(session?.id)
+  const { pdvs } = usePointsDeVente()
 
   const [tab, setTab] = useState<Tab>('open')
   const [openSessions, setOpenSessions] = useState<RemoteSession[]>([])
   const [historySessions, setHistorySessions] = useState<RemoteSession[]>([])
   const [refreshing, setRefreshing] = useState(false)
+
+  // Modal de fermeture : session ciblée (active ou distante)
+  const [closing, setClosing] = useState<{
+    id: string; pdvNom: string
+    fondOuverture: number | null; especes: number | null; askFond: boolean
+  } | null>(null)
 
   // Stats serveur pour la session active (source de vérité)
   const [serverCA, setServerCA] = useState<number | null>(null)
@@ -89,24 +96,35 @@ export default function SessionsScreen() {
     setRefreshing(false)
   }, [fetchSessions, fetchActiveStats, session?.id])
 
-  // Basculer sur une autre session
+  // Basculer sur une autre session : simple changement de session active,
+  // sans fermer ni toucher aux ventes des autres sessions.
   async function switchToSession(s: RemoteSession) {
-    const db = await getDb()
-    const oldSession = await db.getFirstAsync<{ id: string }>(
-      'SELECT id FROM sessions WHERE statut = ? LIMIT 1', ['OUVERTE'],
-    )
-    await db.runAsync(`UPDATE sessions SET statut = 'FERMEE' WHERE statut = 'OUVERTE'`)
-    await db.runAsync(
-      `INSERT OR REPLACE INTO sessions (id, point_de_vente_id, point_de_vente_nom, date_ouverture, fond_ouverture, debiter_stock, statut, articles_exposes, synced)
-       VALUES (?, ?, ?, datetime('now'), ?, 1, 'OUVERTE', '[]', 1)`,
-      [s.id, s.pointDeVenteId, s.pointDeVente?.nom ?? 'Session', s.fondOuverture ?? 0],
-    )
-    if (oldSession && oldSession.id !== s.id) {
-      await db.runAsync(`UPDATE ventes_locales SET session_id = ? WHERE session_id = ?`, [s.id, oldSession.id])
-      await db.runAsync(`DELETE FROM sessions WHERE id = ?`, [oldSession.id])
-    }
-    await refreshSession()
+    await activateSession(s)
     router.push('/caisse')
+  }
+
+  // Préparer la fermeture d'une session (active ou distante)
+  function askCloseSession(s: RemoteSession) {
+    const pdv = pdvs.find(p => p.id === s.pointDeVenteId)
+    const isActive = s.id === session?.id
+    // Espèces comptées : uniquement pour la session active (ventes locales de cet appareil)
+    const especes = isActive
+      ? ventes.filter(v => v.statut !== 'ANNULEE' && v.mode_paiement === 'ESPECES').reduce((sum, v) => sum + v.total_ttc, 0)
+      : null
+    setClosing({
+      id: s.id,
+      pdvNom: s.pointDeVente?.nom ?? 'Session',
+      fondOuverture: s.fondOuverture != null ? Number(s.fondOuverture) : null,
+      especes,
+      askFond: pdv?.encaissementDirect ?? false,
+    })
+  }
+
+  async function confirmClose(fond: number) {
+    if (!closing) return
+    await closeSessionById(closing.id, fond)
+    setClosing(null)
+    await fetchSessions()
   }
 
   // Stats affichées : serveur + delta local (ventes en attente) si connecté, local sinon
@@ -151,15 +169,16 @@ export default function SessionsScreen() {
 
         {/* ═══ OUVERTES ═══ */}
         {tab === 'open' && (
-          openSessions.length === 0 ? (
+          // La session active locale s'affiche même hors ligne (liste serveur vide)
+          !session && openSessions.length === 0 ? (
             <View style={[styles.emptyCard, isDark && { backgroundColor: Dark.surface, shadowColor: 'transparent', elevation: 0 }]}>
               <Text style={styles.emptyEmoji}>🏪</Text>
               <Text style={styles.emptyTitle}>Aucune session ouverte</Text>
               <Text style={styles.emptySub}>Ouvrez une session de caisse pour commencer à vendre.</Text>
               <TouchableOpacity style={styles.emptyBtn} activeOpacity={0.85}
-                onPress={() => router.push('/caisse')}>
+                onPress={() => router.push('/caisse?openSession=1')}>
                 <LinearGradient colors={Gradients.caisse} style={styles.emptyBtnBg} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
-                  <Text style={styles.emptyBtnText}>Aller à la caisse</Text>
+                  <Text style={styles.emptyBtnText}>＋ Ouvrir une session</Text>
                 </LinearGradient>
               </TouchableOpacity>
             </View>
@@ -205,10 +224,25 @@ export default function SessionsScreen() {
                       <Text style={styles.heroBtnText}>📋 Détail</Text>
                     </TouchableOpacity>
                   </View>
-                  <TouchableOpacity style={[styles.heroBtn, { marginTop: 8 }]} activeOpacity={0.85}
-                    onPress={() => router.push(`/session-detail?id=${session!.id}&openFrais=1`)}>
-                    <Text style={styles.heroBtnText}>🧾 Frais de session</Text>
-                  </TouchableOpacity>
+                  <View style={[styles.heroBtnRow, { marginTop: 8 }]}>
+                    <TouchableOpacity style={[styles.heroBtn, { flex: 1 }]} activeOpacity={0.85}
+                      onPress={() => router.push(`/session-detail?id=${session!.id}&openFrais=1`)}>
+                      <Text style={styles.heroBtnText}>🧾 Frais</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={[styles.heroBtn, styles.heroBtnClose, { flex: 1 }]} activeOpacity={0.85}
+                      onPress={() => {
+                        const remote = openSessions.find(o => o.id === session!.id)
+                        askCloseSession(remote ?? {
+                          id: session!.id, pointDeVenteId: session!.point_de_vente_id,
+                          pointDeVente: { nom: session!.point_de_vente_nom ?? 'Session' },
+                          fondOuverture: Number(session!.fond_ouverture),
+                          fondFermeture: null, dateOuverture: session!.date_ouverture,
+                          dateFermeture: null, statut: 'OUVERTE', _count: { ventes: 0 },
+                        })
+                      }}>
+                      <Text style={styles.heroBtnText}>Fermer la session</Text>
+                    </TouchableOpacity>
+                  </View>
                 </LinearGradient>
               )}
 
@@ -240,10 +274,20 @@ export default function SessionsScreen() {
                         onPress={() => router.push(`/session-detail?id=${s.id}`)}>
                         <Text style={styles.detailBtnText}>📋 Détail</Text>
                       </TouchableOpacity>
+                      <TouchableOpacity style={styles.closeSessionBtn} activeOpacity={0.7}
+                        onPress={() => askCloseSession(s)}>
+                        <Text style={styles.closeSessionBtnText}>Fermer</Text>
+                      </TouchableOpacity>
                     </View>
                   </View>
                 </View>
               ))}
+
+              {/* Ouvrir une session supplémentaire */}
+              <TouchableOpacity style={[styles.openNewBtn, isDark && { backgroundColor: 'rgba(255,255,255,0.06)', borderColor: 'rgba(255,255,255,0.12)' }]}
+                activeOpacity={0.8} onPress={() => router.push('/caisse?openSession=1')}>
+                <Text style={[styles.openNewBtnText, isDark && { color: Dark.text }]}>＋ Ouvrir une nouvelle session</Text>
+              </TouchableOpacity>
             </>
           )
         )}
@@ -293,6 +337,17 @@ export default function SessionsScreen() {
           )
         )}
       </ScrollView>
+
+      {/* ── Fermeture de session ── */}
+      <SessionCloseModal
+        visible={closing != null}
+        pdvNom={closing?.pdvNom ?? ''}
+        fondOuverture={closing?.fondOuverture ?? null}
+        especes={closing?.especes ?? null}
+        askFond={closing?.askFond ?? false}
+        onCancel={() => setClosing(null)}
+        onConfirm={confirmClose}
+      />
     </View>
   )
 }
@@ -341,6 +396,7 @@ const styles = StyleSheet.create({
   heroBtnRow: { flexDirection: 'row', gap: 8 },
   heroBtn: { backgroundColor: 'rgba(255,255,255,0.12)', borderRadius: Radius.md, paddingVertical: 12, alignItems: 'center', paddingHorizontal: 14 },
   heroBtnDetail: { flex: 1 },
+  heroBtnClose: { backgroundColor: 'rgba(200,93,58,0.35)' },
   heroBtnText: { fontFamily: Fonts.body, fontSize: 12, fontWeight: '700', color: Colors.white },
 
   // Cartes compactes (autres sessions ouvertes + historique)
@@ -366,7 +422,19 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.inkFaint, paddingHorizontal: 14, paddingVertical: 7, borderRadius: Radius.full,
   },
   detailBtnText: { fontFamily: Fonts.body, fontSize: 11, fontWeight: '700', color: Colors.ink },
+  closeSessionBtn: {
+    backgroundColor: Colors.terraLight, paddingHorizontal: 14, paddingVertical: 7, borderRadius: Radius.full,
+    marginLeft: 'auto',
+  },
+  closeSessionBtnText: { fontFamily: Fonts.body, fontSize: 11, fontWeight: '700', color: Colors.terra },
   detailHint: { fontFamily: Fonts.body, fontSize: 11, color: Colors.textSoft, marginTop: 6, fontStyle: 'italic' },
+
+  // Ouvrir une nouvelle session
+  openNewBtn: {
+    backgroundColor: Colors.white, borderRadius: Radius.lg, paddingVertical: 14, alignItems: 'center',
+    borderWidth: 1.5, borderColor: Colors.creamDark, borderStyle: 'dashed', marginTop: 6,
+  },
+  openNewBtnText: { fontFamily: Fonts.body, fontSize: 13, fontWeight: '700', color: Colors.textMid },
 
   // Empty
   emptyCard: { backgroundColor: Colors.white, borderRadius: Radius.xl, padding: 32, alignItems: 'center', shadowColor: Colors.text, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.08, shadowRadius: 16, elevation: 4, marginTop: 8 },
