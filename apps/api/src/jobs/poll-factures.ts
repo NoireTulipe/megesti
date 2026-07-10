@@ -1,5 +1,5 @@
 import type { PrismaClient } from '@prisma/client'
-import { getPdpService } from '../services/SuperPdpService.js'
+import { getPdpServiceForTenant } from '../services/SuperPdpService.js'
 import { isAfnorEnabled } from '../services/AfnorFlowService.js'
 import { extraireInfosFacture } from './parse-facture.js'
 
@@ -12,21 +12,16 @@ export async function pollFactures(db: PrismaClient): Promise<void> {
   // En mode AFNOR, poll-afnor.ts gère la réception — on ne duplique pas
   if (isAfnorEnabled()) return
 
-  let pdp: ReturnType<typeof getPdpService>
-  try { pdp = getPdpService() } catch {
-    console.warn('[pollFactures] SUPERPDP_CLIENT_ID/SECRET manquants — polling ignoré')
-    return
-  }
-
   const tenants = await db.tenant.findMany({
     where:  { actif: true },
-    select: { id: true, pdpLastInvoiceId: true, siret: true },
+    select: { id: true, pdpLastInvoiceId: true, siret: true, pdpStatut: true },
   })
 
   for (const tenant of tenants) {
-    if (!tenant.siret) continue
+    if (!tenant.siret || tenant.pdpStatut !== 'ACTIF') continue
 
     try {
+      const pdp = await getPdpServiceForTenant(db, tenant.id)
       const factures = await pdp.listerRecu(tenant.pdpLastInvoiceId ?? undefined)
       if (!factures.length) continue
 

@@ -1,7 +1,7 @@
 import type { FastifyPluginAsync } from 'fastify'
 import { z } from 'zod'
 import { getPlanFeatures } from '@megesti/shared'
-import { getPdpService } from '../services/SuperPdpService.js'
+import { getPdpServiceForTenant, PdpNonConfigureError } from '../services/SuperPdpService.js'
 import { getAfnorService, isAfnorEnabled, siretToSiren } from '../services/AfnorFlowService.js'
 import { generateUbl } from '../services/UblGenerator.js'
 
@@ -115,6 +115,24 @@ export const facturationRoutes: FastifyPluginAsync = async (app) => {
         message: 'Votre SIRET n\'est pas configuré. Renseignez-le dans Réglages → Identité légale avant d\'émettre une facture.',
       })
     }
+
+    // ── Vérifier que la facturation électronique est activée ──────────────────
+    let pdp
+    try {
+      pdp = await getPdpServiceForTenant(app.db, tenantId)
+    } catch (err) {
+      if (err instanceof PdpNonConfigureError) {
+        return reply.status(422).send({
+          error:   'FacturationElectroniquNonActivee',
+          message: 'La facturation électronique n\'est pas activée pour votre compte. Contactez le support Megesti.',
+        })
+      }
+      return reply.status(503).send({
+        error:   'PdpIndisponible',
+        message: 'Service de facturation électronique indisponible. Réessayez dans quelques instants.',
+      })
+    }
+
     app.log.info({ tenantId, siret: tenant.siret, restant }, '[emission] quota OK')
 
     // ── Calcul totaux ───────────────────────────────────────────────────────
@@ -127,15 +145,7 @@ export const facturationRoutes: FastifyPluginAsync = async (app) => {
     montantHT  = Math.round(montantHT  * 100) / 100
     montantTVA = Math.round(montantTVA * 100) / 100
 
-    // ── Init PDP + récupération companyId (avant génération XML) ──────────────
-    let pdp: ReturnType<typeof getPdpService>
-    try { pdp = getPdpService() } catch {
-      return reply.status(503).send({ error: 'PdpNonDisponible', message: 'Service PDP non configuré.' })
-    }
-    // pdpCompanyId = identifiant de la société pour le PDP
-    // Sandbox : companies/me retourne le numéro sandbox (000000002) — requis pour matcher le compte
-    // Production AFNOR : companies/me retournera le SIREN réel avec number_scheme=fr_siren
-    // → même valeur que toSiren9(tenant.siret) → multi-tenant natif via Organization-Id
+    // ── Récupération companyId (avant génération XML) ────────────────────────
     let pdpCompanyId = toSiren9(tenant.siret)
     try { pdpCompanyId = await pdp.getMyCompanyId() } catch { /* non bloquant */ }
 
@@ -234,8 +244,7 @@ export const facturationRoutes: FastifyPluginAsync = async (app) => {
     app.log.info({ id, numero: facture.numero }, '[retry] appel SuperPDP')
     let pdpId: string
     try {
-      let pdp: ReturnType<typeof getPdpService>
-      try { pdp = getPdpService() } catch { throw new Error('Service PDP non configuré') }
+      const pdp = await getPdpServiceForTenant(app.db, tenantId)
       const result = await pdp.emettre(facture.contenuXml)
       pdpId = result.pdpId
       app.log.info({ pdpId }, '[retry] SuperPDP OK')

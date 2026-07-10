@@ -1,4 +1,6 @@
+import type { PrismaClient } from '@prisma/client'
 import type { InvoiceTransmissionService, EmissionResult, FactureRecueBrute, EvenementFactureBrut, PagePdp } from '@megesti/shared'
+import { decrypt } from '../lib/crypto.js'
 
 const BASE_URL = 'https://api.superpdp.tech'
 
@@ -216,16 +218,51 @@ export class SuperPdpService implements InvoiceTransmissionService {
   }
 }
 
-// ── Factory : instance globale (un seul compte superpdp pour tout MeGesti) ────
+// ── Erreur custom pour tenant non configuré ────────────────────────────────────
 
-let _instance: SuperPdpService | null = null
-
-export function getPdpService(): SuperPdpService {
-  if (!_instance) {
-    const id     = process.env['SUPERPDP_CLIENT_ID']
-    const secret = process.env['SUPERPDP_CLIENT_SECRET']
-    if (!id || !secret) throw new Error('SUPERPDP_CLIENT_ID / SUPERPDP_CLIENT_SECRET manquants dans .env')
-    _instance = new SuperPdpService(id, secret)
+export class PdpNonConfigureError extends Error {
+  constructor(message: string = 'Facturation électronique non activée pour ce tenant.') {
+    super(message)
+    this.name = 'PdpNonConfigureError'
   }
-  return _instance
+}
+
+// ── Factory : instance par tenant avec cache ────────────────────────────────────
+
+const serviceCache = new Map<string, SuperPdpService>()
+
+export async function getPdpServiceForTenant(
+  db: PrismaClient,
+  tenantId: string,
+): Promise<SuperPdpService> {
+  // Retourner le cache si présent
+  const cached = serviceCache.get(tenantId)
+  if (cached) return cached
+
+  // Récupérer les credentials du tenant
+  const tenant = await db.tenant.findUnique({
+    where: { id: tenantId },
+    select: { pdpClientId: true, pdpClientSecretEnc: true, pdpStatut: true },
+  })
+
+  if (!tenant) {
+    throw new Error(`Tenant ${tenantId} introuvable`)
+  }
+
+  if (tenant.pdpStatut !== 'ACTIF' || !tenant.pdpClientId || !tenant.pdpClientSecretEnc) {
+    throw new PdpNonConfigureError()
+  }
+
+  // Déchiffrer le secret
+  const secretClair = decrypt(tenant.pdpClientSecretEnc)
+
+  // Instancier et mettre en cache
+  const service = new SuperPdpService(tenant.pdpClientId, secretClair)
+  serviceCache.set(tenantId, service)
+
+  return service
+}
+
+export function invalidatePdpServiceCache(tenantId: string): void {
+  serviceCache.delete(tenantId)
 }

@@ -1,6 +1,8 @@
 import type { FastifyPluginAsync } from 'fastify'
 import { z } from 'zod'
 import bcrypt from 'bcryptjs'
+import { encrypt, decrypt } from '../../lib/crypto.js'
+import { SuperPdpService, invalidatePdpServiceCache } from '../../services/SuperPdpService.js'
 
 const PlanEnum = z.enum(['TRIAL', 'AUTO_EDITION', 'EDITION', 'EDITION_PRO'])
 
@@ -29,6 +31,12 @@ const CreateUserSchema = z.object({
   role:      z.enum(['ADMIN', 'EDITOR', 'AUTHOR']).default('EDITOR'),
 })
 
+const PatchPdpSchema = z.object({
+  pdpClientId:     z.string().min(1).optional(),
+  pdpClientSecret: z.string().min(1).optional(),
+  pdpEnvironment:  z.enum(['SANDBOX', 'PRODUCTION']).optional(),
+})
+
 const PatchUserSchema = z.object({
   active:   z.boolean().optional(),
   password: z.string().min(8).optional(),
@@ -54,11 +62,13 @@ export const adminTenantRoutes: FastifyPluginAsync = async (app) => {
   // ── Détail d'un tenant ─────────────────────────────────────────────────────
   app.get('/tenants/:id', auth, async (request) => {
     const { id } = request.params as { id: string }
-    const tenant = await app.db.tenant.findUniqueOrThrow({
+    const tenantData = await app.db.tenant.findUniqueOrThrow({
       where: { id },
       select: {
         id: true, name: true, slug: true, plan: true, actif: true,
+        siret: true,
         franchiseTva: true, createdAt: true, updatedAt: true,
+        pdpClientId: true, pdpClientSecretEnc: true, pdpEnvironment: true, pdpStatut: true, pdpActivatedAt: true,
         _count: { select: { users: true, ventes: true, articles: true, salons: true } },
         users: {
           select: { id: true, email: true, firstName: true, lastName: true, role: true, active: true, createdAt: true },
@@ -66,7 +76,9 @@ export const adminTenantRoutes: FastifyPluginAsync = async (app) => {
         },
       },
     })
-    return tenant
+    // Ne jamais exposer le secret chiffré en clair, même s'il est chiffré
+    const { pdpClientSecretEnc, ...tenant } = tenantData
+    return { ...tenant, pdpSecretConfigured: !!pdpClientSecretEnc }
   })
 
   // ── Créer un tenant + premier admin ───────────────────────────────────────
@@ -143,6 +155,57 @@ export const adminTenantRoutes: FastifyPluginAsync = async (app) => {
       where:  { id: userId },
       data,
       select: { id: true, email: true, firstName: true, lastName: true, role: true, active: true },
+    })
+  })
+
+  // ── Facturation électronique (SuperPdP) ────────────────────────────────────
+  app.patch('/tenants/:id/pdp', auth, async (request) => {
+    const { id } = request.params as { id: string }
+    const body = PatchPdpSchema.parse(request.body)
+    const data: Record<string, unknown> = {}
+    if (body.pdpClientId)     data['pdpClientId'] = body.pdpClientId
+    if (body.pdpClientSecret) data['pdpClientSecretEnc'] = encrypt(body.pdpClientSecret)
+    if (body.pdpEnvironment)  data['pdpEnvironment'] = body.pdpEnvironment
+    const tenant = await app.db.tenant.update({
+      where:  { id },
+      data,
+      select: { id: true, pdpClientId: true, pdpEnvironment: true, pdpStatut: true },
+    })
+    invalidatePdpServiceCache(id)
+    return tenant
+  })
+
+  app.post('/tenants/:id/pdp/activer', auth, async (request, reply) => {
+    const { id } = request.params as { id: string }
+    const tenant = await app.db.tenant.findUniqueOrThrow({
+      where:  { id },
+      select: { pdpClientId: true, pdpClientSecretEnc: true },
+    })
+    if (!tenant.pdpClientId || !tenant.pdpClientSecretEnc) {
+      return reply.badRequest('Credentials SuperPdP incomplets (client ID et secret requis)')
+    }
+    // Vérifie les credentials auprès de SuperPdP avant d'activer
+    const pdp = new SuperPdpService(tenant.pdpClientId, decrypt(tenant.pdpClientSecretEnc))
+    try {
+      await pdp.getMyCompanyId()
+    } catch (err) {
+      return reply.badRequest(`Credentials SuperPdP invalides : ${(err as Error).message}`)
+    }
+    invalidatePdpServiceCache(id)
+    return app.db.tenant.update({
+      where:  { id },
+      data:   { pdpStatut: 'ACTIF', pdpActivatedAt: new Date() },
+      select: { id: true, pdpStatut: true, pdpActivatedAt: true },
+    })
+  })
+
+  app.post('/tenants/:id/pdp/desactiver', auth, async (request) => {
+    const { id } = request.params as { id: string }
+    invalidatePdpServiceCache(id)
+    return app.db.tenant.update({
+      where:  { id },
+      data:   { pdpStatut: 'A_CONFIGURER', pdpActivatedAt: null },
+      select: { id: true, pdpStatut: true },
     })
   })
 }

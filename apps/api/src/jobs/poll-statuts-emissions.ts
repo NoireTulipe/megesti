@@ -1,5 +1,5 @@
 import type { PrismaClient } from '@prisma/client'
-import { getPdpService } from '../services/SuperPdpService.js'
+import { getPdpServiceForTenant } from '../services/SuperPdpService.js'
 
 // Événements SuperPDP → StatutFactureEmission
 const STATUT_MAP: Record<string, 'ACCEPTEE' | 'REFUSEE' | 'ANNULEE'> = {
@@ -9,61 +9,62 @@ const STATUT_MAP: Record<string, 'ACCEPTEE' | 'REFUSEE' | 'ANNULEE'> = {
 }
 
 /**
- * Job BullMQ — poll de GET /v1.beta/invoice_events pour mettre à jour
- * le statut des FactureEmission. 1 seul appel API (paginé) pour tous les tenants,
- * au lieu de N appels individuels par facture ENVOYEE.
+ * Job BullMQ — polling des invoice_events SuperPDP par tenant.
+ * Chaque tenant a son propre flux d'événements (credentials OAuth distincts).
  * Fréquence recommandée : toutes les 5 minutes.
  */
 export async function pollStatutsEmissions(db: PrismaClient): Promise<void> {
-  let pdp: ReturnType<typeof getPdpService>
-  try { pdp = getPdpService() } catch {
-    console.warn('[pollStatuts] SUPERPDP_CLIENT_ID/SECRET manquants — polling ignoré')
-    return
-  }
-
-  // Récupère le dernier event_id traité (global, pas par tenant car compte MeGesti unique)
-  const meta = await db.tenant.findFirst({
-    where:  { actif: true },
-    select: { pdpLastEventId: true },
+  // Récupère TOUS les tenants actifs et configurés en facturation électronique
+  const tenants = await db.tenant.findMany({
+    where:  { actif: true, pdpStatut: 'ACTIF' },
+    select: { id: true, pdpLastEventId: true },
   })
-  const sinceId = meta?.pdpLastEventId ?? undefined
 
-  const evenements = await pdp.listerEvenements(sinceId)
-  if (!evenements.length) return
+  for (const tenant of tenants) {
+    try {
+      const pdp = await getPdpServiceForTenant(db, tenant.id)
 
-  let dernierEventId = sinceId
+      // Poll des événements pour ce tenant
+      const evenements = await pdp.listerEvenements(tenant.pdpLastEventId ?? undefined)
+      if (!evenements.length) continue
 
-  for (const evt of evenements) {
-    const eventId   = String(evt.id)
-    const pdpId     = String(evt.invoice_id)
-    const statutPdp = evt.status_code
+      let dernierEventId = tenant.pdpLastEventId
 
-    // Avance le curseur
-    if (!dernierEventId || BigInt(eventId) > BigInt(dernierEventId)) {
-      dernierEventId = eventId
+      for (const evt of evenements) {
+        const eventId   = String(evt.id)
+        const pdpId     = String(evt.invoice_id)
+        const statutPdp = evt.status_code
+
+        // Avance le curseur
+        if (!dernierEventId || BigInt(eventId) > BigInt(dernierEventId)) {
+          dernierEventId = eventId
+        }
+
+        const nouveauStatut = STATUT_MAP[statutPdp]
+        if (!nouveauStatut) continue
+
+        // Retrouve la FactureEmission correspondante (avec vérification du tenant)
+        const facture = await db.factureEmission.findFirst({
+          where: { tenantId: tenant.id, pdpId, statut: 'ENVOYEE' },
+        })
+        if (!facture) continue
+
+        await db.factureEmission.update({
+          where: { id: facture.id },
+          data:  { statut: nouveauStatut },
+        })
+        console.log(`[pollStatuts] tenant=${tenant.id} facture=${facture.id} pdpId=${pdpId} → ${nouveauStatut}`)
+      }
+
+      // Persiste le curseur pour ce tenant (par tenant, pas updateMany global)
+      if (dernierEventId && dernierEventId !== tenant.pdpLastEventId) {
+        await db.tenant.update({
+          where: { id: tenant.id },
+          data:  { pdpLastEventId: dernierEventId },
+        })
+      }
+    } catch (err: unknown) {
+      console.error(`[pollStatuts] tenant=${tenant.id} erreur:`, (err as Error).message)
     }
-
-    const nouveauStatut = STATUT_MAP[statutPdp]
-    if (!nouveauStatut) continue
-
-    // Retrouve la FactureEmission correspondante
-    const facture = await db.factureEmission.findFirst({
-      where: { pdpId, statut: 'ENVOYEE' },
-    })
-    if (!facture) continue
-
-    await db.factureEmission.update({
-      where: { id: facture.id },
-      data:  { statut: nouveauStatut },
-    })
-    console.log(`[pollStatuts] facture=${facture.id} pdpId=${pdpId} → ${nouveauStatut}`)
-  }
-
-  // Persiste le dernier eventId sur tous les tenants actifs (compte global)
-  if (dernierEventId && dernierEventId !== sinceId) {
-    await db.tenant.updateMany({
-      where: { actif: true },
-      data:  { pdpLastEventId: dernierEventId },
-    })
   }
 }

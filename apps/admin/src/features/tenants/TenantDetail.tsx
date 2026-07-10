@@ -11,7 +11,13 @@ const PLAN_LABELS: Record<string, string> = {
 
 interface TenantDetail {
   id: string; name: string; slug: string; plan: string; actif: boolean
+  siret: string | null
   franchiseBaseVA: boolean; createdAt: string; updatedAt: string
+  pdpClientId: string | null
+  pdpSecretConfigured: boolean
+  pdpEnvironment: 'SANDBOX' | 'PRODUCTION'
+  pdpStatut: 'A_CONFIGURER' | 'ACTIF'
+  pdpActivatedAt: string | null
   _count: { users: number; ventes: number; articles: number; salons: number }
   users: UserRow[]
 }
@@ -63,6 +69,38 @@ export function TenantDetail() {
       setUserForm({ email: '', password: '', firstName: '', lastName: '', role: 'EDITOR' })
     },
     onError: (e: Error) => setUserErr(e.message),
+  })
+
+  // SuperPdP / Facturation électronique
+  const [pdpForm, setPdpForm] = useState({ clientId: '', clientSecret: '', environment: 'SANDBOX' })
+  const [pdpErr, setPdpErr] = useState('')
+
+  const patchPdp = useMutation({
+    mutationFn: (body: { pdpClientId?: string; pdpClientSecret?: string; pdpEnvironment?: 'SANDBOX' | 'PRODUCTION' }) =>
+      apiFetch(`/admin/tenants/${id}/pdp`, { method: 'PATCH', body: JSON.stringify(body) }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-tenant', id] })
+      setPdpForm({ clientId: '', clientSecret: '', environment: 'SANDBOX' })
+      setPdpErr('')
+    },
+    onError: (e: Error) => setPdpErr(e.message),
+  })
+
+  const activerPdp = useMutation({
+    mutationFn: () => apiFetch(`/admin/tenants/${id}/pdp/activer`, { method: 'POST' }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-tenant', id] })
+      setPdpErr('')
+    },
+    onError: (e: Error) => setPdpErr(e.message),
+  })
+
+  const desactiverPdp = useMutation({
+    mutationFn: () => apiFetch(`/admin/tenants/${id}/pdp/desactiver`, { method: 'POST' }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-tenant', id] })
+      setPdpErr('')
+    },
   })
 
   if (isLoading) return <div className="page"><p className="text-muted">Chargement…</p></div>
@@ -120,6 +158,99 @@ export function TenantDetail() {
               {tenant.actif ? 'Suspendre' : 'Réactiver'}
             </button>
           </div>
+        </div>
+      </div>
+
+      {/* Facturation électronique (SuperPdP) */}
+      <div className="card" style={{ marginBottom: 20 }}>
+        <div className="card-body">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 600 }}>Facturation électronique (SuperPdP)</div>
+              <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 4 }}>
+                {tenant.siret ? `SIRET: ${tenant.siret}` : 'SIRET non renseigné'}
+              </div>
+            </div>
+            <span className={`badge ${tenant.pdpStatut === 'ACTIF' ? 'badge-on' : 'badge-off'}`}>
+              {tenant.pdpStatut === 'ACTIF' ? 'Actif' : 'À configurer'}
+            </span>
+          </div>
+
+          {pdpErr && <div className="error-msg" style={{ marginBottom: 12 }}>{pdpErr}</div>}
+
+          <div className="form-row">
+            <div className="form-group">
+              <label>Client ID</label>
+              <input
+                value={pdpForm.clientId || tenant.pdpClientId || ''}
+                onChange={e => setPdpForm(f => ({ ...f, clientId: e.target.value }))}
+                placeholder="Client ID SuperPdP"
+              />
+            </div>
+            <div className="form-group">
+              <label>Secret (en clair)</label>
+              <input
+                type="password"
+                value={pdpForm.clientSecret}
+                onChange={e => setPdpForm(f => ({ ...f, clientSecret: e.target.value }))}
+                placeholder={tenant.pdpSecretConfigured ? '•••••••• (déjà configuré — laisser vide pour ne pas changer)' : 'Secret SuperPdP'}
+              />
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label>Environnement</label>
+            <select
+              value={pdpForm.environment || tenant.pdpEnvironment || 'SANDBOX'}
+              onChange={e => setPdpForm(f => ({ ...f, environment: e.target.value as 'SANDBOX' | 'PRODUCTION' }))}
+            >
+              <option value="SANDBOX">Sandbox</option>
+              <option value="PRODUCTION">Production</option>
+            </select>
+          </div>
+
+          <div className="flex" style={{ gap: 8, marginTop: 12 }}>
+            <button
+              className="btn btn-primary btn-sm"
+              onClick={() => {
+                const body: Record<string, string> = {}
+                if (pdpForm.clientId) body.pdpClientId = pdpForm.clientId
+                if (pdpForm.clientSecret) body.pdpClientSecret = pdpForm.clientSecret
+                if (pdpForm.environment) body.pdpEnvironment = pdpForm.environment
+                if (Object.keys(body).length > 0) patchPdp.mutate(body as any)
+              }}
+              disabled={patchPdp.isPending}
+            >
+              {patchPdp.isPending ? 'Enregistrement…' : 'Enregistrer les credentials'}
+            </button>
+
+            {tenant.pdpSecretConfigured && (
+              <>
+                <button
+                  className="btn btn-primary btn-sm"
+                  onClick={() => activerPdp.mutate()}
+                  disabled={activerPdp.isPending || tenant.pdpStatut === 'ACTIF'}
+                >
+                  {activerPdp.isPending ? 'Activation…' : 'Activer'}
+                </button>
+                {tenant.pdpStatut === 'ACTIF' && (
+                  <button
+                    className="btn btn-danger btn-sm"
+                    onClick={() => desactiverPdp.mutate()}
+                    disabled={desactiverPdp.isPending}
+                  >
+                    {desactiverPdp.isPending ? 'Désactivation…' : 'Désactiver'}
+                  </button>
+                )}
+              </>
+            )}
+          </div>
+
+          {tenant.pdpActivatedAt && (
+            <div style={{ marginTop: 12, fontSize: 12, color: 'var(--muted)' }}>
+              Activé le {new Date(tenant.pdpActivatedAt).toLocaleDateString('fr-FR')}
+            </div>
+          )}
         </div>
       </div>
 

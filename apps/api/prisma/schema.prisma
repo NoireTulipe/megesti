@@ -31,9 +31,14 @@ model Tenant {
   pays                 String?  @default("FR")
   numeroTVA            String?
   // Facturation électronique
-  // Les credentials superpdp.tech sont dans le .env du serveur (compte MeGesti global)
-  // pdpLastInvoiceId : dernier ID reçu pour le polling de réception, par tenant
-  pdpLastInvoiceId     String?
+  // Credentials SuperPdP : un account par tenant (chiffré en base)
+  pdpClientId          String?  // ID client OAuth SuperPdP (en clair)
+  pdpClientSecretEnc   String?  // secret chiffré (jamais exposé en clair)
+  pdpEnvironment       PdpEnvironment @default(SANDBOX)  // sandbox ou production
+  pdpStatut            PdpStatut @default(A_CONFIGURER) // À_CONFIGURER ou ACTIF
+  pdpActivatedAt       DateTime?  // quand le tenant a été activé
+  // Polling
+  pdpLastInvoiceId     String?  // dernier ID reçu pour le polling de réception
   pdpLastEventId       String?  // dernier invoice_event_id traité (polling statuts émis)
   pdpAfnorSyncAt       DateTime? // curseur AFNOR : dernier updatedAt traité
   facturesCredit       Int      @default(0) // crédits supplémentaires achetés via Stripe
@@ -76,6 +81,16 @@ model Tenant {
 }
 
 // ─── Facturation électronique ─────────────────────────────────────────────────
+
+enum PdpEnvironment {
+  SANDBOX
+  PRODUCTION
+}
+
+enum PdpStatut {
+  A_CONFIGURER  // pas encore de credentials saisis
+  ACTIF         // credentials vérifiés, tenant peut émettre/recevoir
+}
 
 enum StatutFactureEmission {
   BROUILLON   // générée localement, non envoyée
