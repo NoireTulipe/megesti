@@ -45,3 +45,31 @@ export function decrypt(payload: string): string {
     throw new Error(`Déchiffrement échoué (données corrompues ou mauvaise clé): ${(err as Error).message}`)
   }
 }
+
+/**
+ * Chiffre un fichier binaire en AES-256-GCM.
+ * Format : iv (12 o) | authTag (16 o) | ciphertext — concaténés en binaire.
+ */
+export function encryptBuffer(plaintext: Buffer): Buffer {
+  const key = getEncryptionKey()
+  const iv = randomBytes(12)
+  const cipher = createCipheriv('aes-256-gcm', key, iv)
+  const ciphertext = Buffer.concat([cipher.update(plaintext), cipher.final()])
+  return Buffer.concat([iv, cipher.getAuthTag(), ciphertext])
+}
+
+/** Déchiffre un buffer produit par encryptBuffer(). */
+export function decryptBuffer(payload: Buffer): Buffer {
+  const key = getEncryptionKey()
+  if (payload.length < 29) throw new Error('Payload chiffré trop court')
+  const iv         = payload.subarray(0, 12)
+  const authTag    = payload.subarray(12, 28)
+  const ciphertext = payload.subarray(28)
+  const decipher = createDecipheriv('aes-256-gcm', key, iv)
+  decipher.setAuthTag(authTag)
+  try {
+    return Buffer.concat([decipher.update(ciphertext), decipher.final()])
+  } catch (err) {
+    throw new Error(`Déchiffrement échoué (données corrompues ou mauvaise clé): ${(err as Error).message}`)
+  }
+}

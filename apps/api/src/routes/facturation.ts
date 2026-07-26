@@ -2,6 +2,7 @@ import type { FastifyPluginAsync } from 'fastify'
 import { z } from 'zod'
 import { getPlanFeatures } from '@megesti/shared'
 import { getPdpServiceForTenant, PdpNonConfigureError } from '../services/SuperPdpService.js'
+import { savePieceIdentite } from '../lib/pdpDossierFiles.js'
 import { getAfnorService, isAfnorEnabled, siretToSiren } from '../services/AfnorFlowService.js'
 import { generateUbl } from '../services/UblGenerator.js'
 
@@ -313,5 +314,108 @@ export const facturationRoutes: FastifyPluginAsync = async (app) => {
       assujettUnique: z.boolean().optional(),
     }).parse(request.body)
     return app.db.tenant.update({ where: { id: tenantId }, data: body })
+  })
+
+  // ── Raccordement à la Plateforme Agréée (dossier KYB + statut) ─────────────
+
+  app.get('/raccordement', auth, async (request) => {
+    const { tenantId } = request.tenant
+    return app.db.tenant.findUniqueOrThrow({
+      where:  { id: tenantId },
+      select: {
+        pdpStatut: true, pdpActivatedAt: true, siret: true,
+        pdpDossier: {
+          select: {
+            representantPrenom: true, representantNom: true, representantEmail: true,
+            soumisAt: true, cniPurgeeAt: true,
+          },
+        },
+      },
+    })
+  })
+
+  const authAdmin = { preHandler: [app.authenticate, app.requireRole('ADMIN')] }
+  const CNI_MIMES = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf']
+
+  app.post('/raccordement', authAdmin, async (request, reply) => {
+    const { tenantId } = request.tenant
+
+    const tenant = await app.db.tenant.findUniqueOrThrow({
+      where:  { id: tenantId },
+      select: { pdpStatut: true, siret: true },
+    })
+    // Resoumission possible tant que Megesti n'a pas lancé le KYB
+    if (tenant.pdpStatut === 'KYB_EN_COURS' || tenant.pdpStatut === 'ACTIF') {
+      return reply.conflict('Votre dossier est déjà en cours de traitement. Contactez le support pour le modifier.')
+    }
+    if (!tenant.siret) {
+      return reply.status(422).send({
+        error:   'SiretManquant',
+        message: 'Renseignez d\'abord votre SIRET dans le bloc « Facturation électronique » ci-dessous.',
+      })
+    }
+
+    // Multipart : champs texte + fichiers cniRecto / cniVerso
+    const champs: Record<string, string> = {}
+    const fichiers: Partial<Record<'cniRecto' | 'cniVerso', { buffer: Buffer; mimetype: string }>> = {}
+    let mimeInvalide = false
+
+    for await (const part of request.parts()) {
+      if (part.type === 'file') {
+        if (part.fieldname !== 'cniRecto' && part.fieldname !== 'cniVerso') {
+          part.file.resume() // drainer les fichiers inattendus sans les stocker
+          continue
+        }
+        if (!CNI_MIMES.includes(part.mimetype)) {
+          mimeInvalide = true
+          part.file.resume()
+          continue
+        }
+        fichiers[part.fieldname] = { buffer: await part.toBuffer(), mimetype: part.mimetype }
+      } else {
+        champs[part.fieldname] = String(part.value)
+      }
+    }
+
+    if (mimeInvalide) {
+      return reply.badRequest('Format de fichier non accepté. Formats autorisés : JPEG, PNG, WebP, PDF.')
+    }
+    if (champs['consentement'] !== 'true') {
+      return reply.badRequest('L\'accord formel du représentant légal est requis pour le raccordement.')
+    }
+    const body = z.object({
+      representantPrenom: z.string().min(1),
+      representantNom:    z.string().min(1),
+      representantEmail:  z.string().email(),
+    }).parse(champs)
+
+    if (!fichiers.cniRecto || !fichiers.cniVerso) {
+      return reply.badRequest('Les deux faces de la pièce d\'identité sont requises (recto et verso).')
+    }
+
+    const rectoPath = await savePieceIdentite(tenantId, 'recto', fichiers.cniRecto.buffer)
+    const versoPath = await savePieceIdentite(tenantId, 'verso', fichiers.cniVerso.buffer)
+
+    const dossierData = {
+      ...body,
+      cniRectoPath: rectoPath,
+      cniRectoMime: fichiers.cniRecto.mimetype,
+      cniVersoPath: versoPath,
+      cniVersoMime: fichiers.cniVerso.mimetype,
+      cniPurgeeAt:    null,
+      consentementAt: new Date(),
+      soumisAt:       new Date(),
+    }
+    await app.db.$transaction([
+      app.db.pdpDossier.upsert({
+        where:  { tenantId },
+        create: { tenantId, ...dossierData },
+        update: dossierData,
+      }),
+      app.db.tenant.update({ where: { id: tenantId }, data: { pdpStatut: 'DOSSIER_SOUMIS' } }),
+    ])
+    app.log.info({ tenantId }, '[raccordement] dossier soumis')
+
+    return reply.code(201).send({ pdpStatut: 'DOSSIER_SOUMIS' })
   })
 }

@@ -45,3 +45,6 @@ Exemple-pour-Claude/
 apps/mobile/credentials.json
 apps/mobile/android/
 apps/api/prisma/export-dialogs.ts
+
+# Fichiers sensibles (CNI dossiers PDP, chiffres) - jamais versionnes
+private-uploads/

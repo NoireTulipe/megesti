@@ -3,6 +3,7 @@ import { z } from 'zod'
 import bcrypt from 'bcryptjs'
 import { encrypt, decrypt } from '../../lib/crypto.js'
 import { SuperPdpService, invalidatePdpServiceCache } from '../../services/SuperPdpService.js'
+import { readPieceIdentite, purgePiecesIdentite } from '../../lib/pdpDossierFiles.js'
 
 const PlanEnum = z.enum(['TRIAL', 'AUTO_EDITION', 'EDITION', 'EDITION_PRO'])
 
@@ -35,6 +36,8 @@ const PatchPdpSchema = z.object({
   pdpClientId:     z.string().min(1).optional(),
   pdpClientSecret: z.string().min(1).optional(),
   pdpEnvironment:  z.enum(['SANDBOX', 'PRODUCTION']).optional(),
+  // ACTIF ne se décrète pas ici : uniquement via /pdp/activer (vérif credentials)
+  pdpStatut:       z.enum(['A_CONFIGURER', 'DOSSIER_SOUMIS', 'KYB_EN_COURS']).optional(),
 })
 
 const PatchUserSchema = z.object({
@@ -69,6 +72,13 @@ export const adminTenantRoutes: FastifyPluginAsync = async (app) => {
         siret: true,
         franchiseTva: true, createdAt: true, updatedAt: true,
         pdpClientId: true, pdpClientSecretEnc: true, pdpEnvironment: true, pdpStatut: true, pdpActivatedAt: true,
+        pdpDossier: {
+          select: {
+            representantPrenom: true, representantNom: true, representantEmail: true,
+            soumisAt: true, consentementAt: true, cniPurgeeAt: true,
+            cniRectoPath: true, cniVersoPath: true,
+          },
+        },
         _count: { select: { users: true, ventes: true, articles: true, salons: true } },
         users: {
           select: { id: true, email: true, firstName: true, lastName: true, role: true, active: true, createdAt: true },
@@ -76,9 +86,14 @@ export const adminTenantRoutes: FastifyPluginAsync = async (app) => {
         },
       },
     })
-    // Ne jamais exposer le secret chiffré en clair, même s'il est chiffré
-    const { pdpClientSecretEnc, ...tenant } = tenantData
-    return { ...tenant, pdpSecretConfigured: !!pdpClientSecretEnc }
+    // Ne jamais exposer le secret chiffré ni les chemins serveur des CNI
+    const { pdpClientSecretEnc, pdpDossier, ...tenant } = tenantData
+    let dossierPublic = null
+    if (pdpDossier) {
+      const { cniRectoPath, cniVersoPath, ...dossier } = pdpDossier
+      dossierPublic = { ...dossier, cniDisponible: !!(cniRectoPath && cniVersoPath) }
+    }
+    return { ...tenant, pdpSecretConfigured: !!pdpClientSecretEnc, pdpDossier: dossierPublic }
   })
 
   // ── Créer un tenant + premier admin ───────────────────────────────────────
@@ -175,6 +190,24 @@ export const adminTenantRoutes: FastifyPluginAsync = async (app) => {
     return tenant
   })
 
+  // Téléchargement d'une pièce d'identité du dossier (déchiffrée à la volée)
+  app.get('/tenants/:id/pdp/cni/:face', auth, async (request, reply) => {
+    const { id, face } = request.params as { id: string; face: string }
+    if (face !== 'recto' && face !== 'verso') return reply.notFound()
+    const dossier = await app.db.pdpDossier.findUnique({
+      where:  { tenantId: id },
+      select: { cniRectoPath: true, cniRectoMime: true, cniVersoPath: true, cniVersoMime: true },
+    })
+    const filePath = face === 'recto' ? dossier?.cniRectoPath : dossier?.cniVersoPath
+    const mime     = face === 'recto' ? dossier?.cniRectoMime : dossier?.cniVersoMime
+    if (!filePath) return reply.notFound('Pièce d\'identité absente ou déjà purgée')
+    const contenu = await readPieceIdentite(filePath)
+    return reply
+      .header('Content-Type', mime ?? 'application/octet-stream')
+      .header('Content-Disposition', `attachment; filename="cni-${face}"`)
+      .send(contenu)
+  })
+
   app.post('/tenants/:id/pdp/activer', auth, async (request, reply) => {
     const { id } = request.params as { id: string }
     const tenant = await app.db.tenant.findUniqueOrThrow({
@@ -192,6 +225,14 @@ export const adminTenantRoutes: FastifyPluginAsync = async (app) => {
       return reply.badRequest(`Credentials SuperPdP invalides : ${(err as Error).message}`)
     }
     invalidatePdpServiceCache(id)
+
+    // Purge RGPD : le KYB est terminé, plus aucune raison de conserver les CNI
+    await purgePiecesIdentite(id)
+    await app.db.pdpDossier.updateMany({
+      where: { tenantId: id },
+      data:  { cniRectoPath: null, cniRectoMime: null, cniVersoPath: null, cniVersoMime: null, cniPurgeeAt: new Date() },
+    })
+
     return app.db.tenant.update({
       where:  { id },
       data:   { pdpStatut: 'ACTIF', pdpActivatedAt: new Date() },

@@ -78,6 +78,7 @@ model Tenant {
   facturesEmises         FactureEmission[]
   facturesRecues         FactureReception[]
   interventionsAdmin     InterventionAdmin[]
+  pdpDossier             PdpDossier?
 }
 
 // ─── Facturation électronique ─────────────────────────────────────────────────
@@ -88,8 +89,30 @@ enum PdpEnvironment {
 }
 
 enum PdpStatut {
-  A_CONFIGURER  // pas encore de credentials saisis
-  ACTIF         // credentials vérifiés, tenant peut émettre/recevoir
+  A_CONFIGURER    // rien fait — le tenant peut soumettre son dossier de raccordement
+  DOSSIER_SOUMIS  // dossier + CNI reçus, en attente de traitement par Megesti
+  KYB_EN_COURS    // inscription SuperPdP lancée (vérification d'identité en cours)
+  ACTIF           // credentials vérifiés, tenant peut émettre/recevoir
+}
+
+// Dossier de raccordement à la Plateforme Agréée, soumis par le tenant.
+// Les pièces d'identité sont chiffrées sur disque (hors répertoire statique)
+// et PURGÉES à l'activation : pas de conservation au-delà du KYB (RGPD).
+model PdpDossier {
+  id                 String    @id @default(uuid())
+  tenantId           String    @unique
+  tenant             Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  representantPrenom String
+  representantNom    String
+  representantEmail  String
+  cniRectoPath       String?   // chemin du fichier chiffré (null après purge)
+  cniRectoMime       String?
+  cniVersoPath       String?
+  cniVersoMime       String?
+  cniPurgeeAt        DateTime? // date de suppression des pièces d'identité
+  consentementAt     DateTime  // accord formel du représentant légal (mandat PA), horodaté
+  soumisAt           DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 }
 
 enum StatutFactureEmission {

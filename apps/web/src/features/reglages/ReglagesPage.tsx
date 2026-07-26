@@ -4,6 +4,7 @@ import { ThesaurusSection } from './ThesaurusSection'
 import { RayonsSection }    from './RayonsSection'
 import { TypesDASection }   from './TypesDASection'
 import { PdpConfigSection } from '../facturation/PdpConfigSection'
+import { RaccordementSection } from '../facturation/RaccordementSection'
 import { useRayons }        from '../catalogue/hooks/useRayons'
 import { useMonTenant, useUpdateMonTenant } from './hooks/useMonTenant'
 import { usePlanFeatures } from '@/hooks/usePlanFeatures'
@@ -285,7 +286,12 @@ export function ReglagesPage() {
         {tab === 'thesaurus' && <ThesaurusSection />}
 
         {/* ── Facturation électronique ── */}
-        {tab === 'facturation' && <PdpConfigSection />}
+        {tab === 'facturation' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
+            <RaccordementSection />
+            <PdpConfigSection />
+          </div>
+        )}
       </div>
     </div>
   )

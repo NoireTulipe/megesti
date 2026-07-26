@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { ArrowLeft, UserPlus } from 'lucide-react'
-import { apiFetch } from '../../api'
+import { apiFetch, apiDownload } from '../../api'
 
 const PLAN_LABELS: Record<string, string> = {
   TRIAL: 'Essai gratuit', AUTO_EDITION: 'Auto-édition',
@@ -16,8 +16,13 @@ interface TenantDetail {
   pdpClientId: string | null
   pdpSecretConfigured: boolean
   pdpEnvironment: 'SANDBOX' | 'PRODUCTION'
-  pdpStatut: 'A_CONFIGURER' | 'ACTIF'
+  pdpStatut: 'A_CONFIGURER' | 'DOSSIER_SOUMIS' | 'KYB_EN_COURS' | 'ACTIF'
   pdpActivatedAt: string | null
+  pdpDossier: {
+    representantPrenom: string; representantNom: string; representantEmail: string
+    soumisAt: string; consentementAt: string; cniPurgeeAt: string | null
+    cniDisponible: boolean
+  } | null
   _count: { users: number; ventes: number; articles: number; salons: number }
   users: UserRow[]
 }
@@ -33,6 +38,10 @@ const PLAN_BADGE: Record<string, string> = {
   STARTER: 'badge-starter', PRO: 'badge-pro',
 }
 const ROLE_LABEL: Record<string, string> = { ADMIN: 'Admin', EDITOR: 'Éditeur', AUTHOR: 'Auteur' }
+const PDP_STATUT_LABEL: Record<string, string> = {
+  A_CONFIGURER: 'À configurer', DOSSIER_SOUMIS: 'Dossier reçu',
+  KYB_EN_COURS: 'Vérification en cours', ACTIF: 'Actif',
+}
 
 export function TenantDetail() {
   const { id }   = useParams<{ id: string }>()
@@ -76,7 +85,7 @@ export function TenantDetail() {
   const [pdpErr, setPdpErr] = useState('')
 
   const patchPdp = useMutation({
-    mutationFn: (body: { pdpClientId?: string; pdpClientSecret?: string; pdpEnvironment?: 'SANDBOX' | 'PRODUCTION' }) =>
+    mutationFn: (body: { pdpClientId?: string; pdpClientSecret?: string; pdpEnvironment?: 'SANDBOX' | 'PRODUCTION'; pdpStatut?: 'A_CONFIGURER' | 'DOSSIER_SOUMIS' | 'KYB_EN_COURS' }) =>
       apiFetch(`/admin/tenants/${id}/pdp`, { method: 'PATCH', body: JSON.stringify(body) }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin-tenant', id] })
@@ -172,11 +181,53 @@ export function TenantDetail() {
               </div>
             </div>
             <span className={`badge ${tenant.pdpStatut === 'ACTIF' ? 'badge-on' : 'badge-off'}`}>
-              {tenant.pdpStatut === 'ACTIF' ? 'Actif' : 'À configurer'}
+              {PDP_STATUT_LABEL[tenant.pdpStatut]}
             </span>
           </div>
 
           {pdpErr && <div className="error-msg" style={{ marginBottom: 12 }}>{pdpErr}</div>}
+
+          {/* Dossier de raccordement soumis par le tenant */}
+          {tenant.pdpDossier && (
+            <div style={{ marginBottom: 16, padding: '12px 14px', border: '1px solid var(--border, #e5e5e5)', borderRadius: 8, fontSize: 13 }}>
+              <div style={{ fontWeight: 600, marginBottom: 6 }}>Dossier de raccordement</div>
+              <div>
+                Représentant légal : {tenant.pdpDossier.representantPrenom} {tenant.pdpDossier.representantNom}
+                {' — '}{tenant.pdpDossier.representantEmail}
+              </div>
+              <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 4 }}>
+                Soumis le {new Date(tenant.pdpDossier.soumisAt).toLocaleDateString('fr-FR')}
+                {' · '}Accord formel donné le {new Date(tenant.pdpDossier.consentementAt).toLocaleDateString('fr-FR')}
+              </div>
+              <div style={{ display: 'flex', gap: 8, marginTop: 10, alignItems: 'center' }}>
+                {tenant.pdpDossier.cniDisponible ? (
+                  <>
+                    <button className="btn btn-sm"
+                      onClick={() => apiDownload(`/admin/tenants/${id}/pdp/cni/recto`, `cni-recto-${tenant.slug}`).catch(e => setPdpErr(e.message))}>
+                      CNI recto
+                    </button>
+                    <button className="btn btn-sm"
+                      onClick={() => apiDownload(`/admin/tenants/${id}/pdp/cni/verso`, `cni-verso-${tenant.slug}`).catch(e => setPdpErr(e.message))}>
+                      CNI verso
+                    </button>
+                  </>
+                ) : (
+                  <span style={{ fontSize: 12, color: 'var(--muted)' }}>
+                    {tenant.pdpDossier.cniPurgeeAt
+                      ? `Pièce d'identité purgée le ${new Date(tenant.pdpDossier.cniPurgeeAt).toLocaleDateString('fr-FR')} (RGPD)`
+                      : 'Pièce d\'identité absente'}
+                  </span>
+                )}
+                {tenant.pdpStatut === 'DOSSIER_SOUMIS' && (
+                  <button className="btn btn-primary btn-sm"
+                    onClick={() => patchPdp.mutate({ pdpStatut: 'KYB_EN_COURS' })}
+                    disabled={patchPdp.isPending}>
+                    Passer en vérification (KYB)
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
 
           <div className="form-row">
             <div className="form-group">
