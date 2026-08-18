@@ -6,7 +6,8 @@ import {
 } from 'recharts'
 import { useBilan } from './hooks/useBilan'
 import { useFranchiseTVA } from '@/hooks/useFranchiseTVA'
-import { isoToInput, toLocalISO } from '@/lib/date'
+import { isoToInput, toLocalISO, todayISO } from '@/lib/date'
+import { toNumber } from '@/lib/chart'
 import { DateInput } from '@/components/DateInput'
 import {
   useCharges,
@@ -76,8 +77,8 @@ function CustomTooltip({ active, payload, label }: { active?: boolean; payload?:
 export function BilanPage() {
   const navigate = useNavigate()
   const [preset, setPreset]     = useState<PresetKey>('year')
-  const [customFrom, setCustomFrom] = useState(isoToInput(daysAgo(365).toISOString()))
-  const [customTo,   setCustomTo]   = useState(isoToInput(new Date().toISOString()))
+  const [customFrom, setCustomFrom] = useState(toLocalISO(daysAgo(365)))
+  const [customTo,   setCustomTo]   = useState(todayISO())
   const [showDetail, setShowDetail] = useState<string | null>(null)
 
   const { features } = usePlanFeatures()
@@ -298,7 +299,7 @@ export function BilanPage() {
                         <Pie data={donutEntrees} dataKey="value" cx="50%" cy="50%" innerRadius={45} outerRadius={75} paddingAngle={3}>
                           {donutEntrees.map((d, i) => <Cell key={i} fill={d.fill} />)}
                         </Pie>
-                        <Tooltip formatter={(v: number) => fEur(v)} />
+                        <Tooltip formatter={(v) => fEur(toNumber(v))} />
                       </PieChart>
                     </ResponsiveContainer>
                   </div>
@@ -397,7 +398,7 @@ export function BilanPage() {
                         <Pie data={donutSorties} dataKey="value" cx="50%" cy="50%" innerRadius={45} outerRadius={75} paddingAngle={3}>
                           {donutSorties.map((d, i) => <Cell key={i} fill={d.fill} />)}
                         </Pie>
-                        <Tooltip formatter={(v: number) => fEur(v)} />
+                        <Tooltip formatter={(v) => fEur(toNumber(v))} />
                       </PieChart>
                     </ResponsiveContainer>
                   </div>

@@ -31,6 +31,7 @@ function UpgradeNotice({ message }: { message: string }) {
 }
 
 import { avatarGradient as cardGradient, coverGradient } from '@/lib/gradients'
+import { toNumber } from '@/lib/chart'
 
 type TabId = 'profil' | 'ventes' | 'livres' | 'contrats' | 'exemplaires'
 type Period = 1 | 3 | 12
@@ -249,7 +250,7 @@ export function AuteurDetail({ auteur, isOpen, onClose, onEdit }: Props) {
                       <CartesianGrid strokeDasharray="4,3" stroke="#E2D5CA" vertical={false}/>
                       <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#8C7066' }} axisLine={false} tickLine={false}/>
                       <YAxis tick={{ fontSize: 10, fill: '#8C7066' }} axisLine={false} tickLine={false} width={28}/>
-                      <Tooltip formatter={(v: number) => [`${v} ex.`]} labelStyle={{ color: 'var(--ink)' }}/>
+                      <Tooltip formatter={(v) => [`${toNumber(v)} ex.`]} labelStyle={{ color: 'var(--ink)' }}/>
                       <Area type="monotone" dataKey="quantite" stroke="#C4907C" strokeWidth={2.5} fill="url(#gradTerra)" dot={{ fill: 'white', stroke: '#C4907C', strokeWidth: 2, r: 3.5 }}/>
                     </AreaChart>
                   </ResponsiveContainer>
@@ -348,7 +349,7 @@ export function AuteurDetail({ auteur, isOpen, onClose, onEdit }: Props) {
                           <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#8C7066' }} axisLine={false} tickLine={false}/>
                           <YAxis tick={{ fontSize: 10, fill: '#8C7066' }} axisLine={false} tickLine={false} width={36}
                                  tickFormatter={(v: number) => `${v} €`}/>
-                          <Tooltip formatter={(v: number) => [`${v.toFixed(2)} € HT`, 'CA']} labelStyle={{ color: 'var(--ink)' }}/>
+                          <Tooltip formatter={(v) => [`${toNumber(v).toFixed(2)} € HT`, 'CA']} labelStyle={{ color: 'var(--ink)' }}/>
                           <Area type="monotone" dataKey="ca" stroke="#8B7BAB" strokeWidth={2.5} fill="url(#gradExemp)"
                                 dot={{ fill: 'white', stroke: '#8B7BAB', strokeWidth: 2, r: 3.5 }}/>
                         </AreaChart>

@@ -14,6 +14,7 @@ import type { SoldeContrat } from './hooks/useDroitsAuteur'
 import { buildReference } from '@megesti/business/droits/reference'
 import { PageHero } from '@/components/PageHero'
 import { todayISO } from '@/lib/date'
+import { toNumber } from '@/lib/chart'
 import styles from './DroitsAuteurPage.module.css'
 
 // •"?•"? Helpers •"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?
@@ -403,7 +404,7 @@ function OngletStats() {
           <BarChart data={chartData} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
             <XAxis dataKey="nom" tick={{ fontSize: 12 }} />
             <YAxis tickFormatter={(v) => `${v} €`} tick={{ fontSize: 12 }} />
-            <Tooltip formatter={(v: number) => fmtEuro(v)} />
+            <Tooltip formatter={(v) => fmtEuro(toNumber(v))} />
             <Bar dataKey="verse" name="Versé" radius={[6, 6, 0, 0]}>
               {chartData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
             </Bar>

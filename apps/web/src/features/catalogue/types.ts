@@ -71,6 +71,8 @@ export interface CreateArticlePayload {
   vendable?:        boolean
   isbn?:            string | null
   datePublication?: string | null
+  /** Dépôt légal BnF déclaré — accepté par POST/PATCH /articles. */
+  bnfDeclaree?:     boolean
   auteurIds:        string[]
   imprimeurId?:     string | null
 }

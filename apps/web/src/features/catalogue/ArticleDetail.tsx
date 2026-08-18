@@ -10,6 +10,7 @@ import { HelpButton } from '@/components/HelpButton'
 import { useFranchiseTVA } from '@/hooks/useFranchiseTVA'
 import { coverGradient } from '@/lib/gradients'
 import sty from '@/features/auteurs/AuteursPage.module.css'
+import { toNumber } from '@/lib/chart'
 
 interface Props {
   article:  Article
@@ -396,7 +397,7 @@ export function ArticleDetail({ article, isOpen, onClose, onEdit, onToggle }: Pr
                       <CartesianGrid strokeDasharray="4,3" stroke="#E2D5CA" vertical={false}/>
                       <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#8C7066' }} axisLine={false} tickLine={false}/>
                       <YAxis tick={{ fontSize: 10, fill: '#8C7066' }} axisLine={false} tickLine={false} width={28}/>
-                      <Tooltip formatter={(v: number) => [`${v} ex.`]} labelStyle={{ color: 'var(--ink)' }}/>
+                      <Tooltip formatter={(v) => [`${toNumber(v)} ex.`]} labelStyle={{ color: 'var(--ink)' }}/>
                       <Area type="monotone" dataKey="quantite" stroke="#C4907C" strokeWidth={2.5} fill="url(#gradArticle)" dot={{ fill: 'white', stroke: '#C4907C', strokeWidth: 2, r: 3.5 }}/>
                     </AreaChart>
                   </ResponsiveContainer>
