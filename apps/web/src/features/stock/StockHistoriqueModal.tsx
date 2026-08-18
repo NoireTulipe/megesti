@@ -8,25 +8,26 @@ import {
 import { useStockTimeline, MVT_LABELS } from './hooks/useMouvementsStock'
 import type { MvtPeriod, StockEventType } from './hooks/useMouvementsStock'
 import type { Article } from '@/features/catalogue/types'
+import { toLocalISO } from '@/lib/date'
 import styles from './StockHistoriqueModal.module.css'
 
 // ── Helpers date ──────────────────────────────────────────────────
 
 function bucketKey(iso: string, period: MvtPeriod): string {
   const d = new Date(iso)
-  if (period === '7d' || period === '30d') return d.toISOString().slice(0, 10)
+  if (period === '7d' || period === '30d') return toLocalISO(d)
   if (period === '3m') {
     const day = d.getDay() || 7
     const mon = new Date(d)
     mon.setDate(d.getDate() - day + 1)
-    return mon.toISOString().slice(0, 10)
+    return toLocalISO(mon)
   }
-  return d.toISOString().slice(0, 7)
+  return toLocalISO(d).slice(0, 7)
 }
 
 function bucketLabel(key: string, period: MvtPeriod): string {
   if (period === '12m') {
-    const [y, m] = key.split('-')
+    const [y = '1970', m = '1'] = key.split('-')
     return new Date(+y, +m - 1).toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' })
   }
   return new Date(key).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })

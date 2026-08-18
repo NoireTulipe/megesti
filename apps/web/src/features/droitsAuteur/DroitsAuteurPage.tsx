@@ -13,6 +13,7 @@ import {
 import type { SoldeContrat } from './hooks/useDroitsAuteur'
 import { buildReference } from '@megesti/business/droits/reference'
 import { PageHero } from '@/components/PageHero'
+import { todayISO } from '@/lib/date'
 import styles from './DroitsAuteurPage.module.css'
 
 // •"?•"? Helpers •"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?
@@ -46,7 +47,7 @@ interface ModalPaiementProps {
 function ModalPaiement({ contrat, onClose }: ModalPaiementProps) {
   const create = useCreatePaiementDA()
   const { data: allPaiements = [] } = useHistoriquePaiements()
-  const today  = new Date().toISOString().slice(0, 10)
+  const today  = todayISO()
   const [montant, setMontant]       = useState(String(contrat.solde))
   const [dateVersement, setDate]    = useState(today)
   const [dateDebut, setDateDebut]   = useState(today)

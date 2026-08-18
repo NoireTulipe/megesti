@@ -6,6 +6,7 @@ import {
 } from 'recharts'
 import { useBilan } from './hooks/useBilan'
 import { useFranchiseTVA } from '@/hooks/useFranchiseTVA'
+import { isoToInput, toLocalISO } from '@/lib/date'
 import { DateInput } from '@/components/DateInput'
 import {
   useCharges,
@@ -36,11 +37,6 @@ function fEur(v: number) {
 function fDate(iso: string) {
   return new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })
 }
-function isoToInput(iso: string) { return iso.split('T')[0] }
-function toLocalISO(d: Date) {
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
-}
-
 function daysAgo(n: number) { const d = new Date(); d.setDate(d.getDate() - n); d.setHours(0,0,0,0); return d }
 function startOfYear()    { return new Date(new Date().getFullYear(), 0, 1) }
 

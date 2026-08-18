@@ -10,6 +10,7 @@ import { useArticles } from '@/features/catalogue/hooks/useArticles'
 import { useFranchiseTVA } from '@/hooks/useFranchiseTVA'
 import type { Auteur } from './hooks/useAuteurs'
 import { DateInput } from '@/components/DateInput'
+import { todayISO } from '@/lib/date'
 import sty from './AuteurForm.module.css'
 
 // •"?•"? Helpers •"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?
@@ -403,7 +404,7 @@ interface FormState {
 
 const formVide = (articles: { id: string }[]): FormState => ({
   typeDAId: '', articleId: articles.length === 1 ? articles[0]!.id : '', avance: '', prixAuteurHT: '',
-  dateSignature: new Date().toISOString().slice(0, 10),
+  dateSignature: todayISO(),
   datePriseEffet: '', dureeAns: '',
   reconduiteTacite: true,
   periodicite: '', datesFixesJSON: [], prochainVersement: '',

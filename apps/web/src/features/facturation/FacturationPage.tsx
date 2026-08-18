@@ -1,4 +1,5 @@
 import { generateUUID } from '@/lib/utils'
+import { todayISO, addDaysISO } from '@/lib/date'
 import { useState, useMemo, useEffect, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
@@ -137,8 +138,8 @@ function EmissionForm({ onSent, onQuotaDepasse }: { onSent: () => void; onQuotaD
   const { data: nextNum } = useProchainNumero()
   const create = useCreateEmission()
 
-  const today = new Date().toISOString().slice(0, 10)
-  const in30  = new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10)
+  const today = todayISO()
+  const in30  = addDaysISO(30)
 
   const [dateEm,    setDateEm]    = useState(today)
   const [dateEch,   setDateEch]   = useState(in30)

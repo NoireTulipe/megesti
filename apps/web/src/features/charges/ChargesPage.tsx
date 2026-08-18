@@ -12,6 +12,7 @@ import {
 } from '@/features/comptabilite/hooks/useCharges'
 import { usePlanFeatures } from '@/hooks/usePlanFeatures'
 import { useFranchiseTVA } from '@/hooks/useFranchiseTVA'
+import { isoToInput, todayISO, toLocalISO } from '@/lib/date'
 import { PageHero } from '@/components/PageHero'
 import styles from './ChargesPage.module.css'
 
@@ -22,7 +23,6 @@ function fEur(v: number) {
 function fDate(iso: string) {
   return new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })
 }
-function isoToInput(iso: string) { return iso.split('T')[0] }
 function joursAvant(iso: string): number {
   return Math.ceil((new Date(iso).getTime() - Date.now()) / 86_400_000)
 }
@@ -55,7 +55,7 @@ function ChargeForm({ initial, onDone }: FormProps) {
   const [type,        setType]        = useState<TypeCharge>(initial?.type ?? 'DEPENSE')
   const [categorie,   setCategorie]   = useState<CategorieCharge>(initial?.categorie ?? defaultCategorie(initial?.type ?? 'DEPENSE'))
   const [statut,      setStatut]      = useState<'PREVU'|'PAYE'>(initial?.statut ?? 'PREVU')
-  const [dateEffet,   setDateEffet]   = useState(initial?.dateEffet ? isoToInput(initial.dateEffet) : isoToInput(new Date().toISOString()))
+  const [dateEffet,   setDateEffet]   = useState(initial?.dateEffet ? isoToInput(initial.dateEffet) : todayISO())
   const [datePaiement, setDatePaiement] = useState(initial?.datePaiement ? isoToInput(initial.datePaiement) : '')
   const [periodicite, setPeriodicite] = useState<Periodicite | ''>(initial?.periodicite ?? '')
   const [notes,       setNotes]       = useState(initial?.notes ?? '')
@@ -311,8 +311,8 @@ export function ChargesPage() {
   const deleteCharge = useDeleteCharge()
 
   const [preset,     setPreset]     = useState<PresetKey>('year')
-  const [customFrom, setCustomFrom] = useState(isoToInput(startOfYear().toISOString()))
-  const [customTo,   setCustomTo]   = useState(isoToInput(new Date().toISOString()))
+  const [customFrom, setCustomFrom] = useState(toLocalISO(startOfYear()))
+  const [customTo,   setCustomTo]   = useState(todayISO())
   const [showForm,   setShowForm]   = useState(false)
   const [editTarget, setEditTarget] = useState<Charge | null>(null)
   const [filterType, setFilterType] = useState<TypeCharge | 'ALL'>('ALL')
