@@ -254,6 +254,7 @@ function TabStock({ depot, depotId }: { depot: ReturnType<typeof useDepotLibrair
 // •"?•"? Onglet Ventes •"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?
 function TabVentes({ depot, depotId }: { depot: ReturnType<typeof useDepotLibraireDetail>['data']; depotId: string }) {
   const confirmer = useConfirmerVente(depotId)
+  const franchiseTVA            = useFranchiseTVA()
   const [selected, setSelected] = useState<string>('')
   const [qte, setQte]           = useState('')
   const [success, setSuccess]   = useState<string | null>(null)

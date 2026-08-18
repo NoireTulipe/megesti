@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query'
 import {
   useQuota, useEmissions, useReceptions, useMarquerLu,
   useCreateEmission, useProchainNumero, useRetryEmission,
-  type StatutEmission, type LigneEmission, type FactureReception,
+  type StatutEmission, type LigneEmission, type FactureReception, type FactureEmission,
 } from './hooks/useFacturation'
 import { FactureReceptionModal } from './FactureReceptionModal'
 import { FactureEmissionModal } from './FactureEmissionModal'

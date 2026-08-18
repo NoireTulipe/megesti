@@ -22,7 +22,10 @@ export interface ActivityData {
   id: string
   initials: string
   color: string
-  text: string
+  /** Champs structurés — jamais de HTML : le libellé est composé en JSX côté ActivityItem. */
+  modePaiement: string
+  premierArticle: string | null
+  totalTTC: number
   time: string
   detail?: string
   isLast?: boolean

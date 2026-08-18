@@ -186,7 +186,8 @@ export function SalonDetail({ salon, onDone, onCancel }: Props) {
       })),
     }
     if (isEdit && salon) {
-      await update.mutateAsync({ id: salon.id, ...payload })
+      // `payload.id` vaut déjà `salon.id` en édition — le préfixer l'écrasait deux fois.
+      await update.mutateAsync(payload)
     } else {
       await create.mutateAsync(payload)
     }
