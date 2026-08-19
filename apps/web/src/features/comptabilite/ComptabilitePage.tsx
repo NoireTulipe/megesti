@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import {
   AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
-  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
+  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts'
 import { useRapportVentes, type Period } from './hooks/useRapports'
 import { useFranchiseTVA } from '@/hooks/useFranchiseTVA'

@@ -20,12 +20,6 @@ import styles from './RayonsSection.module.css'
 
 // •"?•"? Mascotte sidebar •"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?
 
-const BookIcon = () => (
-  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" style={{ display:'inline', verticalAlign:'middle' }}>
-    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
-    <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
-  </svg>
-)
 
 function MascotSidebar({ state, onCreateRayon }: {
   state: 'empty' | 'no-cats' | 'ready'
@@ -242,7 +236,7 @@ export function RayonsSection() {
                   onToggleExpand={() =>
                     setExpanded((prev) => {
                       const next = new Set(prev)
-                      next.has(rayon.id) ? next.delete(rayon.id) : next.add(rayon.id)
+                      if (next.has(rayon.id)) next.delete(rayon.id); else next.add(rayon.id)
                       return next
                     })
                   }

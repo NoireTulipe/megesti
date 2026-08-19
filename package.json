@@ -7,7 +7,9 @@
     "dev:mobile": "turbo dev --filter=@megesti/mobile",
     "build": "turbo build",
     "lint": "turbo lint",
+    "lint:web": "turbo lint --filter=@megesti/web",
     "typecheck": "turbo typecheck",
+    "test": "turbo test",
     "format": "prettier --write \"**/*.{ts,tsx,json,md}\" --ignore-path .gitignore",
     "format:check": "prettier --check \"**/*.{ts,tsx,json,md}\" --ignore-path .gitignore"
   },

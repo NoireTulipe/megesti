@@ -1,5 +1,6 @@
 import { generateUUID } from '@/lib/utils'
 import { todayISO, addDaysISO } from '@/lib/date'
+import { isApiError } from '@/lib/api'
 import { useState, useMemo, useEffect, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
@@ -193,9 +194,9 @@ function EmissionForm({ onSent, onQuotaDepasse }: { onSent: () => void; onQuotaD
         lignes,
       })
       onSent()
-    } catch (err: any) {
-      if (err?.status === 402) onQuotaDepasse()
-      else setError(err?.message ?? 'Erreur lors de l\'envoi.')
+    } catch (err: unknown) {
+      if (isApiError(err) && err.status === 402) onQuotaDepasse()
+      else setError(err instanceof Error ? err.message : 'Erreur lors de l\'envoi.')
     }
   }
 

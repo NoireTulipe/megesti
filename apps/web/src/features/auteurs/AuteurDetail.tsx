@@ -273,7 +273,7 @@ export function AuteurDetail({ auteur, isOpen, onClose, onEdit }: Props) {
                 <p style={{ color: 'var(--text-soft)', fontStyle: 'italic', fontSize: '0.85rem' }}>
                   Aucun livre associé à cet auteur.
                 </p>
-              ) : articles.map(({ article }, i) => (
+              ) : articles.map(({ article }) => (
                 <div key={article.id} className={sty['livre-item']}>
                   <div className={sty['livre-cover']} style={{ background: coverGradient(article.nom) }}>
                     {article.nom.charAt(0).toUpperCase()}

@@ -420,7 +420,7 @@ interface FormulaireProps {
   onSubmit:   (p: CreateContratPayload) => void
 }
 
-function FormulaireContrat({ auteurId, articles, typesDA, onCreated, onCancel, isPending, onSubmit }: FormulaireProps) {
+function FormulaireContrat({ auteurId, articles, typesDA, onCancel, isPending, onSubmit }: FormulaireProps) {
   const franchiseTVA = useFranchiseTVA()
   const [f, setF] = useState<FormState>(() => formVide(articles))
   const set = (k: keyof FormState) => (v: string | boolean) => setF((s) => ({ ...s, [k]: v }))

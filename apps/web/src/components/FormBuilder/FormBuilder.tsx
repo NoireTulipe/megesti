@@ -7,7 +7,7 @@ import {
 import { SortableContext, arrayMove, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { BuilderSection } from './BuilderSection'
 import type { CanvasSection, BuilderField as BField } from './types'
-import { FIXED_SECTIONS, ARTICLE_FIXED_FIELDS, ARTICLE_LIBRAIRE_FIELDS } from '@/lib/fixedSections'
+import { FIXED_SECTIONS } from '@/lib/fixedSections'
 import { getFormWidth, setFormWidth } from '@/lib/formWidth'
 import {
   useCustomFields, useCustomFieldsByRayon,
@@ -79,7 +79,6 @@ export function FormBuilder({ entityType, rayonId, isLibrairie }: Props) {
   const { data: rayonChamps } = useCustomFieldsByRayon(
     rayonId ?? '', { enabled: !!rayonId }
   )
-  const champs = entityType ? (entityChamps ?? []) : (rayonChamps ?? [])
 
   const createChamp = useCreateCustomField()
   const updateChamp = useUpdateCustomField()

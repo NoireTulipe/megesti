@@ -6,7 +6,7 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
 } from 'recharts'
 import {
-  useSoldesDroitsAuteur, useCalendrierDroitsAuteur,
+  useSoldesDroitsAuteur,
   useHistoriquePaiements, useStatsDroitsAuteur,
   useCreatePaiementDA, usePatchPaiementDA,
 } from './hooks/useDroitsAuteur'

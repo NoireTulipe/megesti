@@ -131,7 +131,7 @@ function OngletProfil({ tenant, updateTenant, user }: {
   const [pwdPending, setPwdPending] = useState(false)
 
   async function save(field: string, value: unknown, setFlag: (v: boolean) => void) {
-    await updateTenant.mutateAsync({ [field]: value } as any)
+    await updateTenant.mutateAsync({ [field]: value })
     setFlag(true)
     setTimeout(() => setFlag(false), 1800)
   }
@@ -158,8 +158,8 @@ function OngletProfil({ tenant, updateTenant, user }: {
       setPwdNew('')
       setShowPwd(false)
       setTimeout(() => setPwdSaved(false), 2500)
-    } catch (e: any) {
-      setPwdError(e?.message === 'Mot de passe actuel incorrect'
+    } catch (e: unknown) {
+      setPwdError(e instanceof Error && e.message === 'Mot de passe actuel incorrect'
         ? 'Mot de passe actuel incorrect.'
         : 'Une erreur est survenue.')
     } finally {
@@ -349,7 +349,7 @@ function OngletContacts() {
     // Si le contact existe côté serveur, on le supprime
     const isNew = id.length > 30 // UUID temporaire = nouveau
     if (!isNew) {
-      try { await api.delete(`/contacts-tenant/${id}`) } catch {}
+      try { await api.delete(`/contacts-tenant/${id}`) } catch { /* suppression best-effort */ }
     }
     setContacts(prev => prev.filter(c => c.id !== id))
   }

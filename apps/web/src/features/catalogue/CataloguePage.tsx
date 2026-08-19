@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { useArticles, useSetArticleActif } from './hooks/useArticles'
 import { useRayons } from './hooks/useRayons'
 import { RayonNav, useRayonFilter } from './RayonNav'

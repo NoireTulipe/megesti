@@ -6,7 +6,7 @@ import {
 } from 'recharts'
 import { useBilan } from './hooks/useBilan'
 import { useFranchiseTVA } from '@/hooks/useFranchiseTVA'
-import { isoToInput, toLocalISO, todayISO } from '@/lib/date'
+import { toLocalISO, todayISO } from '@/lib/date'
 import { toNumber } from '@/lib/chart'
 import { DateInput } from '@/components/DateInput'
 import {
@@ -112,7 +112,7 @@ export function BilanPage() {
   // ── Données donut flux ──────────────────────────────────────────────────────
   const donutEntrees = useMemo(() => {
     if (!data) return []
-    const { ventesDirectes, ventesHorsSession, ventesDepotTTC, reversementsEncaisses, detail } = data.entreesEffectives
+    const { ventesDirectes, ventesDepotTTC, reversementsEncaisses, detail } = data.entreesEffectives
     const motifSlices = (detail.ventesParMotif ?? []).map(m => ({
       name:  m.libelle,
       value: m.ca,
@@ -157,11 +157,6 @@ export function BilanPage() {
   const bilanActif  = data?.bilan.actif
   const bilanPassif = data?.bilan.passif
 
-  // Jours avant échéance pour alerte
-  function joursAvant(iso: string | null): number | null {
-    if (!iso) return null
-    return Math.ceil((new Date(iso).getTime() - Date.now()) / 86_400_000)
-  }
 
   if (isLoading) {
     return (

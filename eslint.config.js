@@ -11,6 +11,12 @@ export default tseslint.config(
     rules: {
       '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/consistent-type-imports': ['error', { prefer: 'type-imports' }],
+      // 54 assertions `!` héritées, sur 29 fichiers dont la caisse. Chacune
+      // demande de décider du comportement quand la valeur est nulle : c'est
+      // un audit à part entière, pas un correctif de pré-production. En warn
+      // pour rester visibles. Avec noUncheckedIndexedAccess actif, ce sont
+      // désormais le principal vecteur de crash silencieux restant.
+      '@typescript-eslint/no-non-null-assertion': 'warn',
     },
   },
   // ── React : règles des hooks + accessibilité ────────────────────────────────

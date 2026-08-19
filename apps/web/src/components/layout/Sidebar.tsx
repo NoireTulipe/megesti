@@ -2,7 +2,6 @@ import { Lock } from 'lucide-react'
 import { ChevronLeft } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { NAV_MAIN, NAV_ADMIN, type NavKey, type NavItem } from '@/config/navigation'
-import { useMonTenant } from '@/features/reglages/hooks/useMonTenant'
 import { useAuthStore } from '@/store/authStore'
 import { usePlanFeatures } from '@/hooks/usePlanFeatures'
 import { useNonLusCount } from '@/features/facturation/hooks/useFacturation'
@@ -26,12 +25,10 @@ const NAV_FEATURE_GATES: Partial<Record<NavKey, keyof PlanFeatures>> = {
 export function Sidebar({ active, onNav, collapsed, onToggle }: SidebarProps) {
   const navigate = useNavigate()
   const v = (visible?: string, hidden?: string) => (collapsed ? hidden ?? '' : visible ?? '')
-  const { data: tenant } = useMonTenant()
   const user = useAuthStore(s => s.user)
   const { can, upgradeMessage } = usePlanFeatures()
   const { data: nonLus } = useNonLusCount()
 
-  const tenantName = tenant?.name ?? 'Megesti'
 
   function renderNav(items: NavItem[]) {
     return items.map(item => {

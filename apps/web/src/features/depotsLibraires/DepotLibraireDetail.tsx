@@ -328,7 +328,6 @@ interface Props {
 }
 
 export function DepotLibraireDetail({ depot, isOpen, onClose }: Props) {
-  const franchiseTVA = useFranchiseTVA()
   const [tab, setTab] = useState<TabId>('infos')
   const { data: detail } = useDepotLibraireDetail(isOpen ? depot.id : undefined)
 

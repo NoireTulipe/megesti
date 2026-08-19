@@ -2,7 +2,7 @@ import { generateUUID } from '@/lib/utils'
 import { useState } from 'react'
 import { useTypesDA, useCreateTypeDA, useUpdateTypeDA, useDeleteTypeDA } from './hooks/useTypesDA'
 import type { TypeDA } from './hooks/useTypesDA'
-import type { RegleDA, ConditionRegle, BaseCalcul, VendeurType, TypeVente } from '@megesti/business'
+import type { RegleDA, BaseCalcul, VendeurType, TypeVente } from '@megesti/business'
 import styles from './TypesDASection.module.css'
 
 // •"?•"? Helpers •"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?
@@ -70,9 +70,6 @@ function LigneRegle({
   const { conditions: c } = regle
   const isFallback = estFallback(regle)
 
-  function setCond(patch: Partial<ConditionRegle>) {
-    onChange({ ...regle, conditions: { ...c, ...patch } })
-  }
 
   function setVendeur(v: string) {
     const vendeur = v === '' ? undefined : v as VendeurType

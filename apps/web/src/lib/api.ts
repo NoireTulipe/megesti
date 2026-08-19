@@ -22,11 +22,16 @@ export function clearToken(): void {
   localStorage.removeItem('megesti_token')
 }
 
-class ApiError extends Error {
+export class ApiError extends Error {
   constructor(public status: number, message: string) {
     super(message)
     this.name = 'ApiError'
   }
+}
+
+/** Garde de type : évite de comparer des chaînes de message côté appelant. */
+export function isApiError(e: unknown): e is ApiError {
+  return e instanceof ApiError
 }
 
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
