@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { normaliserNombreFr } from '@/lib/price'
 import { useQueryClient } from '@tanstack/react-query'
 import { useCreateArticle, useUpdateArticle, useSetArticleActif } from './hooks/useArticles'
 import { useRayons } from './hooks/useRayons'
@@ -22,14 +23,21 @@ import { fetchBnfIsbn, type BnfLivreInfo } from './hooks/useBnfLookup'
 import type { Article } from './types'
 import styles from './ArticleForm.module.css'
 
+// Toute saisie numérique passe par normaliserNombreFr : « 4,56 » est une
+// saisie française parfaitement valide, la refuser bloquait l'enregistrement.
 const optNum = z.preprocess(
-  (v) => (v === '' || v === undefined || v === null) ? undefined : v,
+  (v) => (v === '' || v === undefined || v === null) ? undefined : normaliserNombreFr(v),
   z.coerce.number().min(0).optional(),
 )
 const optInt = z.preprocess(
-  (v) => (v === '' || v === undefined || v === null) ? undefined : v,
+  (v) => (v === '' || v === undefined || v === null) ? undefined : normaliserNombreFr(v),
   z.coerce.number().int().min(1).optional(),
 )
+/** Nombre obligatoire acceptant la virgule décimale. */
+const nombreFr = (msg: string) =>
+  z.preprocess(normaliserNombreFr, z.coerce.number({ invalid_type_error: msg }).min(0, 'Doit être ≥ 0'))
+/** Entier positif acceptant la virgule décimale en saisie. */
+const entierFr = z.preprocess(normaliserNombreFr, z.coerce.number().int().min(0))
 
 const schema = z.object({
   rayonId:         z.string().min(1, 'Requis'),
@@ -37,13 +45,13 @@ const schema = z.object({
   nom:             z.string().min(1, 'Requis'),
   reference:       z.string().optional(),
   description:     z.string().optional(),
-  prixVenteHT:     z.coerce.number({ invalid_type_error: 'Nombre requis' }).min(0, 'Doit être … 0'),
+  prixVenteHT:     nombreFr('Montant invalide — ex. 12,50'),
   prixAchatHT:     optNum,
   prixAchatLotHT:  optNum,
   prixAchatLotQte: optInt,
-  stock:           z.coerce.number().int().min(0).default(0),
-  stockAlerte:     z.coerce.number().int().min(0).default(0),
-  stockTension:    z.coerce.number().int().min(0).default(0),
+  stock:           entierFr.default(0),
+  stockAlerte:     entierFr.default(0),
+  stockTension:    entierFr.default(0),
   isbn:            z.string().regex(/^[\dX]*$/i, 'ISBN invalide — chiffres uniquement').optional(),
   datePublication: z.string().optional(),
   imprimeurId:     z.string().optional().nullable(),
@@ -645,7 +653,7 @@ export function ArticleForm({ onClose, article }: Props) {
                     id="prixVenteHT"
                     className={`${styles.input} ${errors.prixVenteHT ? styles.inputError : ''}`}
                     inputMode="decimal"
-                    placeholder="0.00"
+                    placeholder="0,00"
                     disabled={!watchVendable}
                     {...register('prixVenteHT', { onBlur: onHTBlur })}
                   />

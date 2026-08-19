@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { normaliserNombreFr } from '@/lib/price'
 import { Plus, X } from 'lucide-react'
 import { useCreatePointDeVente, useUpdatePointDeVente } from './hooks/usePointsDeVente'
 import type { PointDeVente, TypePaiementRemise } from './hooks/usePointsDeVente'
@@ -19,7 +20,8 @@ import fStyles from './PointDeVenteForm.module.css'
 const FIXED_CATEGORIES = FIXED_SECTIONS.pointDeVente.map((s) => s.label)
 
 const optNum = z.preprocess(
-  (v) => (v === '' || v === undefined || v === null) ? undefined : v,
+  // « 4,56 » est une saisie française valide : on la normalise au lieu de la refuser.
+  (v) => (v === '' || v === undefined || v === null) ? undefined : normaliserNombreFr(v),
   z.coerce.number().min(0).optional(),
 )
 

@@ -13,6 +13,7 @@ import {
 import { usePlanFeatures } from '@/hooks/usePlanFeatures'
 import { useFranchiseTVA } from '@/hooks/useFranchiseTVA'
 import { isoToInput, todayISO, toLocalISO } from '@/lib/date'
+import { parsePrice } from '@/lib/price'
 import { PageHero } from '@/components/PageHero'
 import styles from './ChargesPage.module.css'
 
@@ -51,7 +52,7 @@ function ChargeForm({ initial, onDone }: FormProps) {
   const update = useUpdateCharge()
 
   const [libelle,     setLibelle]     = useState(initial?.libelle    ?? '')
-  const [montant,     setMontant]     = useState(initial ? String(parseFloat(initial.montantHT)) : '')
+  const [montant,     setMontant]     = useState(initial ? String(parsePrice(initial.montantHT)) : '')
   const [type,        setType]        = useState<TypeCharge>(initial?.type ?? 'DEPENSE')
   const [categorie,   setCategorie]   = useState<CategorieCharge>(initial?.categorie ?? defaultCategorie(initial?.type ?? 'DEPENSE'))
   const [statut,      setStatut]      = useState<'PREVU'|'PAYE'>(initial?.statut ?? 'PREVU')
@@ -71,7 +72,7 @@ function ChargeForm({ initial, onDone }: FormProps) {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     const body = {
-      libelle, montantHT: parseFloat(montant), type, categorie, notes: notes || undefined,
+      libelle, montantHT: parsePrice(montant), type, categorie, notes: notes || undefined,
       dateEffet: new Date(dateEffet).toISOString(),
       ...(isAbo
         ? { periodicite: periodicite || undefined }
