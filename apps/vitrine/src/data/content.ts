@@ -59,11 +59,12 @@ export const audiences = {
         ],
       },
       {
-        title: 'Vous êtes publié par une maison',
+        title: 'Vous êtes publié par une maison — bientôt',
         points: [
-          'Votre maison utilise MeGesti ? Suivez vos ventes et vos droits en toute transparence',
-          'Vos ventes d’exemplaires en dédicace sont tracées et comptent dans vos droits',
+          'Votre maison utilise MeGesti ? Vous pourrez suivre vos ventes et vos droits en toute transparence',
+          'Vos ventes d’exemplaires en dédicace seront tracées et compteront dans vos droits',
           'Fini le relevé annuel opaque : les chiffres, en continu',
+          'Espace auteurs en cours d’ouverture — écrivez-nous pour être prévenu',
         ],
       },
     ],
