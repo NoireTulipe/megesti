@@ -92,6 +92,12 @@ export function ArticleDetail({ article, isOpen, onClose, onEdit, onToggle }: Pr
     }
   }
 
+  // Ces useMemo doivent précéder le `return null` : placés après, le nombre de
+  // hooks variait selon `isOpen` et React levait une erreur au montage.
+  const months   = stats?.months ?? []
+  const totalQte = useMemo(() => months.reduce((s, m) => s + m.quantite, 0), [months])
+  const totalHT  = useMemo(() => months.reduce((s, m) => s + m.totalHT, 0), [months])
+
   if (!isOpen) return null
 
   const retire       = !article.actif
@@ -100,10 +106,6 @@ export function ArticleDetail({ article, isOpen, onClose, onEdit, onToggle }: Pr
     : article.stock <= article.stockTension ? '#D97706' : '#059669'
 
   const coverGrad = coverGradient(article.nom)
-
-  const months   = stats?.months ?? []
-  const totalQte = useMemo(() => months.reduce((s, m) => s + m.quantite, 0), [months])
-  const totalHT  = useMemo(() => months.reduce((s, m) => s + m.totalHT, 0), [months])
 
   return (
     <Overlay className={sty.backdrop} onClose={onClose}>

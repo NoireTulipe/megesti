@@ -65,7 +65,7 @@ export function useCreateFrais() {
 export function useDeleteFrais() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (id: string) => api.delete<void>(`/frais/${id}`),
+    mutationFn: (id: string) => api.delete(`/frais/${id}`),
     onSuccess:  () => qc.invalidateQueries({ queryKey: KEYS.all() }),
   })
 }

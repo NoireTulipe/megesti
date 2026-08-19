@@ -41,7 +41,7 @@ export function useCreateThesaurus() {
 export function useDeleteThesaurus() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (id: string) => api.delete<void>(`/thesauri/${id}`),
+    mutationFn: (id: string) => api.delete(`/thesauri/${id}`),
     onSuccess:  () => qc.invalidateQueries({ queryKey: KEYS.all() }),
   })
 }

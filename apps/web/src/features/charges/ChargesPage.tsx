@@ -288,25 +288,6 @@ export function ChargesPage() {
   const navigate = useNavigate()
   const { features, upgradeMessage } = usePlanFeatures()
 
-  // Garde plan — affiche un écran verrouillé si la feature n'est pas disponible
-  if (!features.charges) {
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, padding: '80px 32px', textAlign: 'center' }}>
-        <span style={{ fontSize: 44 }}>•Y"'</span>
-        <p style={{ fontFamily: "'DM Serif Display',serif", fontSize: '1.3rem', color: 'var(--ink)', margin: 0 }}>
-          Disponible à partir du plan Edition
-        </p>
-        <p style={{ fontSize: '0.85rem', color: 'var(--text-soft)', maxWidth: 340, margin: 0, lineHeight: 1.65 }}>
-          {upgradeMessage('charges')}
-        </p>
-        <button onClick={() => navigate(-1)}
-          style={{ marginTop: 8, padding: '9px 20px', borderRadius: 10, border: '1.5px solid var(--cream-dark)', background: 'var(--cream)', color: 'var(--text-mid)', fontSize: '0.83rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
-          … Retour
-        </button>
-      </div>
-    )
-  }
-
   const { data: charges = [], isLoading } = useCharges()
   const deleteCharge = useDeleteCharge()
 
@@ -370,6 +351,28 @@ export function ChargesPage() {
 
   function startEdit(c: Charge) { setEditTarget(c); setShowForm(true) }
   function closeForm()          { setEditTarget(null); setShowForm(false) }
+
+  // Garde plan — APRÈS tous les hooks. Placée avant, elle faisait varier le
+  // nombre de hooks entre deux rendus (le plan vaut TRIAL tant que la requête
+  // tenant n'a pas répondu) : « Rendered more hooks than during the previous
+  // render », donc crash au chargement à froid de la page.
+  if (!features.charges) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, padding: '80px 32px', textAlign: 'center' }}>
+        <span style={{ fontSize: 44 }}>🔒</span>
+        <p style={{ fontFamily: "'DM Serif Display',serif", fontSize: '1.3rem', color: 'var(--ink)', margin: 0 }}>
+          Disponible à partir du plan Edition
+        </p>
+        <p style={{ fontSize: '0.85rem', color: 'var(--text-soft)', maxWidth: 340, margin: 0, lineHeight: 1.65 }}>
+          {upgradeMessage('charges')}
+        </p>
+        <button onClick={() => navigate(-1)}
+          style={{ marginTop: 8, padding: '9px 20px', borderRadius: 10, border: '1.5px solid var(--cream-dark)', background: 'var(--cream)', color: 'var(--text-mid)', fontSize: '0.83rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+          ← Retour
+        </button>
+      </div>
+    )
+  }
 
   return (
     <div className={styles.page}>

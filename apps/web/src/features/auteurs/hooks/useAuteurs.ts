@@ -85,7 +85,7 @@ export function useUpdateAuteur() {
 export function useDeleteAuteur() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (id: string) => api.delete<void>(`/auteurs/${id}`),
+    mutationFn: (id: string) => api.delete(`/auteurs/${id}`),
     meta: { successMessage: 'Auteur supprimé' },
     onSuccess:  () => qc.invalidateQueries({ queryKey: KEYS.all() }),
   })

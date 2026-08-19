@@ -105,7 +105,7 @@ export function useUpdateSalon() {
 export function useDeleteSalon() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (id: string) => api.delete<void>(`/salons/${id}`),
+    mutationFn: (id: string) => api.delete(`/salons/${id}`),
     onSuccess:  () => qc.invalidateQueries({ queryKey: KEYS.all() }),
   })
 }
