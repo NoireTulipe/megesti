@@ -54,7 +54,7 @@ export function useSetArticleActif() {
 export function useDeleteArticle() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (id: string) => api.delete<void>(`/articles/${id}`),
+    mutationFn: (id: string) => api.delete(`/articles/${id}`),
     meta: { successMessage: 'Article archivé' },
     onSuccess:  () => qc.invalidateQueries({ queryKey: KEYS.all() }),
   })

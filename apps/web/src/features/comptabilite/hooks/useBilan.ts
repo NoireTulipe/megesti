@@ -21,6 +21,12 @@ export interface BilanData {
     ventesDepotHT:         number
     ventesDepotNb:         number
     reversementsEncaisses: number
+    /** Ventes d'exemplaires aux auteurs — renvoyé par GET /rapports/bilan. */
+    exemplairesAuteurs: {
+      totalHT:  number
+      totalTTC: number
+      parAuteur: { auteurId: string; nomAuteur: string; caHT: number; caTTC: number; nb: number }[]
+    }
     total: number
     detail: {
       ventesParMode:  { mode: string; ca: number; nb: number }[]

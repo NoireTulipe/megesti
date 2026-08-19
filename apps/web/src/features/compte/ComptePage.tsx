@@ -1,8 +1,8 @@
 ﻿import { generateUUID } from '@/lib/utils'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, type ReactElement } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useMonTenant, useUpdateMonTenant } from '@/features/reglages/hooks/useMonTenant'
-import { useAuthStore } from '@/store/authStore'
+import { useAuthStore, type AuthUser } from '@/store/authStore'
 import { api } from '@/lib/api'
 import { PageHero } from '@/components/PageHero'
 import styles from './ComptePage.module.css'
@@ -80,7 +80,7 @@ export function ComptePage() {
               <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>
             </svg>
           ), 'Abonnement'],
-        ] as [Tab, JSX.Element, string][]).map(([key, icon, label]) => (
+        ] as [Tab, ReactElement, string][]).map(([key, icon, label]) => (
           <button
             key={key}
             className={`${styles.tabBtn} ${tab === key ? styles.tabBtnActive : ''}`}
@@ -105,7 +105,7 @@ export function ComptePage() {
 function OngletProfil({ tenant, updateTenant, user }: {
   tenant: NonNullable<ReturnType<typeof useMonTenant>['data']>
   updateTenant: ReturnType<typeof useUpdateMonTenant>
-  user: ReturnType<typeof useAuthStore>['user']
+  user: AuthUser | null
 }) {
   const [name, setName]         = useState(tenant.name)
   const [siteWeb, setSiteWeb]   = useState(tenant.siteWeb ?? '')
@@ -131,7 +131,7 @@ function OngletProfil({ tenant, updateTenant, user }: {
   const [pwdPending, setPwdPending] = useState(false)
 
   async function save(field: string, value: unknown, setFlag: (v: boolean) => void) {
-    await updateTenant.mutateAsync({ [field]: value } as any)
+    await updateTenant.mutateAsync({ [field]: value })
     setFlag(true)
     setTimeout(() => setFlag(false), 1800)
   }
@@ -158,8 +158,8 @@ function OngletProfil({ tenant, updateTenant, user }: {
       setPwdNew('')
       setShowPwd(false)
       setTimeout(() => setPwdSaved(false), 2500)
-    } catch (e: any) {
-      setPwdError(e?.message === 'Mot de passe actuel incorrect'
+    } catch (e: unknown) {
+      setPwdError(e instanceof Error && e.message === 'Mot de passe actuel incorrect'
         ? 'Mot de passe actuel incorrect.'
         : 'Une erreur est survenue.')
     } finally {
@@ -349,7 +349,7 @@ function OngletContacts() {
     // Si le contact existe côté serveur, on le supprime
     const isNew = id.length > 30 // UUID temporaire = nouveau
     if (!isNew) {
-      try { await api.delete(`/contacts-tenant/${id}`) } catch {}
+      try { await api.delete(`/contacts-tenant/${id}`) } catch { /* suppression best-effort */ }
     }
     setContacts(prev => prev.filter(c => c.id !== id))
   }
@@ -364,7 +364,7 @@ function OngletContacts() {
       const isNew = id.length > 30
       const saved = isNew
         ? await api.post<{ id: string }>('/contacts-tenant', payload)
-        : await api.patch(`/contacts-tenant/${id}`, payload)
+        : await api.patch<{ id: string }>(`/contacts-tenant/${id}`, payload)
 
       // Remplacer l'ID temporaire par l'ID serveur
       if (isNew && saved.id) {

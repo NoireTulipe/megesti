@@ -4,7 +4,7 @@ import { createPortal } from 'react-dom'
 interface OverlayProps {
   onClose:   () => void
   /** Classe du backdrop (spécifique à chaque feature). */
-  className: string
+  className?: string | undefined
   children:  ReactNode
 }
 

@@ -33,7 +33,7 @@ export function useUpdateCategoriePointDeVente() {
 export function useDeleteCategoriePointDeVente() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (id: string) => api.delete<void>(`/categories-point-de-vente/${id}`),
+    mutationFn: (id: string) => api.delete(`/categories-point-de-vente/${id}`),
     onSuccess:  () => qc.invalidateQueries({ queryKey: KEYS.all() }),
   })
 }

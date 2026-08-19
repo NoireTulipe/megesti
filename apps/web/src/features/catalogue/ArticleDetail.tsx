@@ -10,6 +10,7 @@ import { HelpButton } from '@/components/HelpButton'
 import { useFranchiseTVA } from '@/hooks/useFranchiseTVA'
 import { coverGradient } from '@/lib/gradients'
 import sty from '@/features/auteurs/AuteursPage.module.css'
+import { toNumber } from '@/lib/chart'
 
 interface Props {
   article:  Article
@@ -91,6 +92,12 @@ export function ArticleDetail({ article, isOpen, onClose, onEdit, onToggle }: Pr
     }
   }
 
+  // Ces useMemo doivent précéder le `return null` : placés après, le nombre de
+  // hooks variait selon `isOpen` et React levait une erreur au montage.
+  const months   = stats?.months ?? []
+  const totalQte = useMemo(() => months.reduce((s, m) => s + m.quantite, 0), [months])
+  const totalHT  = useMemo(() => months.reduce((s, m) => s + m.totalHT, 0), [months])
+
   if (!isOpen) return null
 
   const retire       = !article.actif
@@ -99,10 +106,6 @@ export function ArticleDetail({ article, isOpen, onClose, onEdit, onToggle }: Pr
     : article.stock <= article.stockTension ? '#D97706' : '#059669'
 
   const coverGrad = coverGradient(article.nom)
-
-  const months   = stats?.months ?? []
-  const totalQte = useMemo(() => months.reduce((s, m) => s + m.quantite, 0), [months])
-  const totalHT  = useMemo(() => months.reduce((s, m) => s + m.totalHT, 0), [months])
 
   return (
     <Overlay className={sty.backdrop} onClose={onClose}>
@@ -127,7 +130,7 @@ export function ArticleDetail({ article, isOpen, onClose, onEdit, onToggle }: Pr
               {article.imageUrl
                 ? <img src={getImageUrl(article.imageUrl)!} alt={article.nom} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 : <span style={{ fontFamily: "'DM Serif Display',serif", fontSize: '1.6rem', color: '#fff', fontStyle: 'italic' }}>
-                    {article.nom[0].toUpperCase()}
+                    {article.nom.charAt(0).toUpperCase()}
                   </span>
               }
             </div>
@@ -396,7 +399,7 @@ export function ArticleDetail({ article, isOpen, onClose, onEdit, onToggle }: Pr
                       <CartesianGrid strokeDasharray="4,3" stroke="#E2D5CA" vertical={false}/>
                       <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#8C7066' }} axisLine={false} tickLine={false}/>
                       <YAxis tick={{ fontSize: 10, fill: '#8C7066' }} axisLine={false} tickLine={false} width={28}/>
-                      <Tooltip formatter={(v: number) => [`${v} ex.`]} labelStyle={{ color: 'var(--ink)' }}/>
+                      <Tooltip formatter={(v) => [`${toNumber(v)} ex.`]} labelStyle={{ color: 'var(--ink)' }}/>
                       <Area type="monotone" dataKey="quantite" stroke="#C4907C" strokeWidth={2.5} fill="url(#gradArticle)" dot={{ fill: 'white', stroke: '#C4907C', strokeWidth: 2, r: 3.5 }}/>
                     </AreaChart>
                   </ResponsiveContainer>

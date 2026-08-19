@@ -3,15 +3,15 @@ import { Overlay } from '@/components/ui/Overlay'
 import { DateInput } from '@/components/DateInput'
 import { useHistoriqueSessions, useReopenSessionCaisse } from './hooks/useSessionsCaisse'
 import { BilanSession } from './BilanSession'
+import { addMonthsISO, addYearsISO, todayISO } from '@/lib/date'
 import styles from './VentesPage.module.css'
 
 type Periode = '1m' | '3m' | '1a' | 'perso'
 
 function startOf(p: Periode, customFrom: string): string {
-  const d = new Date()
-  if (p === '1m') { d.setMonth(d.getMonth() - 1); return d.toISOString().slice(0, 10) }
-  if (p === '3m') { d.setMonth(d.getMonth() - 3); return d.toISOString().slice(0, 10) }
-  if (p === '1a') { d.setFullYear(d.getFullYear() - 1); return d.toISOString().slice(0, 10) }
+  if (p === '1m') return addMonthsISO(-1)
+  if (p === '3m') return addMonthsISO(-3)
+  if (p === '1a') return addYearsISO(-1)
   return customFrom
 }
 
@@ -25,7 +25,7 @@ function fEur(v: number) {
 }
 
 export function HistoriqueSessions() {
-  const today = new Date().toISOString().slice(0, 10)
+  const today = todayISO()
   const [periode,       setPeriode]       = useState<Periode>('3m')
   const [customFrom,    setCustomFrom]    = useState(today)
   const [customTo,      setCustomTo]      = useState(today)

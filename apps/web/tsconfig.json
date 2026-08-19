@@ -8,7 +8,12 @@
     "paths": {
       "@/*": ["./src/*"]
     },
-    "noEmit": true
+    "noEmit": true,
+    // L'app n'émet aucun .d.ts : la vérification d'émission de déclarations
+    // héritée de tsconfig.base.json ne sert à rien ici et fait échouer les
+    // composants qui renvoient un ReactPortal (TS2742).
+    "declaration": false,
+    "declarationMap": false
   },
   "include": ["src"],
   "references": [{ "path": "./tsconfig.node.json" }]

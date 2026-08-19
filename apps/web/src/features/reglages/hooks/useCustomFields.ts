@@ -87,7 +87,7 @@ export function useUpdateCustomField() {
 export function useDeleteCustomField() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (id: string) => api.delete<void>(`/custom-fields/${id}`),
+    mutationFn: (id: string) => api.delete(`/custom-fields/${id}`),
     onSuccess:  () => qc.invalidateQueries({ queryKey: KEYS.all() }),
   })
 }

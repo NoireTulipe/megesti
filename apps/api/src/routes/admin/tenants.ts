@@ -29,7 +29,8 @@ const CreateUserSchema = z.object({
   password:  z.string().min(8),
   firstName: z.string().min(1),
   lastName:  z.string().min(1),
-  role:      z.enum(['ADMIN', 'EDITOR', 'AUTHOR']).default('EDITOR'),
+  // AUTHOR retiré tant que l'espace auteurs n'est pas ouvert (cf. auth.ts).
+  role:      z.enum(['ADMIN', 'EDITOR']).default('EDITOR'),
 })
 
 const PatchPdpSchema = z.object({
@@ -43,7 +44,7 @@ const PatchPdpSchema = z.object({
 const PatchUserSchema = z.object({
   active:   z.boolean().optional(),
   password: z.string().min(8).optional(),
-  role:     z.enum(['ADMIN', 'EDITOR', 'AUTHOR']).optional(),
+  role:     z.enum(['ADMIN', 'EDITOR']).optional(),
 })
 
 export const adminTenantRoutes: FastifyPluginAsync = async (app) => {

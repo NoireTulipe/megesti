@@ -1,11 +1,11 @@
 import { generateUUID } from '@/lib/utils'
 import { useState, useMemo } from 'react'
 import { Overlay } from '@/components/ui/Overlay'
-import { useNavigate } from 'react-router-dom'
 import { usePointsDeVente } from './hooks/usePointsDeVente'
+import type { PointDeVente } from './hooks/usePointsDeVente'
 import { useSessionsCaisse, useOpenSessionCaisse, useCloseSessionCaisse } from './hooks/useSessionsCaisse'
 import { useVentes, useCreateVente, useAnnulerVente } from './hooks/useVentes'
-import type { ModePaiement, CartLigne, Vente } from './hooks/useVentes'
+import type { ModePaiement, CartLigne } from './hooks/useVentes'
 import { useFraisSession, useCreateFrais, useDeleteFrais, TYPE_FRAIS_LABELS, TYPE_FRAIS_EMOJI, type TypeFrais } from './hooks/useFrais'
 import { BilanSession } from './BilanSession'
 import { VenteHorsSessionModal } from './VenteHorsSessionModal'
@@ -271,11 +271,6 @@ export function VentesPage() {
     setCart([])
   }
 
-  function stockClass(a: typeof articles[number]) {
-    if (a.stockAlerte > 0 && a.stock <= a.stockAlerte) return styles.tileStockAlert
-    if (a.stockTension > 0 && a.stock <= a.stockTension) return styles.tileStockWarn
-    return styles.tileStock
-  }
 
   // •.••.••.••.••.••.••.••.••.••.••.••.••.••.••.••.••.••.••.••.••.••.••.••.••.••.••.••.••.••.••.••.••.••.••.••.••.••.••.••.••.••.••.••.••.••.••.••.••.••.••.••.••.••.••.••.••.••.••.••.••.••.••.••.••.••.••.••.••.••.••.•
   // … DE S… DE SESSION (+ historique)
@@ -966,7 +961,7 @@ export function VentesPage() {
 interface ModalOuvrirProps {
   isOpen: boolean
   onClose: () => void
-  pdvList: import('./hooks/usePointsDeVente').PointDeVente[]
+  pdvList: PointDeVente[]
   openPDVId: string;    setOpenPDVId: (v: string) => void
   sessionNom: string;   setSessionNom: (v: string) => void
   fondOuverture: number; setFondOuverture: (v: number) => void

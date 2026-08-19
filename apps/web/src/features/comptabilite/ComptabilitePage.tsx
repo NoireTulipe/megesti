@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import {
   AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
-  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
+  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts'
 import { useRapportVentes, type Period } from './hooks/useRapports'
 import { useFranchiseTVA } from '@/hooks/useFranchiseTVA'
@@ -9,6 +9,7 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import { MascoteBlock } from '@/components/MascoteBlock'
 import { PageHero } from '@/components/PageHero'
 import styles from './ComptabilitePage.module.css'
+import { toNumber } from '@/lib/chart'
 
 // ── Palette harmonisée avec le design system ──────────────────────
 const COLORS = {
@@ -224,7 +225,7 @@ export function ComptabilitePage() {
                       <Pie data={caParRayon} dataKey="ca" nameKey="nom" cx="50%" cy="50%" innerRadius={55} outerRadius={85} paddingAngle={3}>
                         {caParRayon.map((_, i) => <Cell key={i} fill={PALETTE[i % PALETTE.length]} />)}
                       </Pie>
-                      <Tooltip formatter={(v: number) => fEur(v)} />
+                      <Tooltip formatter={(v) => fEur(toNumber(v))} />
                     </PieChart>
                   </ResponsiveContainer>
                   <div className={styles.legend}>
@@ -249,7 +250,7 @@ export function ComptabilitePage() {
                       <Pie data={caParMode.map(m => ({ ...m, nom: fMode(m.mode) }))} dataKey="ca" nameKey="nom" cx="50%" cy="50%" innerRadius={55} outerRadius={85} paddingAngle={3}>
                         {caParMode.map((_, i) => <Cell key={i} fill={PALETTE[i % PALETTE.length]} />)}
                       </Pie>
-                      <Tooltip formatter={(v: number) => fEur(v)} />
+                      <Tooltip formatter={(v) => fEur(toNumber(v))} />
                     </PieChart>
                   </ResponsiveContainer>
                   <div className={styles.legend}>
@@ -352,7 +353,7 @@ export function ComptabilitePage() {
                     <div className={styles.assocBar}>
                       <div
                         className={styles.assocBarFill}
-                        style={{ width: `${(a.nb / associations[0].nb) * 100}%` }}
+                        style={{ width: `${(a.nb / (associations[0]?.nb || 1)) * 100}%` }}
                       />
                     </div>
                   </div>

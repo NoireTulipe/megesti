@@ -22,11 +22,16 @@ export function clearToken(): void {
   localStorage.removeItem('megesti_token')
 }
 
-class ApiError extends Error {
+export class ApiError extends Error {
   constructor(public status: number, message: string) {
     super(message)
     this.name = 'ApiError'
   }
+}
+
+/** Garde de type : évite de comparer des chaînes de message côté appelant. */
+export function isApiError(e: unknown): e is ApiError {
+  return e instanceof ApiError
 }
 
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
@@ -66,7 +71,8 @@ export const api = {
   post:   <T>(path: string, body: unknown)       => request<T>(path, { method: 'POST',  body: JSON.stringify(body) }),
   put:    <T>(path: string, body: unknown)       => request<T>(path, { method: 'PUT',   body: JSON.stringify(body) }),
   patch:  <T>(path: string, body: unknown)       => request<T>(path, { method: 'PATCH', body: JSON.stringify(body) }),
-  delete: <T>(path: string)                      => request<T>(path, { method: 'DELETE' }),
+  // T par défaut : les routes DELETE répondent 204, request() renvoie undefined.
+  delete: <T = undefined>(path: string)          => request<T>(path, { method: 'DELETE' }),
   upload: <T>(path: string, formData: FormData): Promise<T> => {
     const token = getToken()
     return fetch(`${BASE}${path}`, {

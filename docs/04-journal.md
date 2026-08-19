@@ -109,6 +109,31 @@
 **Contexte** : besoin de suivi des charges pour le bilan et l'export comptable futur.
 **Décision** : module `Charge` avec `CategorieCharge` alignée sur le Plan Comptable Général (60x, 61x-62x, 63x, 65x, 67x). Support abonnements récurrents avec `prochaineEcheance`.
 
+### 2026-08-19 — i18n reporté : l'app web reste en français
+
+**Contexte** : la règle #9 impose FR/EN dès la conception. Dans les faits, `i18next` et
+`react-i18next` étaient installés et bundlés mais `useTranslation` n'était appelé **nulle
+part**, et les fichiers de locales contenaient 7 clés. Toute l'UI est en français littéral
+dans le JSX. On payait le bundle d'une internationalisation qui n'existait pas.
+**Décision** : retirer les deux dépendances et les locales. FR-only assumé pour la v1.
+**Alternatives rejetées** : extraire les ~23 000 lignes avant l'ouverture (plus gros lot du
+chantier, décalerait tout le reste) ; garder le socle en extrayant au fil de l'eau (entretient
+l'illusion que la règle est tenue).
+**À réévaluer si** : premier prospect non francophone, ou ouverture hors de France.
+
+### 2026-08-19 — Rôle AUTHOR bloqué au login
+
+**Contexte** : `UserRole.AUTHOR` existe en base, mais aucune lecture de l'API n'est filtrée par
+rôle — `GET /droits-auteur`, `/ventes` et consorts sont en `preHandler: app.authenticate` seul.
+Un compte auteur verrait donc tout le tenant, dont les droits des autres auteurs. C'est
+exactement ce que la règle #5 interdit, et elle n'est pas négociable juridiquement.
+**Décision** : refuser la connexion des comptes AUTHOR (403) et retirer le rôle des schémas de
+création côté admin, en attendant l'espace auteurs. Puces de la vitrine passées au futur.
+**Alternatives rejetées** : filtrer les GET par rôle sans UI dédiée (respecte la règle mais
+livre une expérience d'éditeur amputée) ; livrer l'espace auteurs complet (chantier à part
+entière, décale l'ouverture).
+**À réévaluer si** : l'espace auteurs est livré — lever la barrière **et** filtrer les lectures.
+
 ---
 
 ## Template pour les prochaines entrées

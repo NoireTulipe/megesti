@@ -135,7 +135,9 @@ export function DashboardPage() {
         id: v.id,
         initials: `#${v.numero}`,
         color: 'linear-gradient(135deg,#1C3A5E,#2A5F8A)',
-        text: `Vente · <strong>${v.modePaiement}</strong>${v.premierArticle ? ` — <em>${v.premierArticle}</em>` : ''} — ${Number(v.totalTTC).toFixed(2)} €`,
+        modePaiement: v.modePaiement,
+        premierArticle: v.premierArticle,
+        totalTTC: Number(v.totalTTC),
         time: new Date(v.dateVente).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }),
         isLast: i === stats.activiteRecente.length - 1,
       }))

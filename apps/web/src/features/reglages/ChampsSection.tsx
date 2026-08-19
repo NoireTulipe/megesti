@@ -7,11 +7,11 @@ import type { EntityType } from '@megesti/shared'
 import styles from './ChampsSection.module.css'
 
 const ENTITY_LABELS: Record<EntityType, string> = {
-  livre:         'Livre',
   auteur:        'Auteur',
   maisonEdition: 'Maison d\'édition',
   depotLibraire: 'Dépôt libraire',
   salon:         'Salon',
+  pointDeVente:  'Point de vente',
 }
 
 const FIELD_TYPE_LABELS: Record<string, string> = {
@@ -35,7 +35,7 @@ const FIELD_TYPE_COLORS: Record<string, string> = {
 }
 
 export function ChampsSection() {
-  const [entityType, setEntityType] = useState<EntityType>('livre')
+  const [entityType, setEntityType] = useState<EntityType>('auteur')
   const [showModal, setShowModal]   = useState(false)
 
   const { data: champs = [], isLoading } = useCustomFields(entityType)

@@ -64,6 +64,14 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
       return reply.unauthorized('Email ou mot de passe incorrect')
     }
 
+    // L'espace auteurs n'est pas ouvert. Tant que les lectures ne sont pas
+    // filtrées par rôle (GET /droits-auteur, /ventes… sont en `authenticate`
+    // seul), un compte AUTHOR verrait toutes les données du tenant — y compris
+    // les droits des autres auteurs. Barrière au login en attendant.
+    if (user.role === 'AUTHOR') {
+      return reply.forbidden("L'espace auteurs n'est pas encore ouvert.")
+    }
+
     const token = app.jwt.sign({
       sub:        user.id,
       tenantId:   user.tenantId,

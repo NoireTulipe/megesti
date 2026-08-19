@@ -3,7 +3,7 @@ import type { ActivityData } from './data'
 
 type Props = ActivityData & { index: number }
 
-export function ActivityItem({ initials, color, text, time, detail, isLast, index }: Props) {
+export function ActivityItem({ initials, color, modePaiement, premierArticle, totalTTC, time, detail, isLast, index }: Props) {
   const [visible, setVisible] = useState(false)
   const [hovered, setHovered] = useState(false)
 
@@ -49,10 +49,11 @@ export function ActivityItem({ initials, color, text, time, detail, isLast, inde
       </div>
 
       <div style={{ flex: 1, minWidth: 0, paddingTop: 6 }}>
-        <div
-          style={{ fontSize: 13, lineHeight: 1.55, color: hovered ? 'var(--ink)' : 'var(--text)', transition: 'color 0.2s' }}
-          dangerouslySetInnerHTML={{ __html: text }}
-        />
+        <div style={{ fontSize: 13, lineHeight: 1.55, color: hovered ? 'var(--ink)' : 'var(--text)', transition: 'color 0.2s' }}>
+          Vente · <strong>{modePaiement}</strong>
+          {premierArticle && <> — <em>{premierArticle}</em></>}
+          {' — '}{totalTTC.toFixed(2)} €
+        </div>
         {detail && (
           <div style={{ fontSize: 11, color: 'var(--text-soft)', marginTop: 2, fontStyle: 'italic' }}>{detail}</div>
         )}

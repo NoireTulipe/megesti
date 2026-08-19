@@ -7,7 +7,7 @@ import {
 import { SortableContext, arrayMove, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { BuilderSection } from './BuilderSection'
 import type { CanvasSection, BuilderField as BField } from './types'
-import { FIXED_SECTIONS, ARTICLE_FIXED_FIELDS, ARTICLE_LIBRAIRE_FIELDS } from '@/lib/fixedSections'
+import { FIXED_SECTIONS } from '@/lib/fixedSections'
 import { getFormWidth, setFormWidth } from '@/lib/formWidth'
 import {
   useCustomFields, useCustomFieldsByRayon,
@@ -79,7 +79,6 @@ export function FormBuilder({ entityType, rayonId, isLibrairie }: Props) {
   const { data: rayonChamps } = useCustomFieldsByRayon(
     rayonId ?? '', { enabled: !!rayonId }
   )
-  const champs = entityType ? (entityChamps ?? []) : (rayonChamps ?? [])
 
   const createChamp = useCreateCustomField()
   const updateChamp = useUpdateCustomField()
@@ -218,9 +217,9 @@ export function FormBuilder({ entityType, rayonId, isLibrairie }: Props) {
     const aStr = active.id as string, oStr = over.id as string
     if (!aStr.startsWith('field::')) return
     const [, aSectionId, aFieldId] = aStr.split('::')
-    const targetId = oStr.startsWith('field::')   ? oStr.split('::')[1]
-                   : oStr.startsWith('section::') ? oStr.split('::')[1] : null
-    if (!targetId || aSectionId === targetId) return
+    const targetId = oStr.startsWith('field::')   ? oStr.split('::')[1] ?? null
+                   : oStr.startsWith('section::') ? oStr.split('::')[1] ?? null : null
+    if (!targetId || !aFieldId || aSectionId === targetId) return
     crossSectionRef.current = { fieldId: aFieldId, toSection: targetId }
     setSections((prev) => {
       const next = prev.map((s) => ({ ...s, fields: [...s.fields] }))
@@ -230,6 +229,7 @@ export function FormBuilder({ entityType, rayonId, isLibrairie }: Props) {
       const idx = from.fields.findIndex((f) => f.id === aFieldId)
       if (idx < 0) return prev
       const [moved] = from.fields.splice(idx, 1)
+      if (!moved) return prev
       to.fields.push(moved)
       return next
     })

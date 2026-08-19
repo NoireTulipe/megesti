@@ -48,7 +48,8 @@ function Blob({ def, startDelay }: { def: BlobDef; startDelay: number }) {
     let last: number | null = null
     let rafId: number
 
-    function frame(now: number) {
+    // Fonction fléchée (et non déclaration hoistée) : conserve le narrowing de `el`.
+    const frame = (now: number) => {
       if (last === null) last = now
       const dt = Math.min(now - last, 50)
       last = now

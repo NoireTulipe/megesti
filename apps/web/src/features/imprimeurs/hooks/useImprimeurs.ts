@@ -71,7 +71,7 @@ export function useUpdateImprimeur() {
 export function useDeleteImprimeur() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (id: string) => api.delete<void>(`/imprimeurs/${id}`),
+    mutationFn: (id: string) => api.delete(`/imprimeurs/${id}`),
     onSuccess:  () => qc.invalidateQueries({ queryKey: KEYS.all() }),
   })
 }

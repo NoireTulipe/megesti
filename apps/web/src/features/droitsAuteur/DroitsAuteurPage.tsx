@@ -1,18 +1,20 @@
 import { generateUUID } from '@/lib/utils'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, type ReactElement } from 'react'
 import { DateInput } from '@/components/DateInput'
 import { Overlay } from '@/components/ui/Overlay'
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
 } from 'recharts'
 import {
-  useSoldesDroitsAuteur, useCalendrierDroitsAuteur,
+  useSoldesDroitsAuteur,
   useHistoriquePaiements, useStatsDroitsAuteur,
   useCreatePaiementDA, usePatchPaiementDA,
 } from './hooks/useDroitsAuteur'
 import type { SoldeContrat } from './hooks/useDroitsAuteur'
 import { buildReference } from '@megesti/business/droits/reference'
 import { PageHero } from '@/components/PageHero'
+import { todayISO } from '@/lib/date'
+import { toNumber } from '@/lib/chart'
 import styles from './DroitsAuteurPage.module.css'
 
 // •"?•"? Helpers •"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?
@@ -31,9 +33,9 @@ const PERIODICITE_LABELS: Record<string, string> = {
 function urgencyClass(prochainVersement: string | null): string {
   if (!prochainVersement) return ''
   const jours = Math.ceil((new Date(prochainVersement).getTime() - Date.now()) / 86400000)
-  if (jours < 0)  return styles.urgenceRetard
-  if (jours <= 7) return styles.urgenceSemaine
-  return styles.urgenceOk
+  if (jours < 0)  return styles.urgenceRetard ?? ''
+  if (jours <= 7) return styles.urgenceSemaine ?? ''
+  return styles.urgenceOk ?? ''
 }
 
 // •"?•"? Modal paiement •"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?
@@ -46,7 +48,7 @@ interface ModalPaiementProps {
 function ModalPaiement({ contrat, onClose }: ModalPaiementProps) {
   const create = useCreatePaiementDA()
   const { data: allPaiements = [] } = useHistoriquePaiements()
-  const today  = new Date().toISOString().slice(0, 10)
+  const today  = todayISO()
   const [montant, setMontant]       = useState(String(contrat.solde))
   const [dateVersement, setDate]    = useState(today)
   const [dateDebut, setDateDebut]   = useState(today)
@@ -323,7 +325,7 @@ function OngletHistorique() {
         <span />
       </div>
       {paiements.map((p) => {
-        const st = STATUT_STYLES[p.statut]
+        const st = STATUT_STYLES[p.statut] ?? { color: '#374151', bg: '#F3F4F6', label: p.statut }
         return (
           <div key={p.id} className={styles.tableCardSm}>
             <div className={styles.cardSmMain}>
@@ -402,7 +404,7 @@ function OngletStats() {
           <BarChart data={chartData} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
             <XAxis dataKey="nom" tick={{ fontSize: 12 }} />
             <YAxis tickFormatter={(v) => `${v} €`} tick={{ fontSize: 12 }} />
-            <Tooltip formatter={(v: number) => fmtEuro(v)} />
+            <Tooltip formatter={(v) => fmtEuro(toNumber(v))} />
             <Bar dataKey="verse" name="Versé" radius={[6, 6, 0, 0]}>
               {chartData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
             </Bar>
@@ -472,7 +474,7 @@ export function DroitsAuteurPage() {
               <line x1="6" y1="20" x2="6" y2="14"/>
             </svg>
           )],
-        ] as [Tab, string, JSX.Element][]).map(([key, label, icon]) => (
+        ] as [Tab, string, ReactElement][]).map(([key, label, icon]) => (
           <button
             key={key}
             className={`${styles.tab} ${tab === key ? styles.tabActive : ''}`}

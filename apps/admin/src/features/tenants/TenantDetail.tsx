@@ -49,7 +49,7 @@ export function TenantDetail() {
   const qc       = useQueryClient()
 
   const [showUserModal, setShowUserModal] = useState(false)
-  const [userForm, setUserForm] = useState({ email: '', password: '', firstName: '', lastName: '', role: 'EDITOR' as 'ADMIN' | 'EDITOR' | 'AUTHOR' })
+  const [userForm, setUserForm] = useState({ email: '', password: '', firstName: '', lastName: '', role: 'EDITOR' as 'ADMIN' | 'EDITOR' })
   const [userErr, setUserErr]   = useState('')
 
   const { data: tenant, isLoading } = useQuery<TenantDetail>({
@@ -368,10 +368,9 @@ export function TenantDetail() {
               </div>
               <div className="form-group">
                 <label>Rôle</label>
-                <select value={userForm.role} onChange={e => setUserForm(f => ({ ...f, role: e.target.value as 'ADMIN' | 'EDITOR' | 'AUTHOR' }))}>
+                <select value={userForm.role} onChange={e => setUserForm(f => ({ ...f, role: e.target.value as 'ADMIN' | 'EDITOR' }))}>
                   <option value="ADMIN">Admin</option>
                   <option value="EDITOR">Éditeur</option>
-                  <option value="AUTHOR">Auteur</option>
                 </select>
               </div>
             </div>

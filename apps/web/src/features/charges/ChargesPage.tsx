@@ -12,6 +12,7 @@ import {
 } from '@/features/comptabilite/hooks/useCharges'
 import { usePlanFeatures } from '@/hooks/usePlanFeatures'
 import { useFranchiseTVA } from '@/hooks/useFranchiseTVA'
+import { isoToInput, todayISO, toLocalISO } from '@/lib/date'
 import { PageHero } from '@/components/PageHero'
 import styles from './ChargesPage.module.css'
 
@@ -22,7 +23,6 @@ function fEur(v: number) {
 function fDate(iso: string) {
   return new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })
 }
-function isoToInput(iso: string) { return iso.split('T')[0] }
 function joursAvant(iso: string): number {
   return Math.ceil((new Date(iso).getTime() - Date.now()) / 86_400_000)
 }
@@ -55,7 +55,7 @@ function ChargeForm({ initial, onDone }: FormProps) {
   const [type,        setType]        = useState<TypeCharge>(initial?.type ?? 'DEPENSE')
   const [categorie,   setCategorie]   = useState<CategorieCharge>(initial?.categorie ?? defaultCategorie(initial?.type ?? 'DEPENSE'))
   const [statut,      setStatut]      = useState<'PREVU'|'PAYE'>(initial?.statut ?? 'PREVU')
-  const [dateEffet,   setDateEffet]   = useState(initial?.dateEffet ? isoToInput(initial.dateEffet) : isoToInput(new Date().toISOString()))
+  const [dateEffet,   setDateEffet]   = useState(initial?.dateEffet ? isoToInput(initial.dateEffet) : todayISO())
   const [datePaiement, setDatePaiement] = useState(initial?.datePaiement ? isoToInput(initial.datePaiement) : '')
   const [periodicite, setPeriodicite] = useState<Periodicite | ''>(initial?.periodicite ?? '')
   const [notes,       setNotes]       = useState(initial?.notes ?? '')
@@ -288,31 +288,12 @@ export function ChargesPage() {
   const navigate = useNavigate()
   const { features, upgradeMessage } = usePlanFeatures()
 
-  // Garde plan — affiche un écran verrouillé si la feature n'est pas disponible
-  if (!features.charges) {
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, padding: '80px 32px', textAlign: 'center' }}>
-        <span style={{ fontSize: 44 }}>•Y"'</span>
-        <p style={{ fontFamily: "'DM Serif Display',serif", fontSize: '1.3rem', color: 'var(--ink)', margin: 0 }}>
-          Disponible à partir du plan Edition
-        </p>
-        <p style={{ fontSize: '0.85rem', color: 'var(--text-soft)', maxWidth: 340, margin: 0, lineHeight: 1.65 }}>
-          {upgradeMessage('charges')}
-        </p>
-        <button onClick={() => navigate(-1)}
-          style={{ marginTop: 8, padding: '9px 20px', borderRadius: 10, border: '1.5px solid var(--cream-dark)', background: 'var(--cream)', color: 'var(--text-mid)', fontSize: '0.83rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
-          … Retour
-        </button>
-      </div>
-    )
-  }
-
   const { data: charges = [], isLoading } = useCharges()
   const deleteCharge = useDeleteCharge()
 
   const [preset,     setPreset]     = useState<PresetKey>('year')
-  const [customFrom, setCustomFrom] = useState(isoToInput(startOfYear().toISOString()))
-  const [customTo,   setCustomTo]   = useState(isoToInput(new Date().toISOString()))
+  const [customFrom, setCustomFrom] = useState(toLocalISO(startOfYear()))
+  const [customTo,   setCustomTo]   = useState(todayISO())
   const [showForm,   setShowForm]   = useState(false)
   const [editTarget, setEditTarget] = useState<Charge | null>(null)
   const [filterType, setFilterType] = useState<TypeCharge | 'ALL'>('ALL')
@@ -370,6 +351,28 @@ export function ChargesPage() {
 
   function startEdit(c: Charge) { setEditTarget(c); setShowForm(true) }
   function closeForm()          { setEditTarget(null); setShowForm(false) }
+
+  // Garde plan — APRÈS tous les hooks. Placée avant, elle faisait varier le
+  // nombre de hooks entre deux rendus (le plan vaut TRIAL tant que la requête
+  // tenant n'a pas répondu) : « Rendered more hooks than during the previous
+  // render », donc crash au chargement à froid de la page.
+  if (!features.charges) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, padding: '80px 32px', textAlign: 'center' }}>
+        <span style={{ fontSize: 44 }}>🔒</span>
+        <p style={{ fontFamily: "'DM Serif Display',serif", fontSize: '1.3rem', color: 'var(--ink)', margin: 0 }}>
+          Disponible à partir du plan Edition
+        </p>
+        <p style={{ fontSize: '0.85rem', color: 'var(--text-soft)', maxWidth: 340, margin: 0, lineHeight: 1.65 }}>
+          {upgradeMessage('charges')}
+        </p>
+        <button onClick={() => navigate(-1)}
+          style={{ marginTop: 8, padding: '9px 20px', borderRadius: 10, border: '1.5px solid var(--cream-dark)', background: 'var(--cream)', color: 'var(--text-mid)', fontSize: '0.83rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+          ← Retour
+        </button>
+      </div>
+    )
+  }
 
   return (
     <div className={styles.page}>

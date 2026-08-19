@@ -35,7 +35,7 @@ export function useUpdateRayon() {
 export function useDeleteRayon() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (id: string) => api.delete<void>(`/rayons/${id}`),
+    mutationFn: (id: string) => api.delete(`/rayons/${id}`),
     onSuccess:  () => qc.invalidateQueries({ queryKey: KEYS.all() }),
   })
 }
@@ -61,7 +61,7 @@ export function useUpdateCategorie() {
 export function useDeleteCategorie() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (id: string) => api.delete<void>(`/categories/${id}`),
+    mutationFn: (id: string) => api.delete(`/categories/${id}`),
     onSuccess:  () => qc.invalidateQueries({ queryKey: KEYS.all() }),
   })
 }

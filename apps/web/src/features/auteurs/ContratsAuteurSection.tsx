@@ -10,6 +10,7 @@ import { useArticles } from '@/features/catalogue/hooks/useArticles'
 import { useFranchiseTVA } from '@/hooks/useFranchiseTVA'
 import type { Auteur } from './hooks/useAuteurs'
 import { DateInput } from '@/components/DateInput'
+import { todayISO } from '@/lib/date'
 import sty from './AuteurForm.module.css'
 
 // •"?•"? Helpers •"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?
@@ -403,7 +404,7 @@ interface FormState {
 
 const formVide = (articles: { id: string }[]): FormState => ({
   typeDAId: '', articleId: articles.length === 1 ? articles[0]!.id : '', avance: '', prixAuteurHT: '',
-  dateSignature: new Date().toISOString().slice(0, 10),
+  dateSignature: todayISO(),
   datePriseEffet: '', dureeAns: '',
   reconduiteTacite: true,
   periodicite: '', datesFixesJSON: [], prochainVersement: '',
@@ -419,7 +420,7 @@ interface FormulaireProps {
   onSubmit:   (p: CreateContratPayload) => void
 }
 
-function FormulaireContrat({ auteurId, articles, typesDA, onCreated, onCancel, isPending, onSubmit }: FormulaireProps) {
+function FormulaireContrat({ auteurId, articles, typesDA, onCancel, isPending, onSubmit }: FormulaireProps) {
   const franchiseTVA = useFranchiseTVA()
   const [f, setF] = useState<FormState>(() => formVide(articles))
   const set = (k: keyof FormState) => (v: string | boolean) => setF((s) => ({ ...s, [k]: v }))
@@ -573,7 +574,7 @@ export function ContratsAuteurSection({ auteur, allArticles = false }: Props) {
           typesDA={typesDA}
           articles={mesArticles}
           onDelete={() => deleteContrat.mutate(c.id)}
-          onUpdate={(data) => updateContrat.mutateAsync({ id: c.id, ...data })}
+          onUpdate={async (data) => { await updateContrat.mutateAsync({ id: c.id, ...data }) }}
           onAppliquer={() => appliquerPeriodicite.mutate(c.id)}
           updating={updateContrat.isPending}
           applying={appliquerPeriodicite.isPending}

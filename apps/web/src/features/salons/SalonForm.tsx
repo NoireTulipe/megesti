@@ -12,6 +12,7 @@ import { validateCustomFields } from '@/lib/customFieldValidation'
 import { FIXED_SECTIONS } from '@/lib/fixedSections'
 import { DateField } from '@/components/DateInput'
 import styles from '@/styles/entityForm.module.css'
+import { isoToInput } from '@/lib/date'
 
 const FIXED_CATEGORIES = FIXED_SECTIONS.salon.map((s) => s.label)
 
@@ -31,7 +32,7 @@ interface Props {
 
 function toDateInput(iso: string | null | undefined): string {
   if (!iso) return ''
-  return iso.split('T')[0]
+  return isoToInput(iso)
 }
 
 export function SalonForm({ onClose, salon }: Props) {

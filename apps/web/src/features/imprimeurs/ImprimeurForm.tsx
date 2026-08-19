@@ -9,13 +9,6 @@ import type { Imprimeur } from './hooks/useImprimeurs'
 import styles from '@/styles/entityForm.module.css'
 import fStyles from './ImprimeurForm.module.css'
 
-const contactSchema = z.object({
-  nom:       z.string().min(1, 'Requis'),
-  prenom:    z.string().optional(),
-  email:     z.string().email('Email invalide').optional().or(z.literal('')),
-  telephone: z.string().optional(),
-})
-
 const schema = z.object({
   nom:          z.string().min(1, 'Requis'),
   lienCommande: z.string().url('URL invalide').optional().or(z.literal('')),

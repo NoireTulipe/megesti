@@ -15,6 +15,7 @@ import { validateCustomFields } from '@/lib/customFieldValidation'
 import { FIXED_SECTIONS } from '@/lib/fixedSections'
 import { usePlanFeatures } from '@/hooks/usePlanFeatures'
 import { DateInput } from '@/components/DateInput'
+import { todayISO } from '@/lib/date'
 import styles from './AuteurForm.module.css'
 
 const FIXED_CATEGORIES = FIXED_SECTIONS.auteur.map((s) => s.label)
@@ -45,7 +46,7 @@ export function AuteurForm({ onClose, auteur }: Props) {
 
   const [avecContrat,        setAvecContrat]       = useState(false)
   const [contratTypeDAId,    setContratTypeDAId]   = useState('')
-  const [contratDateSig,     setContratDateSig]    = useState(new Date().toISOString().slice(0, 10))
+  const [contratDateSig,     setContratDateSig]    = useState(todayISO())
   const [contratDureeAns,    setContratDureeAns]   = useState('')
   const [contratReconduite,  setContratReconduite] = useState(true)
   const { data: allChamps = [] }    = useCustomFields('auteur')

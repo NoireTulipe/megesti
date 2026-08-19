@@ -82,12 +82,12 @@ export function VenteExemplairesModal({ auteur, articles, contrats, isOpen, onCl
     setSelections((prev) => {
       const row = prev[articleId]
       const newQty = Math.max(0, (row?.quantite ?? 0) + delta)
-      return { ...prev, [articleId]: { ...row, quantite: newQty } }
+      return { ...prev, [articleId]: { prixHT: row?.prixHT ?? '', quantite: newQty } }
     })
   }
 
   function setPrix(articleId: string, val: string) {
-    setSelections((prev) => ({ ...prev, [articleId]: { ...prev[articleId], prixHT: val } }))
+    setSelections((prev) => ({ ...prev, [articleId]: { quantite: prev[articleId]?.quantite ?? 0, prixHT: val } }))
   }
 
   async function handleSubmit() {

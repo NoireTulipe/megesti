@@ -52,7 +52,7 @@ export function useUpdateMaisonEdition() {
 export function useDeleteMaisonEdition() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (id: string) => api.delete<void>(`/maisons-edition/${id}`),
+    mutationFn: (id: string) => api.delete(`/maisons-edition/${id}`),
     onSuccess:  () => qc.invalidateQueries({ queryKey: KEYS.all() }),
   })
 }

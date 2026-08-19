@@ -21,7 +21,7 @@ export function useSaveCustomFieldValues() {
     mutationFn: ({ entityId, values }: {
       entityId: string
       values:   { definitionId: string; value: string | null }[]
-    }) => api.put<void>('/custom-field-values', { entityId, values }),
+    }) => api.put<undefined>('/custom-field-values', { entityId, values }),
     onSuccess: (_data, { entityId }) => {
       qc.invalidateQueries({ queryKey: KEYS.entity(entityId) })
     },

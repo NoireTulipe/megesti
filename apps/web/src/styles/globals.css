@@ -1,7 +1,21 @@
 /* Les @import DOIVENT précéder toute autre règle (y compris @tailwind),
    sinon PostCSS ne les inline pas et le navigateur les ignore. */
 @import './animations.css';
-@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
+/* Polices auto-hébergées (RGPD, règle #7) : fonts.googleapis.com transmettait
+   l'IP de chaque visiteur à Google. Bénéfice annexe — plus de cascade bloquante
+   au rendu, et les polices restent disponibles hors ligne dans la PWA.
+   Sous-ensembles latin + latin-ext uniquement : les variantes vietnamienne et
+   cyrillique n'ont pas d'usage ici et étaient précachées par le service worker. */
+@import '@fontsource/plus-jakarta-sans/latin-400.css';
+@import '@fontsource/plus-jakarta-sans/latin-500.css';
+@import '@fontsource/plus-jakarta-sans/latin-600.css';
+@import '@fontsource/plus-jakarta-sans/latin-700.css';
+@import '@fontsource/plus-jakarta-sans/latin-ext-400.css';
+@import '@fontsource/plus-jakarta-sans/latin-ext-600.css';
+@import '@fontsource/dm-serif-display/latin-400.css';
+@import '@fontsource/dm-serif-display/latin-400-italic.css';
+@import '@fontsource/dm-serif-display/latin-ext-400.css';
 
 @tailwind base;
 @tailwind components;

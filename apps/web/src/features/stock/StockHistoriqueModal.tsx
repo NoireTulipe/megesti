@@ -8,25 +8,26 @@ import {
 import { useStockTimeline, MVT_LABELS } from './hooks/useMouvementsStock'
 import type { MvtPeriod, StockEventType } from './hooks/useMouvementsStock'
 import type { Article } from '@/features/catalogue/types'
+import { toLocalISO } from '@/lib/date'
 import styles from './StockHistoriqueModal.module.css'
 
 // ── Helpers date ──────────────────────────────────────────────────
 
 function bucketKey(iso: string, period: MvtPeriod): string {
   const d = new Date(iso)
-  if (period === '7d' || period === '30d') return d.toISOString().slice(0, 10)
+  if (period === '7d' || period === '30d') return toLocalISO(d)
   if (period === '3m') {
     const day = d.getDay() || 7
     const mon = new Date(d)
     mon.setDate(d.getDate() - day + 1)
-    return mon.toISOString().slice(0, 10)
+    return toLocalISO(mon)
   }
-  return d.toISOString().slice(0, 7)
+  return toLocalISO(d).slice(0, 7)
 }
 
 function bucketLabel(key: string, period: MvtPeriod): string {
   if (period === '12m') {
-    const [y, m] = key.split('-')
+    const [y = '1970', m = '1'] = key.split('-')
     return new Date(+y, +m - 1).toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' })
   }
   return new Date(key).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
@@ -51,9 +52,17 @@ const PERIOD_LABELS: Record<MvtPeriod, string> = { '7d':'7 j', '30d':'30 j', '3m
 
 // ── Tooltip personnalisé ──────────────────────────────────────────
 
-function AreaTooltip({ active, payload }: any) {
+interface AreaPoint { fullDate: string; stock: number; delta: number; type: string; motif?: string | null }
+interface TooltipEntry {
+  dataKey?: string | number; color?: string; value?: number; name?: string
+  payload?: AreaPoint
+}
+interface TooltipProps { active?: boolean; payload?: TooltipEntry[]; label?: string }
+
+function AreaTooltip({ active, payload }: TooltipProps) {
   if (!active || !payload?.length) return null
-  const d = payload[0].payload
+  const d = payload[0]?.payload
+  if (!d) return null
   return (
     <div className={styles.tooltip}>
       <div className={styles.tooltipDate}>{d.fullDate}</div>
@@ -66,14 +75,14 @@ function AreaTooltip({ active, payload }: any) {
   )
 }
 
-function BarTooltip({ active, payload, label }: any) {
+function BarTooltip({ active, payload, label }: TooltipProps) {
   if (!active || !payload?.length) return null
   return (
     <div className={styles.tooltip}>
       <div className={styles.tooltipDate}>{label}</div>
-      {payload.map((p: any) => (
+      {payload.map((p) => (
         <div key={p.dataKey} style={{ color: p.color, fontSize: '0.82rem', fontWeight: 600 }}>
-          {p.name} : {p.value > 0 ? `+${p.value}` : p.value} ex.
+          {p.name} : {(p.value ?? 0) > 0 ? `+${p.value}` : p.value} ex.
         </div>
       ))}
     </div>

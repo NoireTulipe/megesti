@@ -1,5 +1,5 @@
 import {
-  LayoutGrid, BookOpen, Package, Users, ShoppingCart,
+  LayoutGrid, BookOpen, Package, ShoppingCart,
   Settings, TrendingUp, ArrowDownToLine, Coins, FileCheck,
   Network, BarChart2,
 } from 'lucide-react'

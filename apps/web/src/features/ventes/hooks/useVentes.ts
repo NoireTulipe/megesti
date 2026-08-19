@@ -45,6 +45,27 @@ const KEYS = {
   horsSession: () => ['ventes', 'hors-session'] as const,
 }
 
+/**
+ * Toute écriture sur une vente déplace de l'argent et du stock : le bilan, le
+ * dashboard, les droits d'auteur et les stats article dépendent tous du même
+ * fait comptable. Les invalider ensemble, sinon un montant faux reste affiché
+ * — ce qui, sur un outil de compta, coûte plus cher qu'un bug fonctionnel.
+ */
+const IMPACTS_VENTE = [
+  ['articles'],
+  ['bilan'],
+  ['dashboard'],
+  ['rapports'],
+  ['droits-auteur'],
+  ['ventes-stats-article'],
+  ['ventes-stats-auteur'],
+  ['sessionsCaisse'],
+] as const
+
+function invalidateImpactsVente(qc: ReturnType<typeof useQueryClient>) {
+  for (const queryKey of IMPACTS_VENTE) qc.invalidateQueries({ queryKey })
+}
+
 export function useVentes(sessionId?: string) {
   return useQuery({
     queryKey: KEYS.session(sessionId ?? ''),
@@ -77,7 +98,7 @@ export function useCreateVente() {
     meta: { successMessage: 'Vente enregistrée' },
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: KEYS.session(vars.sessionId) })
-      qc.invalidateQueries({ queryKey: ['articles'] })
+      invalidateImpactsVente(qc)
     },
   })
 }
@@ -94,8 +115,7 @@ export function useCreateVenteHorsSession() {
     meta: { successMessage: 'Vente enregistrée' },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: KEYS.horsSession() })
-      qc.invalidateQueries({ queryKey: ['articles'] })
-      qc.invalidateQueries({ queryKey: ['bilan'] })
+      invalidateImpactsVente(qc)
     },
   })
 }
@@ -108,7 +128,7 @@ export function useAnnulerVente() {
     meta: { successMessage: 'Vente annulée' },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: KEYS.all() })
-      qc.invalidateQueries({ queryKey: ['articles'] })
+      invalidateImpactsVente(qc)
     },
   })
 }

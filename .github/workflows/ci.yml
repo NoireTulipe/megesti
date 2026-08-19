@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verifier:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # La version vient de .nvmrc — source unique avec le poste de dev.
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      # corepack lit le champ packageManager du package.json racine
+      # et installe exactement pnpm@9.15.0.
+      - name: Activer pnpm
+        run: corepack enable
+
+      - name: Installer les dépendances
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      # Lint restreint au web pour l'instant : api (56 erreurs), mobile (~29)
+      # et admin (2) portent une dette antérieure. À élargir en `pnpm lint`
+      # dès que ces workspaces sont assainis.
+      - name: Lint (web)
+        run: pnpm lint:web
+
+      - name: Tests
+        run: pnpm test
+
+      - name: Build
+        run: pnpm build

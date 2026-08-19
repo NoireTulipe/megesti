@@ -75,7 +75,7 @@ interface Props {
   onClose:             () => void
 }
 
-export function BilanSession({ sessionId, ventes: ventesProp, frais: fraisProp, articles: articlesProp, sessionNom, pdvNom, commissionFixe, commissionPourcent, onClose }: Props) {
+export function BilanSession({ sessionId, ventes: ventesProp, frais: fraisProp, articles: articlesProp, sessionNom, commissionFixe, commissionPourcent, onClose }: Props) {
   const { data: droitsData } = useSessionDroits(sessionId)
   const { can, upgradeMessage } = usePlanFeatures()
   const franchiseTVA = useFranchiseTVA()

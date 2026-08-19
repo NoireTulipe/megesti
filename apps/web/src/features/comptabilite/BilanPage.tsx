@@ -6,6 +6,8 @@ import {
 } from 'recharts'
 import { useBilan } from './hooks/useBilan'
 import { useFranchiseTVA } from '@/hooks/useFranchiseTVA'
+import { toLocalISO, todayISO } from '@/lib/date'
+import { toNumber } from '@/lib/chart'
 import { DateInput } from '@/components/DateInput'
 import {
   useCharges,
@@ -36,11 +38,6 @@ function fEur(v: number) {
 function fDate(iso: string) {
   return new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })
 }
-function isoToInput(iso: string) { return iso.split('T')[0] }
-function toLocalISO(d: Date) {
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
-}
-
 function daysAgo(n: number) { const d = new Date(); d.setDate(d.getDate() - n); d.setHours(0,0,0,0); return d }
 function startOfYear()    { return new Date(new Date().getFullYear(), 0, 1) }
 
@@ -80,8 +77,8 @@ function CustomTooltip({ active, payload, label }: { active?: boolean; payload?:
 export function BilanPage() {
   const navigate = useNavigate()
   const [preset, setPreset]     = useState<PresetKey>('year')
-  const [customFrom, setCustomFrom] = useState(isoToInput(daysAgo(365).toISOString()))
-  const [customTo,   setCustomTo]   = useState(isoToInput(new Date().toISOString()))
+  const [customFrom, setCustomFrom] = useState(toLocalISO(daysAgo(365)))
+  const [customTo,   setCustomTo]   = useState(todayISO())
   const [showDetail, setShowDetail] = useState<string | null>(null)
 
   const { features } = usePlanFeatures()
@@ -115,7 +112,7 @@ export function BilanPage() {
   // ── Données donut flux ──────────────────────────────────────────────────────
   const donutEntrees = useMemo(() => {
     if (!data) return []
-    const { ventesDirectes, ventesHorsSession, ventesDepotTTC, reversementsEncaisses, detail } = data.entreesEffectives
+    const { ventesDirectes, ventesDepotTTC, reversementsEncaisses, detail } = data.entreesEffectives
     const motifSlices = (detail.ventesParMotif ?? []).map(m => ({
       name:  m.libelle,
       value: m.ca,
@@ -160,11 +157,6 @@ export function BilanPage() {
   const bilanActif  = data?.bilan.actif
   const bilanPassif = data?.bilan.passif
 
-  // Jours avant échéance pour alerte
-  function joursAvant(iso: string | null): number | null {
-    if (!iso) return null
-    return Math.ceil((new Date(iso).getTime() - Date.now()) / 86_400_000)
-  }
 
   if (isLoading) {
     return (
@@ -302,7 +294,7 @@ export function BilanPage() {
                         <Pie data={donutEntrees} dataKey="value" cx="50%" cy="50%" innerRadius={45} outerRadius={75} paddingAngle={3}>
                           {donutEntrees.map((d, i) => <Cell key={i} fill={d.fill} />)}
                         </Pie>
-                        <Tooltip formatter={(v: number) => fEur(v)} />
+                        <Tooltip formatter={(v) => fEur(toNumber(v))} />
                       </PieChart>
                     </ResponsiveContainer>
                   </div>
@@ -401,7 +393,7 @@ export function BilanPage() {
                         <Pie data={donutSorties} dataKey="value" cx="50%" cy="50%" innerRadius={45} outerRadius={75} paddingAngle={3}>
                           {donutSorties.map((d, i) => <Cell key={i} fill={d.fill} />)}
                         </Pie>
-                        <Tooltip formatter={(v: number) => fEur(v)} />
+                        <Tooltip formatter={(v) => fEur(toNumber(v))} />
                       </PieChart>
                     </ResponsiveContainer>
                   </div>
@@ -559,7 +551,7 @@ export function BilanPage() {
         )}
 
         {/* ── VUE GLOBALE (bar chart effectif vs prévu) ────────────────────── */}
-        {data && (barData[0].entrees > 0 || barData[1].entrees > 0) && (
+        {data && ((barData[0]?.entrees ?? 0) > 0 || (barData[1]?.entrees ?? 0) > 0) && (
           <div className={styles.section}>
             <div className={styles.sectionHeader}>
               <span className={styles.sectionEmoji}>📈</span>
