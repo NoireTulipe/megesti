@@ -7,7 +7,8 @@
     ".": "./src/index.ts",
     "./till": "./src/till/integrity.ts",
     "./droits/reference": "./src/droits/reference.ts",
-    "./bilan/commission": "./src/bilan/commission.ts"
+    "./bilan/commission": "./src/bilan/commission.ts",
+    "./facturation/totaux": "./src/facturation/totaux.ts"
   },
   "scripts": {
     "test": "vitest run",

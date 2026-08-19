@@ -1,6 +1,7 @@
 import { generateUUID } from '@/lib/utils'
 import { todayISO, addDaysISO } from '@/lib/date'
 import { isApiError } from '@/lib/api'
+import { calculerTotauxFacture } from '@megesti/business/facturation/totaux'
 import { useState, useMemo, useEffect, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
@@ -150,23 +151,9 @@ function EmissionForm({ onSent, onQuotaDepasse }: { onSent: () => void; onQuotaD
   ])
   const [error, setError] = useState<string | null>(null)
 
-  const totaux = useMemo(() => {
-    let ht = 0, tva = 0
-    const tvaParTaux = new Map<number, number>()
-    for (const l of lignes) {
-      const lht = Math.round(l.prixUnitaireHT * l.quantite * 100) / 100
-      const ltva = Math.round(lht * l.tauxTVA / 100 * 100) / 100
-      ht  += lht
-      tva += ltva
-      tvaParTaux.set(l.tauxTVA, Math.round(((tvaParTaux.get(l.tauxTVA) ?? 0) + ltva) * 100) / 100)
-    }
-    return {
-      ht:        Math.round(ht  * 100) / 100,
-      tva:       Math.round(tva * 100) / 100,
-      ttc:       Math.round((ht + tva) * 100) / 100,
-      tvaParTaux: Array.from(tvaParTaux.entries()).filter(([, v]) => v > 0).sort(([a], [b]) => a - b),
-    }
-  }, [lignes])
+  // Calcul déporté dans @megesti/business : c'est de la logique fiscale
+  // (facturation électronique 2026-2027), elle doit être testée et partagée.
+  const totaux = useMemo(() => calculerTotauxFacture(lignes), [lignes])
 
   function updateLigne<K extends keyof LigneEmission>(i: number, key: K, val: LigneEmission[K]) {
     setLignes(prev => prev.map((l, j) => j === i ? { ...l, [key]: val } : l))
