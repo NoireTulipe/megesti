@@ -276,7 +276,7 @@ export function AuteurDetail({ auteur, isOpen, onClose, onEdit }: Props) {
               ) : articles.map(({ article }, i) => (
                 <div key={article.id} className={sty['livre-item']}>
                   <div className={sty['livre-cover']} style={{ background: coverGradient(article.nom) }}>
-                    {article.nom[0].toUpperCase()}
+                    {article.nom.charAt(0).toUpperCase()}
                   </div>
                   <div className={sty['livre-info']}>
                     <div className={sty['livre-nom']}>{article.nom}</div>

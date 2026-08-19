@@ -128,7 +128,7 @@ export function ArticleDetail({ article, isOpen, onClose, onEdit, onToggle }: Pr
               {article.imageUrl
                 ? <img src={getImageUrl(article.imageUrl)!} alt={article.nom} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 : <span style={{ fontFamily: "'DM Serif Display',serif", fontSize: '1.6rem', color: '#fff', fontStyle: 'italic' }}>
-                    {article.nom[0].toUpperCase()}
+                    {article.nom.charAt(0).toUpperCase()}
                   </span>
               }
             </div>

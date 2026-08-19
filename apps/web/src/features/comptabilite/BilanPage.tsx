@@ -556,7 +556,7 @@ export function BilanPage() {
         )}
 
         {/* ── VUE GLOBALE (bar chart effectif vs prévu) ────────────────────── */}
-        {data && (barData[0].entrees > 0 || barData[1].entrees > 0) && (
+        {data && ((barData[0]?.entrees ?? 0) > 0 || (barData[1]?.entrees ?? 0) > 0) && (
           <div className={styles.section}>
             <div className={styles.sectionHeader}>
               <span className={styles.sectionEmoji}>📈</span>

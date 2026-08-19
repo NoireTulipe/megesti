@@ -353,7 +353,7 @@ export function ComptabilitePage() {
                     <div className={styles.assocBar}>
                       <div
                         className={styles.assocBarFill}
-                        style={{ width: `${(a.nb / associations[0].nb) * 100}%` }}
+                        style={{ width: `${(a.nb / (associations[0]?.nb || 1)) * 100}%` }}
                       />
                     </div>
                   </div>

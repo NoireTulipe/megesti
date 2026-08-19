@@ -10,15 +10,15 @@ export function Sparkline({ data, positive, width = 80, height = 28 }: Sparkline
   const max = Math.max(...data)
   const range = max - min || 1
 
-  const pts = data.map((v, i) => [
+  const pts: [number, number][] = data.map((v, i) => [
     (i / (data.length - 1)) * width,
     height - ((v - min) / range) * (height - 4) - 2,
   ])
 
   const path = pts
     .map((p, i) => {
-      if (i === 0) return `M${p[0]},${p[1]}`
-      const prev = pts[i - 1]!
+      const prev = pts[i - 1]
+      if (i === 0 || !prev) return `M${p[0]},${p[1]}`
       const cx = (prev[0] + p[0]) / 2
       return `C${cx},${prev[1]} ${cx},${p[1]} ${p[0]},${p[1]}`
     })

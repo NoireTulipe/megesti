@@ -5,6 +5,7 @@ import type { Reversement, TypePaiementRemise, StatutReversement } from './hooks
 import { EmptyState } from '@/components/ui/EmptyState'
 import { PageHero } from '@/components/PageHero'
 import styles from './ReversementsPage.module.css'
+import { todayISO } from '@/lib/date'
 
 type Filtre = 'EN_ATTENTE' | 'ENCAISSE' | 'TOUS'
 
@@ -26,7 +27,7 @@ function ModalEncaisser({ reversement, onClose }: ModalEncaisserProps) {
   const [mode,      setMode]      = useState<TypePaiementRemise>('VIREMENT')
   const [reference, setReference] = useState('')
   const [notes,     setNotes]     = useState('')
-  const [date,      setDate]      = useState(new Date().toISOString().split('T')[0])
+  const [date,      setDate]      = useState(todayISO())
   const encaisser = useEncaisserReversement()
 
   // Calcul commission si définie

@@ -16,8 +16,11 @@ interface MotifSortie {
   desc:    string
 }
 
+const MOTIF_SORTIE_DEFAUT: MotifSortie =
+  { type: 'SORTIE_DON',         label: 'Don',           emoji: '🎁', frais: true,  desc: 'Livres offerts (déductible)' }
+
 const MOTIFS_SORTIE: MotifSortie[] = [
-  { type: 'SORTIE_DON',         label: 'Don',           emoji: '🎁', frais: true,  desc: 'Livres offerts (déductible)' },
+  MOTIF_SORTIE_DEFAUT,
   { type: 'SORTIE_PERTE',       label: 'Perte',         emoji: '📦', frais: true,  desc: 'Livres perdus ou égarés' },
   { type: 'SORTIE_VOL',         label: 'Vol',           emoji: '🚨', frais: true,  desc: 'Livres dérobés' },
   { type: 'SORTIE_DEGRADATION', label: 'Dégradation',   emoji: '💧', frais: true,  desc: 'Livres endommagés' },
@@ -32,7 +35,7 @@ export function AjustementStock({ article, onClose }: Props) {
   const franchiseTVA = useFranchiseTVA()
   const [mode,       setMode]       = useState<Mode>('=')
   const [quantite,   setQuantite]   = useState<number>(0)
-  const [motifType,  setMotifType]  = useState<MotifSortie>(MOTIFS_SORTIE[0])
+  const [motifType,  setMotifType]  = useState<MotifSortie>(MOTIF_SORTIE_DEFAUT)
   const [noteLibre,  setNoteLibre]  = useState('')
   const [montantHT,  setMontantHT]  = useState<string>('')
   const create = useCreateMouvement()

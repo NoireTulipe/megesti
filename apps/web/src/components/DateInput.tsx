@@ -1,4 +1,5 @@
 import type { ComponentProps } from 'react'
+import { isoToInput } from '@/lib/date'
 import styles from './DateInput.module.css'
 
 interface Props {
@@ -38,6 +39,7 @@ export function DateField({ className, ...rest }: Omit<ComponentProps<'input'>, 
 /** Formate une date ISO en "DD/MM/YYYY" pour l'affichage. */
 export function fmtDateFR(iso: string): string {
   if (!iso) return ''
-  const [y, m, d] = iso.split('T')[0].split('-')
+  const [y, m, d] = isoToInput(iso).split('-')
+  if (!y || !m || !d) return ''
   return `${d}/${m}/${y}`
 }

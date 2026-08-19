@@ -1,5 +1,5 @@
 import { generateUUID } from '@/lib/utils'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, type ReactElement } from 'react'
 import { DateInput } from '@/components/DateInput'
 import { Overlay } from '@/components/ui/Overlay'
 import {
@@ -33,9 +33,9 @@ const PERIODICITE_LABELS: Record<string, string> = {
 function urgencyClass(prochainVersement: string | null): string {
   if (!prochainVersement) return ''
   const jours = Math.ceil((new Date(prochainVersement).getTime() - Date.now()) / 86400000)
-  if (jours < 0)  return styles.urgenceRetard
-  if (jours <= 7) return styles.urgenceSemaine
-  return styles.urgenceOk
+  if (jours < 0)  return styles.urgenceRetard ?? ''
+  if (jours <= 7) return styles.urgenceSemaine ?? ''
+  return styles.urgenceOk ?? ''
 }
 
 // •"?•"? Modal paiement •"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?•"?
@@ -325,7 +325,7 @@ function OngletHistorique() {
         <span />
       </div>
       {paiements.map((p) => {
-        const st = STATUT_STYLES[p.statut]
+        const st = STATUT_STYLES[p.statut] ?? { color: '#374151', bg: '#F3F4F6', label: p.statut }
         return (
           <div key={p.id} className={styles.tableCardSm}>
             <div className={styles.cardSmMain}>
@@ -474,7 +474,7 @@ export function DroitsAuteurPage() {
               <line x1="6" y1="20" x2="6" y2="14"/>
             </svg>
           )],
-        ] as [Tab, string, JSX.Element][]).map(([key, label, icon]) => (
+        ] as [Tab, string, ReactElement][]).map(([key, label, icon]) => (
           <button
             key={key}
             className={`${styles.tab} ${tab === key ? styles.tabActive : ''}`}

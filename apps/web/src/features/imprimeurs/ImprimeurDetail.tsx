@@ -197,7 +197,7 @@ export function ImprimeurDetail({ imprimeur, isOpen, onClose, onEdit }: Props) {
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     color: '#fff', fontFamily: "'DM Serif Display',serif", fontSize: '0.95rem',
                   }}>
-                    {c.nom[0].toUpperCase()}
+                    {c.nom.charAt(0).toUpperCase()}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--ink)' }}>

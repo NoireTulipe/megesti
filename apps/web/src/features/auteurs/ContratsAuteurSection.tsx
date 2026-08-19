@@ -574,7 +574,7 @@ export function ContratsAuteurSection({ auteur, allArticles = false }: Props) {
           typesDA={typesDA}
           articles={mesArticles}
           onDelete={() => deleteContrat.mutate(c.id)}
-          onUpdate={(data) => updateContrat.mutateAsync({ id: c.id, ...data })}
+          onUpdate={async (data) => { await updateContrat.mutateAsync({ id: c.id, ...data }) }}
           onAppliquer={() => appliquerPeriodicite.mutate(c.id)}
           updating={updateContrat.isPending}
           applying={appliquerPeriodicite.isPending}

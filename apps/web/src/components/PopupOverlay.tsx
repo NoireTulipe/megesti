@@ -54,7 +54,8 @@ function PopupModal({ popup }: { popup: PopupData }) {
     navigate(href)
   }
 
-  if (!open) return null
+  // `slide` peut être undefined si l'index dépasse (popup sans slides) : rien à afficher.
+  if (!open || !slide) return null
 
   return (
     <div className={styles.overlay} onClick={isBlocking ? undefined : handleClose}>

@@ -25,7 +25,7 @@ const NAV_FEATURE_GATES: Partial<Record<NavKey, keyof PlanFeatures>> = {
 
 export function Sidebar({ active, onNav, collapsed, onToggle }: SidebarProps) {
   const navigate = useNavigate()
-  const v = (visible: string, hidden: string) => (collapsed ? hidden : visible)
+  const v = (visible?: string, hidden?: string) => (collapsed ? hidden ?? '' : visible ?? '')
   const { data: tenant } = useMonTenant()
   const user = useAuthStore(s => s.user)
   const { can, upgradeMessage } = usePlanFeatures()
