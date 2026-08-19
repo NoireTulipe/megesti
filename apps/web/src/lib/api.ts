@@ -34,6 +34,23 @@ export function isApiError(e: unknown): e is ApiError {
   return e instanceof ApiError
 }
 
+/**
+ * Message d'erreur de connexion adapté au vrai motif d'échec.
+ * Avant, tout échec affichait « mot de passe incorrect » — y compris un
+ * blocage anti-force-brute (429), ce qui poussait l'utilisateur à s'acharner
+ * avec des identifiants pourtant corrects.
+ */
+export function messageErreurConnexion(e: unknown): string {
+  if (isApiError(e)) {
+    if (e.status === 429) return 'Trop de tentatives. Patientez une minute avant de réessayer.'
+    if (e.status === 403) return e.message
+    if (e.status === 401) return 'Email ou mot de passe incorrect.'
+    if (e.status >= 500)  return 'Le service est momentanément indisponible. Réessayez dans un instant.'
+    return e.message
+  }
+  return 'Connexion impossible. Vérifiez votre connexion internet.'
+}
+
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const token = getToken()
   const hasBody = init.body !== undefined

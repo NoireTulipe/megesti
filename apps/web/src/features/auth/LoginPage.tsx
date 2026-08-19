@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/store/authStore'
 import styles from './LoginPage.module.css'
+import { messageErreurConnexion } from '@/lib/api'
 
 export function LoginPage() {
   const login    = useAuthStore((s) => s.login)
@@ -19,8 +20,8 @@ export function LoginPage() {
     try {
       await login(email, password)
       navigate('/', { replace: true })
-    } catch {
-      setError('Email ou mot de passe incorrect.')
+    } catch (e: unknown) {
+      setError(messageErreurConnexion(e))
     } finally {
       setLoading(false)
     }

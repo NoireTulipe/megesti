@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/store/authStore'
 import { api } from '@/lib/api'
 import styles from './LoginPage.module.css'
+import { messageErreurConnexion } from '@/lib/api'
 
 interface TenantInfo {
   name: string
@@ -36,8 +37,8 @@ export function TenantLoginPage() {
     try {
       await login(email, password, slug)
       navigate('/', { replace: true })
-    } catch {
-      setError('Email ou mot de passe incorrect.')
+    } catch (e: unknown) {
+      setError(messageErreurConnexion(e))
     } finally {
       setLoading(false)
     }
