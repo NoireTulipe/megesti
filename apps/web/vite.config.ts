@@ -13,8 +13,8 @@ export default defineConfig({
         name: 'Megesti',
         short_name: 'Megesti',
         description: "Gestion pour maisons d'édition indépendantes",
-        theme_color: '#ffffff',
-        background_color: '#ffffff',
+        theme_color: '#FAF7F2',
+        background_color: '#FAF7F2',
         display: 'standalone',
         lang: 'fr',
         icons: [
