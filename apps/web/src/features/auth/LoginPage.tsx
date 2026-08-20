@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { useAuthStore } from '@/store/authStore'
 import styles from './LoginPage.module.css'
 import { messageErreurConnexion } from '@/lib/api'
@@ -89,6 +89,10 @@ export function LoginPage() {
             <button type="submit" className={styles.btn} disabled={loading}>
               {loading ? 'Connexion…' : 'Accéder à mon espace →'}
             </button>
+
+            <p className={styles.subtitle} style={{ marginTop: 14, textAlign: 'center' }}>
+              <Link to="/mot-de-passe-oublie">Mot de passe oublié ?</Link>
+            </p>
           </form>
         </div>
       </div>

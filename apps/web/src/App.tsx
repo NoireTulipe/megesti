@@ -4,6 +4,8 @@ import { AppLayout } from '@/components/layout/AppLayout'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { LoginPage }       from '@/features/auth/LoginPage'
 import { TenantLoginPage } from '@/features/auth/TenantLoginPage'
+import { MotDePasseOubliePage }        from '@/features/auth/MotDePasseOubliePage'
+import { ReinitialiserMotDePassePage } from '@/features/auth/ReinitialiserMotDePassePage'
 import { PageLoader }      from '@/components/PageLoader'
 
 // Pages chargées à la demande : sort Recharts & co du bundle initial
@@ -26,6 +28,8 @@ export default function App() {
     <Routes>
       <Route path="/login"   element={<LoginPage />} />
       <Route path="/t/:slug" element={<TenantLoginPage />} />
+      <Route path="/mot-de-passe-oublie"        element={<MotDePasseOubliePage />} />
+      <Route path="/reinitialiser-mot-de-passe" element={<ReinitialiserMotDePassePage />} />
 
       <Route path="/*" element={
         <ProtectedRoute>

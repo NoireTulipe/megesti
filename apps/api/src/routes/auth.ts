@@ -1,6 +1,16 @@
 import type { FastifyPluginAsync } from 'fastify'
 import { z } from 'zod'
 import bcrypt from 'bcryptjs'
+import { randomBytes, createHash } from 'node:crypto'
+import { creerMailer } from '../services/mailer/index.js'
+
+/** Duree de validite d'un lien de reinitialisation. */
+const RESET_VALIDITE_MS = 60 * 60 * 1000 // 1 heure
+
+/** Le jeton circule en clair dans l'e-mail, seul son hache est stocke. */
+function hacherJeton(jeton: string): string {
+  return createHash('sha256').update(jeton).digest('hex')
+}
 
 const LoginSchema = z.object({
   email:    z.string().email(),
@@ -17,6 +27,16 @@ const PatchMeSchema = z.object({
 const PasswordSchema = z.object({
   current: z.string().min(1),
   new:     z.string().min(8),
+})
+
+const ForgotSchema = z.object({
+  email: z.string().email(),
+  slug:  z.string().optional(),
+})
+
+const ResetSchema = z.object({
+  token:    z.string().min(20),
+  password: z.string().min(8),
 })
 
 export const authRoutes: FastifyPluginAsync = async (app) => {
@@ -111,6 +131,112 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
       data:  body,
       select: { id: true, email: true, firstName: true, lastName: true, role: true, tenantId: true },
     })
+  })
+
+  // ── Mot de passe oublie ────────────────────────────────────────────────────
+
+  /**
+   * Demande de reinitialisation.
+   *
+   * Repond TOUJOURS 200, meme si l'adresse est inconnue : sinon la route
+   * devient un outil d'enumeration des comptes clients.
+   */
+  app.post('/forgot-password', {
+    config: { rateLimit: { max: 5, timeWindow: '15 minutes' } },
+  }, async (request) => {
+    const body = ForgotSchema.parse(request.body)
+    const reponse = { ok: true as const }
+
+    let tenantId: string | undefined
+    if (body.slug) {
+      const tenant = await app.db.tenant.findUnique({
+        where:  { slug: body.slug },
+        select: { id: true, actif: true },
+      })
+      if (!tenant || !tenant.actif) return reponse
+      tenantId = tenant.id
+    }
+
+    const user = await app.db.user.findFirst({
+      where: { email: body.email, active: true, ...(tenantId ? { tenantId } : {}) },
+    })
+    // Compte inconnu, inactif, ou auteur (espace pas encore ouvert) : on sort
+    // sans rien dire.
+    if (!user || user.role === 'AUTHOR') return reponse
+
+    // Les demandes precedentes encore valides sont invalidees : un seul lien
+    // actif a la fois.
+    await app.db.passwordResetToken.updateMany({
+      where: { userId: user.id, usedAt: null },
+      data:  { usedAt: new Date() },
+    })
+
+    const jeton = randomBytes(32).toString('base64url')
+    await app.db.passwordResetToken.create({
+      data: {
+        userId:    user.id,
+        tokenHash: hacherJeton(jeton),
+        expiresAt: new Date(Date.now() + RESET_VALIDITE_MS),
+      },
+    })
+
+    const base = (process.env['APP_URL'] ?? 'http://localhost:5173').replace(/\/+$/, '')
+    const lien = `${base}/reinitialiser-mot-de-passe?token=${jeton}`
+
+    try {
+      await creerMailer().envoyer({
+        to:      user.email,
+        subject: 'Reinitialisation de votre mot de passe MeGesti',
+        text: [
+          `Bonjour ${user.firstName},`,
+          '',
+          'Vous avez demande a reinitialiser votre mot de passe MeGesti.',
+          'Cliquez sur le lien ci-dessous — il est valable une heure :',
+          '',
+          lien,
+          '',
+          "Si vous n'etes pas a l'origine de cette demande, ignorez cet e-mail :",
+          'votre mot de passe actuel reste valable.',
+          '',
+          "L'equipe MeGesti",
+        ].join('\n'),
+      })
+    } catch (err) {
+      // L'envoi a echoue : on le trace, mais on ne le dit pas au client — sinon
+      // la reponse differe selon que le compte existe ou non.
+      request.log.error({ err }, "echec d'envoi du mail de reinitialisation")
+    }
+
+    return reponse
+  })
+
+  /** Consomme un jeton et remplace le mot de passe. */
+  app.post('/reset-password', {
+    config: { rateLimit: { max: 10, timeWindow: '15 minutes' } },
+  }, async (request, reply) => {
+    const body = ResetSchema.parse(request.body)
+
+    const enregistrement = await app.db.passwordResetToken.findUnique({
+      where:   { tokenHash: hacherJeton(body.token) },
+      include: { user: true },
+    })
+
+    if (!enregistrement || enregistrement.usedAt || enregistrement.expiresAt < new Date()) {
+      return reply.badRequest('Ce lien est invalide ou a expire. Demandez-en un nouveau.')
+    }
+    if (!enregistrement.user.active) {
+      return reply.badRequest('Ce lien est invalide ou a expire. Demandez-en un nouveau.')
+    }
+
+    const passwordHash = await bcrypt.hash(body.password, 12)
+    // Jeton marque comme utilise dans la meme transaction que le changement :
+    // pas de fenetre ou il servirait deux fois.
+    await app.db.$transaction([
+      app.db.user.update({ where: { id: enregistrement.userId }, data: { passwordHash } }),
+      app.db.passwordResetToken.update({ where: { id: enregistrement.id }, data: { usedAt: new Date() } }),
+    ])
+
+    return { ok: true }
   })
 
   app.patch('/password', { preHandler: app.authenticate }, async (request, reply) => {
