@@ -37,10 +37,20 @@ export async function buildServer() {
     credentials: true,
   })
 
+  // `??` ne capte que null/undefined : un JWT_SECRET vide passait la garde, alors
+  // qu'un secret HMAC vide est precisement le vecteur d'une CVE de fast-jwt.
+  const jwtSecret = process.env['JWT_SECRET'] ?? ''
+  if (jwtSecret.length < 32) {
+    throw new Error('JWT_SECRET manquant ou trop court (min 32 caracteres)')
+  }
+
   await app.register(jwt, {
-    secret: process.env['JWT_SECRET'] ?? (() => { throw new Error('JWT_SECRET manquant') })(),
+    secret: jwtSecret,
     // 30 j : le mobile salon n'a pas de flow de refresh et peut rester offline longtemps
-    sign: { expiresIn: '30d' },
+    sign:   { algorithm: 'HS256', expiresIn: '30d' },
+    // Algorithme de verification epingle : sans cela, un jeton forge avec un autre
+    // algorithme peut etre accepte (confusion d'algorithme, CVE fast-jwt).
+    verify: { algorithms: ['HS256'] },
   })
 
   // cross-origin : les thumbnails sont servies au web/mobile depuis une autre origine
