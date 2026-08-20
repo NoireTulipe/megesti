@@ -48,3 +48,14 @@ apps/api/prisma/export-dialogs.ts
 
 # Fichiers sensibles (CNI dossiers PDP, chiffres) - jamais versionnes
 private-uploads/
+
+# Artefacts de compilation TypeScript hors dist/
+# (tsconfig.node.json est en composite:true, donc `tsc -b` emet un .js et un
+#  .d.ts a cote de chaque vite.config.ts — regenere a chaque build)
+apps/*/vite.config.js
+apps/*/vite.config.js.map
+apps/*/vite.config.d.ts
+apps/*/vite.config.d.ts.map
+
+# Types generes par `astro sync`
+.astro/
