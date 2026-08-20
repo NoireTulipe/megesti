@@ -2,7 +2,7 @@ import type { FastifyPluginAsync } from 'fastify'
 import { z } from 'zod'
 import bcrypt from 'bcryptjs'
 import { randomBytes, createHash } from 'node:crypto'
-import { creerMailer } from '../services/mailer/index.js'
+import { mailer } from '../services/mailer/index.js'
 
 /** Duree de validite d'un lien de reinitialisation. */
 const RESET_VALIDITE_MS = 60 * 60 * 1000 // 1 heure
@@ -184,7 +184,7 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
     const lien = `${base}/reinitialiser-mot-de-passe?token=${jeton}`
 
     try {
-      await creerMailer().envoyer({
+      await mailer().envoyer({
         to:      user.email,
         subject: 'Reinitialisation de votre mot de passe MeGesti',
         text: [

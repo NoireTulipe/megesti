@@ -39,3 +39,45 @@ export function creerMailer(): Mailer {
     from: process.env['MAIL_FROM'] ?? `MeGesti <${user}>`,
   })
 }
+
+let instance: Mailer | null = null
+
+/**
+ * Transport partage. Construit une seule fois : nodemailer garde un pool de
+ * connexions, en recreer un a chaque requete serait du gaspillage.
+ */
+export function mailer(): Mailer {
+  instance ??= creerMailer()
+  return instance
+}
+
+/**
+ * A appeler au demarrage. Annonce le transport retenu et, en SMTP, verifie
+ * reellement les identifiants — sans cela, une configuration incomplete ne se
+ * decouvre qu'au premier client qui perd son mot de passe.
+ */
+export async function verifierMailer(log: {
+  info: (msg: string) => void
+  warn: (msg: string) => void
+  error: (msg: string) => void
+}): Promise<void> {
+  const m = mailer()
+  if (m.nom === 'console') {
+    log.warn(
+      "[mailer] transport CONSOLE : les e-mails sont ecrits dans les logs, pas envoyes. " +
+      'Renseignez MAIL_TRANSPORT=smtp et SMTP_HOST/SMTP_USER/SMTP_PASS pour un envoi reel.',
+    )
+    return
+  }
+  const cible = `${process.env['SMTP_HOST']}:${process.env['SMTP_PORT'] ?? 587}`
+  try {
+    await (m as SmtpMailer).verifier()
+    log.info(`[mailer] transport SMTP operationnel (${cible})`)
+  } catch (err) {
+    log.error(
+      `[mailer] SMTP INJOIGNABLE ou identifiants refuses (${cible}) : ${
+        err instanceof Error ? err.message : String(err)
+      }. Les e-mails de reinitialisation N'ARRIVERONT PAS.`,
+    )
+  }
+}
