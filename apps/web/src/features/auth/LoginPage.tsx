@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuthStore } from '@/store/authStore'
+import { HelpButton } from '@/components/HelpButton'
 import styles from './LoginPage.module.css'
 import { messageErreurConnexion } from '@/lib/api'
 
@@ -51,7 +52,10 @@ export function LoginPage() {
             <span className={styles.brandName}>MeGesti</span>
           </div>
 
-          <h1 className={styles.title}>Bon retour.</h1>
+          <h1 className={styles.title}>
+            Bon retour.
+            <HelpButton slug="connexion" size="sm" className={styles.aide} />
+          </h1>
           <p className={styles.subtitle}>Connectez-vous à votre espace éditorial</p>
 
           <form onSubmit={handleSubmit} className={styles.form}>

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useSearchParams, useNavigate } from 'react-router-dom'
 import { api, isApiError } from '@/lib/api'
+import { HelpButton } from '@/components/HelpButton'
 import styles from './LoginPage.module.css'
 
 const LONGUEUR_MINI = 8
@@ -79,7 +80,10 @@ export function ReinitialiserMotDePassePage() {
             </>
           ) : (
             <>
-              <h1 className={styles.title}>Nouveau mot de passe</h1>
+              <h1 className={styles.title}>
+                Nouveau mot de passe
+                <HelpButton slug="reinitialiser-mot-de-passe" size="sm" className={styles.aide} />
+              </h1>
               <p className={styles.subtitle}>Au moins {LONGUEUR_MINI} caractères.</p>
 
               <form onSubmit={handleSubmit} className={styles.form}>

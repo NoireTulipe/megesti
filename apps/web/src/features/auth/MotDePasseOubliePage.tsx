@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api, messageErreurConnexion } from '@/lib/api'
+import { HelpButton } from '@/components/HelpButton'
 import styles from './LoginPage.module.css'
 
 /**
@@ -63,7 +64,10 @@ export function MotDePasseOubliePage() {
             </>
           ) : (
             <>
-              <h1 className={styles.title}>Mot de passe oublié ?</h1>
+              <h1 className={styles.title}>
+                Mot de passe oublié ?
+                <HelpButton slug="mot-de-passe-oublie" size="sm" className={styles.aide} />
+              </h1>
               <p className={styles.subtitle}>
                 Indiquez votre adresse, nous vous envoyons un lien pour en choisir un nouveau.
               </p>

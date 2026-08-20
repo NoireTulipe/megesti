@@ -73,14 +73,22 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   return res.json() as Promise<T>
 }
 
-/** Token invalide/expiré en cours de session : purge + retour au login (sauf sur les pages de connexion). */
+/**
+ * Pages accessibles sans être connecté. Un 401 survenu depuis l'une d'elles ne
+ * doit jamais provoquer de redirection : cela éjecterait l'utilisateur en plein
+ * parcours de réinitialisation de mot de passe.
+ */
+const PAGES_PUBLIQUES = ['/login', '/t/', '/mot-de-passe-oublie', '/reinitialiser-mot-de-passe']
+
+/** Token invalide/expiré en cours de session : purge + retour au login. */
 function handleUnauthorized(status: number, path: string): void {
   if (status !== 401 || path.startsWith('/auth/login')) return
+  // Un jeton périmé est purgé dans tous les cas…
   clearToken()
+  // …mais on ne redirige que depuis une page protégée.
   const { pathname } = window.location
-  if (!pathname.startsWith('/login') && !pathname.startsWith('/t/')) {
-    window.location.assign('/login')
-  }
+  if (PAGES_PUBLIQUES.some((p) => pathname.startsWith(p))) return
+  window.location.assign('/login')
 }
 
 export const api = {

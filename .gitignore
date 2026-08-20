@@ -49,6 +49,10 @@ apps/api/prisma/export-dialogs.ts
 # Fichiers sensibles (CNI dossiers PDP, chiffres) - jamais versionnes
 private-uploads/
 
+# Fichiers deposes par les clients (couvertures, pieces jointes).
+# Le depot est public : rien de ce que depose un client ne doit y entrer.
+uploads/
+
 # Artefacts de compilation TypeScript hors dist/
 # (tsconfig.node.json est en composite:true, donc `tsc -b` emet un .js et un
 #  .d.ts a cote de chaque vite.config.ts — regenere a chaque build)

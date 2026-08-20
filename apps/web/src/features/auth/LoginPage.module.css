@@ -199,3 +199,9 @@
   .visual { display: none; }
   .panel { padding: 40px 24px; }
 }
+
+/* Bouton d'aide (?) aligne sur la ligne de titre */
+.aide {
+  vertical-align: middle;
+  margin-left: 10px;
+}

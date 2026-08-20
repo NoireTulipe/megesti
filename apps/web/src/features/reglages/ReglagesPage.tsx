@@ -16,6 +16,13 @@ import type { EntityType } from '@megesti/shared'
 type Tab = 'champs' | 'rayons' | 'thesaurus' | 'droits' | 'fiscal' | 'facturation'
 type Niveau = 'classique' | 'avance'
 
+/**
+ * Le mode « Avancé » n'est pas encore opérationnel : on le masque plutôt que
+ * de laisser l'utilisateur tomber sur des écrans incomplets. Tout le code
+ * reste en place — repasser cette constante à `true` le réactive.
+ */
+const MODE_AVANCE_DISPONIBLE = false
+
 const CLASSIQUE: { key: Tab; label: string; emoji: string; desc: string }[] = [
   { key: 'rayons',       label: 'Rayons & Catégories',    emoji: '🗂️', desc: 'Organisez votre catalogue' },
   { key: 'droits',       label: 'Barèmes DA',              emoji: '📄', desc: "Formules de droits d'auteur" },
@@ -91,7 +98,7 @@ export function ReglagesPage() {
 
   // Forcer retour en classique si le plan ne permet plus l'avancé
   useEffect(() => {
-    if (!features.reglagesAvances && niveau === 'avance') {
+    if ((!MODE_AVANCE_DISPONIBLE || !features.reglagesAvances) && niveau === 'avance') {
       setNiveau('classique')
       setTab('rayons')
     }
@@ -112,15 +119,17 @@ export function ReglagesPage() {
           >
             ⚙️ Classique
           </button>
-          <button
-            className={`${styles.niveauBtn} ${niveau === 'avance' ? styles.niveauBtnActive : ''}`}
-            onClick={() => features.reglagesAvances && handleNiveau('avance')}
-            disabled={!features.reglagesAvances}
-            title={!features.reglagesAvances ? 'Les réglages avancés sont disponibles à partir du plan Edition.' : undefined}
-            style={!features.reglagesAvances ? { opacity: 0.4, cursor: 'not-allowed' } : undefined}
-          >
-            {!features.reglagesAvances ? '🔒' : '🔬'} Avancé
-          </button>
+          {MODE_AVANCE_DISPONIBLE && (
+            <button
+              className={`${styles.niveauBtn} ${niveau === 'avance' ? styles.niveauBtnActive : ''}`}
+              onClick={() => features.reglagesAvances && handleNiveau('avance')}
+              disabled={!features.reglagesAvances}
+              title={!features.reglagesAvances ? 'Les réglages avancés sont disponibles à partir du plan Edition.' : undefined}
+              style={!features.reglagesAvances ? { opacity: 0.4, cursor: 'not-allowed' } : undefined}
+            >
+              {!features.reglagesAvances ? '🔒' : '🔬'} Avancé
+            </button>
+          )}
         </div>
       </PageHero>
 
