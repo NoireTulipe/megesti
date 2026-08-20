@@ -74,10 +74,21 @@ export async function verifierMailer(log: {
     await (m as SmtpMailer).verifier()
     log.info(`[mailer] transport SMTP operationnel (${cible})`)
   } catch (err) {
+    const message = err instanceof Error ? err.message : String(err)
+    // Cas frequent en hebergement mutualise : le serveur presente le certificat
+    // de l'hebergeur, pas celui du domaine. On donne la solution directement.
+    const indice = /ALTNAME|altnames/i.test(message)
+      ? " Le serveur presente un certificat pour un AUTRE nom d'hote. Utilisez le nom" +
+        ' technique fourni par votre hebergeur dans SMTP_HOST (souvent mailNN.<hebergeur>.com)' +
+        ' plutot que mail.<votre-domaine>.'
+      : /EAUTH|Invalid login|535/i.test(message)
+        ? ' Identifiants refuses : verifiez SMTP_USER et SMTP_PASS.'
+        : /ETIMEDOUT|ECONNREFUSED/i.test(message)
+          ? ' Port bloque ou serveur injoignable : verifiez SMTP_PORT et le pare-feu sortant.'
+          : ''
     log.error(
-      `[mailer] SMTP INJOIGNABLE ou identifiants refuses (${cible}) : ${
-        err instanceof Error ? err.message : String(err)
-      }. Les e-mails de reinitialisation N'ARRIVERONT PAS.`,
+      `[mailer] SMTP inutilisable (${cible}) : ${message}.` +
+        `${indice} Les e-mails de reinitialisation N'ARRIVERONT PAS.`,
     )
   }
 }
